@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' https://obx-core.obx; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Mods</title>
+<link rel="stylesheet" href="menu.css">
+</head>
+<body>
+<div class="app">
+  <div class="window">
+    <header class="head">
+      <div class="title">
+        <span class="obx-brand"><span class="obx-brand-a">Obenseuer</span><span class="obx-brand-b">MODS</span></span>
+        <span id="modCount" class="obx-label"></span>
+      </div>
+      <nav id="tabs" class="obx-tabs" aria-label="Pages"></nav>
+      <button id="close" class="win-close" type="button" aria-label="Close">&times;</button>
+    </header>
+    <nav class="side" aria-label="Mods">
+      <input id="search" class="obx-input search" type="search" placeholder="Search settings" autocomplete="off" spellcheck="false" maxlength="200">
+      <span id="count" class="obx-label"></span>
+      <ul id="mods" class="mods"></ul>
+    </nav>
+    <main id="pane" class="pane"></main>
+    <footer class="status">
+      <span id="status" role="status"></span>
+      <span class="hints">
+        <span class="hint"><kbd>Esc</kbd>Close</span>
+        <span class="hint"><kbd>Tab</kbd>Next</span>
+        <span class="hint"><kbd>&uarr;</kbd><kbd>&darr;</kbd>Adjust</span>
+      </span>
+    </footer>
+  </div>
+</div>
+<script src="rows.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

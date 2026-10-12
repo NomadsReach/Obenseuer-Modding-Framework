@@ -1,0 +1,314 @@
+using System;
+using System.Collections.Generic;
+
+namespace ObenseuerCore
+{
+    public enum TaskState
+    {
+        Active = 0,
+        Failed = 1,
+        Finished = 2,
+        Abandoned = 3
+    }
+
+    public enum ObjectiveState
+    {
+        Active = 0,
+        Failed = 1,
+        Finished = 2,
+        Abandoned = 3,
+        Hidden = 4
+    }
+
+    public sealed class ObjectiveInfo
+    {
+        public string Id { get; private set; }
+        public string Title { get; private set; }
+        public string Description { get; private set; }
+        public ObjectiveState State { get; private set; }
+        public bool Optional { get; private set; }
+        public int Current { get; private set; }
+        public int Target { get; private set; }
+
+        internal ObjectiveInfo(string id, string title, string description, ObjectiveState state, bool optional, int current, int target)
+        {
+            Id = id;
+            Title = title;
+            Description = description;
+            State = state;
+            Optional = optional;
+            Current = current;
+            Target = target;
+        }
+    }
+
+    public sealed class QuestInfo
+    {
+        public string Id { get; private set; }
+        public string Title { get; private set; }
+        public string Description { get; private set; }
+        public TaskState State { get; private set; }
+        public ObjectiveInfo[] Objectives { get; private set; }
+
+        internal QuestInfo(string id, string title, string description, TaskState state, ObjectiveInfo[] objectives)
+        {
+            Id = id;
+            Title = title;
+            Description = description;
+            State = state;
+            Objectives = objectives;
+        }
+    }
+
+    public sealed class TaskChangedArgs
+    {
+        public string TaskId { get; private set; }
+        public TaskState State { get; private set; }
+
+        internal TaskChangedArgs(string taskId, TaskState state)
+        {
+            TaskId = taskId;
+            State = state;
+        }
+    }
+
+    public sealed class ObjectiveChangedArgs
+    {
+        public string TaskId { get; private set; }
+        public string ObjectiveId { get; private set; }
+        public ObjectiveState State { get; private set; }
+
+        internal ObjectiveChangedArgs(string taskId, string objectiveId, ObjectiveState state)
+        {
+            TaskId = taskId;
+            ObjectiveId = objectiveId;
+            State = state;
+        }
+    }
+
+    public static class Quests
+    {
+        internal const string Owner = "obenseuer.moddingframework.quests";
+        private static bool installed;
+
+        public static event Action<TaskChangedArgs> TaskChanged;
+        public static event Action<ObjectiveChangedArgs> ObjectiveChanged;
+
+        public static bool IsAvailable
+        {
+            get
+            {
+                return installed && !CorePatcher.IsDisabled(Owner);
+            }
+        }
+
+        public static List<QuestInfo> All()
+        {
+            TaskController controller = Readable();
+            if (controller == null) return new List<QuestInfo>();
+            try
+            {
+                List<QuestInfo> quests = new List<QuestInfo>();
+                foreach (TaskStatusInfo entry in controller.allTasks)
+                {
+                    if (entry != null && entry.task != null) quests.Add(Describe(entry));
+                }
+                return quests;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Owner, "All", e);
+                return new List<QuestInfo>();
+            }
+        }
+
+        public static QuestInfo Get(string taskId)
+        {
+            TaskController controller = Readable();
+            if (controller == null || string.IsNullOrEmpty(taskId)) return null;
+            try
+            {
+                TaskStatusInfo entry = Resolve(controller, taskId);
+                return entry == null ? null : Describe(entry);
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Owner, "Get", e);
+                return null;
+            }
+        }
+
+        public static bool SetTask(string taskId, TaskState state)
+        {
+            if (!IsClosing(state) || SaveGate.Busy) return false;
+            TaskController controller = Writable("SetTask");
+            if (controller == null) return false;
+            try
+            {
+                TaskStatusInfo entry = Resolve(controller, taskId);
+                CurrentTaskStatus target = (CurrentTaskStatus)(int)state;
+                if (entry == null || entry.status != CurrentTaskStatus.Active) return false;
+                controller.EditTaskStatus(entry, target);
+                return entry.status == target;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Owner, "SetTask", e);
+                return false;
+            }
+        }
+
+        public static bool SetObjective(string taskId, string objectiveId, ObjectiveState state)
+        {
+            if (!IsClosing(state) || SaveGate.Busy) return false;
+            TaskController controller = Writable("SetObjective");
+            if (controller == null) return false;
+            try
+            {
+                TaskStatusInfo entry = Resolve(controller, taskId);
+                ObjectiveStatusInfo objective = Unique(entry, objectiveId);
+                ObjectiveStatus target = (ObjectiveStatus)(int)state;
+                if (objective == null || objective.status != ObjectiveStatus.Active) return false;
+                if (target == ObjectiveStatus.Finished && !objective.objective.CheckCompleteRequirements(entry.objectives)) return false;
+                objective.objective.EditObjective(objective.optional, target, false, true, CurrentTaskStatus.Active, entry.task);
+                return objective.status == target;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Owner, "SetObjective", e);
+                return false;
+            }
+        }
+
+        public static bool AddProgress(string taskId, string objectiveId, int amount)
+        {
+            if (amount <= 0 || SaveGate.Busy) return false;
+            TaskController controller = Writable("AddProgress");
+            if (controller == null) return false;
+            try
+            {
+                TaskStatusInfo entry = Resolve(controller, taskId);
+                ObjectiveStatusInfo objective = Unique(entry, objectiveId);
+                if (objective == null || objective.status != ObjectiveStatus.Active || objective.counterAmount <= 0) return false;
+                int before = objective.currentAmount;
+                int room = objective.counterAmount - before;
+                if (room <= 0) return false;
+                int step = Math.Min(amount, room);
+                bool completes = step == room && !objective.objective.dontSelfCompleteWithCounter;
+                if (completes && !objective.objective.CheckCompleteRequirements(entry.objectives)) return false;
+                controller.EditTaskCounter(entry.task, objective.objective, step, false);
+                return objective.currentAmount != before || objective.status != ObjectiveStatus.Active;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Owner, "AddProgress", e);
+                return false;
+            }
+        }
+
+        internal static void Init()
+        {
+            StoryPump.Ensure();
+            installed = Core.PatchingAllowed;
+            if (installed) QuestsPatches.Install();
+            CoreLog.For(Owner).Info(installed ? "quests installed" : "quests not installed");
+        }
+
+        internal static void RaiseTaskChanged(string taskId, TaskState state)
+        {
+            TaskChangedArgs args = new TaskChangedArgs(taskId, state);
+            Events.Raise(TaskChanged, "Quests.TaskChanged", h => h(args));
+        }
+
+        internal static void RaiseObjectiveChanged(string taskId, string objectiveId, ObjectiveState state)
+        {
+            ObjectiveChangedArgs args = new ObjectiveChangedArgs(taskId, objectiveId, state);
+            Events.Raise(ObjectiveChanged, "Quests.ObjectiveChanged", h => h(args));
+        }
+
+        internal static ObjectiveStatusInfo FindObjective(string taskId, string objectiveId)
+        {
+            TaskController controller = Readable();
+            if (controller == null) return null;
+            try
+            {
+                return Unique(Resolve(controller, taskId), objectiveId);
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Owner, "FindObjective", e);
+                return null;
+            }
+        }
+
+        private static TaskController Readable()
+        {
+            return IsAvailable ? TaskController.instance : null;
+        }
+
+        private static TaskController Writable(string member)
+        {
+            if (!IsAvailable || TaskPanel.instance == null || Notifications.instance == null) return null;
+            if (QuestsPatches.Busy)
+            {
+                StoryLog.Refuse(Owner, member, "called while a quest hook is running, the call was not applied");
+                return null;
+            }
+            return TaskController.instance;
+        }
+
+        private static QuestInfo Describe(TaskStatusInfo entry)
+        {
+            List<ObjectiveInfo> objectives = new List<ObjectiveInfo>();
+            foreach (ObjectiveStatusInfo objective in entry.objectives)
+            {
+                objectives.Add(new ObjectiveInfo(objective.objective.Id, objective.objective.title, objective.objective.description, (ObjectiveState)(int)objective.status, objective.optional, objective.currentAmount, objective.counterAmount));
+            }
+            return new QuestInfo(entry.task.Id, entry.task.title, entry.task.description, (TaskState)(int)entry.status, objectives.ToArray());
+        }
+
+        private static TaskStatusInfo Resolve(TaskController controller, string taskId)
+        {
+            if (string.IsNullOrEmpty(taskId)) return null;
+            TaskStatusInfo found = null;
+            int matches = 0;
+            foreach (TaskStatusInfo entry in controller.allTasks)
+            {
+                if (entry == null || entry.task == null || entry.Id != taskId) continue;
+                found = entry;
+                matches++;
+            }
+            if (matches != 1) return null;
+            foreach (TaskStatusInfo entry in controller.allTasks)
+            {
+                if (entry == null || entry.task == null) continue;
+                if (entry.task == found.task || entry.task.Compare(found.task)) return entry == found ? found : null;
+            }
+            return null;
+        }
+
+        private static ObjectiveStatusInfo Unique(TaskStatusInfo entry, string objectiveId)
+        {
+            if (entry == null || string.IsNullOrEmpty(objectiveId)) return null;
+            ObjectiveStatusInfo found = null;
+            int matches = 0;
+            foreach (ObjectiveStatusInfo objective in entry.objectives)
+            {
+                if (objective.objective.Id != objectiveId) continue;
+                found = objective;
+                matches++;
+            }
+            return matches == 1 ? found : null;
+        }
+
+        private static bool IsClosing(TaskState state)
+        {
+            return state == TaskState.Failed || state == TaskState.Finished || state == TaskState.Abandoned;
+        }
+
+        private static bool IsClosing(ObjectiveState state)
+        {
+            return state == ObjectiveState.Failed || state == ObjectiveState.Finished || state == ObjectiveState.Abandoned;
+        }
+    }
+}

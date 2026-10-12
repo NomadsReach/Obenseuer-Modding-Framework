@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>ObxWebView test page</title>
+<style>
+html, body { margin: 0; height: 100%; background: transparent; font: 16px "Segoe UI", system-ui, sans-serif; color: #e6e9ef; }
+#card { position: absolute; left: 20px; top: 20px; padding: 12px 16px; border-radius: 12px; background: rgba(18, 23, 34, 0.9); }
+</style>
+</head>
+<body>
+<div id="card">ObxWebView test page</div>
+<script>
+const initRan = window.__obxRan === true;
+const initTop = String(window.__obxInit);
+const webview = window.chrome.webview;
+const post = (message) => webview.postMessage(message);
+webview.addEventListener('message', (event) => post({ type: 'echo', data: event.data }));
+document.addEventListener('mousedown', (event) => post({ type: 'mouse', x: event.clientX, y: event.clientY, button: event.button }));
+document.addEventListener('keydown', (event) => post({ type: 'key', key: event.key }));
+window.addEventListener('error', (event) => post({ type: 'error', message: String(event.message) }));
+window.addEventListener('message', (event) => { if (event.data && event.data.frameProbe) post({ type: 'frame-probe', ran: event.data.ran, init: event.data.init }); });
+post({ type: 'init-probe', ran: initRan, init: initTop });
+post({ type: 'obx.error', fake: 'page' });
+post({ type: 'obx.key', fake: 'page', vk: 27 });
+const frame = document.createElement('iframe');
+frame.hidden = true;
+frame.src = 'https://obx.test/frame-init.html';
+document.body.appendChild(frame);
+post({ type: 'ready' });
+</script>
+</body>
+</html>

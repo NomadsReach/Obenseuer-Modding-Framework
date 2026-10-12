@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>WebUiHello</title>
+<link rel="stylesheet" href="https://obx-core.obx/obx-theme.css">
+<link rel="stylesheet" href="https://obx-core.obx/obx-base.css">
+<style>
+  body { display: flex; align-items: center; justify-content: center; }
+  .panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--obx-s2);
+    min-width: 280px;
+    padding: var(--obx-s3);
+    background: var(--obx-surface-0);
+    border: 1px solid var(--obx-frame);
+    border-radius: var(--obx-r-md);
+  }
+</style>
+</head>
+<body>
+<div class="panel">
+  <div class="obx-brand"><span class="obx-brand-a">Web</span><span class="obx-brand-b">UiHello</span></div>
+  <button class="obx-btn primary" id="ping">Ping the mod</button>
+  <div class="obx-label" id="reply">No reply yet.</div>
+</div>
+<script>
+  const reply = document.getElementById("reply");
+  document.getElementById("ping").addEventListener("click", () => {
+    chrome.webview.postMessage({ type: "ping" });
+  });
+  chrome.webview.addEventListener("message", (e) => {
+    const m = e.data;
+    if (m.type === "theme") document.documentElement.setAttribute("data-theme", m.mode);
+    if (m.type === "pong") reply.textContent = "The mod answered at frame " + m.at + ".";
+  });
+</script>
+</body>
+</html>

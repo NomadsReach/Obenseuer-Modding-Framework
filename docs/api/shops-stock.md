@@ -1,0 +1,51 @@
+# Obenseuer Modding Framework shop stock API (ShopStock)
+
+Experimental. Not in a release yet. Not checked in game.
+Game: Obenseuer 0.5.05 (build 25839246), Unity Mono.
+Namespace: `ObenseuerCore`. Log owner: `obenseuer.moddingframework.shopstock`. Logs go to `BepInEx\logs\obenseuer.moddingframework.shopstock.log`.
+
+Everything not listed here is internal. Main thread only.
+
+Scope: adds stock to two kinds of shop. A trader (`Trade`) gets a fixed stack of a mod item in its empty slots. A vending machine gets one more entry in its `sellableItems` list. A trader's stock is not a price table: traders still price by item value, so there is no per-item trader price.
+
+## Rules
+
+- **Shop key.** A key matches a shop when it equals the shop's GUID, or its title, or its GameObject name when it has no title. The GUID wins when it is set. A name shared by two shops matches both, and the first one found is used by `Place`. Use `Shops.All()` to find the GUIDs.
+- **Kinds.** `AddTraderStock` and `Place` act on traders. `AddVendingEntry` acts on vending machines. A key that matches no shop of that kind is kept and waits: it is applied when such a shop loads. `Remove` clears both kinds for that mod, shop and item.
+- **Owners.** Patches use `obenseuer.moddingframework.shopstock`. They hook `VendingMachine.Start`, `VendingMachine.OnLoadingGame` and `Storage.OnLoadingGame`, and they extend Core's existing `Storage.SpawnItems` postfix. A failed hook disables only this owner.
+- **Ids.** Ids 0 and 1 are refused, as `Containers.Give` refuses them. An item that is not in the item database is skipped: a vending entry logs one warning, a trader top-up waits until the item exists.
+- **Empty slots only.** A trader's stock is placed only in empty slots. If there is no empty slot the rest is skipped and one warning is logged. A stack is clamped to the item's stack size by the game.
+- **Vending entries.** An entry is added only when the machine does not already sell that item, from the game or from another mod. A skipped entry is logged once, for the first machine that refuses it. Its price is the given `price` in `currency` when `price` is above 0, otherwise the game's price formula. Its stock is `stock` when the entry is added and at each refill. On a machine with a GUID the stock left in the entry is kept: it is saved with each game save and restored on load, so a reload does not refill it. A machine without a GUID restocks to `stock` on each load.
+- **Bad arguments.** An invalid mod id (`ModIds.Require`), an empty shop key, `amount` or `stock` below 1, a non-finite price, or an unknown currency throws `ArgumentException`. Everything else returns the fallback.
+- **Save and load.** Writes are refused while `SaveGate.Busy` is true, so the public calls return `false` during a load or a save. The top-up on load and the vending append run inside the game's own load and spawn code, so they are not refused.
+
+## API
+
+```csharp
+public static class ShopStock
+{
+    public static bool IsAvailable { get; }
+    public static bool AddTraderStock(string modId, string shopKey, int itemId, int amount);
+    public static bool AddVendingEntry(string modId, string shopKey, int itemId, int stock, float price, MoneyCurrency currency);
+    public static bool Remove(string modId, string shopKey, int itemId);
+    public static bool Place(string modId, string shopKey, int itemId, int amount);
+}
+```
+
+- `IsAvailable` is `installed && !CorePatcher.IsDisabled(owner)`. The other three methods return `false` when it is false.
+- `AddTraderStock` keeps `amount` of the item in the trader's storage. It is kept for each load and each respawn: the trader gets back the missing count into empty slots. It returns true when the entry is kept, even if the shop is not loaded yet. A call for the same mod, shop and item replaces the amount.
+- `AddVendingEntry` appends one entry to the machine's list. It returns true when the entry is kept. A call for the same mod, shop and item replaces the stock, price and currency. `price` above 0 is an absolute price in `currency`. `price` 0 or below uses the game's formula, which is the item's sale price times 1.2 for a machine.
+- `Remove` drops that mod's trader stock and vending entry for the shop and item, and removes the vending entry from loaded machines. It returns true when either was found. It does not take back items that a trader already holds.
+- `Place` puts `amount` of the item into a trader's empty slots once. It returns true when at least one item was placed. It is recorded per save, keyed by the mod, the shop GUID and the item, so a second call for the same key returns `false`. A shop without a GUID cannot be used with `Place`.
+
+## Removal safety
+
+- **Trader stock (`AddTraderStock`).** After the mod is removed nothing is topped up. Stacks already in the trader's slots keep the mod's item id, and the game shows them as coin, the same as any removed mod's item. The player should sell or take them first. [unverified in game]
+- **Placed stock (`Place`).** The stack stays in the trader's storage and is kept in the save. With the mod removed it turns into a coin stack. Players should sell or take it before the mod is removed. Its save record is ignored when the mod is gone.
+- **Vending entries (`AddVendingEntry`).** They are held in memory and added again on each start, so with the mod removed they are simply absent, and no orphan item reaches the player. A stock count saved for a removed entry stays in the save record, keyed by machine and item, and is applied only if that entry is added again. [unverified in game]
+
+## Lifetime
+
+- Trader stock and vending entries are kept in memory by Core, not saved. A mod registers them again on each start, the same as `LootPools`.
+- `Place` writes its records per save into the save's `mods` folder, `obenseuer.moddingframework.shopstock.json`, with the vending stock. The file is cleared on the Main Menu, like other mod save data.
+- Vending stock is written at each game save from the live machines, keyed by machine GUID and item id. Machines not loaded at that save keep their last value. Each purchase from a mod entry on a GUID machine also updates its value at once, so a machine that unloads (leaving its scene) before a save keeps the count, and a return visit does not refill it. A respawn refill of the machine drops its saved counts, so the full stock stands after a scene change. It is applied when the save finishes loading, so it reaches a machine whatever order its start and load run in.

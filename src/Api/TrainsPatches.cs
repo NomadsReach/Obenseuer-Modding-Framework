@@ -1,0 +1,46 @@
+using System;
+using System.Reflection;
+
+namespace ObenseuerCore
+{
+    internal static class TrainsPatches
+    {
+        internal static bool Install()
+        {
+            try
+            {
+                return Hook(typeof(TrackTrain), "Update", Type.EmptyTypes, "UpdatePrefix", "UpdatePostfix");
+            }
+            catch (Exception e)
+            {
+                CoreLog.For(Trains.Owner).Error("install failed: " + e.ToString());
+                return false;
+            }
+        }
+
+        private static bool Hook(Type type, string name, Type[] args, string prefix, string postfix)
+        {
+            return CorePatcher.PatchCore(type, name, args, CorePatcher.Handler(typeof(TrainsPatches), prefix), CorePatcher.Handler(typeof(TrainsPatches), postfix), null, false, Trains.Owner);
+        }
+
+        private static void UpdatePrefix(TrackTrain __instance, out bool __state)
+        {
+            __state = __instance.currentSpeed != 0f;
+        }
+
+        private static void UpdatePostfix(TrackTrain __instance, bool __state)
+        {
+            try
+            {
+                bool moving = __instance.currentSpeed != 0f;
+                if (moving == __state) return;
+                if (moving) Trains.RaiseDeparted(__instance);
+                else Trains.RaiseArrived(__instance);
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Trains.Owner, "Trains.Departed/Arrived", e);
+            }
+        }
+    }
+}
