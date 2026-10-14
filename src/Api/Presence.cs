@@ -77,6 +77,7 @@ namespace ObenseuerCore
             float x, y, z, turn;
             if (!ReadValue(parts[1], out x) || !ReadValue(parts[2], out y) || !ReadValue(parts[3], out z) || !ReadValue(parts[4], out turn)) return;
             if (parts[5] != "0" && parts[5] != "1") return;
+            string area = Net.Plain(parts[0], MaxAreaLength);
             PresenceRecord old;
             string name = records.TryGetValue(sender, out old) ? old.Name : "";
             if (string.IsNullOrEmpty(name)) name = Steam.Name(sender);
@@ -84,7 +85,7 @@ namespace ObenseuerCore
             {
                 Peer = sender,
                 Name = name,
-                Area = parts[0],
+                Area = area.Length > 0 ? area : "?",
                 Position = new Vector3(x, y, z),
                 Yaw = turn,
                 Moving = parts[5] == "1",

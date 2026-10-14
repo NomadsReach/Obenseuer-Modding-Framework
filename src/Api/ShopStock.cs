@@ -5,14 +5,14 @@ using UnityEngine;
 namespace ObenseuerCore
 {
     [Serializable]
-    public sealed class ShopStockEntry
+    internal sealed class ShopStockEntry
     {
         public string Key;
         public int Count;
     }
 
     [Serializable]
-    public sealed class ShopStockSave
+    internal sealed class ShopStockSave
     {
         public List<string> Placed = new List<string>();
         public List<ShopStockEntry> Stocks = new List<ShopStockEntry>();
@@ -39,14 +39,20 @@ namespace ObenseuerCore
         public static bool AddTraderStock(string modId, string shopKey, int itemId, int amount)
         {
             ModIds.Require(modId, "modId");
-            RequireKey(shopKey);
-            if (amount < 1) throw new ArgumentException("amount must be 1 or more", "amount");
+            if (!ValidKey(shopKey)) return false;
+            if (amount < 1)
+            {
+                ApiLog.Once(Owner, "amount", "amount must be 1 or more");
+                return false;
+            }
             if (!IsAvailable || itemId == 0 || itemId == 1 || SaveGate.Busy) return false;
             try
             {
                 TraderRecord record = traders.Find(r => r.ModId == modId && r.ShopKey == shopKey && r.ItemId == itemId);
                 if (record == null)
                 {
+                    TraderRecord other = traders.Find(r => r.ModId != modId && r.ShopKey == shopKey && r.ItemId == itemId);
+                    if (other != null) CoreLog.For(Owner).Warn("trader stock for item " + itemId + " in " + shopKey + " is already added by " + other.ModId + ", the entry from " + modId + " is kept too and the larger amount wins");
                     record = new TraderRecord { ModId = modId, ShopKey = shopKey, ItemId = itemId };
                     traders.Add(record);
                 }
@@ -65,10 +71,22 @@ namespace ObenseuerCore
         public static bool AddVendingEntry(string modId, string shopKey, int itemId, int stock, float price, MoneyCurrency currency)
         {
             ModIds.Require(modId, "modId");
-            RequireKey(shopKey);
-            if (stock < 1) throw new ArgumentException("stock must be 1 or more", "stock");
-            if (float.IsNaN(price) || float.IsInfinity(price)) throw new ArgumentException("price must be a finite number", "price");
-            if (!Enum.IsDefined(typeof(MoneyCurrency), currency)) throw new ArgumentException("unknown currency", "currency");
+            if (!ValidKey(shopKey)) return false;
+            if (stock < 1)
+            {
+                ApiLog.Once(Owner, "stock", "stock must be 1 or more");
+                return false;
+            }
+            if (float.IsNaN(price) || float.IsInfinity(price))
+            {
+                ApiLog.Once(Owner, "price", "price must be a finite number");
+                return false;
+            }
+            if (!Enum.IsDefined(typeof(MoneyCurrency), currency))
+            {
+                ApiLog.Once(Owner, "currency", "unknown currency");
+                return false;
+            }
             if (!IsAvailable || itemId == 0 || itemId == 1 || SaveGate.Busy) return false;
             try
             {
@@ -101,7 +119,7 @@ namespace ObenseuerCore
         public static bool Remove(string modId, string shopKey, int itemId)
         {
             ModIds.Require(modId, "modId");
-            RequireKey(shopKey);
+            if (!ValidKey(shopKey)) return false;
             if (!IsAvailable || SaveGate.Busy) return false;
             try
             {
@@ -125,8 +143,12 @@ namespace ObenseuerCore
         public static bool Place(string modId, string shopKey, int itemId, int amount)
         {
             ModIds.Require(modId, "modId");
-            RequireKey(shopKey);
-            if (amount < 1) throw new ArgumentException("amount must be 1 or more", "amount");
+            if (!ValidKey(shopKey)) return false;
+            if (amount < 1)
+            {
+                ApiLog.Once(Owner, "amount", "amount must be 1 or more");
+                return false;
+            }
             if (!IsAvailable || itemId == 0 || itemId == 1 || SaveGate.Busy) return false;
             try
             {
@@ -150,6 +172,7 @@ namespace ObenseuerCore
         internal static void Init()
         {
             installed = ShopStockPatches.Install();
+            Events.SceneLoaded += OnSceneLoaded;
             try
             {
                 SaveData.Register<ShopStockSave>(Owner, Build, Load);
@@ -159,6 +182,11 @@ namespace ObenseuerCore
                 CoreLog.For(Owner).Error("save data not registered: " + e.ToString());
             }
             CoreLog.For(Owner).Info(installed ? "shop stock installed" : "shop stock not installed");
+        }
+
+        private static void OnSceneLoaded(string scene)
+        {
+            PruneVendings();
         }
 
         internal static void TopUp(Storage storage)
@@ -231,6 +259,7 @@ namespace ObenseuerCore
                     if (entry != null && entry.Key != null) savedStock[entry.Key] = entry.Count;
                 }
             }
+            PruneVendings();
             RestoreVendingStock();
         }
 
@@ -282,9 +311,26 @@ namespace ObenseuerCore
             return null;
         }
 
-        private static void RequireKey(string shopKey)
+        private static void PruneVendings()
         {
-            if (string.IsNullOrEmpty(shopKey)) throw new ArgumentException("shopKey must be a non-empty shop id or name", "shopKey");
+            if (vendings.Count == 0) return;
+            HashSet<VendingMachine.VendingMachineItem> live = new HashSet<VendingMachine.VendingMachineItem>();
+            foreach (VendingMachine machine in UnityEngine.Object.FindObjectsByType<VendingMachine>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (machine.sellableItems == null) continue;
+                foreach (VendingMachine.VendingMachineItem entry in machine.sellableItems) live.Add(entry);
+            }
+            foreach (VendingRecord record in vendings)
+            {
+                record.Entries.RemoveAll(entry => !live.Contains(entry));
+            }
+        }
+
+        private static bool ValidKey(string shopKey)
+        {
+            if (!string.IsNullOrEmpty(shopKey)) return true;
+            ApiLog.Once(Owner, "ShopStock empty shopKey", "shopKey must be a non-empty shop id or name");
+            return false;
         }
 
         private static bool Matches(string key, ShopInfo info)
@@ -294,7 +340,7 @@ namespace ObenseuerCore
 
         private static Trade FindTrade(string shopKey)
         {
-            foreach (Trade trade in UnityEngine.Object.FindObjectsByType<Trade>(FindObjectsSortMode.None))
+            foreach (Trade trade in SceneIds.Active<Trade>())
             {
                 if (Matches(shopKey, Shops.InfoOf(trade))) return trade;
             }
@@ -346,7 +392,8 @@ namespace ObenseuerCore
                     if (!record.Entries.Contains(entry) && !record.Duplicate)
                     {
                         record.Duplicate = true;
-                        CoreLog.For(Owner).Warn("vending entry from " + record.ModId + " skipped: " + machine.name + " already sells item " + record.ItemId);
+                        VendingRecord seller = vendings.Find(r => r.Entries.Contains(entry));
+                        CoreLog.For(Owner).Warn("vending entry from " + record.ModId + " skipped: " + machine.name + " already sells item " + record.ItemId + " from " + (seller == null ? "the game" : seller.ModId));
                     }
                     return;
                 }

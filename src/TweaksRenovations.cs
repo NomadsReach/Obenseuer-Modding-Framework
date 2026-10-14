@@ -18,6 +18,7 @@ namespace ObenseuerCore
         private static bool instantBuild;
         private static bool buildPatched;
         private static bool renovationScope;
+        private static bool scriptedUpgrade;
 
         internal static bool MoneyOnly
         {
@@ -72,6 +73,7 @@ namespace ObenseuerCore
             buildPatched = true;
             bool ok = Tweaks.PatchAs(BuildOwner, true, typeof(TenementUpgradeProgress), "AddUpgrade", new[] { typeof(TenementUpgrade), typeof(float), typeof(TenementContractor) }, typeof(TweaksRenovations), "AddUpgradePrefix", null, null);
             ok &= Tweaks.PatchAs(BuildOwner, true, typeof(TenementUpgrade), "GetRequiredTimeHours", Type.EmptyTypes, typeof(TweaksRenovations), null, "RequiredTimeHoursPostfix", null);
+            ok &= Tweaks.PatchAs(BuildOwner, true, typeof(TenementUpgradeStart), "Upgrade", Type.EmptyTypes, typeof(TweaksRenovations), "ScriptedPrefix", null, "ScriptedFinalizer");
             Tweaks.Log(Section + "." + key, ok);
         }
 
@@ -104,10 +106,21 @@ namespace ObenseuerCore
             if (__state) renovationScope = false;
         }
 
+        private static void ScriptedPrefix(out bool __state)
+        {
+            __state = scriptedUpgrade;
+            scriptedUpgrade = true;
+        }
+
+        private static void ScriptedFinalizer(bool __state)
+        {
+            scriptedUpgrade = __state;
+        }
+
         private static void AddUpgradePrefix(ref float timeHoursLeft)
         {
             if (!instantBuild && buildTimeMultiplier == Tweaks.Default) return;
-            timeHoursLeft = instantBuild ? 0f : timeHoursLeft * buildTimeMultiplier;
+            timeHoursLeft = instantBuild && !scriptedUpgrade ? 0f : timeHoursLeft * buildTimeMultiplier;
         }
 
         private static void RequiredTimeHoursPostfix(ref int __result)

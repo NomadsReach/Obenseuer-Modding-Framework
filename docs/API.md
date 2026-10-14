@@ -1,39 +1,52 @@
-# Obenseuer Modding Framework API (0.9.0)
+---
+title: API reference
+has_children: true
+nav_order: 6
+---
 
-Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 5.4.23.5.
+# Obenseuer Modding Framework API (0.10.0)
+
+Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 5.4.23 or later (Mono), or BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended). Extensive testing has not been fully done yet.
 Namespace: `ObenseuerCore`. Plugin GUID: `obenseuer.moddingframework`.
 
-Everything not listed here is internal.
+Everything not listed here is internal, including the framework's save-file classes, which are not API and may change. The one save-file type that is public is `BankLedgerEntry`, because the bank ledger's `Entries` and `Added` return it. `WebUiPlugin` is the WebUi plugin class itself; mods never use it.
+
+The framework's core classes (the plugin, patching, logging, events, time and money, saves, tweaks, the Mods menu and the player look) are on [framework core classes](api-core.md).
 
 ## Game APIs (experimental)
 
-Each area is a public facade over one game system. Main thread only. Nothing here is checked in game yet. Core starts each area that has an `Init` from `Core::Awake`, each in its own `Isolate` call.
+Each area is a public facade over one game system. Main thread only. See the [status page](status.md).
 
 - [Story: quests, dialogue and law](api-story.md): `Quests`, `Dialogue`, `Law`.
-- [HUD, console, achievements and difficulty](api/hud.md): `Hud`, `ConsoleCommands`, `Achievement`, `GameDifficulty`, `TaskItems`.
-- [Housing and building](api/housing.md): `Housing`, `Building`.
-- [NPCs, animals, relationships and phones](api/npcs.md): `Npcs`, `Animals` (with `Damage`), `Osrats`, `Relationships`, `Phones`.
-- [Player, skills, effects, subscriptions and travel](api/player.md): `PlayerState` (with `FirstName` and `LastName`), `Skills`, `Effects`, `Subscriptions`, `Travel`.
-- [World: weather, power, water, radiation, location and clock](api/world.md): `WorldWeather`, `WorldPower`, `WorldWater`, `WorldRadiation`, `WorldLocation`, `WorldClock`.
-- [Economy: cash, shops, banking, player shops and mail](api/economy.md): `Cash`, `Shops`, `Banking`, `PlayerShops`, `Mail`.
+- [Quest authoring](api/quest-authoring.md): `QuestAuthoring` (`Create`, `AddObjective`, `SetObjective`, `SetCounter`, `Finish`, `Fail`).
+- [Dialogue authoring](api/dialogue-authoring.md): `DialogueAuthoring` (`Add`, `Remove`, `Clear`, `TitleOf`), `Dialogue.AddResponse` and `RemoveResponse`, session only.
+- [HUD, console, achievements and difficulty](api/hud.md): `Hud`, `ConsoleCommands`, `Achievement`, `GameDifficulty` (`SetFactor`, `Clear`, `DifficultyMultiplier`), `TaskItems`, `TaskItemCount`, `TaskItemChangedArgs`.
+- [Housing and building](api/housing.md): `Housing`, `Building`, `BuildAreaInfo`.
+- [NPCs, animals, relationships and phones](api/npcs.md): `Npcs` (incl. `InScene`, `SceneNpcInfo`), `Animals` (with `Damage`), `Osrats`, `Relationships`, `Phones`.
+- [Characters](api/characters.md): `Characters`, `CharacterInfo`, `StartChoices`, `StartChoiceInfo`, `StartChoiceArgs`.
+- [Custom skills](api/customskills.md): `CustomSkills` (`Register`, `Get`, `Level`, `Set`, `Add`, `Clear`, `LevelChanged`).
+- [Player, skills, effects, subscriptions and travel](api/player.md): `PlayerState` (with `FirstName`, `LastName`, `Wait` with `WaitOptions` and a minutes result, `PickTime`), `Skills`, `Effects`, `Subscriptions`, `Travel`, `WaitStations`, `WaitStationInfo`, `WaitStationDoneArgs`, `DamageArgs`, `BreakdownArgs`, `BreakdownKind`.
+- [World: weather, power, water, radiation, location and clock](api/world.md): `WorldWeather`, `WorldPower`, `WorldWater`, `WorldRadiation`, `WorldLocation`, `WorldClock` (incl. `SetDate`), `WorldTime`, `WaterVolumeInfo`, `WorldWeather.SetZone` and `ClearZones`.
+- [Sky](api/world-sky.md): `WorldSky` (`Set`, `Clear`, `Current`, `IsAvailable`), `SkyOverride`, `SkyState`.
+- [Economy: cash, shops, banking, player shops and mail](api/economy.md): `Cash`, `Shops`, `Banking`, `PlayerShops`, `Mail`, `MailInfo`, `LegalServices`, `LegalActionKind`, `LegalActionInfo`, `LegalActionArgs`, `MailSentArgs`.
 - [Items catalogue (read-only)](api/items.md): `Items`.
-- [Recipes, crafting and growing](api/recipes.md): `Recipes`, `Crafting`, `Plants`.
+- [Recipes, crafting and growing](api/recipes.md): `Recipes`, `Crafting`, `Plants`, `PlantPickArgs`, `RecipeUnlockedArgs`, `PlantFruitInfo`.
 - [Audio](api/audio.md): `Sounds`.
-- [Interaction and locks](api/interaction.md): `Interactions`, `Locks`.
+- [Interaction and locks](api/interaction.md): `Interactions`, `Locks` (incl. `SetLockpickable`, `Difficulty`, `SetDifficulty`), `Ladders`, `LadderInfo`.
 - [Inventory and containers](api/inventory.md): `PlayerInventory`, `Containers`.
-- [World objects and spawning](api/worldobjects.md): `WorldObjects`, `Spawn`.
-- [Net: Steam, channels, lobby and presence](api/net.md): `Steam`, `Net`, `Lobby`, `Presence`.
+- [World objects and spawning](api/worldobjects.md): `WorldObjects` (incl. `FindByPath`, `PathOf`), `Spawn`.
+- [Net: Steam, channels, lobby, presence and blobs](api/net.md): `Steam`, `Net`, `Lobby`, `Presence`, `NetBlob`.
 - [Settings, keybinds and localization](api/settings.md): `GameSettings`, `Keybinds`, `ModKeybind`, `Localization`.
 - [Item and recipe registry](api/registry.md): `ItemRegistry`, `ItemDefinition`, `RecipeRegistry`, `RecipeDefinition`.
 - [NPC schedules](api/npc-schedules.md): `NpcSchedules`, `ScheduleInfo`, `ActivityChangedArgs`.
 - [Elevators](api/elevators.md): `Elevators`, `ElevatorInfo`, `ElevatorArrivedArgs`.
-- [Trains](api/trains.md): `Trains`, `TrackTrainInfo`, `MinitrainInfo`, `TrainArgs`.
+- [Trains](api/trains.md): `Trains`, `TrackTrainInfo`, `MinitrainInfo`, `TrainArgs`, `TrainCrashArgs`.
 - [Conditions](api/conditions.md): `Conditions`, `ConditionInfo`, `ConditionChangedArgs`.
 - [Medical](api/medical.md): `Medical`, `MedicalTreatment`, `MedicalTreatmentInfo`, `MedicalTreatedArgs`.
-- [Weapons](api/weapons.md): `Weapons`, `WeaponKind`, `WeaponInfo`, `WeaponFiredArgs`.
+- [Weapons](api/weapons.md): `Weapons` (incl. `SetHitFactor`, `ClearHitFactors`, `Hit`), `WeaponKind`, `WeaponInfo`, `WeaponFiredArgs`, `HitTarget`, `HitArgs`, `BlastSites`, `BlastSiteInfo`.
 - [Pursuit](api/pursuit.md): `Pursuit`.
-- [Casino](api/casino.md): `Casino`, `CasinoMachineKind`, `CasinoMachineInfo`, `CasinoPlayedArgs`, `CasinoWonArgs`, `CasinoCashedOutArgs`.
-- [Card games](api/cardgames.md): `CardGames`, `CardGameKind`, `CardTableInfo`, `CardGameEndedArgs`.
+- [Casino](api/casino.md): `Casino`, `CasinoMachineKind`, `CasinoMachineInfo`, `CasinoPlayedArgs`, `CasinoWonArgs`, `CasinoCashedOutArgs`, `CasinoDoubledArgs`, `ScratchcardArgs`.
+- [Card games](api/cardgames.md): `CardGames`, `CardGameKind`, `CardTableInfo`, `CardGameEndedArgs`, `CardGames.SetPayoutFactor`, `CardGames.Clear`.
 - [Contests](api/contests.md): `Contests`, `ContestKind`, `ContestInfo`, `ContestParticipantInfo`, `ContestResultInfo`.
 - [Renovations](api/renovations.md): `Renovations`, `RenovationState`, `RenovationInfo`.
 - [Cleaning](api/cleaning.md): `Cleaning`, `CleaningTimerState`, `CleaningTimerInfo`, `TrashInfo`.
@@ -47,30 +60,55 @@ Each area is a public facade over one game system. Main thread only. Nothing her
 - [Notes](api/notes.md): `Notes`, `NoteEntryInfo`, `NoteCollectedArgs`.
 - [Saunas](api/saunas.md): `Saunas`, `SaunaInfo`, `SaunaChangedArgs`.
 - [Lanterns](api/lanterns.md): `Lanterns`, `LanternInfo`, `CandleBurntOutArgs`.
-- [Surveillance](api/surveillance.md): `Surveillance`, `SurveillanceSource`, `SurveillanceCameraInfo`, `PlayerSpottedArgs`, `TrespassArgs`.
+- [Surveillance](api/surveillance.md): `Surveillance` (incl. `IsPlayerWitnessed`), `SurveillanceSource`, `SurveillanceCameraInfo`, `PlayerSpottedArgs`, `TrespassArgs`.
 - [Breeding](api/breeding.md): `Breeding`, `TrapCatch`, `BreederInfo`, `BredArgs`, `TrapSprungArgs`.
-- [Fuel stations](api/fuel.md): `FuelStations`, `FuelStationInfo`, `FuelBoughtArgs`.
+- [Fuel stations](api/fuel.md): `FuelStations`, `FuelStationInfo`, `FuelBoughtArgs`, `FuelTypes`, `FuelTypeInfo`.
 - [Train tickets](api/traintickets.md): `TrainTickets`, `TicketMachineInfo`, `TicketBoughtArgs`, `TicketTakenArgs`.
-- [Doors](api/doors.md): `Doors`, `DoorInfo`, `DoorChangedArgs`.
+- [Stack actions](api/stackactions.md): `StackActions`, `StackSpec`.
+- [Item consumables](api/itemconsumables.md): `ItemConsumables` (`Get`, `Set`, `Clear`), `ConsumableInfo`.
+- [Plant actions](api/plantactions.md): `PlantActions`.
+- [Growing stations](api/growingstations.md): `GrowingStations`, `GrowingStationInfo`, `GrowingSlotInfo`.
+- [Instruments](api/instruments.md): `Instruments` (incl. `PlaySong`, `StopSong`, `HoldNote`, `StopHold`, `HoldCount`, `Clear`), `GuitarInfo`, `GuitarPlayedArgs`, `GuitarCommentArgs`.
+- [Time control](api/timecontrol.md): `TimeControl`.
+- [Train actions](api/trainactions.md): `TrainActions`, `TrainEnd`.
+- [Scene state](api/scenestate.md): `SceneState`, `BranchInfo`, `CounterInfo`, `StateMachineInfo`, `SequenceInfo`, `SceneTimerInfo`.
+- [Mail schedules](api/mailschedules.md): `MailSchedules`, `MailSenderInfo`.
+- [NPC movement](api/npc-movement.md): `NpcMovement`.
+- [Animal actions](api/animal-actions.md): `AnimalActions` (`Sit`, `Sleep`, `Hunt`, `Run`, `SetTame`, `SleepPermanently`).
+- [Law actions](api/law-actions.md): `LawActions`.
+- [Robbers](api/robbers.md): `Robbers`, `RobberInfo`.
+- [Traders](api/traders.md): `Traders`, `TraderInfo`, `TraderTradeRefusal`.
+- [Tenants](api/tenants.md): `Tenants`, `Tenants.TriggerEvent`, `Tenants.OpenRentScreen`, `TenementEventKind`.
+- [Computer desk](api/computerdesk.md): `ComputerDesk`.
+- [Doors](api/doors.md): `Doors` (incl. `OpeningTimes`, `SetOpeningTimes`), `DoorInfo`, `DoorOpenTime`, `DoorChangedArgs`.
 - [Resource nodes](api/resources.md): `ResourceNodes`, `ResourceNodeInfo`, `ResourceHitArgs`, `ResourceDepletedArgs`.
 - [Autofarms](api/autofarms.md): `Autofarms`, `AutofarmInfo`, `ReplantedArgs`.
 - [Hotels](api/hotels.md): `Hotels`, `HotelRoomInfo`, `RoomRentedArgs`, `RoomExpiredArgs`.
 - [Loot pools](api/loot.md): `LootPools`, `LootTier`, `LootCategoryInfo`, `LootEntryInfo`, `ContainerFilledArgs`.
 - [Shop stock](api/shops-stock.md): `ShopStock`.
 - [Save slots](api/saveslots.md): `SaveSlots`, `SaveAutosaveMode`, `SaveSlotInfo`.
+- [Game save data entries](api/savedata-game.md): `SaveData.Capture`, `SaveData.Apply`, `SaveData.CaptureByGuid`, `SaveData.ApplyByGuid`, `SaveData.SelfCheck`.
 - [World items](api/worlditems.md): `WorldItems`, `PickedUpArgs`, `DroppedArgs`, `UsedArgs`.
-- [WebUi and WebView: HTML UIs](api/webui.md): `WebUi`, `WebView`.
-- [Drones](api/drones.md): `Drones`, `DroneInfo`, `DroneChangedArgs`.
+- [WebUi and WebView: HTML UIs](api/webui.md): `WebUi`, `WebView`. Optional: they are in `ObenseuerCore.WebUi.dll`, plugin `obenseuer.moddingframework.webui`.
+- [Drones](api/drones.md): `Drones`, `DroneInfo`, `DroneChangedArgs`, `AirNodeInfo`, `DroneNodePassedArgs`.
 - [Janitors](api/janitors.md): `Janitors`, `JanitorActedArgs`, `JanitorActionKind`.
 - [UI state](api/ui-state.md): `UiState`.
 - [Global flags](api/global-flags.md): `GlobalFlags`, `GlobalFlagChangedArgs`.
 - [Screen FX](api/screen-fx.md): `ScreenFx`.
-- [Lights](api/lights.md): `Lights`, `LightInfo`, `LightToggledArgs`.
+- [Lights](api/lights.md): `Lights`, `LightInfo`, `LightToggledArgs`, `LightStateArgs`.
+- [Landmarks](api/landmarks.md): `Landmarks` (incl. `Create`, `Mark`, `Remove`, `Clear` for new landmarks that survive a save), `LandmarkInfo`, `LandmarkArgs`.
+- [Base shops](api/baseshops.md): `BaseShops`, `BaseShopInfo`, `BaseShopBuyResult`, `BaseShopBoughtArgs`, `BaseShopSellResult`, `BaseShopSoldArgs`.
+- [Market shops](api/marketshops.md): `MarketShops`, `MarketShopInfo`, `MarketPayArgs`.
+- [Item givers](api/itemgivers.md): `ItemGivers`, `ItemGiverInfo`, `ItemGiverArgs`.
+- [Recycling](api/recycling.md): `Recycling`, `RecycledArgs`.
 - [Televisions](api/televisions.md): `Televisions`, `TelevisionInfo`, `TelevisionChangedArgs`.
+- [Phone lines](api/phone-lines.md): `PhoneLines`, `PhoneLineInfo`, `PhoneCallArgs`.
+- [Tanks](api/tanks.md): `Tanks`, `TankInfo`, `TankChangedArgs`.
+- [Surfaces](api/surfaces.md): `Surfaces`, `SurfaceInfo`, `SurfaceArgs`.
 - [Invoices](api/invoices.md): `Invoices`, `InvoiceInfo`, `InvoiceArgs`.
 - [Seats](api/seats.md): `Seats`, `SeatInfo`, `SeatArgs`.
-- [Player movement](api/player-movement.md): `PlayerMovement`.
-- [Breakables](api/breakables.md): `Breakables`, `BreakableInfo`, `BreakableArgs`.
+- [Player movement](api/player-movement.md): `PlayerMovement` (incl. `SetRunMultiplier`).
+- [Breakables](api/breakables.md): `Breakables`, `BreakableInfo`, `BreakableArgs`, `BreakableLockInfo`, `SmashedArgs`.
 - [Flood gates](api/floodgates.md): `FloodGates`, `FloodGateInfo`, `FloodGateChangedArgs`.
 - [Extractables](api/extractables.md): `Extractables`, `ExtractableInfo`, `ExtractedArgs`.
 - [Sleep events](api/sleep-events.md): `SleepEvents`, `SleepEventKind`, `SleepEventOccurredArgs`, `SleepEventInterceptArgs`.
@@ -79,653 +117,24 @@ Each area is a public facade over one game system. Main thread only. Nothing her
 - [Parcel lockers](api/parcellockers.md): `ParcelLockers`, `ParcelLockerInfo`, `LockerInfo`.
 - [Signs](api/signs.md): `Signs`, `SignInfo`, `SignTextChangedArgs`.
 - [Tarp doors](api/tarpdoors.md): `TarpDoors`, `TarpDoorInfo`, `TarpDoorChangedArgs`.
-- [Power devices](api/power-devices.md): `PowerDevices`, `PowerDeviceKind`, `PowerDeviceInfo`, `PoweredChangedArgs`.
-- [NPC actions](api/npc-actions.md): `NpcActions` (`Teleport`, `Kill`, `Hit`).
+- [Power devices](api/power-devices.md): `PowerDevices`, `PowerDeviceKind`, `PowerDeviceInfo`, `PoweredChangedArgs`, `FuelRanOutArgs`.
+- [NPC actions](api/npc-actions.md): `NpcActions` (`Teleport`, `Kill`, `Hit`, `StartDialogue`, `ChangeLevel`).
+- [Mod NPCs](api/modnpcs.md): `ModNpcs` (`Spawn`, `SpawnSaved`, `Despawn`, `Clear`, `CharacterIdOf`, `List`).
+- [NPC appearance](api/npcappearance.md): `NpcAppearance` (`Meshes`, `MaterialNames`, `SetMeshActive`, `SetMaterials`, `Restore`, `Clear`).
 - [Jobs](api/jobs.md): `Jobs`, `JobInfo`, `WorkedArgs`.
 - [Crafting upgrades](api/crafting-upgrades.md): `CraftingUpgrades`, `CraftingUpgradeInfo`.
+- [Crafting sources](api/craftingsources.md): extra containers for crafting stations.
+- [Crafting speed, quality and stations](api/craftingstations.md): `CraftingSpeed`, `CraftingQuality`, `CraftingStations` (incl. `Pause`, `Resume`).
 - [Hazards](api/hazards.md): `Hazards`, `HazardKind`, `HazardInfo`, `HazardEnteredArgs`.
-- [Custom furniture](api/furniture.md): `FurnitureRegistry`, `FurnitureDefinition`.
+- [Levels](api/levels.md): `Levels`, `LevelDoorInfo`, `LevelChangeArgs`.
+- [Spawners](api/spawners.md): `Spawners`, `SpawnerInfo`, `SpawnerArgs`, `RespawnTime`.
+- [Scene logic](api/scenelogic.md): `SceneLogic`, `RelayInfo`, `RelayArgs`.
+- [Custom furniture](api/furniture.md): `FurnitureRegistry`, `FurnitureDefinition`, `BlueprintDefinition`, `DefineBlueprint`, `GiveBlueprint`, `IsBlueprintKnown`, `GiveFlatpack`, `MailBlueprint`, `AddFlatpackLoot`, blueprint pools.
 
-## Plugin
+### Known API inconsistencies (to change in 1.0)
 
-```csharp
-public class Core : BaseUnityPlugin
-public static readonly string GameBuild;        // "0.5.05 (buildid 25839246)", or "0.5.05 (buildid unknown)" when no Steam manifest is found
-public static readonly bool IsSupportedBuild;   // version 0.5.05, and buildid 25839246 when known
-public static bool PatchingAllowed { get; }     // false only when the build is unsupported and Safety.RefuseUnknownBuild is set
-public static bool RawAccessAvailable { get; }  // set by the L0 access probe when Debug.AccessProbe is true; false otherwise
-```
+These stay in 0.10.0 so that mods built against it keep compiling. They are planned to change in 1.0.
 
-The probe runs only when `[Debug] AccessProbe` is true. It logs `L0 access probe: OK`, or `L0 access probe: <ExceptionType>: <message>`. `RawAccessAvailable` reports that test. The SaveData methods do not depend on it.
-
-Config (`BepInEx\config\obenseuer.moddingframework.cfg`):
-
-- `[Safety] RefuseUnknownBuild = false`. When true, every patch is refused on a game build other than 0.5.05 (buildid 25839246). By default an unknown build is patched, and a warning is logged. Takes effect on the next start.
-- `[Debug] Verbose = false`. When true, `CoreLog.Debug` writes.
-- `[Debug] AccessProbe = false`. Runs the L0 access probe at start and logs the result.
-- `[Debug] PlayerLookSelfCheck = false`. Runs the PlayerLook clamping and gender-rule self-check at start and logs the result.
-- `[Debug] ModIdsSelfCheck = false`. Runs the mod id and save file name self-check at start and logs `modids self-check ok`, or the first failing case.
-- `[UI] ThemeConfigManager = true` gives the ConfigurationManager window a dark theme (see ModMenu).
-
-While the ConfigurationManager window (F1) is open, Core freezes mouse-look and player movement with the game's own `GameController.ControlsDisabled`, and keeps the cursor visible. It does nothing when ConfigurationManager is not installed. Gameplay is not frozen while a game menu is open, and the freeze is released when the window closes.
-
-## CorePatcher
-
-```csharp
-public static class CorePatcher
-{
-    public static bool Patch(MethodBase target, MethodInfo prefix, MethodInfo postfix, MethodInfo finalizer, bool core, string owner);
-    public static bool Patch(Type type, string name, Type[] args, MethodInfo prefix, MethodInfo postfix, MethodInfo finalizer, bool core, string owner);
-    public static bool Patch(MethodBase target, MethodInfo prefix, MethodInfo postfix, MethodInfo finalizer, bool core, string owner, int priority);
-    public static bool Patch(Type type, string name, Type[] args, MethodInfo prefix, MethodInfo postfix, MethodInfo finalizer, bool core, string owner, int priority);
-    public static bool IsDisabled(string owner);
-}
-```
-
-- `owner` must be a non-empty mod id that does not start with `obenseuer.moddingframework` or `nomad.obenseuer.core` (any letter case). Otherwise all four overloads throw `ArgumentException` before anything else runs. Both prefixes are reserved for Core's own patches.
-- The short overloads keep the `[HarmonyPriority]`, `[HarmonyBefore]` and `[HarmonyAfter]` attributes of each method (checked with HarmonyX 2.9).
-- `priority` is the HarmonyX priority (`HarmonyLib.Priority`) given to the prefix, postfix and finalizer. It overrides a `[HarmonyPriority]` attribute. `-1` leaves the attributes alone. `Priority.Normal` is 400 and `Priority.First` is 800. For prefixes, a higher value runs first.
-- HarmonyX runs every prefix, even when an earlier prefix returns `false`. A `false` only skips the original method. A higher priority prefix runs before the others, but it cannot stop them.
-- One Harmony instance per `owner`.
-- Returns `false` and logs to `BepInEx\logs\<owner>.log` on failure.
-- `core: true` marks the patch as critical. If it fails, every patch from that owner is removed and `IsDisabled(owner)` becomes true.
-- A disabled owner can't patch again this session. `Patch` returns `false` for it without logging, until the game restarts.
-- Refuses to patch (returns `false`, and logs `patch skipped, unsupported game build`) when `Core.PatchingAllowed` is false. That is only when the build is not 0.5.05 and `[Safety] RefuseUnknownBuild` is set. By default an unknown build is patched.
-
-```csharp
-using System;
-using System.Reflection;
-using ObenseuerCore;
-
-public class MyMod : BaseUnityPlugin
-{
-    private void Awake()
-    {
-        MethodInfo postfix = typeof(MyMod).GetMethod("AfterDayChanged", BindingFlags.Static | BindingFlags.NonPublic);
-        bool ok = CorePatcher.Patch(typeof(TimeOfDayAzure), "IncreaseDayCounter", Type.EmptyTypes, null, postfix, null, false, "example.mymod");
-        if (!ok || CorePatcher.IsDisabled("example.mymod")) Logger.LogWarning("MyMod patch unavailable");
-    }
-
-    private static void AfterDayChanged() { }
-}
-```
-
-## CoreLog
-
-```csharp
-public class CoreLog
-{
-    public static CoreLog For(string modId);   // BepInEx\logs\<modId>.log, truncated per session, AutoFlush
-    public void Info(string message);
-    public void Warn(string message);
-    public void Error(string message);
-    public void Debug(string key, string message);   // only when Debug.Verbose; writes when the text for key changes
-}
-```
-
-Lines look like `[frame 1234] [56.789] INFO: message`.
-
-```csharp
-using ObenseuerCore;
-
-public class MyMod : BaseUnityPlugin
-{
-    private static readonly CoreLog Log = CoreLog.For("example.mymod");
-
-    private void Awake()
-    {
-        Log.Info("started");
-        Log.Debug("state", "idle");
-    }
-}
-```
-
-## Events
-
-```csharp
-public static class Events
-{
-    public static event Action<int> HourPassed;     // hour 0..23, when the game day and hour change
-    public static event Action<int> DayPassed;      // day counter after the change
-    public static event Action<string> SceneLoaded; // scene name
-    public static event Action Saved;               // after the save files are written
-    public static event Action Loaded;              // after a save has been loaded
-}
-```
-
-- Handlers run in subscription order. An exception in one handler is logged, and the other handlers still run. A handler may subscribe or unsubscribe during a dispatch; the change takes effect at the next event.
-- `HourPassed` is checked on each game minute, so a time change is seen on the next minute. A change that lands on the same hour number on another day still fires.
-- The first `HourPassed` after a load fires on the first game minute after load, even if the hour has not changed.
-- Subscribers that live in scenes must unsubscribe (for example in `OnDestroy`). Otherwise they are called after their objects are destroyed, and each failure is logged.
-
-```csharp
-using ObenseuerCore;
-
-public class MyMod : BaseUnityPlugin
-{
-    private void Awake()
-    {
-        Events.HourPassed += hour => Logger.LogInfo("hour " + hour);
-        Events.DayPassed += day => Logger.LogInfo("day " + day);
-        Events.Loaded += () => Logger.LogInfo("loaded");
-    }
-}
-```
-
-## GameTime
-
-```csharp
-public static class GameTime
-{
-    public static int Day { get; }                 // dayCounter, starts at 0
-    public static System.DayOfWeek DayOfWeek { get; }
-    public static int Hour { get; }                // 0..23
-    public static int Minute { get; }              // 0..59
-    public static bool IsPaused { get; }           // Time.timeScale == 0
-}
-```
-
-```csharp
-using ObenseuerCore;
-
-if (!GameTime.IsPaused && GameTime.Hour == 9)
-{
-    Logger.LogInfo("it is " + GameTime.Minute + " past nine on day " + GameTime.Day);
-}
-```
-
-## Wallet
-
-`Wallet` (OC only) is superseded by `Cash` and kept for compatibility. New code should use `Cash`, which covers OC and RM.
-
-```csharp
-public static class Wallet
-{
-    public static int Balance { get; }           // OC
-    public static bool Has(int amount);
-    public static bool TrySpend(int amount);     // false if amount is not 1..16000000, not enough OC, or the game's Money is not ready
-    public static bool Give(int amount);         // false if amount is not 1..16000000, or the game's Money is not ready
-}
-```
-
-- `TrySpend` and `Give` never throw.
-- `Wallet.Give` and `Wallet.TrySpend` have no save-time check, unlike `Cash.Give` and `Cash.TrySpend`, which refuse while the game is loading or saving.
-- Balance is 0, and Has, TrySpend and Give return false, when `Money.instance` is null (main menu).
-- Amounts are whole OC. The cap of 16,000,000 stays below 2^24 (16,777,216), the largest whole number a float holds exactly. The game passes amounts as float, so larger values could be rounded.
-- If the game throws after the balance has changed, `TrySpend` or `Give` returns `false` although the balance was already changed. This is the game's `UpdateInteractableMoney` step.
-
-```csharp
-using ObenseuerCore;
-
-if (Wallet.TrySpend(50))
-{
-    Logger.LogInfo("paid 50 OC, balance " + Wallet.Balance);
-}
-```
-
-## SaveData
-
-```csharp
-public static class SaveData
-{
-    public static void Register<T>(string modId, Func<T> onSave, Action<T> onLoad) where T : class, new();
-    public static bool Busy { get; }
-}
-```
-
-- `SaveData.Busy` is `true` while the game is loading, and in the frame a save starts. Do not write game state while it is `true`.
-
-- `T` must be a class marked `[Serializable]`, because it is stored with Unity `JsonUtility`. Dictionaries, polymorphic types and top-level arrays are not supported.
-- `modId` must be non-empty, with no file-name characters that Windows rejects, and no `/`, `\` or `..`. Otherwise `Register` throws `ArgumentException`. The file name is `<modId>.json`. New mods should use the strict form, 1 to 64 characters of letters, digits, `.`, `_` or `-`, the same rule the game APIs check.
-- Registering a `modId` that is already registered throws `InvalidOperationException`.
-- On `Saved`, `onSave()` is written to `Saves\<character>\<save>\mods\<modId>.json`, atomically (temp file, then replace). If `onSave()` returns `null`, nothing is written and the existing file stays.
-- On `Loaded`, the file is read from the folder that was loaded (`SaveController.LastSaveFolderPath\mods\<modId>.json`) when that path is set. Otherwise it is read from `Saves\<character>\<save>\mods\<modId>.json`. `onLoad` gets the parsed value. A missing file gives `onLoad(default(T))`, which is `null` for a class, so handle `null`. A file that cannot be read or parsed is logged, and `onLoad` also gets `default(T)`, so the mod starts empty. The unreadable file is copied to `<modId>.json.bad` first, so a locked or corrupt file can be recovered by hand. The next save overwrites `<modId>.json`, not the `.bad` copy.
-- Saves and loads dispatch over a snapshot, so calling `Register` during a dispatch is safe. The new mod takes part from the next save or load.
-- Register in `Awake`, before the first load.
-
-```csharp
-using System;
-using ObenseuerCore;
-
-[Serializable]
-public class MyState
-{
-    public int count;
-}
-
-public class MyMod : BaseUnityPlugin
-{
-    private MyState state = new MyState();
-
-    private void Awake()
-    {
-        SaveData.Register<MyState>("example.mymod", () => state, s => state = s ?? new MyState());
-    }
-}
-```
-
-## Survival
-
-Stats live in `PlayerStats.instance`. Mods reach them through this facade and never touch the game objects.
-
-Game-facing paths never throw into the game. Every call returns its default (`0`, `false`, or no-op) when `Survival.IsAvailable` is false. A throwing mod handler is logged and the next handler still runs. Argument validation throws to the caller, even when `IsAvailable` is false: an empty `modId` throws `ArgumentException`, and a null callback or handler throws `ArgumentNullException`.
-
-```csharp
-public enum Stat
-{
-    Hunger = 0, Thirst = 1, Bowel = 2, Bladder = 3, Tiredness = 4, Hygiene = 5, Mood = 6, Health = 7,
-    Bleeding = 8, Alcohol = 9, High = 10, Smv = 11, Radiation = 12, SaunaHeat = 13, DuckNeed = 14,
-    AlcoholAddiction = 15, MushroomAddiction = 16, SmokingAddiction = 17, GamblingAddiction = 18,
-    AlcoholNeed = 19, MushroomNeed = 20, SmokingNeed = 21, GamblingNeed = 22
-}
-
-public static partial class Survival
-{
-    public static bool IsAvailable { get; }                // false until the Survival patches are installed; false when they were refused (`Core.PatchingAllowed` is false) or failed, or when the owner is disabled
-    public static float Get(Stat stat);                    // 0 when PlayerStats.instance is null
-    public static bool Set(Stat stat, float value);        // clamped to the stat range; false when PlayerStats.instance is null
-    public static bool OnCrossed(string modId, Stat stat, float threshold, Action<Stat, float, bool> callback); // false when IsAvailable is false
-    public static void RemoveAll(string modId);            // removes this mod's decay modifiers, intercepts and OnCrossed watches
-    public static event Action<DamageTypeNames> PlayerDied;
-    public static event Action PassedOut;
-    public static event Action<float, DamageTypeNames> Damaged;
-
-    public static class Decay
-    {
-        public static bool Supports(Stat stat);
-        public static bool Set(Stat stat, string modId, float multiplier, float offsetPerHour);
-        public static bool Remove(Stat stat, string modId);
-    }
-
-    public static class Consumables
-    {
-        public static void Intercept(string modId, ConsumeHandler handler);
-        public static bool Remove(string modId);           // removes this mod's intercepts; false when it had none
-        public static event Action<ConsumedArgs> Consumed; // after the game applied a use; not for a cancelled or refused use
-    }
-}
-
-public delegate void ConsumeHandler(ItemData itemData, ItemConsumable itemConsumable, ConsumeArgs args);
-public class ConsumeArgs { public bool Cancel { get; set; } }
-public sealed class ConsumedArgs { public int ItemId { get; } }
-```
-
-The enum values are fixed. New stats are appended, and existing values do not change.
-
-Stats, the game field each one reads and writes, and the range `Set` clamps to:
-
-| Stat | Game field | Range |
-|---|---|---|
-| Hunger | `PlayerStatsHungerAndThirst.Hunger` | -100..100 |
-| Thirst | `PlayerStatsHungerAndThirst.Thirst` | 0..100 |
-| Bowel | `PlayerStatsHungerAndThirst.Bowel` | 0..100 |
-| Bladder | `PlayerStatsHungerAndThirst.Bladder` | 0..100 |
-| Tiredness | `PlayerStatsTiredness.currentStatus` | 0..100 |
-| Hygiene | `PlayerStatsHygiene.Hygiene` | 0..100 |
-| Mood | `PlayerStatsMentalHealth.currentStatus` | 0..100 |
-| Health | `PlayerStatsHealth.currentStatus` | 0..100 |
-| Bleeding | `PlayerStatsHealth.Bleeding` | 0..100 |
-| Alcohol | `PlayerStatsAlcohol.AlcoholInBlood` | 0..100 (the game does not clamp above 100) |
-| High | `PlayerStatsMushrooms.MushroomsHigh` | 0..100 |
-| Smv | `PlayerStatsMushrooms.SMVProgression` | 0..100 |
-| Radiation | `PlayerStatsRadiation.Dose` | 0 and up |
-| SaunaHeat | `PlayerStatsSauna.Overheat` | 0 and up |
-| DuckNeed | `PlayerStatsDuck.currentStatus` | 0..100 |
-| AlcoholAddiction, MushroomAddiction, SmokingAddiction, GamblingAddiction | `PlayerStatsAddictions.<name>` | 0..100 |
-| AlcoholNeed, MushroomNeed, SmokingNeed, GamblingNeed | `PlayerStatsAddictions.<name>` | 0..100 |
-
-- `Get` returns the raw game value. `Set` returns `false` when `IsAvailable` is false, the value is NaN, or `PlayerStats.instance` is null.
-- `OnCrossed` fires `callback(stat, value, rising)` when the value moves from below to at-or-above `threshold` (rising), or from at-or-above to below it (falling). The value is sampled once per game second. Stats change only while the player is active, so no crossing fires while frozen. The first sample after a load sets the baseline without firing.
-- `Decay.Set` uses one entry per `(stat, modId)`. The effective rate for a stat is `base × product(multipliers) + sum(offsetPerHour)`, where `base` is the game's rate for that stat. A second `Set` from the same mod replaces the first. Multipliers must be `>= 0`. Otherwise `Set` returns `false`.
-- A negative total rate is allowed and makes the stat move the other way. Offsets may be negative, so the total can be negative.
-- The game scales the patched rate afterwards, so an offset is not an absolute amount per hour. Awake hunger is multiplied by `(1 - High / 100)` and `(1 - AlcoholAddiction / 200)` (`PlayerStatsHungerAndThirst.cs:84`, `:91`). Sleeping hunger and thirst are multiplied by 0.33 (`:96`, `:128`, factor at `:52`). Sleeping hygiene is multiplied by 0.5 (`PlayerStatsHygiene.cs:73`).
-- The four addiction need getters drive both the rise and the fall. The rise is `Addiction × 0.01 × rate / 60` (`PlayerStatsAddictions.cs:150`, and the same form for the other needs). The fall is `rate / 60` (`:164`). A modifier on an addiction need changes both.
-- `Decay.Supports` returns `true` only for: `Hunger`, `Thirst`, `Hygiene`, `AlcoholNeed`, `MushroomNeed`, `SmokingNeed`, `GamblingNeed`. These are the stats with a per-hour rate getter that the game uses to change the stat.
-- `Consumables.Intercept` runs once per consumable use, before the game does anything for that use. Core dispatches at the use entry point: `ItemInfo.UseItem(int, bool)` (`ItemInfo.cs:127`) for inventory use, including a drink from a liquid container, and `CollectibleItem.InvokeActions()` (`CollectibleItem.cs:383`) for world use. If any handler sets `args.Cancel = true`, the whole use is skipped. Nothing else happens for that use: no cooldown, no sound, no consume events, no meta change, no stat change, no liquid change, no outputs, no item removal or ammo change, no `RequiredItems` change and no `ItemsToSpawn`. A use the game would refuse (no use button, cooldown, active trade, `CanUse` false, or an owner permission that denies use) never reaches the handlers. `ItemConsumable.Invoke(ItemData, bool)` (`OS.Items/ItemConsumable.cs:116`) is the fallback for other callers. Handlers run once per use. Handlers share one `ConsumeArgs` per use. A handler that throws is logged, and the other handlers still run. The `ItemConsumable` is shared by the game and is never changed by Core.
-- `Consumables.Remove(modId)` removes that mod's intercepts. `RemoveAll` calls it.
-- `Consumables.Consumed(ConsumedArgs)` is for observing only. It fires once for each `ItemConsumable.Invoke` the game runs, after the game has applied the effects, removed or used up the item and spawned its `ItemsToSpawn`. `ItemId` is the item's `Item.ID`. It does not fire when an intercept cancels the use, when the game refuses the use before `Invoke` (the list under `Intercept`), or when `Invoke` throws. It does not fire when `Survival.IsAvailable` is false. A use that runs more than one consumable `Invoke` fires once per `Invoke`: `ItemInfo.UseItem` runs the child item's actions (`ItemInfo.cs:149`) and then the item's own action (`:154`), and `Item.InvokeActions` (`Item.cs:648`) runs each action of an item. Depression-forced uses (`Depression.cs:24`, `:47`) fire it too. Handlers are isolated by `Events.Raise`. Unsubscribe with `-=`; `RemoveAll` does not remove them. The payload has no stat deltas. Not run in game.
-- `Damaged(lost, reason)` fires when `PlayerStatsHealth.Damage` lowers `currentStatus` (`PlayerStatsHealth.cs:91`, `:128`). `lost` is the amount actually removed, after the clamp at 0 (`:152-155`). Bleed damage raises `Bleeding` and not health, so it does not fire. Mushroom and gas protection return before the health change (`:97-101`, `:112-115`, `:117-119`), so they do not fire.
-- `PassedOut` fires when `WaitingController.PassOut(..., Type.Passout)` changes `waitingType` to `Passout` (`WaitingController.cs:217`, `:222`). It does not fire for a refused call, for a call that starts normal sleep (`Sleep`, which sets `Sleeping`, `:312-314`), for `Type.Arrest`, or for a call made while the player is already passed out.
-
-Unverified in game:
-- The cancel path at the entry points (`ItemInfo.UseItem`, `CollectibleItem.InvokeActions`). Not run in game.
-- Mono inlining: a small decay getter could be inlined into its callers, which would bypass the patch. The first in-game check is SlowHunger: `Hunger` should rise at half speed.
-- Private access through the publicized DLL: the `PlayerStats.DeltaSeconds` patch (`PlayerStats.cs:302`, private) depends on it. This is pending the AccessProbe result (`Core.RawAccessAvailable`).
-
-Not supported:
-- `DuckNeed` decay. Its base-rate getter only sets the level when the player has enough ducks, so it is not a rate.
-- Decay for the addiction levels (`AlcoholAddiction` etc.), `Bowel`, `Bladder`, `Health`, `Mood`, `Tiredness`, `Radiation` and `SaunaHeat`. Hunger decay also scales `Bowel` build-up, and thirst decay scales `Bladder`.
-- Scaling of item effects. `Intercept` can cancel an item use. It cannot change an effect's size.
-- A HUD for custom stats.
-- `PlayerDied`, `PassedOut` and `Damaged` are plain C# events, so `RemoveAll` cannot remove their handlers. Unsubscribe with `-=`.
-- A depression-forced use (`Depression.cs:24`, `:47`) calls `ItemConsumable.Invoke` directly, so only the `Invoke` fallback applies. A cancel skips the item's effects and its removal, and the item stays in the inventory. `ItemInfo.Activate` (`Depression.cs:23`, `:46`) still runs. `Depression` still returns `true` (`Depression.cs:25`, `:48`) after a cancel, so `PlayerStatsMentalHealth.cs:98-100` skips its fallback. The game treats the use as handled.
-
-```csharp
-using System;
-using BepInEx;
-using ObenseuerCore;
-
-public class SlowHunger : BaseUnityPlugin
-{
-    private static readonly CoreLog Log = CoreLog.For("SlowHunger");
-
-    private void Awake()
-    {
-        Survival.Decay.Set(Stat.Hunger, "example.slowhunger", 0.5f, 0f);
-        Survival.OnCrossed("example.slowhunger", Stat.Hunger, 80f, (stat, value, rising) =>
-            Log.Info(stat + " crossed 80, rising " + rising + ", value " + value));
-        Survival.PlayerDied += reason => Log.Info("player died, reason " + reason);
-    }
-}
-```
-
-The example is `Examples\SlowHunger\`.
-
-## CameraView
-
-First and third person, driven through the game's own `ThirdPersonCameraCollision` state. Nothing moves a camera by hand. `src/CameraView.cs:CameraView`.
-
-```csharp
-public static class CameraView
-public static bool IsAvailable { get; }          // a ThirdPersonCameraCollision exists (false on the main menu)
-public static bool IsFirstPerson { get; }        // the game's firstperson flag
-public static bool ThirdPersonAllowed { get; }   // false with no camera, while a PlayerCameraTrigger forces first person, or while disabledZoomList is not empty
-public static bool SetThirdPerson(float distance = 2.5f);  // false when not allowed. Sets currentDistance, clamped to minDistance..maxDistance
-public static void SetFirstPerson();             // currentDistance = 0 and FirstPerson() now
-public static bool Toggle();                     // third person when first, first person otherwise. false when not available or refused
-public static event Action<bool> ModeChanged;    // true = first person. Forwarded from ThirdPersonCameraCollision.CameraModeChange
-```
-
-- Vanilla 0.5.05 is first person only. Third person is a dormant game mode, so the player body, animations and clipping may look rough. Not verified in game.
-- `SetThirdPerson` clears `disableThirdPerson` and `firstpersonOnly` and keeps the vanilla values, so `Tweaks.Camera` can put them back. The game's `FixedUpdate` then calls `ThirdPerson()` on the next physics step (`ThirdPersonCameraCollision.cs:116-134`). `ModeChanged` fires then, not inside the call.
-- A wall closer than about 0.6 m keeps first person, because the game's collision sets `distance` below 0.5 (`ThirdPersonCameraCollision.cs:136-169`).
-- `SetFirstPerson` does not change the camera rotation. The controller's `rotX`/`rotY` stay as they are, so the view direction does not jump.
-- A forced zone is detected by a postfix on `PlayerCameraTrigger.FirstPersonOnly(bool)` (`PlayerCameraTrigger.cs:17`). A trigger counts as forcing from its `FirstPersonOnly(true)` call until its `FirstPersonOnly(false)` call, or until it is destroyed. A trigger whose GameObject is only disabled, with no `false` call, stays counted. No code in the decompile calls `PlayerCameraTrigger.FirstPersonOnly`, so how a zone is entered and left is set in the scene and not verified.
-- If the postfix cannot be patched, `ThirdPersonAllowed` stays false. Third person is then refused, never forced.
-- `firstpersonOnly` alone is not a forced zone. `ThirdPersonCameraCollision.Start` (`:99-106`) sets it from `disableThirdPerson` for the whole game.
-- Save: the game saves `firstperson`, `currentDistance`, `disableThirdPerson` and `firstpersonOnly` (the public, non-`fsIgnore` fields in game `SaveController.cs:809-850`). A save made in third person stores the cleared flags, so loading it restores them.
-- A new `ThirdPersonCameraCollision` runs `Start` again, which sets the first-person lock again. While `ThirdPersonToggle` or `AllowScrollZoom` is on, the lock is cleared again on the next frame. Not verified that `Start` runs on every scene load.
-- Null-safe: with no camera (main menu) the properties return false and the methods return false or do nothing.
-- Hand items: `PlayerHandItems.CameraModeChange` (`PlayerHandItems.cs:241`) is subscribed to the same static event (`PlayerHandItems.cs:115`), and `FirstPerson()`/`ThirdPerson()` fire it (`ThirdPersonCameraCollision.cs:205`, `:227`). Going through them keeps the held items right.
-
-## Tweaks
-
-Built-in gameplay tweaks. They have no C# API. Settings live in `BepInEx\config\obenseuer.moddingframework.cfg`, one section per tweak, and in the in-game config window (BepInEx ConfigurationManager, F1).
-
-- Every tweak is off by default: multipliers are `1`, bools are `false`.
-- Changes apply live from the in-game config window. A tweak's patches are installed the first time its value becomes non-default, and stay installed. At the default, a patch does nothing and returns the game value unchanged.
-- Multipliers are clamped to `0.01` to `100`. NaN becomes `1`. Each clamp is logged to `BepInEx\logs\obenseuer.moddingframework.tweaks.log`.
-- Each change is logged once as `tweak <Section>.<Key>: <old> -> <new>`. A change is logged after its value has been still for 0.5 s, so a slider drag logs one line. A patch install logs `tweak <Section> patched` or `tweak <Section> patch not applied`.
-- Patches are owned by `obenseuer.moddingframework.tweaks`. A failed tweak logs and does nothing else.
-
-| Section | Key | Default | What it does | Save caveat |
-|---|---|---|---|---|
-| `Tweaks.Needs` | `HungerDrainMultiplier`, `ThirstDrainMultiplier`, `HygieneDrainMultiplier`, `AlcoholNeedDrainMultiplier`, `MushroomNeedDrainMultiplier`, `SmokingNeedDrainMultiplier`, `GamblingNeedDrainMultiplier` | `1` | Scales the stat's base decay rate through `Survival.Decay`, set or removed live (no patch). For the four addiction needs it scales both the rise and the fall. | Not saved. |
-| `Tweaks.Stacks` | `StackMultiplier` | `1` | Scales the stack size of items that stack (above 1). Liquid capacity per slot scales too. | Stacks over the limit stay over it when the value is lowered or set back to `1`, until that slot is filled again. |
-| `Tweaks.Spoilage` | `SpoilageMultiplier` | `1` | Scales the rate items spoil at. | Decay already applied is saved permanently. |
-| `Tweaks.CraftingSpeed` | `CraftingSpeed` | `1` | `2` is twice as fast. Scales manufacturing craft time and blueprint craft time. Below `1` the blueprint wait speed-up is slower than its target: the craft ends at the scaled length, but the speed-up uses the unscaled time. | A craft started with a value keeps its scaled craft length after the value changes. Manufacturing crafts are checked against the current length (`manufacturingProcess.cs:121`), so raising the value mid-craft can finish it at once, lowering it can make its progress jump, and changing it between sessions does the same. |
-| `Tweaks.DishwasherSpeed` | `DishwasherSpeed` | `1` | `2` is twice as fast. Scales dishwasher recipe process time, for recipes generated from now on. Stacks with `CraftingSpeed`. | Not saved. |
-| `Tweaks.NoMinimumSkill` | `NoMinimumSkill` | `false` | Manufacturing only. Lifts the minimum skill gate, including `HardMinimumSkill`, and removes the craft time penalty for low skill. Recipes marked impossible become selectable, and they still fail. Skill still affects fail chance and quality. Blueprints are not covered. Turning it off while a station is open takes effect only when the recipe list refreshes (`RecipeListUI.cs:39`); the craft path has no skill check of its own. | Not saved. |
-| `Tweaks.Renovations` | `CostMultiplier` | `1` | Scales the OC first payment and the RM final payment. Rounded to whole units. | Not saved. Orders already placed keep their saved progress. |
-| `Tweaks.Renovations` | `MoneyOnly` | `false` | Renovations need only money. The item requirement is skipped for the upgrade check and removal. A mod that takes renovation items itself does not read this flag: its prefix on `TenementController.RemoveRequiredItems` still runs, because HarmonyX runs every prefix, and it may still take items. See `TweakState`. | Not saved. |
-| `Tweaks.Renovations` | `BuildTimeMultiplier` | `1` | Scales the build time when an order is placed, and the displayed total. Rounded up to whole hours for the total. | Not saved. Progress already saved keeps its remaining seconds. |
-| `Tweaks.Renovations` | `InstantBuild` | `false` | Places renovation orders with zero build time. | Not saved. |
-| `Tweaks.Camera` | `ThirdPersonToggle` | `false` | Turns on the `ToggleKey` switch between first and third person. Off clears the toggle's lock and goes back to first person when the game's first-person lock was on. | Not saved by ObenseuerCore. The game saves `firstperson` and the cleared flags, see `CameraView`. |
-| `Tweaks.Camera` | `ToggleKey` | `F6` | Switches the view while `ThirdPersonToggle` is on. Ignored while a game menu, shop, pause, dialogue, the console or game controls are active. `V` is bound to "Rotation Mode" (`InputManager.cs:321`), so it is not the default. | Not saved. |
-| `Tweaks.Camera` | `AllowScrollZoom` | `false` | Clears the first-person lock so the scroll wheel moves between first and third person. Restored to the game's values when it and `ThirdPersonToggle` are both off. Not applied while a trigger forces first person. | Not saved by ObenseuerCore. A save made while it is on stores the cleared flags. |
-| `Tweaks.Time` | `TimeScale` | `1` | `2` makes the game clock run twice as fast. Need drain, spoilage, craft timers (`manufacturing.cs:368`) and renovation timers (`TenementController.cs:232`) all run on game time, so they speed up too. Not verified in game: if Mono inlines `AzureTimeController.SetNewDayLength`, this does nothing. Check that the clock speeds up after setting it. | Not saved. The saved time of day is unchanged. |
-
-The NPC route timing and the blueprint wait speed-up still use the unscaled day length.
-
-## TweakState
-
-```csharp
-public static class TweakState
-public static bool RenovationsMoneyOnly { get; }  // Tweaks.Renovations MoneyOnly, the value the game sees
-```
-
-A mod that takes renovation items itself must check this in its own `TenementController.RemoveRequiredItems` prefix: when it is true, return `false` early, before taking anything. HarmonyX still runs every prefix, so the check belongs in that mod's code.
-
-Read the flag from a helper, and call the helper from the prefix inside try/catch. An older Core without the member fails when the code that reads it is compiled. That is a `TypeLoadException` or a `MissingMethodException`, and it is thrown at the call into the helper. A try/catch inside the helper does not catch it (checked with a two-version probe on .NET Framework).
-
-```csharp
-private static bool MoneyOnlyOn()
-{
-    return ObenseuerCore.TweakState.RenovationsMoneyOnly;
-}
-
-private static bool MyPrefix()
-{
-    try
-    {
-        if (MoneyOnlyOn()) return false;
-    }
-    catch (Exception)
-    {
-    }
-    return true;
-}
-```
-
-## ModMenu
-
-```csharp
-public static class ModMenu
-{
-    public static void AddPage(string modId, string title, Action<RectTransform> build);
-    public static ModMenuWidgets WidgetsFor(RectTransform content);  // null when content is not a page's build target
-}
-```
-
-`ModMenuWidgets` (what `WidgetsFor` returns) is obsolete (`[Obsolete("Use ObenseuerCore.Ui.ModUi")]`). It still works, but new pages should build with `ModUi`. A mod that uses it gets compiler warning CS0618.
-
-The Mods menu opens as a web page by default (`[UI] ModMenuStyle = web`). Each plugin with visible config entries gets one "Settings" page. Classic `AddPage` pages are added under their mod id, or as a new entry named after the page's title when no plugin has that mod id. The classic window opens when `[UI] ModMenuStyle` is `classic`, or when the web page fails to start.
-
-The classic Mods menu is one `ModWindow` in the Full dock. Full is used because the Center dock (640 px) cannot hold the sidebar and the settings rows. The window's `Side` column is a sidebar with one button per page, and `Body` shows the selected page. The sidebar lists "Mod Settings" first (Core's config editor), then every added page sorted by title. `AddPage` adds a sidebar entry only. It never adds a game tab. The sidebar is read when the window opens, so a page added while the window is open appears the next time it opens.
-
-Entry points:
-
-- In game: the Mods tab is one entry in `UIPageButtons.MenuPages`. Its button opens the window, and arriving at the tab opens it too. Closing the window while the tab is selected returns the pause menu to the page it came from. The tab's id is the first unused `MenuPageNames` value above `MenuPageNames.Items`, checked against `MenuPages`, so two mods never get the same id.
-- Main menu: a "MODS" button sits under the main menu grid, in the row below "???". It opens the same window.
-- The tab is built once `UIPageButtons` and `PauseMenu` exist, and again when the game recreates them. A menu whose tab failed to build is not retried for that menu instance. There is no runtime removal.
-- The game's bumper cycling uses a fixed list of six names (`InventoryNavigationHandler.cs`, `_tabs`), and Core does not change that list. Mouse and click reach the tab.
-
-Keys: Esc closes the window (the game's Pause Menu key), and so does Joystick1Button1, unless a text field or key row is capturing. Esc pressed while a text field has focus, or while a key row is capturing, is used by that field or row and does not close the window.
-
-Pages:
-
-- A page's `build` receives the page's content area. It runs when the page is selected, so the rows are built once per page open. The content is cleared before each build.
-- If `build` throws, the page shows the notice "This page failed to load. Details are in BepInEx\logs\obenseuer.moddingframework.ui.log", the error is logged there, and the window stays open. The other pages still work.
-- Controls from `ModUi` run their callbacks under `ModWindow.Run`. A callback that throws closes the window with reason `Fault`. This is the kit's rule for every window, not a page rule.
-
-Mod Settings:
-
-- Lists every ConfigEntry of the loaded plugins, grouped by plugin (the first group starts expanded, the others collapsed) and then by section. Rows are sorted by section and key.
-- A search box at the top filters the rows by plugin, section or key. While a search is active, every group is open.
-- Row controls: bool is a toggle (`ModUi.Toggle`). An enum, and a list of acceptable values (`AcceptableValueList<T>`), is a stepper (`ModUi.Stepper`). A `[Flags]` enum is a text field. A KeyboardShortcut is a key binding (`ModUi.KeyBinding`): click it, then press a key. Ctrl, Shift and Alt held at the press are kept. Esc cancels, and mouse buttons are ignored. A ranged int or float is a slider (`ModUi.Slider`). A string, and any other type that converts from text, is a text field (`ModUi.TextField`). Other types are read-only. Each row has a Reset button, except read-only rows, and its description shows as a tooltip on hover. Entries that ConfigurationManager marks `Browsable = false` are not listed.
-- Saving: toggles, steppers, key bindings and text fields write the ConfigEntry and save at once. A text field writes when its edit ends (Enter, or a click away), not on each key. Sliders write at once and save 0.25 s after the last change, and on quit.
-
-Lock and inventory:
-
-- While a text field has focus, or a key row is capturing, the game's controls and keys are locked and its controller update is skipped (`UiInput.Engage`, `ModMenuInput::SkipWhileEngaged`). The lock is released when the field loses focus or the capture ends.
-- A custom page does not reach the inventory: while one is selected, the inventory's tab switch and its per-frame input (Drop, Move Item, Use) do nothing. `ModMenuInput::SkipWhileCustomPage` reads `UIPageButtons.instance.currentPage` on each call.
-
-Main menu:
-
-- The MODS button is a copy of a main menu button, placed in the row below the "unknown" grid cell. Left and right reach "Mod:Multiplayer" only in the direction it sits (`ModMenuMainMenu::Side`).
-- Opening the window turns the main menu's controls off (`MainMenuNavigationHandler.ControlsEnabled`, `ModMenuMainMenu::OpenPanel`). Closing it turns them on again and selects MODS (`ModMenuMainMenu::HoldNavigation`).
-- The window is the Full dock, so it covers the main menu. Its own controls lock is held while it is open (`ModWindow.Lock`).
-
-Not verified in game:
-
-- The in-game Mods tab: the window opens on arrival, closing it returns to the previous page, and the pause menu does not react to keys while the window is open.
-- The main-menu MODS button: placement under the grid, the click, left and right navigation to Multiplayer, and the navigation restore on close.
-- Esc and Joystick1Button1 closing, Esc inside a text field and inside a key capture, and that the Pause Menu does not open on the same Esc press.
-- Search, grouping, every row control, the 0.25 s save, and Reset.
-- The page failure notice, and a throwing callback closing the window with reason Fault.
-
-Config `[UI] ThemeConfigManager = true` gives the ConfigurationManager (F1) window a dark theme. It takes effect on the next start. Core patches the private `OnGUI` of ConfigurationManager through `CorePatcher`: a prefix swaps `GUI.skin` for a dark skin built from the menu palette, and a finalizer restores the previous skin. Without ConfigurationManager, nothing is patched.
-
-## ComputerApps
-
-Apps on the in-game computer desks, a full-screen app window, a typing guard for app inputs, and use prompts for world objects. The desk patches install on the first `Register` call, not at start-up. `IsAvailable` is true when `Core.PatchingAllowed` is true and the owner has not been disabled.
-
-```csharp
-public static class ComputerApps
-{
-    public static bool IsAvailable { get; }
-    public static event Action<ComputerAppClosedArgs> AppClosed;
-    public static event Action<RectTransform> ScreenChanged;
-    public static RectTransform ActiveScreen { get; }
-    public static bool Register(string modId, string appId, string title, Sprite icon, Action<RectTransform> open);
-    public static void Close(string appId);
-    public static void RemoveAll(string modId);
-    public static bool OpenStandalone(string modId, string appId);
-    public static bool AddInteraction(GameObject target, string modId, string title, string message, Action onUse);
-}
-
-public sealed class ComputerAppClosedArgs
-{
-    public string ModId { get; }
-    public string AppId { get; }
-}
-```
-
-Desk apps:
-
-- `Register` adds an icon to every desk, both the desks that exist now and the ones created later. `title` must not be empty. `icon` may be null, and then the title is drawn on the tile. It returns `false` when the desk patches cannot be installed (`CorePatcher` refuses patches when `Core.PatchingAllowed` is false), or when `appId` is already registered. The first registration wins, and a warning is logged for the second. It throws `ArgumentException` for an empty `modId`, an empty `appId`, an `appId` that contains `/`, or an empty `title`, and `ArgumentNullException` for a null `open`.
-- Icons form a grid at the top right of each desk: 84 x 72 tiles, 5 rows, columns 96 px apart, rows 84 px apart, 12 px margin. An icon is created once per desk and app, and it is reused after that.
-- A click calls `open(host)`. `host` is a `RectTransform` that fills the desk's wallpaper, one per desk and app. Core clears the host before every `open` call: each child is renamed, deactivated and destroyed. So `open` always builds your UI into an empty host, the same as `OpenStandalone`. Anything kept in the host's children is gone on the next click, so keep your state in your mod.
-- An exception in `open` is logged to the app's mod log, and the host is hidden.
-- The host must sit under a `GraphicRaycaster`, or its widgets receive no clicks. The desk logs one warning when none is found above the host (`ComputerAppsDesk::CheckRaycaster`). Each time an app is shown, Core makes sure an EventSystem exists (`ComputerAppsDesk::Show`, `UiEvents::Ensure`).
-- Apps hide when the player leaves the computer. `Close(appId)` hides the app on every desk, and it closes the full-screen window if that window shows the app. Each close raises `AppClosed` (below).
-- `AppClosed` (`ComputerAppClosedArgs`: `ModId` is the mod that registered the app, `AppId` is its id) is raised once for each view that closes. A desk host raises it when it was showing and `Close(appId)`, the leave-the-computer hide (`HideAll`), a scene change, `RemoveAll` for its mod, or an `open` that throws hides it. A host that was already hidden does not raise it. The full-screen window raises it when it closes: its Close button, Esc, a scene change, `RemoveAll` for its mod, or `OpenStandalone` of another app. `AppClosed` fires for both the desk host and the full-screen window, and the args carry only `ModId` and `AppId`, so a handler cannot tell which view closed. A handler that must tell them apart has to track its own view. Handlers are isolated by `Events.Raise`, and unsubscribe with `-=`.
-- While an input field inside an app host has focus, the desk's own key handling is skipped, so typing does not leave the computer.
-- `ActiveScreen` is the desk `RectTransform` (the monitor's wallpaper) of the computer the player is using now, or null. It is set when the player starts using a computer (`InteractableComputer.Use`) and cleared when the use stops (`StopUse`) or the scene changes. `ScreenChanged` is raised with the new value on each change, not on every frame. A `WebView` can follow it with `PinTo` (see docs/api/webui.md).
-
-Full-screen window:
-
-- `OpenStandalone` opens the app over the game. It uses a ScreenSpaceOverlay canvas at sort order 500, a CanvasScaler at 1920x1080 (match 0.5), a GraphicRaycaster, and a Close button at the top right. The game's controls are locked with `ControlsDisabled`, and the cursor is shown.
-- The window creates an EventSystem with a StandaloneInputModule when the scene has none (`UiEvents::Acquire`). The last window to close destroys it, if Core created it (`UiEvents::Release`).
-- It returns `false` and logs a warning when the app is unknown, or when the game is not ready or is busy (a menu, shop, pause, dialogue or the console is open). It returns `true` when that app is already open.
-- The window closes on Esc, on its Close button, on a scene change, and when the window throws. Esc does not close it while an input field in it has focus or a key row is capturing: that Esc belongs to the field or row, and the desk computer and the Pause Menu ignore it too. Otherwise Esc closes the window and does not open the Pause Menu on the same press. The close runs after the game's `Update`, while the controls lock still holds.
-
-World objects:
-
-- `AddInteraction` gives `target` the game's use prompt. `target` needs a `Collider`, and the game's `InteractObjects` must exist. It returns `false` when patching is not allowed (`Core.PatchingAllowed`), when there is no Collider or interact system, when no usable layer is found, when another mod owns the object, or when the object already has a game `IInteractable` MonoBehaviour (`ComputerApps::HasGameInteractable`: any MonoBehaviour that implements `IInteractable`, except Core's own `ModInteraction`). The game would show its own prompt in that case, so the mod's prompt would never appear. A warning is logged once.
-- Calling it again from the same mod updates `title`, `message` and `onUse`. The prompt shows `title` and `(message)`, the way the game shows its own prompts. `onUse` runs on use. An exception in `onUse` is logged to the mod's log.
-- The object keeps its layer when that layer is usable and in `InteractObjects.MaskList`. Otherwise the first usable layer of 17, 23, 29, 20 and 15 is used. `RemoveAll` puts the original layer back.
-- `RemoveAll(modId)` removes that mod's apps and icons, closes its window, and removes its interactions.
-
-```csharp
-using BepInEx;
-using UnityEngine;
-using ObenseuerCore;
-
-public class NotesApp : BaseUnityPlugin
-{
-    private void Awake()
-    {
-        ComputerApps.Register("example.notesapp", "notes", "Notes", null, host => BuildNotes(host));
-    }
-
-    private void Start()
-    {
-        GameObject board = GameObject.Find("Whiteboard");
-        if (board != null) ComputerApps.AddInteraction(board, "example.notesapp", "Whiteboard", "Read", () => ComputerApps.OpenStandalone("example.notesapp", "notes"));
-    }
-
-    private void BuildNotes(RectTransform host)
-    {
-    }
-}
-```
-
-Not verified in game:
-
-- Icon placement and draw order on a real desk, and that clicks reach the icons. The desk raycaster warning should not appear there.
-- Clicks in the full-screen window, both with a scene EventSystem and without one (Core creates it).
-- Whether the game's `MaskList` includes the chosen layers at runtime. The check is the same bit test that the raycast uses.
-- Esc is also the Pause Menu key (`InputManager.cs:308`). The window's close runs in `LateUpdate`, so the game's `Update` still sees the lock and returns before its Pause Menu check (`GameController.cs:67`, `:71`).
-- Movement and cursor state after the window closes while the game UI is open.
-- `AddInteraction` on an object that already has another `IInteractable` returns `false`.
-
-## PlayerLook
-
-The player's look as plain data, and the game's own path for applying it.
-```csharp
-public static class PlayerLook
-{
-    public static event Action<Look> Changed;
-    public static bool IsAvailable { get; }
-    public static Look Capture();
-    public static Look Capture(Appearance appearance);
-    public static bool Apply(Look look);
-    public static bool Apply(Look look, Appearance appearance);
-    public static bool Live(Look look);
-    public static bool Live(Look look, Appearance appearance);
-    public static Look Randomise();
-    public static Look Randomise(Appearance appearance);
-    public static Look Vanilla();
-    public static IList<string> Options(string slot, bool male);
-    public static IList<string> Options(string slot, bool male, Appearance appearance);
-
-    [Serializable]
-    public sealed class Look
-    {
-        public bool set;
-        public bool male;
-        public bool advanced;
-        public float height = 0.8f;
-        // Public fields, see the list below. Dials are floats, and the wearables are strings.
-    }
-}
-```
-
-`Look` fields, all public: `set`, `male`, `advanced`, `height` (0.8), `shape`, `gender`, `headSize` (1), `faceSize` (1), `neckLength`, `shoulderWidth`, `breastSize`, `hipWidth`, `handSize` (1), `footSize` (1), `lipThickness`, `jawPosition`, `chinPosition`, `eyeSize` (1), `eyeDistance`, `eyePosition`, `eyeDepth`, `earSize` (1), `earRotation`, `noseRootRotation`, `noseTipRotation`, `noseWidth`. The floats default to 0 unless shown. The strings are `head`, `hat`, `hair`, `glasses`, `beard`, `shirtT`, `shirtB`, `pantsT`, `pantsB`, `socks` and `shoes`. They hold wearable asset names, and `""` means none.
-
-- `Capture()` returns the player's look, or `null` when `IsAvailable` is false. `Capture(appearance)` reads any Appearance. A look from `Capture` has `set` true.
-- `Apply(look)` sets the player's look. Each dial is clamped to its range: Height 0 to 1, Shape -1 to 1, and every other dial 0 to 1. A new costume is built at runtime, so the game's shared Random NPC asset is never written. The game's `LoadCharacter` then rebuilds the body and clothes, and `Changed` fires. It returns `false` when not available, or when the game throws (the error is logged).
-- Wearables are matched by name within the list for the look's gender. A name that is not found clears the slot, except Head, which falls back to the first head of the gender. A female beard is matched by name in the same full list as a male one, because the game's editor offers every beard to either gender. Leggings are matched by name.
-- `Apply(look, appearance)` does the same for any Appearance, without `Changed`.
-- `Live(look, appearance)`, `Randomise(appearance)` and `Options(slot, male, appearance)` are the player versions for any Appearance, and they do not fire `Changed`. `Live` and `Randomise` return `false` or `null` when the Appearance is not ready, and `Options` returns an empty list then.
-- `Live(look)` sets the dial values (body and face) on the player and calls `UpdateShapes`. Clothes do not change. The clamps apply, and `Changed` fires.
-- `Randomise()` captures the current look, rolls every dial except Height, rolls each wearable (Leggings and a female beard take their first entry, as the game's Random NPC rule does), applies the result, fires `Changed`, and returns the new look.
-- `Vanilla()` returns a new look made with the game's own random NPC rules (`Appearance.LoadCharacterValues`): male and advanced by a coin toss, Breast size 0 to 0.3 for male and 0.3 to 1 for female, Gender rounded to 0 or 1, and Height included. It does not apply the look.
-- `Options(slot, male)` lists the wearable names of a slot for that gender, in the game's order. The slots are `Head`, `Hat`, `Hair`, `Glasses`, `Beard`, `Jacket`, `Shirt`, `Pants`, `Leggings`, `Socks` and `Shoes`. A female beard gives the same full list as a male one. An unknown slot throws `ArgumentException`. When not available, it returns an empty list.
-- `Changed` fires after `Apply(look)`, `Live(look)` and `Randomise()`, and it receives the captured look. The Appearance overloads do not fire it. That look is null when the capture fails. A handler that throws is logged, and the other handlers still run.
-- Gender rules: the Head list follows `male`. A female beard is not pinned in `Options` or `Apply`, and only `Randomise` and `Vanilla` roll it as its first entry. Breast size is not limited by gender in `Apply`, `Live` or `Randomise`: `Randomise` rolls it over 0 to 1 for either gender, and keeps the captured `male` and `advanced`. Only `Vanilla` uses the game's gender ranges (male 0 to 0.3, female 0.3 to 1).
-- Nothing is saved. Store a `Look` with `SaveData.Register` if you need it.
-- A null `look` or `appearance` throws `ArgumentNullException`, except that `Options` returns an empty list for a null `appearance`. Game errors are logged to `BepInEx\logs\obenseuer.moddingframework.playerlook.log`, and the call returns `false` or `null`.
-
-Debug check:
-
-- `[Debug] PlayerLookSelfCheck = false` in `BepInEx\config\obenseuer.moddingframework.cfg`. When it is true, Core runs the check at Awake and logs `playerlook self-check ok`, or `playerlook self-check failed: <check>`, to `BepInEx\logs\ObenseuerCore.log`. The check covers the dial clamps and the wearable rules, on temporary `Wearable` assets. It does not touch an Appearance.
-
-```csharp
-using BepInEx;
-using ObenseuerCore;
-
-public class LookTweak : BaseUnityPlugin
-{
-    private void Awake()
-    {
-        PlayerLook.Changed += look => Logger.LogInfo("look changed");
-    }
-
-    private void Start()
-    {
-        PlayerLook.Look look = PlayerLook.Capture();
-        if (look == null) return;
-        look.hat = "";
-        PlayerLook.Apply(look);
-    }
-}
-```
-
-Not verified in game:
-
-- `Apply`, `Live` and `Randomise` on a running player: the body and clothes after `LoadCharacter`.
-- `IsAvailable` on the main menu and during scene changes.
-
-UI kit (`ModUi`, `UiTheme`, `UiSprites`): see [api/ui.md](api/ui.md).
+- **Event payloads.** Some events pass a bare `int`, `ulong`, `bool` or `string`, or several of them, instead of a named args class. Example: `Events.HourPassed` is `Action<int>`, so the hour is a bare number with no name.
+- **Sentinels instead of nullables.** Some lookups return a sentinel for "not found" where a nullable would be expected. Example: `WorldWeather.IndexOf` returns `-1` for an unknown name.
+- **Bad ids.** Many calls throw `ArgumentException` for an empty or malformed id, but others return a default for the same kind of input. Example: `Relationships.GetDisposition("")` returns `0` without throwing, while `ModNpcs.Spawn` throws for a bad `modId`.

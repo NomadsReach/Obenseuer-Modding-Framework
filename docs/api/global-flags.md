@@ -1,20 +1,20 @@
+---
+title: GlobalFlags API
+parent: API reference
+nav_order: 25
+---
+
 # GlobalFlags API
 
-Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 5.4.23.5.
+Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Patch owner: `obenseuer.moddingframework.globalflags`.
 Files: `src/Api/GlobalFlags.cs`, `src/Api/GlobalFlagsPatches.cs`.
 
 Everything not listed here is internal.
 
-## Wiring
+## If a hook cannot be installed
 
-```csharp
-internal static void GlobalFlags.Init();
-```
-
-Core calls this from `Core.Awake`.
-
-`Init` patches the three `GlobalState.SetState` overloads under one owner. If any of them is missing, all of them are removed, `GlobalFlags.IsAvailable` becomes `false`, and one warning is logged. `Get`, `Set` and `All` keep working; only `Changed` stops.
+The framework patches the three `GlobalState.SetState` overloads under one owner. If any of them is missing, all of them are removed, `GlobalFlags.IsAvailable` becomes `false`, and one warning is logged. `Get`, `Set` and `All` keep working; only `Changed` stops.
 
 ## Threading and safety
 
@@ -22,7 +22,7 @@ Core calls this from `Core.Awake`.
 - `GlobalFlags.IsAvailable` is `false` when the hooks were not installed or the owner was disabled.
 - Reads return `false` or an empty list when no save is loaded (`GlobalState.instance` is missing).
 - `Set` returns `false` when no save is loaded. It returns `true` when the flag now has the requested value.
-- `Set` returns `false` while a save is loading (`SaveController.Loading`).
+- `Set` returns `false` while a save is loading or being written.
 - An empty or `null` key throws `ArgumentException`. Nothing else throws to the caller.
 
 ## GlobalFlags
@@ -46,13 +46,13 @@ public sealed class GlobalFlagChangedArgs
 }
 ```
 
-- The flags are the game's string-keyed store, `GlobalState.state` (`Core/GlobalState.cs:28`). It is saved with the game (`Core/GlobalState.cs:30`). The game's scene logic reads it through `RelayAuto` (`Events/RelayAuto.cs:27`) and `DoorChangelevel` (`World/DoorChangelevel.cs:62`). There is no fixed list of keys. The game picks them per scene.
+- The flags are the game's string-keyed store, `GlobalState.state`. It is saved with the game. The game's scene logic reads it through `RelayAuto` and `DoorChangelevel`. There is no fixed list of keys. The game picks them per scene.
 - `Get(key)` returns `true` only when the key exists and is active. A missing key is `false`, the same as an inactive one.
-- `Set(key, active)` calls the game's `GlobalState.SetState` (`Core/GlobalState.cs:67`). It keeps any `data` already stored under the key. `DoorChangelevel` stores lock state there (`World/DoorChangelevel.cs:64`), so a plain two-argument call would have erased it. A new key gets `data` set to `null`.
+- `Set(key, active)` calls the game's `GlobalState.SetState`. It keeps any `data` already stored under the key. `DoorChangelevel` stores lock state there, so a plain two-argument call would have erased it. A new key gets `data` set to `null`.
 - `All()` returns every key in the store, active or not. It includes keys that hold data for other systems, such as the door changelevel keys. Use `Get` to filter.
 - `Changed` is raised for every game call to `SetState` that changes the value `Get` reports. That includes calls made by `Set` and by the game's own scene logic: `DoorChangelevel` at save time and `RelayAuto` at scene start. A key that goes from missing to inactive does not fire, because `Get` reports `false` before and after. Data changes with no change to `active` do not fire.
-- `Changed` can fire inside the save window, the first time each synced door key appears, because `DoorChangelevel` writes its key in `OnSavingGame` (`World/DoorChangelevel.cs:59-66`). `Changed` is not raised by the load itself: `GlobalState.OnLoadingGame` restores the dictionary without calling `SetState` (`Core/GlobalState.cs:35`). Only `RelayAuto` (`LateStart`) can fire after a load, when it writes its init state. Not verified in game.
-- Handlers run through `Events.Raise`, so a handler that throws is logged and the others still run. The postfix never throws.
+- `Changed` raised during a save is held and fired on `SavingDone`, after the save is written. This happens the first time each synced door key appears, because `DoorChangelevel` writes its key in `OnSavingGame`. `Changed` is not raised by the load itself: `GlobalState.OnLoadingGame` restores the dictionary without calling `SetState`. Only `RelayAuto` (`LateStart`) can fire after a load, when it writes its init state.
+- Handlers run one at a time, so a handler that throws is logged and the others still run. The postfix never throws.
 
 ## Ceilings and risks
 
@@ -60,3 +60,7 @@ public sealed class GlobalFlagChangedArgs
 - `All()` copies the key list each call. Fine for occasional calls, not for per-frame use.
 - Keys are case-sensitive, as in the game's dictionary.
 - The hooks are on `SetState` only. A direct write to `GlobalState.state` by another mod is not reported.
+
+## Save loads
+
+The framework does not gate this event on a save load. A handler that should ignore events raised while a save loads can check `SaveData.Busy`, which is true while a save is loading or being written.

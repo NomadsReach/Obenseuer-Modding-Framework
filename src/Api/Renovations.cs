@@ -130,15 +130,20 @@ namespace ObenseuerCore
 
         public static bool Start(string id)
         {
-            if (string.IsNullOrEmpty(id)) throw new ArgumentException("id must be a non-empty renovation id", "id");
+            if (string.IsNullOrEmpty(id))
+            {
+                ApiLog.Once(Owner, "Start.id", "id must be a non-empty renovation id");
+                return false;
+            }
             try
             {
                 TenementController controller = TenementController.instance;
                 RenovationEntry entry = Find(id);
-                if (controller == null || entry == null || !controller.contractorOpen || controller.currentContractor == null) return false;
+                if (SaveGate.Busy || controller == null || entry == null || !controller.contractorOpen || controller.currentContractor == null) return false;
                 if (entry.Info.State != RenovationState.Available) return false;
                 TenementContractor contractor = controller.currentContractor;
-                if (!contractor.CanUpgrade(entry.Upgrade, SizeOf(entry.Apartment))) return false;
+                ApartmentType size = Housing.SizeOf(entry.Apartment);
+                if (size == ApartmentType.Unknown || !contractor.CanUpgrade(entry.Upgrade, (UpgradeType.ApartmentType)size)) return false;
                 if (!controller.ignoreUpgradePricesAndItems && !CanPay(entry, contractor)) return false;
                 TenementUpgradeProgress progress = entry.Apartment == null ? controller.general.StartUpdate(entry.Upgrade) : entry.Apartment.StartUpdate(entry.Upgrade);
                 if (progress == null) return false;
@@ -297,11 +302,6 @@ namespace ObenseuerCore
         private static bool CanPay(RenovationEntry entry, TenementContractor contractor)
         {
             return Money.instance != null && Money.instance.CheckMoney(entry.Upgrade.GetPriceStartOC(), Money.Currency.OC) && entry.Upgrade.CanUpgrade(entry.Apartment, true, contractor);
-        }
-
-        private static UpgradeType.ApartmentType SizeOf(TenementApartment apartment)
-        {
-            return apartment == null ? UpgradeType.ApartmentType.Large : apartment.type.size;
         }
 
         private static RenovationEntry Find(string id)

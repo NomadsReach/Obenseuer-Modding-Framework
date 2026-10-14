@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using ObenseuerCore.Ui;
 using UnityEngine;
 
 #pragma warning disable 618
@@ -23,6 +24,8 @@ namespace ObenseuerCore
 
         internal static void Add(string modId, string title, Action<RectTransform> build)
         {
+            ModMenuPage other = pages.Find(p => p.Title == title && p.ModId != modId);
+            if (other != null) CoreLog.For(Owner).Warn("Mods page \"" + title + "\" is already added by " + other.ModId + ", the page from " + modId + " is added too");
             pages.Add(new ModMenuPage(modId, title, build));
         }
 
@@ -35,9 +38,9 @@ namespace ObenseuerCore
 
         internal static void Update()
         {
+            UiInput.Tick();
             ModMenuConfigList.FlushSaves(false);
             ModMenuWindow.Tick();
-            ModMenuWebHost.Tick();
             ModMenuTab.Tick();
             ModMenuMainMenu.Tick();
             UIPageButtons pb = UIPageButtons.instance;

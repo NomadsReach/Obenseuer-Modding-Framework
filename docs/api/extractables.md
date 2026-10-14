@@ -1,20 +1,20 @@
+---
+title: Extractables API
+parent: API reference
+nav_order: 21
+---
+
 # Extractables API
 
-Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 5.4.23.5.
+Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Patch owner: `obenseuer.moddingframework.extractables`.
 Files: `src/Api/Extractables.cs`, `src/Api/ExtractablesPatches.cs`.
 
 Everything not listed here is internal. `Extractable` is a different system from `ResourceNodes` (see `docs/api/resources.md`): it has health and spawns prefabs, not a stock.
 
-## Wiring
+## If a hook cannot be installed
 
-```csharp
-internal static void Extractables.Init();
-```
-
-Core calls this from `Core.Awake`.
-
-`Init` installs the `Damage` hook under one owner. If it is missing, the owner is removed, `Extractables.IsAvailable` becomes false, and one warning is logged. `All`, `Get`, `Health` and `Damage` keep working; only the event stops.
+The framework installs the `Damage` hook under one owner. If it is missing, the owner is removed, `Extractables.IsAvailable` becomes false, and one warning is logged. `All`, `Get`, `Health` and `Damage` keep working; only the event stops.
 
 ## Threading and safety
 
@@ -22,8 +22,8 @@ Core calls this from `Core.Awake`.
 - Every member is safe at any time. With no scene loaded, or on the main menu, reads return an empty list, `null` or `0`, and `Damage` returns `false`.
 - `Damage` returns `false` for an unknown id, and for an object whose health is already below 1 (it is being removed).
 - `Damage` returns `true` only when the game's damage was applied. The game's own method does nothing, and does not tell the player, unless the player wields a tool the object accepts. In that case `Damage` returns `false`.
-- `Extracted` is raised synchronously through `Events.Raise`, after the game has spawned the items. Objects extracted earlier are removed on load by `DestructibleList`, not through `Damage`, so no event is raised.
-- `Damage` returns `false` while a save loads (`SaveController.Loading`).
+- `Extracted` is raised synchronously, after the game has spawned the items. Objects extracted earlier are removed on load by `DestructibleList`, not through `Damage`, so no event is raised.
+- `Damage` returns `false` while a save is loading or being written.
 
 ## Extractables
 
@@ -42,7 +42,7 @@ public static class Extractables
 
 public sealed class ExtractableInfo
 {
-    public string Id { get; }              // SceneIds.Of: the Extractable.GUID, or a scene path when it has none
+    public string Id { get; }              // the Extractable.GUID, or a scene path when it has none
     public string Name { get; }            // the GameObject name
     public int Health { get; }             // Extractable.Health when the list was built
 }

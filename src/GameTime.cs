@@ -2,6 +2,7 @@ using UnityEngine;
 
 namespace ObenseuerCore
 {
+    /// <seealso cref="WorldClock"/>
     public static class GameTime
     {
         public static int Day
@@ -33,6 +34,14 @@ namespace ObenseuerCore
             get
             {
                 return TimeOfDayAzure.instance == null ? 0 : (int)TimeOfDayAzure.instance.CurrentMinutes;
+            }
+        }
+
+        public static bool IsDaytime
+        {
+            get
+            {
+                return TimeOfDayAzure.instance != null && TimeOfDayAzure.instance.IsItDay();
             }
         }
 

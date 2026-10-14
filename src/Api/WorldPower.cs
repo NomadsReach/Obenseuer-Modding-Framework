@@ -19,7 +19,7 @@ namespace ObenseuerCore
         {
             get
             {
-                return WorldPatches.Installed && !CorePatcher.IsDisabled(WorldPatches.Owner);
+                return WorldPatches.BlackoutInstalled && WorldPatches.GeneratorInstalled && !CorePatcher.IsDisabled(WorldPatches.BlackoutOwner) && !CorePatcher.IsDisabled(WorldPatches.GeneratorOwner);
             }
         }
 

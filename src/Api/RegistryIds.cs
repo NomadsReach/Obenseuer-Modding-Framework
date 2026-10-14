@@ -7,6 +7,7 @@ namespace ObenseuerCore
     internal static class RegistryIds
     {
         internal const string Owner = "obenseuer.moddingframework.registry";
+        internal const string PlaceholderOwner = "obenseuer.moddingframework.registry.placeholders";
         internal const int FirstId = 1000000;
         internal const int IdCount = 1999000000;
         internal const int Refused = -1;

@@ -158,7 +158,7 @@ namespace ObenseuerCore
 
         private static InteractableChair[] Chairs()
         {
-            return UnityEngine.Object.FindObjectsByType<InteractableChair>(FindObjectsSortMode.None);
+            return SceneIds.Active<InteractableChair>().ToArray();
         }
 
         private static InteractableChair Seated()
@@ -174,7 +174,7 @@ namespace ObenseuerCore
         {
             GameController game = GameController.instance;
             if (game == null || InteractObjects.instance == null || ThirdPersonCameraController.instance == null) return false;
-            return !CoreInput.GameBusy() && !game.keysDisabled && !game.GameIsPaused && !PlayerState.IsSleeping;
+            return !SaveGate.Busy && !CoreInput.GameBusy() && !game.keysDisabled && !game.GameIsPaused && !PlayerState.IsSleeping;
         }
 
         private static bool TooFar(InteractableChair chair)

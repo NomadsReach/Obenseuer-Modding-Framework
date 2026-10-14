@@ -1,7 +1,13 @@
+---
+title: Obenseuer Modding Framework items API (catalogue, read-only)
+parent: API reference
+nav_order: 34
+---
+
 # Obenseuer Modding Framework items API (catalogue, read-only)
 
-Experimental. Not checked in game.
-Game: Obenseuer 0.5.05 (build 25839246), Unity Mono.
+Experimental.
+Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Log owner: `obenseuer.moddingframework.items`. Logs go to `BepInEx\logs\obenseuer.moddingframework.items.log`.
 
 Everything not listed here is internal. Main thread only.
@@ -12,7 +18,7 @@ Everything not listed here is internal. Main thread only.
 - **Source.** The catalogue is `ItemDatabase.database`, filled from `StreamingAssets/Items.json` when the game's `ItemDatabase` component starts. Before that, or on the main menu when no scene has loaded it, every read returns its neutral default (empty list, `null`).
 - **Snapshots.** Each call builds new `ItemDef` objects. Price and max stack reflect the current difficulty at the time of the call. Do not hold them as live values.
 - **Bad arguments.** A `null` name, text or category throws `ArgumentException`. Everything else returns the fallback (empty list, `null`, `ItemQuality.Normal`).
-- **Game failures.** An entry that throws while it is being built is left out of the results. The first failure of each member is logged; later ones are not.
+- **Game failures.** An entry that throws while it is being built is left out of the results. All members share one log key, `Items.Build`, so only the first failure of any member is logged; later ones are not.
 
 ## Lookup
 
@@ -31,7 +37,7 @@ public static class Items
 public enum ItemQuality { Normal = 0, Crap = 1, Poor = 2, Bad = 3, Okay = 4, Good = 5, Fine = 6, Excellent = 7 }
 ```
 
-Titles are not unique in the game data (19 titles repeat). `Find` returns the first match in catalogue order. Use `Get(id)` when you need a specific item.
+Titles are not unique in the game data (17 titles repeat, or 18 when case is ignored). `Find` returns the first match in catalogue order. Use `Get(id)` when you need a specific item.
 
 ## ItemDef
 
@@ -77,3 +83,30 @@ Weight does not exist in the game data. There is no `Weight` property.
 - Quality and condition are per item instance in the game. They are not catalogue data. `Quality` here is the template value only.
 - `Icon` returns the sprite the game loaded for the item. It does not load new sprites.
 - `EquipSlot`, `EquipType`, `AmmoItemIds`, `AmmoCategories`, `FuelBurnTime`, `Electronic` and `ElectronicType` are read once, when the `ItemDef` is built. A property get allocates nothing. An item without that data gets `""`, 0, `false` or an empty array, never `null`. An `ItemDef` is a snapshot, so `Items.All()` builds one per catalogue item on each call; keep the result if you read it often.
+
+## Held model
+
+An item shows in the player's hand through its equipable action's `wieldPrefab`. A mod item can take another equipable's held model with `ItemDefinition.WieldTemplateId`, see `docs/api/registry.md`. A mod can also give any equipable item, vanilla or mod, its own model:
+
+```csharp
+public static bool ItemRegistry.SetHeldModel(string modGuid, int itemId, ModelHandle model);
+```
+
+- `model` comes from `ModelRegistry.LoadObj`. Any other handle throws `ArgumentException`, and `null` throws `ArgumentNullException`. An invalid `modGuid`, or an `itemId` below 0, throws `ArgumentException`.
+- The template is the item's own held model, or its `wieldPrefabPath` when that is not loaded yet. The template's first-person and third-person objects keep their transforms. The model's mesh replaces the mesh of the largest renderer in each of them, and every other mesh in those two objects is hidden. The model is fitted to the template's largest edge, as `FitToTemplate` does for world models. `Scale`, `EulerOffset`, `PositionOffset` and `Pivot` apply.
+- The held model is built once per item and reused on every equip. It is kept when the item database reloads. Only a new handle from a later `SetHeldModel` builds it again.
+- Animation is not supported. The template's own Animator and clips stay, and a custom animation cannot be set.
+- Fallback: a handle that is not ready, a template with no `IPlayerHandItem` or no mesh, or a model that cannot be built keeps the template's held model and logs once for the item.
+- Owner rule: one held model per item. A second mod's call returns `false`, and the log names both mods. The same mod can call again to replace its model.
+- It returns `false` when `ItemRegistry.IsAvailable` is false, or when another mod already set the item's model. Timing: the call can run any time. It returns `true` when the model is recorded. Before the item database loads, the model is applied when the items load. After it loads, it is applied at once.
+- A `WieldTemplateId` copy is made when the item loads, so a later `SetHeldModel` on the source does not change that copy.
+- Saves: the held model is not saved. The save keeps the item's `wieldPrefabPath`, which is the template's path and is unchanged, so no save refers to the model. Without the mod, a vanilla item shows its template model, and a mod item is handled as a missing item.
+
+Example:
+
+```csharp
+ModelHandle held = ModelRegistry.LoadObj("com.example.mymod", "torch-held", @"C:\Mods\MyMod\torch.obj", null, null);
+bool set = ItemRegistry.SetHeldModel("com.example.mymod", vanillaEquipableId, held);
+```
+
+Custom held prefabs that are not from `ModelRegistry` are not supported.

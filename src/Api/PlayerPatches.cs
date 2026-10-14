@@ -6,30 +6,51 @@ namespace ObenseuerCore
 {
     internal static class PlayerPatches
     {
-        internal static bool Install()
+        internal static bool InstallSleep()
         {
             try
             {
-                return Hook(typeof(WaitingController), "Sleep", new[] { typeof(int) }, "SleepPostfix")
-                    & Hook(typeof(WaitingController), "Wait", new[] { typeof(int), typeof(WaitingController.Type), typeof(float), typeof(bool), typeof(IEnumerable<PlayerStatsTiredness.Reason>) }, "WaitPostfix")
-                    & Hook(typeof(WaitingController), "Wakeup", new[] { typeof(bool), typeof(bool) }, "WakeupPrefix", "WakeupPostfix");
+                return Hook(PlayerState.Owner, typeof(WaitingController), "Sleep", new[] { typeof(int) }, null, "SleepPostfix");
             }
             catch (Exception e)
             {
-                ApiLog.Once(PlayerState.Owner, "install", e);
                 CorePatcher.DisableOwner(PlayerState.Owner);
+                ApiLog.Once(PlayerState.Owner, "install sleep", e);
                 return false;
             }
         }
 
-        private static bool Hook(Type type, string name, Type[] args, string postfix)
+        internal static bool InstallWait()
         {
-            return Hook(type, name, args, null, postfix);
+            try
+            {
+                return Hook(PlayerState.WaitOwner, typeof(WaitingController), "Wait", new[] { typeof(int), typeof(WaitingController.Type), typeof(float), typeof(bool), typeof(IEnumerable<PlayerStatsTiredness.Reason>) }, null, "WaitPostfix");
+            }
+            catch (Exception e)
+            {
+                CorePatcher.DisableOwner(PlayerState.WaitOwner);
+                ApiLog.Once(PlayerState.WaitOwner, "install", e);
+                return false;
+            }
         }
 
-        private static bool Hook(Type type, string name, Type[] args, string prefix, string postfix)
+        internal static bool InstallWakeup()
         {
-            return CorePatcher.PatchCore(type, name, args, CorePatcher.Handler(typeof(PlayerPatches), prefix), CorePatcher.Handler(typeof(PlayerPatches), postfix), null, true, PlayerState.Owner);
+            try
+            {
+                return Hook(PlayerState.WakeupOwner, typeof(WaitingController), "Wakeup", new[] { typeof(bool), typeof(bool) }, "WakeupPrefix", "WakeupPostfix");
+            }
+            catch (Exception e)
+            {
+                CorePatcher.DisableOwner(PlayerState.WakeupOwner);
+                ApiLog.Once(PlayerState.WakeupOwner, "install", e);
+                return false;
+            }
+        }
+
+        private static bool Hook(string owner, Type type, string name, Type[] args, string prefix, string postfix)
+        {
+            return CorePatcher.PatchCore(type, name, args, CorePatcher.Handler(typeof(PlayerPatches), prefix), CorePatcher.Handler(typeof(PlayerPatches), postfix), null, true, owner);
         }
 
         private static void SleepPostfix(int currentSleepSetTime, bool __result)

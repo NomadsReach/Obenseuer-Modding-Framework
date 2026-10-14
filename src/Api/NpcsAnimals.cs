@@ -26,8 +26,12 @@ namespace ObenseuerCore
         public int Id { get; private set; }
         public float Health { get; private set; }
         public int MaxHealth { get; private set; }
+        public float Hunger { get; private set; }
+        public int MaxHunger { get; private set; }
+        public float Age { get; private set; }
+        public int FullGrownAge { get; private set; }
 
-        internal AnimalInfo(int id, AnimalKind kind, string name, Vector3 position, bool tame, bool following, bool running, float health, int maxHealth)
+        internal AnimalInfo(int id, AnimalKind kind, string name, Vector3 position, bool tame, bool following, bool running, float health, int maxHealth, float hunger, int maxHunger, float age, int fullGrownAge)
         {
             Id = id;
             Kind = kind;
@@ -38,6 +42,10 @@ namespace ObenseuerCore
             Running = running;
             Health = health;
             MaxHealth = maxHealth;
+            Hunger = hunger;
+            MaxHunger = maxHunger;
+            Age = age;
+            FullGrownAge = fullGrownAge;
         }
     }
 
@@ -65,11 +73,11 @@ namespace ObenseuerCore
             {
                 List<AnimalInfo> result = new List<AnimalInfo>();
                 List<Animal> following = AnimalController.instance == null ? new List<Animal>() : AnimalController.instance.followingAnimals;
-                foreach (Animal animal in UnityEngine.Object.FindObjectsByType<Animal>(FindObjectsSortMode.None))
+                foreach (Animal animal in SceneIds.Active<Animal>())
                 {
                     AnimalStats stats = animal.GetComponent<AnimalStats>();
                     ItemAnimalData data = stats == null ? null : stats.animalData;
-                    result.Add(new AnimalInfo(animal.GetInstanceID(), KindOf(animal), animal.name, animal.transform.position, animal.tame, following.Contains(animal), animal.Running(), data == null ? 0f : data.currentHealth, data == null ? 0 : data.maxHealth));
+                    result.Add(new AnimalInfo(animal.GetInstanceID(), KindOf(animal), animal.name, animal.transform.position, animal.tame, following.Contains(animal), animal.Running(), data == null ? 0f : data.currentHealth, data == null ? 0 : data.maxHealth, data == null ? 0f : data.currentHunger, data == null ? 0 : data.maxHunger, data == null ? 0f : data.currentAge, data == null ? 0 : data.fullGrownAge));
                 }
                 return result;
             }
@@ -86,7 +94,7 @@ namespace ObenseuerCore
             try
             {
                 if (SaveGate.Busy || DamageController.instance == null) return false;
-                foreach (Animal animal in UnityEngine.Object.FindObjectsByType<Animal>(FindObjectsSortMode.None))
+                foreach (Animal animal in SceneIds.Active<Animal>())
                 {
                     if (animal.GetInstanceID() != animalId) continue;
                     AnimalStats stats = animal.GetComponent<AnimalStats>();

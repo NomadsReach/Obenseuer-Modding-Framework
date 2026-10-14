@@ -12,11 +12,28 @@ namespace ObenseuerCore
 
         public bool Busy { get; private set; }
 
-        internal CraftingStationInfo(string kind, Vector3 position, bool busy)
+        public string Id { get; private set; }
+
+        public List<string> Modifiers { get; private set; }
+
+        public List<string> RecipeTypes { get; private set; }
+
+        public bool? HasNaturalLight
+        {
+            get { return Crafting.NaturalLightOf(Source); }
+        }
+
+        internal CraftingBase Source { get; private set; }
+
+        internal CraftingStationInfo(string kind, Vector3 position, bool busy, string id, List<string> modifiers, List<string> recipeTypes, CraftingBase source)
         {
             Kind = kind;
             Position = position;
             Busy = busy;
+            Id = id;
+            Modifiers = modifiers;
+            RecipeTypes = recipeTypes;
+            Source = source;
         }
     }
 
@@ -72,7 +89,7 @@ namespace ObenseuerCore
             List<CraftingStationInfo> list = new List<CraftingStationInfo>();
             try
             {
-                foreach (CraftingBase station in UnityEngine.Object.FindObjectsByType<CraftingBase>(FindObjectsSortMode.None))
+                foreach (CraftingBase station in SceneIds.Active<CraftingBase>())
                 {
                     if (station != null) list.Add(ToStation(station));
                 }
@@ -103,7 +120,34 @@ namespace ObenseuerCore
 
         internal static CraftingStationInfo ToStation(CraftingBase station)
         {
-            return new CraftingStationInfo(station.GetType().Name, station.transform.position, station.CraftingIProgress());
+            List<string> modifiers = new List<string>();
+            List<string> recipeTypes = new List<string>();
+            try
+            {
+                modifiers = Recipes.Names(station.ModifiersWithUpgrades);
+                recipeTypes = Recipes.Names(station.RecipesWithUpgrades);
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Crafting.Owner, "ToStation", e);
+            }
+            return new CraftingStationInfo(station.GetType().Name, station.transform.position, station.CraftingIProgress(), station.GUID, modifiers, recipeTypes, station);
+        }
+
+        internal static bool? NaturalLightOf(CraftingBase station)
+        {
+            try
+            {
+                NaturalLightSourceChecker checker = station.GetComponentInChildren<NaturalLightSourceChecker>();
+                if (checker == null || SaveController.Loading || (TimeOfDayAzure.instance != null && TimeOfDayAzure.instance.updateTimeDisabled)) return null;
+                if (WindowNaturalLight.instance == null || !WindowNaturalLight.instance.initialized) return null;
+                return checker.HasSun();
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Crafting.Owner, "HasNaturalLight", e);
+                return null;
+            }
         }
 
         internal static bool HasStartHandlers

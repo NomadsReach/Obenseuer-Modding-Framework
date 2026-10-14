@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using BepInEx.Configuration;
+using BepInEx.Unity.Mono.Configuration;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;

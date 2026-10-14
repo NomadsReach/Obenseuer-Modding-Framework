@@ -11,6 +11,16 @@ namespace ObenseuerCore
         GlowingRat = 2
     }
 
+    [Flags]
+    internal enum BreedingGroup
+    {
+        None = 0,
+        Breed = 1,
+        Planting = 2,
+        Trap = 4,
+        All = Breed | Planting | Trap
+    }
+
     public sealed class BreederInfo
     {
         public string Id { get; private set; }
@@ -56,7 +66,9 @@ namespace ObenseuerCore
     public static class Breeding
     {
         internal const string Owner = "obenseuer.moddingframework.breeding";
-        private static bool installed;
+        internal const string PlantingOwner = Owner + ".planting";
+        internal const string TrapOwner = Owner + ".trap";
+        private static BreedingGroup installed;
 
         public static event Action<BredArgs> Bred;
         public static event Action<TrapSprungArgs> TrapSprung;
@@ -81,8 +93,24 @@ namespace ObenseuerCore
         {
             get
             {
-                return installed && !CorePatcher.IsDisabled(Owner);
+                return Installed(BreedingGroup.Breed) && Installed(BreedingGroup.Planting);
             }
+        }
+
+        internal static bool Installed(BreedingGroup group)
+        {
+            if ((installed & group) != group) return false;
+            foreach (BreedingGroup bit in new[] { BreedingGroup.Breed, BreedingGroup.Planting, BreedingGroup.Trap })
+            {
+                if ((group & bit) == bit && CorePatcher.IsDisabled(GroupOwner(bit))) return false;
+            }
+            return true;
+        }
+
+        private static string GroupOwner(BreedingGroup group)
+        {
+            if (group == BreedingGroup.Planting) return PlantingOwner;
+            return group == BreedingGroup.Trap ? TrapOwner : Owner;
         }
 
         public static List<BreederInfo> All()
@@ -90,9 +118,9 @@ namespace ObenseuerCore
             List<BreederInfo> list = new List<BreederInfo>();
             try
             {
-                foreach (AnimalBreeder breeder in UnityEngine.Object.FindObjectsByType<AnimalBreeder>(FindObjectsSortMode.None))
+                foreach (AnimalBreeder breeder in SceneIds.Active<AnimalBreeder>())
                 {
-                    if (breeder != null) list.Add(ToInfo(breeder));
+                    list.Add(ToInfo(breeder));
                 }
                 return list;
             }
@@ -106,9 +134,8 @@ namespace ObenseuerCore
         internal static void Init()
         {
             installed = BreedingPatches.Install();
-            if (installed) return;
-            CorePatcher.DisableOwner(Owner);
-            CoreLog.For(Owner).Warn("breeding hooks incomplete, breeding and trap events are disabled");
+            if (installed == BreedingGroup.All) return;
+            CoreLog.For(Owner).Warn("breeding hooks incomplete, missing " + (BreedingGroup.All & ~installed) + ", each member and event whose hooks are missing is disabled");
         }
 
         internal static BreederInfo ToInfo(AnimalBreeder breeder)

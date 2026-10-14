@@ -9,8 +9,14 @@ namespace ObenseuerCore
 
         internal static void Once(string owner, string what, Exception e)
         {
-            if (!reported.Add(owner + " " + what)) return;
-            CoreLog.For(owner).Error(what + " failed (later failures of this member are not logged): " + e.ToString());
+            if (!CoreDebug.Enabled && !reported.Add(owner + " " + what)) return;
+            CoreLog.For(owner).Error(what + " failed" + (CoreDebug.Enabled ? "" : " (later failures of this member are not logged)") + ": " + e.ToString());
+        }
+
+        internal static void Once(string owner, string what, string message)
+        {
+            if (!CoreDebug.Enabled && !reported.Add(owner + " " + what)) return;
+            CoreLog.For(owner).Warn(what + ": " + message);
         }
     }
 }

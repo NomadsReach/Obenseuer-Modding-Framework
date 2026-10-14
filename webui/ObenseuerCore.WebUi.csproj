@@ -1,0 +1,119 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <AssemblyName>ObenseuerCore.WebUi</AssemblyName>
+    <OutputType>Library</OutputType>
+    <OutputPath>$(RepoRoot)bin\$(LoaderOut)webui\</OutputPath>
+    <NoStdLib>true</NoStdLib>
+    <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <PublicizedAssembly>$(RepoRoot)lib/Assembly-CSharp.publicized.dll</PublicizedAssembly>
+    <ObxWebViewDir>$(MSBuildThisFileDirectory)native\ObxWebView\</ObxWebViewDir>
+    <ObxWebViewDll>$(ObxWebViewDir)bin\ObxWebView.dll</ObxWebViewDll>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4022.49" GeneratePathProperty="true" ExcludeAssets="all" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="mscorlib">
+      <HintPath>$(ManagedDir)/mscorlib.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="netstandard">
+      <HintPath>$(ManagedDir)/netstandard.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="System">
+      <HintPath>$(ManagedDir)/System.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="System.Core">
+      <HintPath>$(ManagedDir)/System.Core.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>$(ManagedDir)/UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(ManagedDir)/UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.InputLegacyModule">
+      <HintPath>$(ManagedDir)/UnityEngine.InputLegacyModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.JSONSerializeModule">
+      <HintPath>$(ManagedDir)/UnityEngine.JSONSerializeModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>$(ManagedDir)/UnityEngine.UI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>$(PublicizedAssembly)</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Loader)' == 'BepInEx6'">
+    <Reference Include="BepInEx.Core">
+      <HintPath>$(BepInExCore)/BepInEx.Core.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="BepInEx.Unity.Mono">
+      <HintPath>$(BepInExCore)/BepInEx.Unity.Mono.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="SemanticVersioning">
+      <HintPath>$(BepInExCore)/SemanticVersioning.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Loader)' == 'BepInEx5'">
+    <PackageReference Include="BepInEx.BaseLib" Version="$(BepInEx5BaseLibVersion)" GeneratePathProperty="true" ExcludeAssets="all" PrivateAssets="all" />
+    <Reference Include="BepInEx">
+      <HintPath>$(PkgBepInEx_BaseLib)/lib/net35/BepInEx.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\src\LoaderNamespaces.cs" Link="LoaderNamespaces.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\src\ObenseuerCore.csproj">
+      <Private>false</Private>
+    </ProjectReference>
+  </ItemGroup>
+
+  <Target Name="BuildObxWebView" BeforeTargets="BeforeBuild" Condition="'$(OS)' == 'Windows_NT' And '$(SkipNative)' != 'true'" Inputs="$(ObxWebViewDir)ObxWebView.cpp;$(ObxWebViewDir)ObxComposition.h;$(ObxWebViewDir)ObxLockDown.h;$(ObxWebViewDir)ObxThread.h;$(ObxWebViewDir)ObxTiming.h;$(ObxWebViewDir)ObxWebView.vcxproj" Outputs="$(ObxWebViewDll)">
+    <Exec Command="&quot;$(MSBuildProgramFiles32)\Microsoft Visual Studio\Installer\vswhere.exe&quot; -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -find MSBuild\Current\Bin\MSBuild.exe" ConsoleToMSBuild="true" IgnoreExitCode="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="VsMSBuild" />
+    </Exec>
+    <Error Condition="'$(VsMSBuild)' == ''" Text="ERROR: Visual Studio 2022 with the C++ tools was not found. Install the &quot;Desktop development with C++&quot; workload, or build with -p:SkipNative=true." />
+    <Exec Command="&quot;$(VsMSBuild)&quot; &quot;$(ObxWebViewDir)ObxWebView.vcxproj&quot; /nologo /p:Configuration=Release /p:Platform=x64 /p:WebView2Dir=&quot;$(PkgMicrosoft_Web_WebView2)\build\native&quot;" />
+  </Target>
+
+  <Target Name="CopyNativeAndWeb" AfterTargets="Build">
+    <PropertyGroup>
+      <CopyObxWebView Condition="'$(OS)' == 'Windows_NT' And Exists('$(ObxWebViewDll)')">true</CopyObxWebView>
+    </PropertyGroup>
+    <Error Condition="'$(OS)' == 'Windows_NT' And '$(SkipNative)' != 'true' And !Exists('$(ObxWebViewDll)')" Text="$(ObxWebViewDll) is missing. Build without -p:SkipNative=true, or build webui\native\ObxWebView\ObxWebView.vcxproj first." />
+    <Warning Condition="'$(OS)' != 'Windows_NT' Or ('$(SkipNative)' == 'true' And !Exists('$(ObxWebViewDll)'))" Text="ObxWebView.dll not built; the WebUi module will be unavailable at runtime and the Mods menu uses its classic fallback" />
+    <Copy Condition="'$(CopyObxWebView)' == 'true'" SourceFiles="$(ObxWebViewDll)" DestinationFolder="$(OutDir)" />
+    <Copy Condition="'$(CopyObxWebView)' == 'true'" SourceFiles="$(PkgMicrosoft_Web_WebView2)\LICENSE.txt" DestinationFiles="$(OutDir)ThirdPartyNotices-WebView2.txt" />
+    <RemoveDir Directories="$(OutDir)web" />
+    <ItemGroup>
+      <WebFiles Include="$(MSBuildThisFileDirectory)web\**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(WebFiles)" DestinationFolder="$(OutDir)web\%(RecursiveDir)" />
+  </Target>
+
+</Project>

@@ -6,19 +6,33 @@ namespace ObenseuerCore
 {
     internal static class ModMenuInput
     {
-        internal static bool Ready { get; private set; }
+        private static bool patched;
+
+        internal static bool Ready
+        {
+            get { return patched && (!UiInput.Locked || UiInput.Engaged); }
+        }
 
         internal static void Init()
         {
             bool update = Patch(typeof(GameController), "Update", Type.EmptyTypes, "SkipWhileEngaged");
             bool switched = Patch(typeof(InventoryNavigationHandler), "SwitchTab", new Type[] { typeof(InputManager.InputType), typeof(int), typeof(int) }, "SkipWhileCustomPage");
             bool navigation = Patch(typeof(InventoryNavigationHandler), "Update", Type.EmptyTypes, "SkipWhileCustomPage");
-            Ready = update && switched && navigation;
+            patched = update && switched && navigation;
         }
 
         private static bool SkipWhileEngaged()
         {
-            return !UiInput.Engaged && !ModWindow.EscapeConsumed;
+            if (!UiInput.Engaged && !ModWindow.EscapeConsumed) return true;
+            try
+            {
+                DialogueController.instance.CheckDialogueStatus();
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(ModMenu.Owner, "dialogue status while engaged", e);
+            }
+            return false;
         }
 
         private static bool SkipWhileCustomPage()

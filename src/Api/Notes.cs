@@ -56,13 +56,21 @@ namespace ObenseuerCore
 
         public static bool Has(string id)
         {
-            if (id == null) throw new ArgumentException("id must not be null", "id");
+            if (id == null)
+            {
+                ApiLog.Once(Owner, "Has.id", "id must not be null");
+                return false;
+            }
             return Guard(() => Holds(Find(id)), false, "Has");
         }
 
         public static bool Give(string id)
         {
-            if (id == null) throw new ArgumentException("id must not be null", "id");
+            if (id == null)
+            {
+                ApiLog.Once(Owner, "Give.id", "id must not be null");
+                return false;
+            }
             return Guard(() => GiveNote(id), false, "Give");
         }
 
@@ -95,7 +103,7 @@ namespace ObenseuerCore
         {
             NoteController controller = NoteController.instance;
             NoteInfo note = Find(id);
-            if (controller == null || note == null || Holds(note)) return false;
+            if (SaveGate.Busy || controller == null || note == null || Holds(note)) return false;
             controller.AddNote(note);
             return Holds(note);
         }

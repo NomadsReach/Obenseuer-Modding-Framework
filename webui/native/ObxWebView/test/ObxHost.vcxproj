@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <ProjectGuid>{F0C6D8EA-0450-4314-A68F-27583C79C8F4}</ProjectGuid>
+    <RootNamespace>ObxHost</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup>
+    <OutDir>$(MSBuildProjectDirectory)\bin\</OutDir>
+    <IntDir>$(MSBuildProjectDirectory)\obj\</IntDir>
+    <GenerateManifest>false</GenerateManifest>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <WarningLevel>Level4</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <DebugInformationFormat>None</DebugInformationFormat>
+      <PreprocessorDefinitions>UNICODE;_UNICODE</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)ObxHost.obj</ObjectFileName>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <OutputFile>$(OutDir)ObxHost.exe</OutputFile>
+      <AdditionalDependencies>user32.lib;d3d11.lib;dxgi.lib;psapi.lib;ole32.lib</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="ObxHost.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="FrameHostChecks.h" />
+    <ClInclude Include="SmokeChecks.h" />
+    <ClInclude Include="TestInput.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ObxWebView.vcxproj">
+      <Project>{156885DB-54AA-4BFD-ADBD-F9D55F6527BF}</Project>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemGroup>
+  <Target Name="CopyObxWebView" AfterTargets="Build">
+    <Copy SourceFiles="$(MSBuildProjectDirectory)\..\bin\ObxWebView.dll" DestinationFolder="$(OutDir)" />
+  </Target>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>

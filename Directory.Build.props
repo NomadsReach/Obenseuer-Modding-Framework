@@ -1,0 +1,36 @@
+<Project>
+  <PropertyGroup>
+    <RepoRoot>$(MSBuildThisFileDirectory)</RepoRoot>
+    <GameDir Condition="'$(GameDir)' == ''">$(OBENSEUER_DIR)</GameDir>
+  </PropertyGroup>
+
+  <Import Project="$(RepoRoot)GameDir.user.props" Condition="'$(GameDir)' == '' And Exists('$(RepoRoot)GameDir.user.props')" />
+
+  <PropertyGroup>
+    <GameDir Condition="'$(GameDir)' == ''">C:\Program Files (x86)\Steam\steamapps\common\Obenseuer</GameDir>
+    <ManagedDir>$(GameDir)/Obenseuer_Data/Managed</ManagedDir>
+    <BepInExCore>$(GameDir)/BepInEx/core</BepInExCore>
+    <Loader Condition="'$(Loader)' == ''">BepInEx6</Loader>
+    <LoaderOut Condition="'$(Loader)' == 'BepInEx5'">be5\</LoaderOut>
+    <BaseIntermediateOutputPath Condition="'$(Loader)' == 'BepInEx5'">obj\be5\</BaseIntermediateOutputPath>
+    <DefaultItemExcludes Condition="'$(Loader)' == 'BepInEx5'">$(DefaultItemExcludes);obj\**</DefaultItemExcludes>
+    <DefineConstants Condition="'$(Loader)' == 'BepInEx5'">$(DefineConstants);BEPINEX5</DefineConstants>
+    <DefineConstants Condition="'$(Loader)' == 'BepInEx6'">$(DefineConstants);BEPINEX6</DefineConstants>
+    <BepInEx5BaseLibVersion>5.4.21</BepInEx5BaseLibVersion>
+    <HarmonyX5Version>2.9.0</HarmonyX5Version>
+    <LangVersion>5</LangVersion>
+    <Deterministic>true</Deterministic>
+    <DebugType>none</DebugType>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+
+  <Target Name="CheckObenseuerGameFiles" BeforeTargets="PrepareForBuild">
+    <Error Condition="'$(Loader)' != 'BepInEx5' And '$(Loader)' != 'BepInEx6'" Text="Loader must be BepInEx5 or BepInEx6, not '$(Loader)'." />
+    <Error Condition="!Exists('$(ManagedDir)/Assembly-CSharp.dll')" Text="Obenseuer game files not found in GameDir '$(GameDir)'. Expected Obenseuer_Data\Managed\Assembly-CSharp.dll. Set GameDir with -p:GameDir=..., the OBENSEUER_DIR environment variable or GameDir.user.props. See README." />
+    <Error Condition="'$(Loader)' == 'BepInEx6' And !Exists('$(BepInExCore)/BepInEx.Core.dll')" Text="BepInEx 6 core files not found in '$(BepInExCore)'. Install BepInEx 6 Unity.Mono in the game folder, set -p:BepInExCore=..., or build the BepInEx 5 variant with -p:Loader=BepInEx5. See README." />
+  </Target>
+</Project>

@@ -18,7 +18,7 @@ namespace ObenseuerCore
         {
             get
             {
-                return Ready(Player());
+                return IsReady(Player());
             }
         }
 
@@ -27,7 +27,7 @@ namespace ObenseuerCore
             try
             {
                 Appearance ap = Player();
-                return Ready(ap) ? Capture(ap) : null;
+                return IsReady(ap) ? Capture(ap) : null;
             }
             catch (Exception e)
             {
@@ -59,10 +59,11 @@ namespace ObenseuerCore
         public static bool Apply(Look look)
         {
             if (look == null) throw new ArgumentNullException("look");
+            if (SaveGate.Busy) return false;
             try
             {
                 Appearance ap = Player();
-                if (!Ready(ap)) return false;
+                if (!IsReady(ap)) return false;
                 Put(look, ap);
                 Notify(ap);
                 return true;
@@ -78,9 +79,10 @@ namespace ObenseuerCore
         {
             if (look == null) throw new ArgumentNullException("look");
             if (appearance == null) throw new ArgumentNullException("appearance");
+            if (SaveGate.Busy) return false;
             try
             {
-                if (!Ready(appearance)) return false;
+                if (!IsReady(appearance)) return false;
                 Put(look, appearance);
                 return true;
             }
@@ -97,7 +99,7 @@ namespace ObenseuerCore
             try
             {
                 Appearance ap = Player();
-                if (!Ready(ap) || !Live(look, ap)) return false;
+                if (!IsReady(ap) || !Live(look, ap)) return false;
                 Notify(ap);
                 return true;
             }
@@ -114,7 +116,7 @@ namespace ObenseuerCore
             if (appearance == null) throw new ArgumentNullException("appearance");
             try
             {
-                if (!Ready(appearance)) return false;
+                if (!IsReady(appearance)) return false;
                 foreach (LookDial dial in PlayerLookTable.All) dial.SetLive(appearance, PlayerLookTable.Clamp(dial, dial.GetLook(look)));
                 appearance.UpdateShapes();
                 return true;
@@ -131,7 +133,7 @@ namespace ObenseuerCore
             try
             {
                 Appearance ap = Player();
-                if (!Ready(ap) || Randomise(ap) == null) return null;
+                if (!IsReady(ap) || Randomise(ap) == null) return null;
                 return Notify(ap);
             }
             catch (Exception e)
@@ -146,7 +148,7 @@ namespace ObenseuerCore
             if (appearance == null) throw new ArgumentNullException("appearance");
             try
             {
-                if (!Ready(appearance)) return null;
+                if (!IsReady(appearance)) return null;
                 Look look = Capture(appearance);
                 PlayerLookTable.Roll(look, appearance);
                 Put(look, appearance);
@@ -164,7 +166,7 @@ namespace ObenseuerCore
             try
             {
                 Appearance ap = Player();
-                return Ready(ap) ? PlayerLookTable.Vanilla(ap) : null;
+                return IsReady(ap) ? PlayerLookTable.Vanilla(ap) : null;
             }
             catch (Exception e)
             {
@@ -181,10 +183,11 @@ namespace ObenseuerCore
         public static IList<string> Options(string slot, bool male, Appearance appearance)
         {
             LookSlot found = PlayerLookTable.Find(slot);
+            if (found == null) throw new ArgumentException("unknown slot '" + slot + "'", "slot");
             List<string> names = new List<string>();
             try
             {
-                if (!Ready(appearance)) return names;
+                if (!IsReady(appearance)) return names;
                 Look probe = new Look();
                 probe.male = male;
                 Wearable[] choices = found.Choices(appearance, probe);
@@ -208,7 +211,7 @@ namespace ObenseuerCore
             ap.LoadCharacter();
         }
 
-        private static void Release(Character previous)
+        internal static void Release(Character previous)
         {
             costumes.RemoveWhere(c => c == null);
             if (previous != null && costumes.Remove(previous)) UnityEngine.Object.Destroy(previous);
@@ -219,15 +222,21 @@ namespace ObenseuerCore
             Character costume = ScriptableObject.CreateInstance<Character>();
             costume.GenderString = look.male ? "Male" : "Female";
             costume.Advanced = look.advanced;
+            WriteCostume(costume, look, ap, false);
+            if (costume.Head == null) costume.Head = First(look.male ? ap.maleHeads : ap.femaleHeads);
+            return costume;
+        }
+
+        internal static void WriteCostume(Character costume, Look look, Appearance ap, bool keepMissing)
+        {
             foreach (LookDial dial in PlayerLookTable.All) dial.SetCostume(costume, PlayerLookTable.Clamp(dial, dial.GetLook(look)));
             foreach (LookSlot slot in PlayerLookTable.Slots)
             {
                 Wearable[] choices = slot.Choices(ap, look);
                 int index = PlayerLookTable.Index(slot, look, choices);
-                slot.Put(costume, index < 0 ? null : choices[index]);
+                if (index >= 0) slot.Put(costume, choices[index]);
+                else if (!keepMissing) slot.Put(costume, null);
             }
-            if (costume.Head == null) costume.Head = First(look.male ? ap.maleHeads : ap.femaleHeads);
-            return costume;
         }
 
         private static Look Notify(Appearance ap)
@@ -243,7 +252,7 @@ namespace ObenseuerCore
             return locator == null ? null : locator.GetComponentInChildren<Appearance>(true);
         }
 
-        private static bool Ready(Appearance ap)
+        internal static bool IsReady(Appearance ap)
         {
             if (!Core.PatchingAllowed || ap == null) return false;
             if (bodyModels == null)

@@ -17,8 +17,11 @@ namespace ObenseuerCore
         public int Count { get; private set; }
         public int Oc { get; private set; }
         public float Rm { get; private set; }
+        public bool IsNote { get; private set; }
+        public string Body { get; private set; }
+        public string Sender { get; private set; }
 
-        internal MailInfo(string name, MailKind kind, int itemId, int count, int oc, float rm)
+        internal MailInfo(string name, MailKind kind, int itemId, int count, int oc, float rm, bool isNote, string body, string sender)
         {
             Name = name;
             Kind = kind;
@@ -26,6 +29,9 @@ namespace ObenseuerCore
             Count = count;
             Oc = oc;
             Rm = rm;
+            IsNote = isNote;
+            Body = body ?? "";
+            Sender = sender ?? "";
         }
     }
 
@@ -38,6 +44,22 @@ namespace ObenseuerCore
         {
             Name = name;
             Kind = kind;
+        }
+    }
+
+    public sealed class MailSentArgs
+    {
+        public string Name { get; private set; }
+        public int ReceiverNpcId { get; private set; }
+        public int ItemId { get; private set; }
+        public int Count { get; private set; }
+
+        internal MailSentArgs(string name, int receiverNpcId, int itemId, int count)
+        {
+            Name = name;
+            ReceiverNpcId = receiverNpcId;
+            ItemId = itemId;
+            Count = count;
         }
     }
 
@@ -68,6 +90,7 @@ namespace ObenseuerCore
 
         public static event Action<MailReceivedArgs> Received;
         public static event Action<MailReceivedArgs> PackageReceived;
+        public static event Action<MailSentArgs> Sent;
 
         public static bool IsAvailable
         {
@@ -106,6 +129,7 @@ namespace ObenseuerCore
             {
                 MailController controller = MailController.instance;
                 if (controller == null || ItemDatabase.instance == null) return false;
+                if (ItemRegistry.FindInDatabase(itemId) == null) return false;
                 ItemReference item = new ItemReference(itemId);
                 if (item.ID <= 0) return false;
                 controller.SendMail(mailName, item, count, null, Destination(kind));
@@ -156,6 +180,7 @@ namespace ObenseuerCore
                 bundle.mailName = mailName;
                 foreach (MailLine line in lines)
                 {
+                    if (ItemRegistry.FindInDatabase(line.ItemId) == null) return false;
                     ItemReference item = new ItemReference(line.ItemId);
                     if (item.ID <= 0) return false;
                     bundle.items.Add(new BundleMail.MailItem { item = item, amount = line.Count });
@@ -207,6 +232,7 @@ namespace ObenseuerCore
             {
                 MailController.MailReceived += OnMailReceived;
                 MailController.PackageReceived += OnPackageReceived;
+                MailController.MailSent += OnMailSent;
                 installed = true;
             }
             catch (Exception e)
@@ -228,6 +254,23 @@ namespace ObenseuerCore
             Cash.RaiseNested(PackageReceived, "Mail.PackageReceived", h => h(args));
         }
 
+        private static void OnMailSent(string mailName, NPC.NPCReference receiver, MailController.Mail mail)
+        {
+            if (SaveGate.Loading) return;
+            MailSentArgs args;
+            try
+            {
+                MailInfo info = mail == null ? null : Describe(mail, MailKind.Letter);
+                args = new MailSentArgs(mailName ?? "", receiver != null ? receiver.ID : 0, info != null ? info.ItemId : 0, info != null ? info.Count : 0);
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Cash.Owner, "Mail.Sent", e);
+                return;
+            }
+            Cash.RaiseNested(Sent, "Mail.Sent", h => h(args));
+        }
+
         private static MailInfo Describe(MailController.Mail letter, MailKind kind)
         {
             int itemId = 0;
@@ -246,7 +289,10 @@ namespace ObenseuerCore
                 oc = moneyMail.money.OC;
                 rm = moneyMail.money.RM;
             }
-            return new MailInfo(letter.mailName ?? "", kind, itemId, count, oc, rm);
+            MailController.NoteMail noteMail = letter as MailController.NoteMail;
+            NoteInfo note = noteMail != null ? noteMail.noteInfo : null;
+            Email email = note as Email;
+            return new MailInfo(letter.mailName ?? "", kind, itemId, count, oc, rm, note != null, note != null ? note.content : "", email != null ? email.from : "");
         }
 
         private static MailController.Target Destination(MailKind kind)

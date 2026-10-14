@@ -24,7 +24,11 @@ namespace ObenseuerCore
             CheckIdentifier(channel, "channel");
             if (handler == null) throw new ArgumentNullException("handler");
             NetChannel existing;
-            if (channels.TryGetValue(channel, out existing) && existing.Owner != modId) return false;
+            if (channels.TryGetValue(channel, out existing) && existing.Owner != modId)
+            {
+                CoreLog.For(ModIds.CoreId).Warn("net channel " + channel + " is already registered by " + existing.Owner + ", the call from " + modId + " is ignored");
+                return false;
+            }
             channels[channel] = new NetChannel { Owner = modId, Handler = handler };
             return true;
         }

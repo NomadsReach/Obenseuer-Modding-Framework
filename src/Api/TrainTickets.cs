@@ -75,7 +75,7 @@ namespace ObenseuerCore
             try
             {
                 if (price == null || currency == null) return list;
-                foreach (InteractableTicketMachine machine in UnityEngine.Object.FindObjectsByType<InteractableTicketMachine>(FindObjectsSortMode.None))
+                foreach (InteractableTicketMachine machine in SceneIds.Active<InteractableTicketMachine>())
                 {
                     if (machine == null) continue;
                     list.Add(new TicketMachineInfo(SceneIds.Of(machine), (int)price.GetValue(machine), Cash.FromGame((Money.Currency)currency.GetValue(machine))));

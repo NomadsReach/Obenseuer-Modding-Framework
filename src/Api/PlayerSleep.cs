@@ -25,6 +25,13 @@ namespace ObenseuerCore
         }
     }
 
+    public sealed class WaitOptions
+    {
+        public bool IgnoreNeeds { get; set; }
+
+        public bool NoPassOut { get; set; }
+    }
+
     public static partial class PlayerState
     {
         public static event Action<SleepStartedArgs> SleepStarted;
@@ -55,7 +62,7 @@ namespace ObenseuerCore
             try
             {
                 WaitingController waiting = WaitingController.instance;
-                if (waiting == null || PlayerStats.instance == null || !waiting.CanStartWaitingStaus || waiting.IsSleeping || waiting.IsWaiting) return false;
+                if (waiting == null || SaveGate.Busy || PlayerStats.instance == null || PlayerPick.IsOpen || !waiting.CanStartWaitingStaus || waiting.IsSleeping || waiting.IsWaiting) return false;
                 bool alarm = waiting.alarmEnabled;
                 bool started = waiting.Sleep(setTime);
                 if (!started) waiting.alarmEnabled = alarm;
@@ -75,11 +82,34 @@ namespace ObenseuerCore
             try
             {
                 WaitingController waiting = WaitingController.instance;
-                if (waiting == null || !waiting.CanStartWaitingStaus || WaitingController.WaitingBlocked) return false;
+                if (waiting == null || SaveGate.Busy || !waiting.CanStartWaitingStaus || WaitingController.WaitingBlocked) return false;
                 if (waiting.IsSleeping || waiting.IsWaiting) return false;
                 if (PlayerStats.instance == null || GameUIController.instance == null || GameController.instance == null || TimeOfDayAzure.instance == null) return false;
                 waiting.Wait(seconds, (WaitingController.Type)(int)kind);
                 return true;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Owner, "Wait", e);
+                return false;
+            }
+        }
+
+        public static bool Wait(string modId, int seconds, WaitKind kind, WaitOptions options, Action<int> onDone)
+        {
+            ModIds.Require(modId, "modId");
+            if (seconds <= 0) throw new ArgumentException("seconds must be positive", "seconds");
+            if (!Enum.IsDefined(typeof(WaitKind), kind)) throw new ArgumentException("unknown wait kind", "kind");
+            if (options == null) throw new ArgumentNullException("options");
+            if (onDone == null) throw new ArgumentNullException("onDone");
+            try
+            {
+                if (!PlayerWait.Available || PlayerPick.IsOpen) return false;
+                WaitingController waiting = WaitingController.instance;
+                if (waiting == null || SaveGate.Busy || !waiting.CanStartWaitingStaus || WaitingController.WaitingBlocked) return false;
+                if (waiting.IsSleeping || waiting.IsWaiting) return false;
+                if (PlayerStats.instance == null || GameUIController.instance == null || GameController.instance == null || TimeOfDayAzure.instance == null) return false;
+                return PlayerWait.Start(modId, seconds, kind, options, onDone, waiting);
             }
             catch (Exception e)
             {

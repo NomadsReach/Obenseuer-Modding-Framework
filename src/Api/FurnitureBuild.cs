@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 namespace ObenseuerCore
 {
@@ -23,7 +24,7 @@ namespace ObenseuerCore
         internal static Furniture Registered(FurnitureEntry entry)
         {
             Started = true;
-            if (entry.Built != null) return entry.Built;
+            if (entry.Built != null || entry.BuildFailed) return entry.Built;
             try
             {
                 entry.Built = Build(entry);
@@ -32,7 +33,13 @@ namespace ObenseuerCore
             {
                 ApiLog.Once(FurnitureRegistry.Owner, "build " + entry.Id, e);
             }
+            entry.BuildFailed = entry.Built == null;
             return entry.Built;
+        }
+
+        internal static void ForgetFailures()
+        {
+            foreach (FurnitureEntry entry in FurnitureRegistry.All()) entry.BuildFailed = false;
         }
 
         internal static Vector3 AlignOffset(Bounds model, Bounds template)
@@ -57,6 +64,7 @@ namespace ObenseuerCore
         {
             if (prefabRoot == null || model == null) return;
             GameObject part = null;
+            Material[] materials = null;
             List<BoxCollider> boxes = new List<BoxCollider>();
             List<Renderer> hidden = new List<Renderer>();
             List<Collider> disabled = new List<Collider>();
@@ -75,7 +83,7 @@ namespace ObenseuerCore
                     return;
                 }
                 Mesh mesh = MeshOf(model);
-                Material[] materials = ModelBuild.BuildMaterials(model, ModelBuild.Primary(target.gameObject).sharedMaterial);
+                materials = ModelBuild.BuildMaterials(model, ModelBuild.Primary(target.gameObject).sharedMaterial);
                 Vector3 scale;
                 if (!CompensatedScale(prefabRoot.transform.lossyScale, target.lossyScale, out scale))
                 {
@@ -117,7 +125,7 @@ namespace ObenseuerCore
             }
             catch (Exception e)
             {
-                Undo(part, boxes, hidden, disabled);
+                Undo(part, materials, boxes, hidden, disabled);
                 ApiLog.Once(FurnitureRegistry.Owner, "model " + model.Key, e);
             }
         }
@@ -198,10 +206,14 @@ namespace ObenseuerCore
             return result;
         }
 
-        private static void Undo(GameObject part, List<BoxCollider> boxes, List<Renderer> hidden, List<Collider> disabled)
+        private static void Undo(GameObject part, Material[] materials, List<BoxCollider> boxes, List<Renderer> hidden, List<Collider> disabled)
         {
             foreach (BoxCollider box in boxes) UnityEngine.Object.DestroyImmediate(box);
             if (part != null) UnityEngine.Object.DestroyImmediate(part);
+            if (materials != null)
+            {
+                foreach (Material material in materials) UnityEngine.Object.DestroyImmediate(material);
+            }
             foreach (Renderer renderer in hidden) renderer.enabled = true;
             foreach (Collider collider in disabled) collider.enabled = true;
         }
@@ -240,39 +252,70 @@ namespace ObenseuerCore
                 ApiLog.Once(FurnitureRegistry.Owner, "path " + entry.Id, new InvalidOperationException("template " + definition.TemplateName + " has no addressable path"));
                 return null;
             }
+            string title = definition.Title ?? template.title;
+            Sprite image = definition.Icon ?? template.image;
+            if (string.IsNullOrEmpty(title) || image == null) throw Refuse(definition, template, "has no title or image");
             Furniture furniture = UnityEngine.Object.Instantiate(template);
-            furniture.id = entry.Id;
-            furniture.addressableAssetPath = path;
-            furniture.title = definition.Title ?? template.title;
-            furniture.name = furniture.title;
-            furniture.details = definition.Details ?? template.details;
-            furniture.priceOC = definition.PriceOC < 0 ? template.priceOC : definition.PriceOC;
-            furniture.priceRM = definition.PriceRM < 0 ? template.priceRM : definition.PriceRM;
-            furniture.image = definition.Icon ?? template.image;
-            if (string.IsNullOrEmpty(furniture.title) || furniture.image == null) throw new InvalidOperationException("template " + (definition.TemplatePath ?? definition.TemplateName) + " has no title or image");
-            furniture.dismantleItems = template.dismantleItems == null ? new List<Furniture.ReseourceItem>() : new List<Furniture.ReseourceItem>(template.dismantleItems);
-            furniture.skins = new Furniture.Skin[0];
-            furniture.alternativePrefabs = new Furniture.AlternativePrefab[0];
-            furniture.hideFlags = HideFlags.HideAndDontSave;
-            furniture.prefab = Clone(template.prefab);
-            furniture.previewPrefab = template.previewPrefab == template.prefab ? furniture.prefab : Clone(template.previewPrefab);
-            furniture.customDisplayPrefab = Clone(template.customDisplayPrefab);
-            furniture.prefab.GetComponent<FurniturePlaceable>().furniture = furniture;
-            ModelHandle model = UsableModel(entry);
-            ApplyModel(furniture.prefab, model);
-            if (furniture.previewPrefab != furniture.prefab) ApplyModel(furniture.previewPrefab, model);
-            ApplyModel(furniture.customDisplayPrefab, model);
-            return furniture;
+            try
+            {
+                furniture.id = entry.Id;
+                furniture.addressableAssetPath = path;
+                furniture.title = title;
+                furniture.name = title;
+                furniture.details = definition.Details ?? template.details;
+                furniture.priceOC = definition.PriceOC < 0 ? template.priceOC : definition.PriceOC;
+                furniture.priceRM = definition.PriceRM < 0 ? template.priceRM : definition.PriceRM;
+                furniture.image = image;
+                furniture.dismantleItems = template.dismantleItems == null ? new List<Furniture.ReseourceItem>() : new List<Furniture.ReseourceItem>(template.dismantleItems);
+                furniture.skins = new Furniture.Skin[0];
+                furniture.alternativePrefabs = new Furniture.AlternativePrefab[0];
+                furniture.hideFlags = HideFlags.HideAndDontSave;
+                furniture.prefab = Clone(template.prefab);
+                furniture.previewPrefab = template.previewPrefab == template.prefab ? furniture.prefab : Clone(template.previewPrefab);
+                furniture.customDisplayPrefab = Clone(template.customDisplayPrefab);
+                furniture.prefab.GetComponent<FurniturePlaceable>().furniture = furniture;
+                ModelHandle model = UsableModel(entry);
+                ApplyModel(furniture.prefab, model);
+                if (furniture.previewPrefab != furniture.prefab) ApplyModel(furniture.previewPrefab, model);
+                ApplyModel(furniture.customDisplayPrefab, model);
+                return furniture;
+            }
+            catch (Exception)
+            {
+                Discard(furniture, template);
+                ReleaseTemplate(definition, template);
+                throw;
+            }
         }
 
-        private static Furniture Template(FurnitureDefinition definition)
+        private static void Discard(Furniture furniture, Furniture template)
+        {
+            GameObject[] clones = { furniture.prefab, furniture.previewPrefab, furniture.customDisplayPrefab };
+            foreach (GameObject clone in clones)
+            {
+                if (clone != null && clone != template.prefab && clone != template.previewPrefab && clone != template.customDisplayPrefab) UnityEngine.Object.DestroyImmediate(clone);
+            }
+            UnityEngine.Object.DestroyImmediate(furniture);
+        }
+
+        internal static Furniture Template(FurnitureDefinition definition)
         {
             ScriptableObject asset = string.IsNullOrEmpty(definition.TemplatePath) ? FindTemplate(definition.TemplateName) : SavableScriptableObject.LoadFromPath(definition.TemplatePath);
             Furniture template = asset as Furniture;
-            string source = definition.TemplatePath ?? definition.TemplateName;
-            if (template == null || template is FurnitureSurface || template is Train) throw new InvalidOperationException("template " + source + " is missing, or is a surface or train");
-            if (template.prefab == null || template.prefab.transform.childCount == 0 || template.prefab.GetComponent<FurniturePlaceable>() == null) throw new InvalidOperationException("template " + source + " has no placeable prefab with a model child");
+            if (template == null || template is FurnitureSurface || template is Train) throw Refuse(definition, asset, "is missing, or is a surface or train");
+            if (template.prefab == null || template.prefab.transform.childCount == 0 || template.prefab.GetComponent<FurniturePlaceable>() == null) throw Refuse(definition, asset, "has no placeable prefab with a model child");
             return template;
+        }
+
+        internal static void ReleaseTemplate(FurnitureDefinition definition, ScriptableObject asset)
+        {
+            if (asset != null && !string.IsNullOrEmpty(definition.TemplatePath)) Addressables.Release(asset);
+        }
+
+        private static InvalidOperationException Refuse(FurnitureDefinition definition, ScriptableObject asset, string reason)
+        {
+            ReleaseTemplate(definition, asset);
+            return new InvalidOperationException("template " + (definition.TemplatePath ?? definition.TemplateName) + " " + reason);
         }
 
         private static ScriptableObject FindTemplate(string name)
@@ -281,7 +324,7 @@ namespace ObenseuerCore
             if (console == null || console.furniture == null) return null;
             foreach (Furniture furniture in console.furniture.furnitures)
             {
-                if (furniture != null && furniture.name == name) return furniture;
+                if (furniture != null && furniture.name == name && !FurnitureIds.IsModId(furniture.id)) return furniture;
             }
             return null;
         }
@@ -320,7 +363,8 @@ namespace ObenseuerCore
             string modGuid;
             string key;
             FurnitureRegistry.TryParse(saved.id, out modGuid, out key);
-            CoreLog.For(FurnitureRegistry.Owner).Warn("\"" + placeholder.title + "\" (" + saved.id + ") needs mod " + (modGuid ?? "?") + "; using its template");
+            if (FurnitureRegistry.Find(saved.id) != null) CoreLog.For(FurnitureRegistry.Owner).Warn("\"" + placeholder.title + "\" (" + saved.id + ") did not build; using its template");
+            else CoreLog.For(FurnitureRegistry.Owner).Warn("\"" + placeholder.title + "\" (" + saved.id + ") needs mod " + (modGuid ?? "?") + "; using its template");
             return placeholder;
         }
     }

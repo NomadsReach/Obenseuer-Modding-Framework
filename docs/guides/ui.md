@@ -1,20 +1,26 @@
+---
+title: UI and HTML views
+parent: Guides
+nav_order: 4
+---
+
 # Building UI
 
-This guide covers the four UI routes a Core mod can use: an HTML panel on WebView2, a settings page in the Mods menu, an app on the in-game computer, and HUD and screen effects. The last section builds a small info panel. It is an HTML window that shows the player's balance and a press count, and it sends each button press back to the mod.
+This guide covers the four UI routes a framework mod can use: an HTML panel on WebView2, a settings page in the Mods menu, an app on the in-game computer, and HUD and screen effects. The last section builds a small info panel. It is an HTML window that shows the player's balance and a press count, and it sends each button press back to the mod.
 
 You need:
 
-- Obenseuer 0.5.05, BepInEx 5, and the Obenseuer Modding Framework 0.9.0. Depend on it with `[BepInDependency("obenseuer.moddingframework", "0.9.0")]`.
-- C# 5, compiled with `csc /langversion:5`, the way `Examples/WebUiHello/build.cmd` and `Examples/SlowHunger/build.cmd` do.
+- Obenseuer 0.5.05, BepInEx 5.4.23 or later (Mono) or BepInEx 6 Unity.Mono, and the Obenseuer Modding Framework 0.10.0. Depend on it with `[BepInDependency("obenseuer.moddingframework", ">=0.10.0")]`. This guide uses WebUi, so also depend on the optional WebUi module with `[BepInDependency("obenseuer.moddingframework.webui", ">=0.10.0")]`. On BepInEx 5, write `"0.10.0"` instead, because BepInEx 5 cannot parse a version range, and drop `using BepInEx.Unity.Mono;` (`BaseUnityPlugin` then comes from `BepInEx`). See [Supporting BepInEx 5 too](getting-started/packaging.md#supporting-bepinex-5-too).
+- C# 5 is the version the framework is built with. The Starter project uses the latest C# version.
 - For HTML panels, the WebView2 Runtime. Windows 11 includes it, and most Windows 10 installs have it. If it is missing, `WebUi.Open` returns `null` and `WebUi.IsAvailable` becomes `false`.
 
-Besides `mscorlib.dll`, `netstandard.dll`, `System.dll`, `System.Core.dll`, `UnityEngine.dll`, `UnityEngine.CoreModule.dll`, `BepInEx.dll` and `ObenseuerCore.dll`, these references matter:
+Besides `mscorlib.dll`, `netstandard.dll`, `System.dll`, `System.Core.dll`, `UnityEngine.dll`, `UnityEngine.CoreModule.dll`, `BepInEx.Core.dll`, `BepInEx.Unity.Mono.dll`, `ObenseuerCore.dll` and `ObenseuerCore.WebUi.dll`, these references matter. The names are BepInEx 6 names. For BepInEx 5, see [Supporting BepInEx 5 too](getting-started/packaging.md#supporting-bepinex-5-too):
 
 - `UnityEngine.InputLegacyModule.dll` is needed only for `Input.GetKeyDown`.
 - The `ModUi` snippets need `UnityEngine.UI.dll` and `Unity.TextMeshPro.dll`.
 - `UnityEngine.UIModule.dll` is not needed.
 
-The snippets assume these usings, and each one needs the ones for the names it uses: `System.IO`, `System.Reflection`, `BepInEx`, `BepInEx.Configuration`, `ObenseuerCore`, `ObenseuerCore.Ui` and `UnityEngine`.
+The snippets assume these usings, and each one needs the ones for the names it uses: `System.IO`, `System.Reflection`, `BepInEx`, `BepInEx.Configuration`, `BepInEx.Unity.Mono`, `BepInEx.Unity.Mono.Configuration`, `ObenseuerCore`, `ObenseuerCore.Ui` and `UnityEngine`. `KeyboardShortcut` needs `BepInEx.Unity.Mono.Configuration`. On BepInEx 5, leave out the two `BepInEx.Unity.Mono` usings, or wrap them in `#if BEPINEX6` and `#endif`, as in [Supporting BepInEx 5 too](getting-started/packaging.md#supporting-bepinex-5-too).
 
 ## Pick a route
 
@@ -27,11 +33,24 @@ The snippets assume these usings, and each one needs the ones for the names it u
 
 ## 1. HTML panels with WebUi
 
-A view is a WebView2 window that loads a page from your mod's `web` folder. Core maps that folder to the host `<modid>.obx`, for example `example-infopanel.obx`. The page is served from there and from nowhere else, apart from Core's shared assets.
+A view is a WebView2 window that loads a page from your mod's `web` folder. The framework maps that folder to the host `<modid>.obx`, for example `example-infopanel.obx`. The page is served from there and from nowhere else, apart from the framework's shared assets.
 
 ### Step 1: ship the web folder
 
-Put the page next to your DLL, and copy the folder into the build output the way `Examples/WebUiHello/build.cmd` does:
+Put the page next to your DLL, and copy the folder into the build output with a `CopyWeb` target in your `.csproj`:
+
+```xml
+<ItemGroup>
+  <WebFiles Include="web\**\*" />
+</ItemGroup>
+
+<Target Name="CopyWeb" AfterTargets="Build">
+  <RemoveDir Directories="$(OutDir)web" />
+  <Copy SourceFiles="@(WebFiles)" DestinationFolder="$(OutDir)web\%(RecursiveDir)" />
+</Target>
+```
+
+The build then gives this layout:
 
 ```
 bin\InfoPanel.dll
@@ -70,7 +89,7 @@ A non-modal view skips the busy check.
 
 ### Step 3: link the shared theme
 
-Core serves two shared files at `https://obx-core.obx/`. Link them from your page:
+The framework serves two shared files at `https://obx-core.obx/`. Link them from your page:
 
 ```html
 <link rel="stylesheet" href="https://obx-core.obx/obx-theme.css">
@@ -95,11 +114,11 @@ The tokens you will use most, with their light values:
 | `--obx-fs-sm` to `--obx-fs-xl` | 13, 14, 18, 30 px | font size |
 | `--obx-font` | Segoe UI, Bahnschrift, system-ui | font family |
 
-Dark values apply under `:root[data-theme="dark"]`. Core sets `data-theme` on `<html>` before your page runs, from the `Appearance.WebTheme` setting (`light`, `dark` or `system`). When the setting changes, Core posts `{"v":1,"type":"theme","mode":"dark"}` to every open view. Handle it in the page, as Step 5 shows.
+Dark values apply under `:root[data-theme="dark"]`. The framework sets `data-theme` on `<html>` before your page runs, from the `Appearance.WebTheme` setting (`light`, `dark` or `system`). When the setting changes, the framework posts `{"v":1,"type":"theme","mode":"dark"}` to every open view. Handle it in the page, as Step 5 shows.
 
 ### Step 4: JavaScript to C#
 
-The page sends a JSON object with the WebView2 `chrome.webview` object. Core injects no helper, so call it directly:
+The page sends a JSON object with the WebView2 `chrome.webview` object. The framework injects no helper, so call it directly:
 
 ```js
 const host = chrome.webview;
@@ -160,21 +179,21 @@ The extra host can serve files, but its pages cannot post messages to the view. 
 ### Step 7: hide, close and Escape
 
 - `view.Show()` and `view.Hide()` toggle the view. `view.Close()` destroys it. A closed view stays closed, and `Open` makes a new one.
-- Escape hides a visible view when `view.EscapeHides` is true, which is the default. With no `KeyPressed` handler, that is any visible view. With a handler, the handler runs first, and Core then hides only a modal view. Set `view.EscapeHides = false` to handle Escape yourself, then call `Hide` or `Close`.
-- `view.KeyPressed` is a public `Action<int>` event. Core raises it with the virtual-key code of Escape (27) and F10 (121) pressed in the focused view. No other key reaches it, so F9 does not while the panel has focus.
+- Escape hides a visible view when `view.EscapeHides` is true, which is the default. With no `KeyPressed` handler, that is any visible view. With a handler, the handler runs first, and the framework then hides only a modal view. Set `view.EscapeHides = false` to handle Escape yourself, then call `Hide` or `Close`.
+- `view.KeyPressed` is a public `Action<int>` event. The framework raises it with the virtual-key code of Escape (27) and F10 (121) pressed in the focused view. No other key reaches it, so F9 does not while the panel has focus.
 - A scene load hides modal views. That is a plain `Hide`, so `Dismissed` does not run.
-- `view.Dismissed` runs after Core hides the view on Escape. It does not run when your mod calls `Hide`.
+- `view.Dismissed` runs after the framework hides the view on Escape. It does not run when your mod calls `Hide`.
 - A modal view that is not ready within 20 seconds of `Show` closes itself, and the log says so.
 
 ### Security model
 
 - Only the view's own page can post messages. A page loaded from a `MapFolder` host cannot.
-- Core answers requests to unmapped hosts with `403`. Your page's CSP is the second layer, so always set one.
+- The framework answers requests to unmapped hosts with `403`. Your page's CSP is the second layer, so always set one.
 - Navigation to other hosts, new windows, downloads, permission prompts and external URI schemes are blocked. Each block is reported with a `*-blocked` name, and the view stays open. The report goes to the log and to `WebUi.LastError`. The mod's `Message` handler never sees it.
 - Dev tools and the right-click menu are off. Host objects are not exposed to the page.
 - Service workers are hidden from the page.
 - If the page posts a bare string, C# receives it JSON-quoted, so `"hi"` arrives with its quotes.
-- Core adds no Content-Security-Policy to your page. The Mods menu page sets its own. Set one on your page too:
+- The framework adds no Content-Security-Policy to your page. The Mods menu page sets its own. Set one on your page too:
 
 ```html
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' https://obx-core.obx; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
@@ -260,7 +279,7 @@ ModMenu.AddPage("example.settingsdemo", "Settings demo", content =>
 });
 ```
 
-- `AddPage` adds a sidebar entry. It never adds a game tab.
+- `AddPage` adds a sidebar entry. It never adds a game tab. A page with the same title as another mod's page is still added, and one warning names both mods. Call it once: a second call from the same mod adds a second page.
 - The sidebar is read when the Mods window opens. A page added while the window is open shows the next time it opens.
 - The build runs when the page is selected. If it throws, the page shows a notice and the error goes to the log. The other pages still work.
 - When the Mods menu uses its web page, a custom page opens as a classic pane inside it.
@@ -268,7 +287,7 @@ ModMenu.AddPage("example.settingsdemo", "Settings demo", content =>
 
 ### Common mistakes
 
-- Expecting the Mods menu to change the game's own options. It edits your config. The game's display and quality options are read only (see `docs/api/settings.md`).
+- Expecting the Mods menu to change the game's own options. It edits your config. The game's display and quality options are read only (see [settings](../api/settings.md)).
 - A `ModUi` callback that throws closes the Mods window with reason `Fault`. Keep callbacks short, and do the work in your mod.
 - Forgetting that a plugin with no visible config entries gets no Settings page.
 
@@ -282,7 +301,7 @@ Registered apps appear as icons on the computer desks. A click calls your `open`
 ComputerApps.Register("example.notesapp", "notes", "Notes", null, host => Build(host));
 ```
 
-- `appId` must not be empty and must not contain `/`. Registering a second app with the same id returns `false` and logs a warning. The first registration wins.
+- `appId` must not be empty and must not contain `/`. Registering a second app with the same id returns `false` and logs a warning that names both mods. The first registration wins.
 - `Register` returns `false` when `ComputerApps.IsAvailable` is `false`, because the desk patches are then not installed.
 - `icon` may be `null`. The title is then drawn on the tile.
 - `open` receives the host. It may throw; the exception is logged to your mod's log and the host is hidden.
@@ -299,7 +318,7 @@ private void Build(RectTransform host)
 }
 ```
 
-Core clears the host before each `open` call. Keep your state in the mod, not in the host's children.
+The framework clears the host before each `open` call. Keep your state in the mod, not in the host's children.
 
 ### Step 3: an HTML app on the monitor
 
@@ -337,8 +356,8 @@ ComputerApps.AddInteraction(board, "example.notesapp", "Whiteboard", "Read", () 
 ### Common mistakes
 
 - A host with no `GraphicRaycaster` above it gets no clicks. The desk host has one. Add one to any canvas you create yourself.
-- Keeping UI objects in the host. Core destroys them on the next open.
-- An `appId` with `/` throws `ArgumentException`.
+- Keeping UI objects in the host. The framework destroys them on the next open.
+- An `appId` with `/` makes `Register` return `false` and logs a warning.
 - A second `Register` call with the same `appId` returns `false`.
 
 ## 4. HUD and screen effects
@@ -391,11 +410,13 @@ InfoPanel\web\app.js
 using System.IO;
 using System.Reflection;
 using BepInEx;
+using BepInEx.Unity.Mono;
 using ObenseuerCore;
 using UnityEngine;
 
 [BepInPlugin("example.infopanel", "InfoPanel", "0.1.0")]
-[BepInDependency("obenseuer.moddingframework", "0.9.0")]
+[BepInDependency("obenseuer.moddingframework", ">=0.10.0")]
+[BepInDependency("obenseuer.moddingframework.webui", ">=0.10.0")]
 public class InfoPanel : BaseUnityPlugin
 {
     private const string ModId = "example.infopanel";
@@ -503,13 +524,13 @@ host.addEventListener("message", (e) => {
 host.postMessage({ type: "hello" });
 ```
 
-Build it like `Examples/WebUiHello/build.cmd`, which has the references this panel needs. `UnityEngine.InputLegacyModule.dll` is needed only for `Input.GetKeyDown`. Copy `web\` to `bin\web\`. Run the game, press F9 to open the panel, press the button, and watch the count change. Press Escape to hide it, then F9 to show it again.
+Build it with the project from [Your first mod](getting-started/first-mod.md), with two more `Reference` items: `ObenseuerCore.WebUi.dll` from the game's `BepInEx\plugins\ObenseuerCore.WebUi\` folder (`ObenseuerCore.WebUi.BepInEx5.dll` on BepInEx 5), and `UnityEngine.InputLegacyModule.dll` for `Input.GetKeyDown`. The `CopyWeb` target from step 1 copies `web\` to `bin\web\`. Run the game, press F9 to open the panel, press the button, and watch the count change. Press Escape to hide it, then F9 to show it again.
 
 ## Related pages
 
-- `docs/api/webui.md`: the full WebUi and WebView reference, including pinning, navigation and the shim's messages.
-- `docs/api/ui.md`: the `ModUi` and `ModWindow` kit used by the fallback and the settings pages.
-- `docs/API.md`, sections `ModMenu` and `ComputerApps`: the Mods menu and computer app references.
-- `docs/api/hud.md`: `Hud`, `ConsoleCommands` and the other HUD facades.
-- `docs/api/screen-fx.md`: `ScreenFx` in full, including the fade and FOV notes.
-- `docs/api/settings.md`: the game's own settings and `Keybinds`, which register mod keys in the Mods menu.
+- [WebUi](../api/webui.md): the full WebUi and WebView reference, including pinning, navigation and the shim's messages.
+- [UI kit](../api/ui.md): the `ModUi` and `ModWindow` kit used by the fallback and the settings pages.
+- [API reference](../api-core.md), sections `ModMenu` and `ComputerApps`: the Mods menu and computer app references.
+- [HUD](../api/hud.md): `Hud`, `ConsoleCommands` and the other HUD facades.
+- [ScreenFx](../api/screen-fx.md): `ScreenFx` in full, including the fade and FOV notes.
+- [Settings](../api/settings.md): the game's own settings and `Keybinds`, which register mod keys in the Mods menu.

@@ -56,7 +56,7 @@ namespace ObenseuerCore
             List<LanternInfo> list = new List<LanternInfo>();
             try
             {
-                foreach (Lantern lantern in UnityEngine.Object.FindObjectsByType<Lantern>(FindObjectsSortMode.None))
+                foreach (Lantern lantern in SceneIds.Active<Lantern>())
                 {
                     if (lantern != null) list.Add(ToInfo(lantern));
                 }

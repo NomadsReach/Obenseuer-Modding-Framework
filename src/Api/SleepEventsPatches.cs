@@ -10,12 +10,14 @@ namespace ObenseuerCore
         {
             try
             {
-                bool ok = CorePatcher.PatchCore(typeof(SleepEventController), "CalculateEvent", new[] { typeof(SleepEvent[]) }, CorePatcher.Handler(typeof(SleepEventsPatches), "CalculatePrefix"), null, null, true, SleepEvents.Owner);
+                bool ok = CorePatcher.PatchCore(typeof(SleepEventController), "CalculateEvent", new[] { typeof(SleepEvent[]) }, CorePatcher.Handler(typeof(SleepEventsPatches), "CalculatePrefix"), null, null, true, SleepEvents.InterceptOwner);
                 ok &= CorePatcher.PatchCore(typeof(SleepEventController), "ExecuteEvent", new[] { typeof(SleepEventController.SleepEvents), typeof(Transform) }, null, CorePatcher.Handler(typeof(SleepEventsPatches), "ExecutePostfix"), null, true, SleepEvents.Owner);
                 return ok;
             }
             catch (Exception e)
             {
+                CorePatcher.DisableOwner(SleepEvents.Owner);
+                CorePatcher.DisableOwner(SleepEvents.InterceptOwner);
                 CoreLog.For(SleepEvents.Owner).Error("sleep event hook install failed: " + e.ToString());
                 return false;
             }

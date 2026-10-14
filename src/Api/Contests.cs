@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace ObenseuerCore
 {
@@ -57,8 +58,11 @@ namespace ObenseuerCore
     public static class Contests
     {
         internal const string Owner = "obenseuer.moddingframework.contests";
+        internal const string PayoutOwner = Owner + ".payout";
         private static bool installed;
+        private static bool payoutInstalled;
         private static ContestResultInfo lastResult;
+        private static readonly PayoutFactors<string> payouts = new PayoutFactors<string>(Owner);
 
         public static event Action<ContestInfo> Started;
 
@@ -79,7 +83,7 @@ namespace ObenseuerCore
             {
                 ContestInfo controller = ControllerContest();
                 if (controller != null) active.Add(controller);
-                foreach (RatFightArena arena in UnityEngine.Object.FindObjectsByType<RatFightArena>(FindObjectsSortMode.None))
+                foreach (RatFightArena arena in SceneIds.Active<RatFightArena>())
                 {
                     if (arena != null && arena.currentState == RatFightArena.State.Fighting) active.Add(InfoOf(arena));
                 }
@@ -119,14 +123,85 @@ namespace ObenseuerCore
             return participants;
         }
 
+        public static float OpponentTolerance(ContestInfo contest)
+        {
+            if (contest == null || contest.Kind == ContestKind.RatFight) return -1f;
+            try
+            {
+                ContestInfo current = ControllerContest();
+                ContestController.IContestParticipant participant = ContestsPatches.ActiveParticipant();
+                if (current == null || participant == null || current.Id != contest.Id || current.Kind != contest.Kind) return -1f;
+                return Mathf.Clamp01(participant.tolerance);
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Contests.Owner, "OpponentTolerance", e);
+                return -1f;
+            }
+        }
+
+        public static bool GiveUp()
+        {
+            try
+            {
+                if (SaveGate.Busy) return false;
+                ContestController controller = ContestController.instance;
+                if (controller == null || !ContestController.ContestActive || ContestsPatches.ActiveParticipant() == null) return false;
+                controller.StopContest(false);
+                return true;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Contests.Owner, "GiveUp", e);
+                return false;
+            }
+        }
+
         public static ContestResultInfo LastResult()
         {
             return lastResult;
         }
 
+        public static bool PayoutFactorsAvailable
+        {
+            get
+            {
+                return payoutInstalled && !CorePatcher.IsDisabled(PayoutOwner);
+            }
+        }
+
+        public static bool SetPayoutFactor(string modId, string contestId, float factor)
+        {
+            if (!ValidMod(modId) || !PayoutFactorsAvailable) return false;
+            if (!PayoutFactors<string>.Valid(factor))
+            {
+                ApiLog.Once(Owner, "payout factor", "payout factor must be 0 to " + PayoutFactors<string>.MaxFactor);
+                return false;
+            }
+            try
+            {
+                if (ArenaById(contestId) == null) return false;
+                payouts.Set(modId, contestId, factor);
+                return true;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Owner, "SetPayoutFactor", e);
+                return false;
+            }
+        }
+
+        public static bool Clear(string modId)
+        {
+            if (!ValidMod(modId)) return false;
+            return payouts.Clear(modId);
+        }
+
         internal static void Init()
         {
             installed = ContestsPatches.Install();
+            payoutInstalled = ContestsPatches.InstallPayout();
+            Events.SceneLoadedWithMode += OnSceneLoaded;
             if (installed) return;
             CorePatcher.DisableOwner(Owner);
             CoreLog.For(Owner).Warn("contest hooks incomplete, contest events are disabled");
@@ -171,6 +246,26 @@ namespace ObenseuerCore
             return contest == null ? null : InfoOf(contest, ContestsPatches.ActiveParticipant());
         }
 
+        internal static Money.money Payout(RatFightArena arena, Money.money win)
+        {
+            if (!payouts.Any || !PayoutFactorsAvailable) return win;
+            float factor = payouts.Of(ArenaId(arena));
+            return factor == 1f ? win : win * factor;
+        }
+
+        private static void OnSceneLoaded(string scene, LoadSceneMode mode)
+        {
+            if (mode != LoadSceneMode.Single) return;
+            payouts.Reset();
+        }
+
+        private static bool ValidMod(string modId)
+        {
+            if (ModIds.IsValid(modId)) return true;
+            ApiLog.Once(Owner, "modId", "modId must be 1 to 64 characters of letters, digits, '.', '_' or '-'");
+            return false;
+        }
+
         private static string ArenaId(RatFightArena arena)
         {
             return string.IsNullOrEmpty(arena.GUID) ? SceneIds.Of(arena) : arena.GUID;
@@ -179,7 +274,7 @@ namespace ObenseuerCore
         private static RatFightArena ArenaById(string id)
         {
             if (string.IsNullOrEmpty(id)) return null;
-            foreach (RatFightArena arena in UnityEngine.Object.FindObjectsByType<RatFightArena>(FindObjectsSortMode.None))
+            foreach (RatFightArena arena in SceneIds.Active<RatFightArena>())
             {
                 if (arena != null && ArenaId(arena) == id) return arena;
             }

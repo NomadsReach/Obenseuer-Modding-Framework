@@ -60,7 +60,7 @@ namespace ObenseuerCore
             List<MailboxInfo> list = new List<MailboxInfo>();
             try
             {
-                foreach (Mailbox mailbox in UnityEngine.Object.FindObjectsByType<Mailbox>(FindObjectsSortMode.None))
+                foreach (Mailbox mailbox in SceneIds.Active<Mailbox>())
                 {
                     if (mailbox != null) list.Add(ToInfo(mailbox));
                 }
@@ -84,6 +84,37 @@ namespace ObenseuerCore
                 ApiLog.Once(Owner, "Mailboxes.Get", e);
                 return null;
             }
+        }
+
+        public static bool TakeMail(string id)
+        {
+            try
+            {
+                Mailbox mailbox = SceneIds.Find<Mailbox>(id);
+                if (mailbox == null || mailbox.mode != Mailbox.Mode.Receive || Cash.Refused("Mailboxes.TakeMail")) return false;
+                if (!MailSingletonsReady() || MailController.instance.GetMailAmount() <= 0) return false;
+                mailbox.TakeMail();
+                return MailController.instance.GetMailAmount() == 0;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Owner, "Mailboxes.TakeMail", e);
+                return false;
+            }
+        }
+
+        internal static bool MailSingletonsReady()
+        {
+            return MailController.instance != null
+                && Inventory.instance != null
+                && Notifications.instance != null
+                && TaskItemsManager.instance != null
+                && NoteController.instance != null
+                && RecipeController.instance != null
+                && Money.instance != null
+                && BuildingSystem.instance != null
+                && TaskController.instance != null
+                && PlayerLocator.instance != null;
         }
 
         internal static void Init()
@@ -118,7 +149,7 @@ namespace ObenseuerCore
             return mailbox.mode == Mailbox.Mode.Send ? MailboxMode.Send : MailboxMode.Receive;
         }
 
-        private static int CountOf(Mailbox mailbox)
+        internal static int CountOf(Mailbox mailbox)
         {
             if (mailbox.mode == Mailbox.Mode.Send)
             {

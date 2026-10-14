@@ -7,6 +7,10 @@ namespace ObenseuerCore
     public static class Events
     {
         private static int lastHour = -1;
+        private static bool newGame;
+        private static bool newGameReady;
+        private static bool newGameWasReady;
+        private static bool newGameWasNew;
 
         public static event Action<int> HourPassed;
         public static event Action<int> DayPassed;
@@ -14,13 +18,54 @@ namespace ObenseuerCore
         public static event Action Saved;
         public static event Action Loaded;
 
+        internal static event Action<string, LoadSceneMode> SceneLoadedWithMode;
+
+        private static event Action Ready;
+
+        internal static bool SaveReady { get { return SaveData.Folder != null || newGameReady; } }
+
+        /// <summary>
+        /// Runs the action now if a save is loaded or a new game's first level has loaded, otherwise once when one of them happens. A failing action is logged.
+        /// </summary>
+        public static void WhenReady(Action action)
+        {
+            if (action == null) throw new ArgumentNullException("action");
+            // a door change sets SaveController.Loading before its save, newGameReady is cleared when its load starts
+            if ((SaveData.Folder != null && !SaveGate.Loading) || (newGameReady && !SaveController.Loading))
+            {
+                RunReady(action);
+                return;
+            }
+            Action once = null;
+            once = () =>
+            {
+                Ready -= once;
+                RunReady(action);
+            };
+            Ready += once;
+        }
+
+        private static void RunReady(Action action)
+        {
+            try
+            {
+                action();
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once("ObenseuerCore", "WhenReady " + action.Method.DeclaringType + "." + action.Method.Name, e);
+            }
+        }
+
         internal static void Init()
         {
-            Subscribe("MinutePassed", () => TimeOfDayAzure.MinutePassed += OnMinutePassed);
+            Subscribe("CurrentTimeAndDay", () => TimeOfDayAzure.CurrentTimeAndDay += OnTimeAndDay);
             Subscribe("DayChanged", () => TimeOfDayAzure.DayChanged += OnDayChanged);
             Subscribe("SavingDone", () => SaveController.SavingDone += OnSaved);
             Subscribe("LoadingDone", () => SaveController.LoadingDone += OnLoaded);
             Subscribe("sceneLoaded", () => SceneManager.sceneLoaded += OnSceneLoaded);
+            Subscribe("PlayerWillLoadGame", () => SaveController.PlayerWillLoadGame += OnPlayerWillLoadGame);
+            Subscribe("LoadAborted", () => SaveGate.LoadAborted += OnLoadAborted);
         }
 
         private static void Subscribe(string name, Action subscribe)
@@ -35,7 +80,7 @@ namespace ObenseuerCore
             }
         }
 
-        private static void OnMinutePassed(int ignored)
+        private static void OnTimeAndDay(TimeAndDay ignored)
         {
             int hour = GameTime.Hour;
             int key = GameTime.Day * 24 + hour;
@@ -56,13 +101,49 @@ namespace ObenseuerCore
 
         private static void OnLoaded()
         {
-            lastHour = -1;
+            // before Loaded, so handlers see the folder that was loaded
+            SaveData.MarkLoaded();
             Raise(Loaded, "Loaded", h => h());
+            Raise(Ready, "Ready", h => h());
+        }
+
+        private static void OnPlayerWillLoadGame()
+        {
+            newGameWasReady = newGameReady;
+            newGameReady = false;
+            newGameWasNew = newGame;
+            if (SaveGate.RealLoad) newGame = false;
+        }
+
+        private static void OnLoadAborted(bool newLoad)
+        {
+            newGame = newGameWasNew;
+            newGameReady = newGameWasReady;
+            if (SaveReady && !SaveController.Loading && !newLoad) Raise(Ready, "Ready", h => h());
+        }
+
+        internal static void NewGameStarted()
+        {
+            newGame = true;
+            newGameReady = false;
         }
 
         private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
+            if (scene.name == "Main Menu" && mode == LoadSceneMode.Single)
+            {
+                lastHour = -1;
+                newGame = false;
+                newGameReady = false;
+            }
+            Raise(SceneLoadedWithMode, "SceneLoadedWithMode", h => h(scene.name, mode));
             Raise(SceneLoaded, "SceneLoaded", h => h(scene.name));
+            if (newGame && mode == LoadSceneMode.Single && !WorldLocation.nonGameplayScenes.Contains(scene.name))
+            {
+                newGame = false;
+                newGameReady = true;
+                Raise(Ready, "Ready", h => h());
+            }
         }
 
         internal static void Raise<TDelegate>(TDelegate handlers, string name, Action<TDelegate> invoke)
@@ -76,7 +157,7 @@ namespace ObenseuerCore
                 }
                 catch (Exception e)
                 {
-                    CoreLog.For("ObenseuerCore").Error(name + " handler " + handler.Method.DeclaringType + "." + handler.Method.Name + " threw " + e.ToString());
+                    ApiLog.Once("ObenseuerCore", name + " handler " + handler.Method.DeclaringType + "." + handler.Method.Name, e);
                 }
             }
         }

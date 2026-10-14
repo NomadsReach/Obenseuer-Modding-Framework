@@ -45,7 +45,7 @@ namespace ObenseuerCore
         {
             get
             {
-                return Npcs.IsAvailable;
+                return Npcs.RelationshipAvailable;
             }
         }
 
@@ -71,7 +71,7 @@ namespace ObenseuerCore
 
         public static float GetDisposition(string id)
         {
-            ValidateId(id);
+            if (!ValidId(id)) return 0f;
             try
             {
                 if (RelationshipController.instance == null) return 0f;
@@ -90,7 +90,7 @@ namespace ObenseuerCore
 
         public static bool Has(string id)
         {
-            ValidateId(id);
+            if (!ValidId(id)) return false;
             try
             {
                 return RelationshipController.instance != null && RelationshipController.instance.RelationshipIdActive(id);
@@ -108,9 +108,11 @@ namespace ObenseuerCore
             Events.Raise(RelationshipChanged, "Relationships.RelationshipChanged", h => h(change));
         }
 
-        private static void ValidateId(string id)
+        private static bool ValidId(string id)
         {
-            if (string.IsNullOrEmpty(id)) throw new ArgumentException("id must be a non-empty string", "id");
+            if (!string.IsNullOrEmpty(id)) return true;
+            ApiLog.Once(Npcs.Owner, "Relationships empty id", "id must be a non-empty string");
+            return false;
         }
     }
 }

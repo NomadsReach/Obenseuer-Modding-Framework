@@ -24,6 +24,8 @@ namespace ObenseuerCore
         }
     }
 
+    /// <seealso cref="Wallet"/>
+    /// <seealso cref="Banking"/>
     public static class Cash
     {
         internal const string Owner = "obenseuer.moddingframework.economy";
@@ -48,6 +50,22 @@ namespace ObenseuerCore
             return Read(ToGame(currency));
         }
 
+        /// <summary>
+        /// The OC balance as a whole number, 0 while the game's money is not loaded.
+        /// </summary>
+        public static int Oc
+        {
+            get { return Money.instance == null ? 0 : Money.instance.OCMoneyAmount; }
+        }
+
+        /// <summary>
+        /// The RM balance, the same value as Balance(MoneyCurrency.RM).
+        /// </summary>
+        public static float Rm
+        {
+            get { return Balance(MoneyCurrency.RM); }
+        }
+
         public static bool Has(MoneyCurrency currency, float amount)
         {
             return Money.instance != null && amount > 0f && amount <= MaxAmount && Money.instance.CheckMoney(amount, ToGame(currency));
@@ -66,6 +84,38 @@ namespace ObenseuerCore
             catch (Exception e)
             {
                 ApiLog.Once(Cash.Owner, "Give", e);
+                return false;
+            }
+        }
+
+        internal static bool Restore(MoneyCurrency currency, float amount)
+        {
+            float value;
+            if (!TryQuantize(currency, amount, out value) || Money.instance == null) return false;
+            try
+            {
+                Money.instance.AddMoney(value, ToGame(currency));
+                return true;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Cash.Owner, "Restore", e);
+                return false;
+            }
+        }
+
+        internal static bool Withdraw(MoneyCurrency currency, float amount)
+        {
+            float value;
+            if (!TryQuantize(currency, amount, out value) || !Has(currency, value)) return false;
+            try
+            {
+                Money.instance.RemoveMoney(value, ToGame(currency));
+                return true;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Cash.Owner, "Withdraw", e);
                 return false;
             }
         }
@@ -140,9 +190,10 @@ namespace ObenseuerCore
             return value > 0f;
         }
 
-        internal static bool Fits(MoneyCurrency currency, float value)
+        internal static bool Fits(MoneyCurrency currency, double value)
         {
-            return (double)Read(ToGame(currency)) + value <= (currency == MoneyCurrency.RM ? 214748364.0 : int.MaxValue);
+            if (currency == MoneyCurrency.OC) return Money.instance.OCMoneyAmount + value <= int.MaxValue;
+            return (double)Read(Money.Currency.RM) + value <= 214748364.0;
         }
 
         internal static void RaiseChanges(int oc, float rm, int afterOc, float afterRm)
@@ -150,12 +201,12 @@ namespace ObenseuerCore
             if (oc != afterOc)
             {
                 MoneyChangedArgs args = new MoneyChangedArgs(MoneyCurrency.OC, oc, afterOc);
-                RaiseNested(MoneyChanged, "Cash.MoneyChanged", h => h(args));
+                PlayerInventory.AfterCommit(() => RaiseNested(MoneyChanged, "Cash.MoneyChanged", h => h(args)));
             }
             if (rm != afterRm)
             {
                 MoneyChangedArgs args = new MoneyChangedArgs(MoneyCurrency.RM, rm, afterRm);
-                RaiseNested(MoneyChanged, "Cash.MoneyChanged", h => h(args));
+                PlayerInventory.AfterCommit(() => RaiseNested(MoneyChanged, "Cash.MoneyChanged", h => h(args)));
             }
         }
 
@@ -174,7 +225,7 @@ namespace ObenseuerCore
 
         internal static bool Refused(string member)
         {
-            if (SaveGate.Busy) return true;
+            if (SaveGate.Busy || PlayerInventory.InTransaction) return true;
             if (nestedHandlers <= MaxNestedHandlers) return false;
             if (!refusalLogged)
             {

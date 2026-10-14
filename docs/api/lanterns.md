@@ -1,20 +1,20 @@
+---
+title: Lanterns API
+parent: API reference
+nav_order: 39
+---
+
 # Lanterns API
 
-Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 5.4.23.5.
+Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Patch owner: `obenseuer.moddingframework.lanterns`.
 Files: `src/Api/Lanterns.cs`, `src/Api/LanternsPatches.cs`.
 
 A lantern is a placed scene object (`Lantern`, an `Interactable`), not an inventory item. Its candle is a candle item from the inventory, which the player inserts. This area reads the lantern's candle timer and reports when a candle burns out. The candle items themselves are the inventory's (`docs/api/inventory.md`).
 
-## Wiring
+## If a hook cannot be installed
 
-```csharp
-internal static void Lanterns.Init();
-```
-
-Core calls this from `Core.Awake`.
-
-`Init` installs one hook, `Lantern.CandleExtinguished`. If it is missing, the owner is disabled and one warning is logged to `BepInEx\logs\obenseuer.moddingframework.lanterns.log`. The reads keep working; `CandleBurntOut` stops.
+The framework installs one hook, `Lantern.CandleExtinguished`. If it is missing, the owner is disabled and one warning is logged to `BepInEx\logs\obenseuer.moddingframework.lanterns.log`. The reads keep working; `CandleBurntOut` stops.
 
 ## Threading and safety
 
@@ -22,7 +22,7 @@ Core calls this from `Core.Awake`.
 - `Lanterns.IsAvailable` is false when the hook was not installed or the owner was disabled.
 - Every member is safe at any time. With no save loaded, or on the main menu, reads return an empty list or `null`.
 - Read-only. Nothing throws, and no argument throws. A null or empty `id` finds nothing.
-- `CandleBurntOut` is raised synchronously after the game has finished the extinguish. A handler that throws is logged and the other handlers still run (`Events.Raise`).
+- `CandleBurntOut` is raised synchronously after the game has finished the extinguish. A handler that throws is logged and the other handlers still run.
 
 ## API
 
@@ -38,7 +38,7 @@ public static class Lanterns
 
 public sealed class LanternInfo
 {
-    public string Id { get; }              // SceneIds.Of: the save GUID, else the scene path
+    public string Id { get; }              // the save GUID, else the scene path
     public Vector3 Position { get; }       // world position
     public bool Lit { get; }               // a candle is burning (Lantern.candleTimer.remainingInSeconds > 0)
     public int RemainingSeconds { get; }   // seconds of candle left, 0 when not lit
@@ -51,13 +51,17 @@ public sealed class CandleBurntOutArgs
 }
 ```
 
-- `All` lists every `Lantern` in the scene.
+- `All` lists every `Lantern` in the active scene.
 - `Get(id)` returns one `LanternInfo`, or `null` when no lantern has that id.
 - `RemainingSeconds` is a snapshot. It counts down while the game runs, so read it again for the current value.
 - `CandleBurntOut` fires when the candle's timer runs out. It does not fire when the player puts the candle out by hand, or when another script calls `Lantern.CandleExtinguished` while the candle still has time left. The payload is the lantern's id and position, read after the game has put the candle out. After a save loads, every lantern whose candle ran out while saved fires once on the first timer tick.
 
 ## Not wrapped
 
-- Lighting a lantern (`Lantern.CandleInserted`) and putting it out by hand (`Lantern.CandleExtinguished` through `Interact`). `CandleInserted` does not take the candle from the inventory; `Interact` does (`Items/Lantern.cs:94`). A call from a mod would give a free candle, so no write is exposed.
-- The candle's burn time, which comes from the candle item's fuel data (`Items/Lantern.cs:128`) unless `overrideCandleTime` is set.
+- Lighting a lantern (`Lantern.CandleInserted`) and putting it out by hand (`Lantern.CandleExtinguished` through `Interact`). `CandleInserted` does not take the candle from the inventory; `Interact` does. A call from a mod would give a free candle, so no write is exposed.
+- The candle's burn time, which comes from the candle item's fuel data unless `overrideCandleTime` is set.
 - The candle item itself. It is an inventory item and is read through `docs/api/inventory.md`.
+
+## Save loads
+
+The framework does not gate this event on a save load. A handler that should ignore events raised while a save loads can check `SaveData.Busy`, which is true while a save is loading or being written.

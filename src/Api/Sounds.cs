@@ -12,9 +12,13 @@ namespace ObenseuerCore
         private const string Owner = "obenseuer.moddingframework.audio";
         private const string HolderName = "ObenseuerCore_Sound";
         private const float ClipPadding = 1.1f;
-        private const long MaxWavBytes = 64L * 1024 * 1024;
+        private const long MaxWavBytes = 16L * 1024 * 1024;
         private static readonly FieldInfo[] libraryFields = typeof(RandomAudioLibrary).GetFields(BindingFlags.Public | BindingFlags.Instance);
+        private static readonly string[] libraryNames = Array.ConvertAll(libraryFields, field => field.Name);
+        private static readonly string[] pickupNames = Enum.GetNames(typeof(PickupSoundName));
         private static readonly Dictionary<string, bool> failed = new Dictionary<string, bool>();
+        private static readonly string[] mixerGroups = { "Master", "Sound", "Music", "Nasty" };
+        private static readonly FieldInfo mixerField = typeof(VolumeSave).GetField("audioMixer", BindingFlags.Instance | BindingFlags.NonPublic);
 
         public static float MasterVolume
         {
@@ -55,18 +59,18 @@ namespace ObenseuerCore
 
         public static List<string> PickupNames()
         {
-            return new List<string>(Enum.GetNames(typeof(PickupSoundName)));
+            return new List<string>(pickupNames);
         }
 
         public static List<string> LibraryNames()
         {
-            return new List<string>(Array.ConvertAll(libraryFields, field => field.Name));
+            return new List<string>(libraryNames);
         }
 
         public static bool PlayPickup(string name)
         {
             RequireText(name, "name");
-            if (PickupNames().IndexOf(name) < 0) throw new ArgumentException("unknown pickup sound: " + name, "name");
+            if (Array.IndexOf(pickupNames, name) < 0) throw new ArgumentException("unknown pickup sound: " + name, "name");
             if (ItemSounds.instance == null) return false;
             return Guard("PlayPickup", () => { ItemSounds.instance.PlaySound(name); return true; }, false);
         }
@@ -125,6 +129,17 @@ namespace ObenseuerCore
             return controller != null && Guard("ResetSoundscape", () => { controller.PlaySoundscape(null, playImmediately: true); return true; }, false);
         }
 
+        public static bool SetMixerVolume(string modId, string group, float decibels)
+        {
+            if (!ValidMod(modId) || SaveGate.Busy) return false;
+            if (Array.IndexOf(mixerGroups, group) < 0 || float.IsNaN(decibels) || decibels < -80f || decibels > 0f)
+            {
+                ApiLog.Once(Owner, "SetMixerVolume", "group must be Master, Sound, Music or Nasty, and decibels must be from -80 to 0");
+                return false;
+            }
+            return Guard("SetMixerVolume", () => WriteMixer(group, decibels), false);
+        }
+
         private static bool Output(AudioClip clip, string group, Vector3 position, float volume, bool playEverywhere)
         {
             if (clip == null) throw new ArgumentException("clip must not be null", "clip");
@@ -138,7 +153,15 @@ namespace ObenseuerCore
         {
             GameObject holder = new GameObject(HolderName);
             holder.transform.position = position;
-            AudioSourceMaker.FromClip(clip, volume, 1f, 1f, 50f, holder, true, playEverywhere, mixer, false);
+            try
+            {
+                AudioSourceMaker.FromClip(clip, volume, 1f, 1f, 50f, holder, true, playEverywhere, mixer, false);
+            }
+            catch (Exception)
+            {
+                UnityEngine.Object.Destroy(holder);
+                throw;
+            }
             UnityEngine.Object.Destroy(holder, clip.length * ClipPadding);
             return true;
         }
@@ -168,7 +191,7 @@ namespace ObenseuerCore
         private static RandomAudio Library(string name)
         {
             RequireText(name, "name");
-            int index = LibraryNames().IndexOf(name);
+            int index = Array.IndexOf(libraryNames, name);
             if (index < 0) throw new ArgumentException("unknown library sound: " + name, "name");
             RandomAudioLibrary library = RandomAudioLibrary.instance;
             return library == null ? null : libraryFields[index].GetValue(library) as RandomAudio;
@@ -177,6 +200,22 @@ namespace ObenseuerCore
         private static gameVolume Saved()
         {
             return VolumeSave.instance == null ? null : VolumeSave.instance.soundSave;
+        }
+
+        private static bool ValidMod(string modId)
+        {
+            if (ModIds.IsValid(modId)) return true;
+            ApiLog.Once(Owner, "modId", "modId must be 1 to 64 characters of letters, digits, '.', '_' or '-'");
+            return false;
+        }
+
+        private static bool WriteMixer(string group, float decibels)
+        {
+            AudioMixer mixer = VolumeSave.instance == null || mixerField == null ? null : mixerField.GetValue(VolumeSave.instance) as AudioMixer;
+            if (mixer == null) return false;
+            bool set = mixer.SetFloat(group, decibels);
+            if (group == "Sound") mixer.SetFloat("OtherSounds", decibels);
+            return set;
         }
 
         private static void RequireText(string value, string name)

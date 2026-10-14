@@ -106,7 +106,7 @@ namespace ObenseuerCore
             RequireCategory(category);
             if (!Enum.IsDefined(typeof(LootTier), tier)) throw new ArgumentException("unknown loot tier", "tier");
             if (weight < 1 || weight > MaxWeight) throw new ArgumentException("weight must be 1 to " + MaxWeight, "weight");
-            if (!IsAvailable || itemId == 0 || itemId == 1) return false;
+            if (!IsAvailable || SaveGate.Busy || itemId == 0 || itemId == 1) return false;
             try
             {
                 Record existing = Find(modId, category, itemId);
@@ -114,6 +114,11 @@ namespace ObenseuerCore
                 {
                     Undo(existing);
                     records.Remove(existing);
+                }
+                else
+                {
+                    Record other = records.Find(r => r.ModId != modId && r.Category == category && r.ItemId == itemId);
+                    if (other != null) CoreLog.For(Owner).Warn("loot entry for item " + itemId + " in '" + category + "' is already added by " + other.ModId + ", the entry from " + modId + " is added too and the weights add up");
                 }
                 Record record = new Record { ModId = modId, Category = category, ItemId = itemId, Weight = weight, Tier = tier };
                 records.Add(record);
@@ -133,8 +138,18 @@ namespace ObenseuerCore
             if (string.IsNullOrEmpty(name) || !IsAvailable) return false;
             try
             {
-                if (categories.Exists(c => c.Name == name) || Live(name) != null) return false;
-                CategoryRecord record = new CategoryRecord { Name = name, Id = 1000000 + categories.Count + 1 };
+                CategoryRecord existing = categories.Find(c => c.Name == name);
+                if (existing != null)
+                {
+                    if (existing.ModId != modId) CoreLog.For(Owner).Warn("loot category '" + name + "' is already defined by " + existing.ModId + ", the call from " + modId + " is ignored");
+                    return false;
+                }
+                if (Live(name) != null)
+                {
+                    CoreLog.For(Owner).Warn("loot category '" + name + "' is a game category, the call from " + modId + " is ignored");
+                    return false;
+                }
+                CategoryRecord record = new CategoryRecord { ModId = modId, Name = name, Id = 1000000 + categories.Count + 1 };
                 categories.Add(record);
                 ApplyCategory(record);
                 return true;
@@ -150,7 +165,7 @@ namespace ObenseuerCore
         {
             ModIds.Require(modId, "modId");
             RequireCategory(category);
-            if (!IsAvailable) return false;
+            if (!IsAvailable || SaveGate.Busy) return false;
             try
             {
                 Record existing = Find(modId, category, itemId);
@@ -361,6 +376,7 @@ namespace ObenseuerCore
 
         private sealed class CategoryRecord
         {
+            internal string ModId;
             internal string Name;
             internal int Id;
             internal bool Warned;

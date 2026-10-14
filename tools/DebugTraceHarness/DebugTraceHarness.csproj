@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net472</TargetFramework>
+    <AssemblyName>DebugTraceHarness</AssemblyName>
+    <RootNamespace>DebugTraceHarness</RootNamespace>
+    <OutputPath Condition="'$(Loader)' == 'BepInEx5'">bin\be5\</OutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\src\Debug\CoreDebugFormat.cs" Link="Core\CoreDebugFormat.cs" />
+    <Compile Include="..\..\src\Debug\CoreDebugLimiter.cs" Link="Core\CoreDebugLimiter.cs" />
+    <Compile Include="..\..\src\Debug\CoreDebugSelfTest.cs" Link="Core\CoreDebugSelfTest.cs" />
+    <Compile Include="..\..\src\Debug\CoreDebugTargets.cs" Link="Core\CoreDebugTargets.cs" />
+    <Compile Include="..\..\src\Debug\CoreDebugTrace.cs" Link="Core\CoreDebugTrace.cs" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Loader)' == 'BepInEx6'">
+    <Reference Include="0Harmony">
+      <HintPath>$(BepInExCore)\0Harmony.dll</HintPath>
+    </Reference>
+    <Reference Include="MonoMod.Utils">
+      <HintPath>$(BepInExCore)\MonoMod.Utils.dll</HintPath>
+    </Reference>
+    <Reference Include="MonoMod.RuntimeDetour">
+      <HintPath>$(BepInExCore)\MonoMod.RuntimeDetour.dll</HintPath>
+    </Reference>
+    <Reference Include="Mono.Cecil">
+      <HintPath>$(BepInExCore)\Mono.Cecil.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Loader)' == 'BepInEx5'">
+    <PackageReference Include="HarmonyX" Version="$(HarmonyX5Version)" />
+  </ItemGroup>
+
+</Project>

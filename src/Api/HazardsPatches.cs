@@ -6,22 +6,25 @@ namespace ObenseuerCore
 {
     internal static class HazardsPatches
     {
-        internal static bool Install()
+        private const string RadiationOwner = Hazards.Owner + ".radiation";
+        private const string HurtOwner = Hazards.Owner + ".hurt";
+
+        internal static HazardGroup Install()
         {
             try
             {
-                bool ok = Hook(typeof(TriggerRadiation), "RadiationEnteredPrefix", "RadiationEnteredPostfix");
-                ok &= Hook(typeof(TriggerHurt), "HurtEnteredPrefix", "HurtEnteredPostfix");
-                return ok;
+                bool radiation = Hook(RadiationOwner, typeof(TriggerRadiation), "RadiationEnteredPrefix", "RadiationEnteredPostfix");
+                bool hurt = Hook(HurtOwner, typeof(TriggerHurt), "HurtEnteredPrefix", "HurtEnteredPostfix");
+                return (radiation ? HazardGroup.Radiation : HazardGroup.None) | (hurt ? HazardGroup.Hurt : HazardGroup.None);
             }
             catch (Exception e)
             {
                 CoreLog.For(Hazards.Owner).Error("hazard hook install failed: " + e.ToString());
-                return false;
+                return HazardGroup.None;
             }
         }
 
-        private static bool Hook(Type type, string prefix, string postfix)
+        private static bool Hook(string owner, Type type, string prefix, string postfix)
         {
             return CorePatcher.PatchCore(
                 type,
@@ -31,12 +34,12 @@ namespace ObenseuerCore
                 CorePatcher.Handler(typeof(HazardsPatches), postfix),
                 null,
                 true,
-                Hazards.Owner);
+                owner);
         }
 
         private static void RadiationEnteredPrefix(bool ___playerIn, out bool __state)
         {
-            __state = ___playerIn || !Hazards.HasHandlers;
+            __state = ___playerIn || !Hazards.Installed(HazardGroup.Radiation) || !Hazards.HasHandlers;
         }
 
         private static void RadiationEnteredPostfix(TriggerRadiation __instance, bool __state, bool ___playerIn)
@@ -54,7 +57,7 @@ namespace ObenseuerCore
 
         private static void HurtEnteredPrefix(List<Stats> ___currentStats, out int __state)
         {
-            __state = Hazards.HasHandlers ? ___currentStats.Count : int.MaxValue;
+            __state = Hazards.Installed(HazardGroup.Hurt) && Hazards.HasHandlers ? ___currentStats.Count : int.MaxValue;
         }
 
         private static void HurtEnteredPostfix(TriggerHurt __instance, int __state, List<Stats> ___currentStats)

@@ -2,11 +2,20 @@ using System;
 using System.IO;
 using System.Reflection;
 using BepInEx;
+#if BEPINEX6
+using BepInEx.Unity.Mono;
+#endif
 using ObenseuerCore;
 using UnityEngine;
 
 [BepInPlugin("example.webuihello", "WebUiHello", "0.1.0")]
-[BepInDependency("obenseuer.moddingframework", "0.9.0")]
+#if BEPINEX5
+[BepInDependency("obenseuer.moddingframework", "0.10.0")]
+[BepInDependency("obenseuer.moddingframework.webui", "0.10.0")]
+#else
+[BepInDependency("obenseuer.moddingframework", ">=0.10.0")]
+[BepInDependency("obenseuer.moddingframework.webui", ">=0.10.0")]
+#endif
 public class WebUiHello : BaseUnityPlugin
 {
     private const string ModId = "example.webuihello";

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using UnityEngine;
 
 namespace ObenseuerCore
 {
@@ -66,6 +67,11 @@ namespace ObenseuerCore
             return Guard("StopAll", () => StopPursuits(), false);
         }
 
+        public static bool CallPolice(bool severe, bool anyDistance)
+        {
+            return Guard("CallPolice", () => AlertPolice(severe, anyDistance), false);
+        }
+
         internal static void Init()
         {
             installed = PursuitPatches.Install();
@@ -99,10 +105,41 @@ namespace ObenseuerCore
         private static bool StopPursuits()
         {
             Crime crime = Crime.instance;
-            if (crime == null || StopMethod == null || NPC.NPCDirector.globalDatabase == null) return false;
+            if (SaveGate.Busy || crime == null || StopMethod == null || NPC.NPCDirector.globalDatabase == null) return false;
             StopMethod.Invoke(crime, null);
             Refresh();
             return true;
+        }
+
+        private static bool AlertPolice(bool severe, bool anyDistance)
+        {
+            Crime crime = Crime.instance;
+            PlayerLocator locator = PlayerLocator.instance;
+            LoadingScreen loading = LoadingScreen.instance;
+            if (SaveGate.Busy || crime == null || locator == null || crime.ArrestInProgress || Changelevel.ChangeLevelActive || (loading != null && (!loading.LevelLoadDone || loading.Fading))) return false;
+            if (Law.InPrison()) return false;
+            List<NPC.Act_Police> active = Policing();
+            if (active == null || active.Count == 0) return false;
+            Vector3 origin = locator.transform.position;
+            NPC.Act_Police[] snapshot = active.ToArray();
+            bool any = false;
+            for (int i = 0; i < snapshot.Length; i++)
+            {
+                NPC.Act_Police police = snapshot[i];
+                if (police == null) continue;
+                try
+                {
+                    if (!anyDistance && Vector3.Distance(origin, police.position) >= 15f) continue;
+                    if (severe) police.StartChase(); else police.StartChaseQuestion();
+                    any = true;
+                }
+                catch (Exception e)
+                {
+                    ApiLog.Once(Owner, "CallPolice", e);
+                }
+            }
+            if (any) Refresh();
+            return any;
         }
 
         private static bool Chasing()

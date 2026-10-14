@@ -31,7 +31,7 @@ namespace ObenseuerCore
             List<CraftingUpgradeInfo> list = new List<CraftingUpgradeInfo>();
             try
             {
-                foreach (CraftingUpgrade upgrade in UnityEngine.Object.FindObjectsByType<CraftingUpgrade>(UnityEngine.FindObjectsSortMode.None))
+                foreach (CraftingUpgrade upgrade in SceneIds.Active<CraftingUpgrade>())
                 {
                     list.Add(ToInfo(upgrade));
                 }
@@ -83,7 +83,7 @@ namespace ObenseuerCore
             if (string.IsNullOrEmpty(id)) return null;
             try
             {
-                foreach (CraftingUpgrade upgrade in UnityEngine.Object.FindObjectsByType<CraftingUpgrade>(UnityEngine.FindObjectsSortMode.None))
+                foreach (CraftingUpgrade upgrade in SceneIds.Active<CraftingUpgrade>())
                 {
                     if (IdOf(upgrade) == id) return upgrade;
                 }

@@ -4,14 +4,14 @@ using System.Collections.Generic;
 namespace ObenseuerCore
 {
     [Serializable]
-    public sealed class FurnitureShopRecord
+    internal sealed class FurnitureShopRecord
     {
         public string Guid;
         public List<string> Offered = new List<string>();
     }
 
     [Serializable]
-    public sealed class FurnitureManifest
+    internal sealed class FurnitureManifest
     {
         public List<FurnitureShopRecord> Shops = new List<FurnitureShopRecord>();
     }
@@ -21,11 +21,6 @@ namespace ObenseuerCore
         private static readonly Dictionary<string, List<string>> offered = new Dictionary<string, List<string>>();
 
         internal static bool Ready;
-
-        internal static void BeginLoad()
-        {
-            Ready = false;
-        }
 
         internal static FurnitureManifest Build()
         {

@@ -57,7 +57,7 @@ namespace ObenseuerCore
             List<ShowerInfo> list = new List<ShowerInfo>();
             try
             {
-                foreach (InteractableShower shower in UnityEngine.Object.FindObjectsByType<InteractableShower>(FindObjectsSortMode.None))
+                foreach (InteractableShower shower in SceneIds.Active<InteractableShower>())
                 {
                     if (shower != null) list.Add(ToInfo(shower));
                 }

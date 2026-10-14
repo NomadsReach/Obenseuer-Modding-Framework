@@ -1,28 +1,28 @@
+---
+title: Interaction and locks API
+parent: API reference
+nav_order: 30
+---
+
 # Interaction and locks API
 
-Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 5.4.23.5.
+Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Patch owner: `obenseuer.moddingframework.interaction`.
 Files: `src/Api/Interactions.cs`, `src/Api/InteractionsPatches.cs`, `src/Api/Locks.cs`, `src/Api/LocksPatches.cs`.
 
 Everything not listed here is internal.
 
-## Wiring
+## If a hook cannot be installed
 
-```csharp
-internal static void Interactions.Init();
-```
-
-Core calls this from `Core.Awake`.
-
-`Init` installs the `UseInteractable` hook and the lock hooks under one owner. If any hook is missing, all of them are removed, `CorePatcher.IsDisabled("obenseuer.moddingframework.interaction")` becomes true, and one warning is logged. Reads and `Add`/`Remove`/`Lock`/`Unlock` keep working; only the events stop.
+The framework installs the `UseInteractable` hook and the lock hooks under one owner. If any hook is missing, all of them are removed, `CorePatcher.IsDisabled("obenseuer.moddingframework.interaction")` becomes true, and one warning is logged. Reads and `Add`/`Remove`/`Lock`/`Unlock` keep working; only the events stop.
 
 ## Threading and safety
 
 - Main thread only.
 - `Interactions.IsAvailable` covers the interaction and lock hooks. `Locks.IsAvailable` returns the same value.
 - Every member is safe at any time. Off a save, or on the main menu, reads return `null`, `false` or `0`.
-- Writes return `bool`. The only throw is `ArgumentNullException` (a subclass of `ArgumentException`) for a null target (or a null `done` in `StartLockpick`), and `ArgumentException` for a mod id outside 1 to 64 characters of letters, digits, `.`, `_` or `-`.
-- Events are raised synchronously after the game method has finished. A handler that throws is logged and the other handlers still run (`Events.Raise`).
+- Writes return `bool`, and `Interactions.Add` returns `false` while a save loads or saves (`SaveData.Busy`). The only throw is `ArgumentNullException` (a subclass of `ArgumentException`) for a null target (or a null `done` in `StartLockpick`), and `ArgumentException` for a mod id outside 1 to 64 characters of letters, digits, `.`, `_` or `-`.
+- Events are raised synchronously after the game method has finished. A handler that throws is logged and the other handlers still run.
 
 ## Interactions
 
@@ -30,6 +30,8 @@ Core calls this from `Core.Awake`.
 public static class Interactions
 {
     public static event Action<InteractionArgs> Used;
+
+    public static bool IsAvailable { get; }
 
     public static bool Add(GameObject target, string modId, string label, Action use);
     public static bool Remove(GameObject target, string modId);
@@ -47,12 +49,12 @@ public sealed class InteractionArgs
 }
 ```
 
-- `Add` makes `target` usable with the game's own prompt, `UseText` and crosshair. The prompt reads `label` and `(Use)`. It returns `false` when Core cannot patch, the target has no `Collider`, the target already has a game `Interactable` (its prompt would win), or another mod owns the target's interaction. The target's layer may move to a usable one, and `Remove` puts it back.
+- `Add` makes `target` usable with the game's own prompt, `UseText` and crosshair. The prompt reads `label` and `(Use)`. It returns `false` when the framework cannot patch, the target has no `Collider`, the target already has a game `Interactable` (its prompt would win), or another mod owns the target's interaction (one warning names both mods). The target's layer may move to a usable one, and `Remove` puts it back.
 - `Remove` removes the interaction only when `modId` added it. It returns `false` otherwise. Calling `Remove` for the interaction being used (from inside its `use` action) defers destruction to the end of the frame; an `Add` for the same target in that same call returns `false`, so call `Add` alone to change the label.
-- `Used` fires after the game's `InteractObjects.UseInteractable` (player input) has called `Interact()` on the target. It covers mod interactions too. `Kind` is the component's class name (`ModInteraction` for those added with `Add`). `Guid` is the object's save GUID, or `null`. `Distance` is from the camera origin to the object's pivot.
+- `Used` fires after the game's `InteractObjects.UseInteractable` (player input) has called `Interact()` on the target. It covers mod interactions too. `Kind` is the component's class name (`ModInteraction` for those added with `Add`). `Guid` is the object's save GUID, or `null`. `Distance` is from the camera origin to the object's pivot. The postfix runs after a skipped original too: if another mod's prefix on `UseInteractable` returns false and skips the game's `Interact()` call, `Used` can still fire, provided the facade's prefix ran first. The prefix order was not checked.
 - `Looking` returns what the crosshair ray hits in the interaction layer mask, within the game's 3 m raycast range. `Kind` is `null` when the object has no game or mod `Interactable`. `Distance` is from the camera origin to the object's pivot, not to the ray hit point.
 
-Not included: a cancelable `Using` event (`Events.Raise` does not collect results, so there is no clean skip rule), and hold-to-use. No mod has asked for either.
+Not included: a cancelable `Using` event (the handlers' results are not collected, so there is no clean skip rule), and hold-to-use. No mod has asked for either.
 
 ## Locks and doors
 
@@ -64,14 +66,21 @@ public static class Locks
     public static event Action<LockArgs> LockpickSucceeded;
     public static event Action<LockArgs> LockpickFailed;
 
+    public static bool IsAvailable { get; }
+
     public static bool IsLocked(GameObject target);
     public static bool IsLockpickable(GameObject target);
+    public static float Difficulty(GameObject target);            // -1f when the target has no Lock
     public static bool PlayerHasKey(GameObject target);
     public static bool Lock(GameObject target);
     public static bool Unlock(GameObject target);
+    public static bool SetLockpickable(GameObject target, bool lockpickable);
+    public static bool SetDifficulty(GameObject target, float difficulty); // ArgumentException outside 0 to 2
     public static bool SetKeypadOpen(GameObject target, bool open);
     public static bool LockKeypad(GameObject target);
     public static bool TriggerKeypad(GameObject target, bool success);
+    public static int[] KeypadCode(string id);
+    public static bool SetKeypadCode(string id, int[] code);
     public static bool StartLockpick(GameObject target, float difficulty, Action<bool> done);
 }
 
@@ -87,17 +96,29 @@ public sealed class LockArgs
 - `IsLocked`: for a keypad it is `true` while its `open` flag is `false`. For a lock it is `Lock.Locked`.
 - `Lock` and `Unlock` return `true` when the target is in the requested state afterwards. A `Door` uses its own `Door.Lock()` and `Door.Unlock()`. Any other lock uses `Lock._Lock()` and `Lock._Unlock()`. A keypad can be locked (`Keypad.Lock()`) but not unlocked, because the game has no unlock method for it other than its success path. `Unlock` on a keypad returns `false`. `Lock`, `Unlock`, `SetKeypadOpen`, `LockKeypad`, `TriggerKeypad` and `StartLockpick` return `false` while the game loads or saves.
 - `PlayerHasKey` is the game's own key-item check (`Lock.PlayerHasKey()`). It does not check the lockpick.
+- `SetLockpickable` and `SetDifficulty` set `Lock.Lockpickable` and `Lock.Difficulty` on the target's `Lock`, the fields the game reads for lockpicking. A keypad has no `Lock`, so it returns `false`. Both return `false` while `SaveData.Busy`, and `true` when the field now holds the value. Neither raises `Locked`, `Unlocked` or a lockpick event.
+- The two fields are saved with the game's own save, next to `Locked`. A door saves its `_Lock` with its own save. Other lock holders depend on their own save.
+- `Difficulty` is a value from `0` to `2`. The game's default is `2`. It returns `-1f` when the target has no `Lock` or the read fails. `0` is a real difficulty, a lock set to `0`, so a negative value means no lock. Check `IsLockpickable` first when that matters.
+- `SetDifficulty` throws `ArgumentException` for NaN or a value outside `0` to `2`.
 - `Locked` and `Unlocked` fire when the state changes through `Lock._Lock`, `Lock._Unlock`, `Door.Lock`, `Door.Unlock` or `Door.ToggleLock`. The state change is checked, so a chained call (a door unlocked inside a lock's unlock callback) raises one event. `LockArgs.Target` is the object: the door itself for doors, or the object that last called `Lock.Use` with a lock for other locks. It is `null` only if the game changed a lock before any use of it.
 - `LockpickSucceeded` and `LockpickFailed` fire when a lockpick attempt started by `StartLockpick` finishes, with the target as `LockArgs.Target`. They also fire for the game's own lockpick path (`Lock.LockpickSuccessCallback`, through `LocksPatches`), with the object that was used as the lock owner. Cancelling a lockpick (`AbortLockpicking`) is not reported.
-- `SetKeypadOpen` sets the keypad's `open` flag through `Keypad.SetOpen` (`Interaction/Keypad.cs:146`). It returns `true` when the flag equals `open` afterwards. No `Locked` or `Unlocked` event fires, because the lock hooks do not cover `Keypad`.
-- `LockKeypad` calls `Keypad.Lock()` (`Keypad.cs:133`), which acts only while the keypad is open. It returns `IsLocked(target)` afterwards. It raises no event.
-- `TriggerKeypad` calls `Keypad.TriggerSuccess()` (`:151`) when `success` is true, or `TriggerFailure()` (`:164`) when it is false. Success plays its sound and runs the success relay, and sets `open` when the keypad has `enableLockOnSuccess` (`:156`). It returns `true` when the call was made. It raises no event.
-- `StartLockpick` calls `PlayerLockpicking.ToggleLockpicking` on `PlayerLockpicking.instance` (`Crime/PlayerLockpicking.cs:34`) with its own callback, not `Lock.LockpickSuccessCallback`, which needs the game's private `_parent` and `_CallbackUnlock`. It returns `false` when the target has no `Lock`, when the lock is not `Locked` and `Lockpickable`, when the instance is null, or when a minigame is already open (`ActiveLockpicking` is set). On a successful pick the callback unlocks the target with `Unlock`, then computes `unlocked` as the pick succeeded and the target is unlocked. `unlocked` drives both events: it raises `LockpickSucceeded` or `LockpickFailed`, and calls `done(unlocked)`. Each step is guarded, so an exception in one does not stop the others. It does not check that the player has a lockpick.
-- A Core-started pick does not play the game's unlock sound, does not honour `UnlockDelay`, and does not re-arm `LockAfterTime`. The unlock is a direct `Lock._Unlock()` (`World/Lock.cs:306`), while the game's own pick path plays the sound and waits `UnlockDelay` (`Crime/PlayerLockpicking.cs:130`, `:134`) and re-arms the timer in `Lock.DelayUnlock` (`World/Lock.cs:268`).
+- `SetKeypadOpen` sets the keypad's `open` flag through `Keypad.SetOpen`. It returns `true` when the flag equals `open` afterwards. No `Locked` or `Unlocked` event fires, because the lock hooks do not cover `Keypad`.
+- `LockKeypad` calls `Keypad.Lock()`, which acts only while the keypad is open. It returns `IsLocked(target)` afterwards. It raises no event.
+- `TriggerKeypad` calls `Keypad.TriggerSuccess()` when `success` is true, or `TriggerFailure()` when it is false. Success plays its sound and runs the success relay, and sets `open` when the keypad has `enableLockOnSuccess`. It returns `true` when the call was made. It raises no event.
+- `StartLockpick` calls `PlayerLockpicking.ToggleLockpicking` on `PlayerLockpicking.instance` with its own callback, not `Lock.LockpickSuccessCallback`, which needs the game's private `_parent` and `_CallbackUnlock`. It returns `false` when the target has no `Lock`, when the lock is not `Locked` and `Lockpickable`, when the instance is null, or when a minigame is already open (`ActiveLockpicking` is set). On a successful pick the callback unlocks the target with `Unlock`, then computes `unlocked` as the pick succeeded and the target is unlocked. `unlocked` drives both events: it raises `LockpickSucceeded` or `LockpickFailed`, and calls `done(unlocked)`. Each step is guarded, so an exception in one does not stop the others. It does not check that the player has a lockpick.
+- A pick started by the framework does not play the game's unlock sound, does not honour `UnlockDelay`, and does not re-arm `LockAfterTime`. The unlock is a direct `Lock._Unlock()`, while the game's own pick path plays the sound and waits `UnlockDelay` (`PlayerLockpicking`) and re-arms the timer in `Lock.DelayUnlock`.
 
 ```csharp
 Locks.StartLockpick(door, 2f, ok => Log(ok ? "picked" : "failed"));
 Locks.TriggerKeypad(keypad, true);
 ```
 
-Not covered: the game writes `Locked` directly in a few places (`Button.cs:214`, `BreakableLock.cs:58`, `CraftingBase.cs:1560`, `PutItemSelection.cs:361`, `DoorChangelevel.cs:290`). Those changes raise no event. Keypad codes are not exposed. Keypad success and failure go through `TriggerKeypad`.
+Not covered: the game writes `Locked` directly in a few places. Those changes raise no event. Keypad success and failure go through `TriggerKeypad`.
+
+- `KeypadCode(id)` returns a copy of the keypad's `code` array, or `null` when no active keypad has that id. The values of a digit keypad's buttons are set in the scene and are not checked here. A rotary lock reports positions `1` to `32` (`RotaryLockUI`, which passes them to `KeypadUI.NumberPressed`), so a rotary code uses those values.
+- `SetKeypadCode(id, code)` copies `code` into the keypad's `code` array and returns `true`. It returns `false` for a null or empty `code`, for a code longer than 4 values, for a value outside `0` to `32`, during a save or load, or when no active keypad has that id. Both keypad kinds take at most 4 inputs (`KeypadUI`, and the rotary lock feeds the same method at `RotaryLockUI`). The UI checks the entered digits against `code` in order (`KeypadUI`), so a code shorter than 4 matches on its prefix: only its first `code.Length` digits are compared. A code longer than 4 would read past the entered digits, so it is refused.
+- The code is not saved. `Keypad.code` is `[fsIgnore]`, so the save data does not hold it. Every save load reloads the level scene, which rebuilds the keypad, so a set code is lost on load and the scene's code comes back.
+
+## Save loads
+
+The framework does not gate this event on a save load. A handler that should ignore events raised while a save loads can check `SaveData.Busy`, which is true while a save is loading or being written.

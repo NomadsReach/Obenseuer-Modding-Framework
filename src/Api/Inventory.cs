@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using OS.Items;
 
 namespace ObenseuerCore
 {
@@ -23,7 +24,10 @@ namespace ObenseuerCore
         private static readonly Dictionary<int, int> pendingAdded = new Dictionary<int, int>();
         private static readonly Dictionary<int, int> pendingRemoved = new Dictionary<int, int>();
         private static int batchDepth;
+        private static List<Action> deferred;
         private static int uiDepth;
+        private static int raiseDepth;
+        private const int MaxNestedHandlers = 8;
 
         public static event Action<ItemChangedArgs> ItemAdded;
         public static event Action<ItemChangedArgs> ItemRemoved;
@@ -58,14 +62,30 @@ namespace ObenseuerCore
         public static bool Give(int itemId, int count)
         {
             RequirePositive(count);
-            if (itemId == 0 || itemId == 1 || SaveGate.Busy) return false;
+            if (itemId == 0 || itemId == 1 || SaveGate.Busy || InTransaction || Nested("Give")) return false;
             return Read(inventory => Batched(() => ItemFits(inventory, itemId, count) && inventory.AddItemDialogueAmount(itemId, count)), false, "Give");
+        }
+
+        internal static bool GiveWithMeta(Item item, int count, int owner, object[] meta)
+        {
+            if (item == null || item.ID == 0 || item.ID == 1) return false;
+            object[] copy = Item.CloneMeta(meta, true, count, item);
+            return Read(inventory => Batched(() => inventory.InventoryIsNotFull(item, owner, count, 1, copy, inventory.Slots) && ItemOperations.AddItems(item, count, owner, copy, null, false)), false, "Give");
+        }
+
+        internal static void NewItemNotice(Item item, int count, object[] meta)
+        {
+            Notifications notifications = Notifications.instance;
+            if (notifications == null) return;
+            string text = item.GetItemTitle(meta);
+            if (count > 1) text += " (" + count + ")";
+            notifications.CreateNotification("New item", text);
         }
 
         public static bool Take(int itemId, int count)
         {
             RequirePositive(count);
-            if (SaveGate.Busy) return false;
+            if (SaveGate.Busy || InTransaction || Nested("Take")) return false;
             return Read(inventory => Batched(() => TakeUnits(inventory, itemId, count)), false, "Take");
         }
 
@@ -77,6 +97,50 @@ namespace ObenseuerCore
         public static int GetHeldItemId(bool leftHand)
         {
             return Guard(() => HeldItemId(leftHand), -1, "GetHeldItemId");
+        }
+
+        public static bool EquipHeld(string modId, int itemId)
+        {
+            if (!ValidMod(modId) || SaveGate.Busy || Nested("EquipHeld")) return false;
+            try
+            {
+                global::Inventory inventory = global::Inventory.instance;
+                Item item = ItemRegistry.FindInDatabase(itemId);
+                if (inventory == null || inventory.Slots == null || inventory.CharacterSlots == null || item == null) return false;
+                int index = global::Inventory.GetEquipSlotIndex(item);
+                if (index != 6 && index != 7) return false;
+                SlotController source = WholeStack(inventory.Slots, itemId);
+                SlotController hand = inventory.CharacterSlots[index];
+                if (source == null || !hand.CheckIfAllowed(item) || Owned(hand) || TwoHandClash(inventory, index, item)) return false;
+                inventory.EquipItem(index == 6 ? "Wieldable Primary" : "Wieldable Secondary", source);
+                return hand.itemStack.itemId == itemId;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Owner, "EquipHeld", e);
+                return false;
+            }
+        }
+
+        public static bool UnequipHeld(string modId, bool leftHand)
+        {
+            if (!ValidMod(modId) || SaveGate.Busy || Nested("UnequipHeld")) return false;
+            try
+            {
+                global::Inventory inventory = global::Inventory.instance;
+                if (inventory == null || inventory.CharacterSlots == null) return false;
+                SlotController hand = inventory.CharacterSlots[leftHand ? 7 : 6];
+                if (Empty(hand) || Owned(hand)) return false;
+                Item item = ItemRegistry.FindInDatabase(hand.itemStack.itemId);
+                if (item == null || Array.IndexOf(item.Categories, "Unstorable") >= 0) return false;
+                inventory.Unequip(hand);
+                return Empty(hand);
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Owner, "UnequipHeld", e);
+                return false;
+            }
         }
 
         public static bool IsAvailable
@@ -98,6 +162,11 @@ namespace ObenseuerCore
         internal static bool UiActive
         {
             get { return uiDepth > 0; }
+        }
+
+        internal static bool InTransaction
+        {
+            get { return deferred != null; }
         }
 
         internal static bool HasHandlers
@@ -130,7 +199,22 @@ namespace ObenseuerCore
         private static void RaiseChanged(Action<ItemChangedArgs> handlers, string name, int itemId, int count)
         {
             ItemChangedArgs args = new ItemChangedArgs(itemId, count);
-            Events.Raise(handlers, name, h => h(args));
+            raiseDepth++;
+            try
+            {
+                Events.Raise(handlers, name, h => h(args));
+            }
+            finally
+            {
+                raiseDepth--;
+            }
+        }
+
+        private static bool Nested(string member)
+        {
+            if (raiseDepth <= MaxNestedHandlers) return false;
+            ApiLog.Once(Owner, member, "refused: ItemAdded or ItemRemoved handlers nested deeper than " + MaxNestedHandlers);
+            return true;
         }
 
         internal static bool IsPlayerSlot(SlotController slot)
@@ -192,6 +276,59 @@ namespace ObenseuerCore
             }
         }
 
+        internal static void AfterCommit(Action action)
+        {
+            if (deferred == null) RunAfterCommit(action);
+            else deferred.Add(action);
+        }
+
+        private static void RunAfterCommit(Action action)
+        {
+            try
+            {
+                action();
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Owner, "AfterCommit", e);
+            }
+        }
+
+        internal static bool Transaction(Func<bool> run)
+        {
+            Dictionary<int, int> added = new Dictionary<int, int>(pendingAdded);
+            Dictionary<int, int> removed = new Dictionary<int, int>(pendingRemoved);
+            List<Action> outer = deferred;
+            List<Action> queued = new List<Action>();
+            bool kept = false;
+            batchDepth++;
+            deferred = queued;
+            try
+            {
+                kept = run();
+                return kept;
+            }
+            finally
+            {
+                deferred = outer;
+                batchDepth--;
+                if (!kept)
+                {
+                    Restore(pendingAdded, added);
+                    Restore(pendingRemoved, removed);
+                }
+                if (batchDepth == 0) Flush();
+                if (kept && outer != null) outer.AddRange(queued);
+                else if (kept) foreach (Action action in queued) RunAfterCommit(action);
+            }
+        }
+
+        private static void Restore(Dictionary<int, int> pending, Dictionary<int, int> saved)
+        {
+            pending.Clear();
+            foreach (KeyValuePair<int, int> pair in saved) pending[pair.Key] = pair.Value;
+        }
+
         private static void Accumulate(Dictionary<int, int> pending, int itemId, int count)
         {
             int sum;
@@ -211,7 +348,7 @@ namespace ObenseuerCore
 
         private static bool ItemFits(global::Inventory inventory, int itemId, int count)
         {
-            Item item = ItemDatabase.instance == null ? null : ItemDatabase.instance.FetchItemByID(itemId);
+            Item item = ItemRegistry.FindInDatabase(itemId);
             return item != null && inventory.InventoryIsNotFull(item, -1, count, 1, item.CloneMeta(), inventory.Slots);
         }
 
@@ -238,6 +375,44 @@ namespace ObenseuerCore
             if (hands == null) return -1;
             PlayerHandItems.IPlayerHandItem hand = leftHand ? hands.lefthandItem : hands.righthandItem;
             return hand == null || hand.item == null ? -1 : hand.item.ID;
+        }
+
+        private static SlotController WholeStack(SlotController[] slots, int itemId)
+        {
+            foreach (SlotController slot in slots)
+            {
+                if (slot != null && slot.itemStack.itemId == itemId && slot.itemStack.itemAmount == 1 && slot.itemStack.ownerId <= 0) return slot;
+            }
+            return null;
+        }
+
+        private static bool Empty(SlotController slot)
+        {
+            return slot.itemStack.itemId == -1 || slot.itemStack.itemAmount <= 0;
+        }
+
+        private static bool Owned(SlotController slot)
+        {
+            return !Empty(slot) && slot.itemStack.ownerId > 0;
+        }
+
+        private static bool TwoHandClash(global::Inventory inventory, int index, Item item)
+        {
+            SlotController other = inventory.CharacterSlots[index == 6 ? 7 : 6];
+            return !Empty(other) && (TwoHanded(item) || TwoHanded(ItemRegistry.FindInDatabase(other.itemStack.itemId)));
+        }
+
+        private static bool TwoHanded(Item item)
+        {
+            ItemEquipable equipable = item == null ? null : item.GetActionOfType<ItemEquipable>() as ItemEquipable;
+            return equipable != null && equipable.bothHands;
+        }
+
+        private static bool ValidMod(string modId)
+        {
+            if (ModIds.IsValid(modId)) return true;
+            ApiLog.Once(Owner, "modId", "modId must be 1 to 64 characters of letters, digits, '.', '_' or '-'");
+            return false;
         }
     }
 }

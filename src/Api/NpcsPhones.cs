@@ -50,8 +50,9 @@ namespace ObenseuerCore
             }
         }
 
-        private static string Digits(int[] digits)
+        internal static string Digits(int[] digits)
         {
+            if (digits == null) return "";
             StringBuilder builder = new StringBuilder();
             foreach (int digit in digits)
             {

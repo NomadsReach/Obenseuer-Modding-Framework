@@ -49,7 +49,7 @@ namespace ObenseuerCore
             List<ExtractableInfo> list = new List<ExtractableInfo>();
             try
             {
-                foreach (Extractable extractable in UnityEngine.Object.FindObjectsByType<Extractable>(UnityEngine.FindObjectsSortMode.None))
+                foreach (Extractable extractable in SceneIds.Active<Extractable>())
                 {
                     list.Add(ToInfo(extractable));
                 }
@@ -117,7 +117,7 @@ namespace ObenseuerCore
             if (string.IsNullOrEmpty(id)) return null;
             try
             {
-                foreach (Extractable extractable in UnityEngine.Object.FindObjectsByType<Extractable>(UnityEngine.FindObjectsSortMode.None))
+                foreach (Extractable extractable in SceneIds.Active<Extractable>())
                 {
                     if (SceneIds.Of(extractable) == id) return extractable;
                 }

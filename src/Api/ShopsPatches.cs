@@ -12,7 +12,11 @@ namespace ObenseuerCore
         internal static MethodInfo TradeGetCurrency;
         internal static FieldInfo Uncollected;
 
-        internal static bool Install()
+        private const string TradeOwner = Shops.Owner + ".trade";
+        private const string VendingOwner = Shops.Owner + ".vending";
+        private const string PriceOwner = Shops.Owner + ".price";
+
+        internal static ShopGroup Install()
         {
             try
             {
@@ -22,22 +26,21 @@ namespace ObenseuerCore
                 if (TradeStorage == null || TradeGetCurrency == null || Uncollected == null)
                 {
                     CorePatcher.DisableOwner(Shops.Owner);
-                    return false;
+                    return ShopGroup.None;
                 }
-                bool ok = true;
-                ok &= Hook(typeof(Trade), "Buy", TradeTypes, "TradeBefore", "BoughtAfter");
-                ok &= Hook(typeof(Trade), "Sell", TradeTypes, "TradeBefore", "SoldAfter");
-                ok &= Hook(typeof(TradeSpecial), "Buy", TradeTypes, "TradeBefore", "BoughtAfter");
-                ok &= Hook(typeof(TradeSpecial), "Sell", TradeTypes, "TradeBefore", "SoldAfter");
-                ok &= Hook(typeof(VendingMachine), "Buy", new[] { typeof(VendingMachine.VendingMachineItem) }, "VendingBefore", "VendingAfter");
-                ok &= Hook(typeof(Trade), "GetItemStackPrice", new[] { typeof(ItemData), typeof(int), typeof(Money.Currency) }, null, "StackPricePostfix");
-                return ok;
+                bool trade = Hook(TradeOwner, typeof(Trade), "Buy", TradeTypes, "TradeBefore", "BoughtAfter");
+                trade &= Hook(TradeOwner, typeof(Trade), "Sell", TradeTypes, "TradeBefore", "SoldAfter");
+                trade &= Hook(TradeOwner, typeof(TradeSpecial), "Buy", TradeTypes, "TradeBefore", "BoughtAfter");
+                trade &= Hook(TradeOwner, typeof(TradeSpecial), "Sell", TradeTypes, "TradeBefore", "SoldAfter");
+                bool vending = Hook(VendingOwner, typeof(VendingMachine), "Buy", new[] { typeof(VendingMachine.VendingMachineItem) }, "VendingBefore", "VendingAfter");
+                bool price = Hook(PriceOwner, typeof(Trade), "GetItemStackPrice", new[] { typeof(ItemData), typeof(int), typeof(Money.Currency) }, null, "StackPricePostfix");
+                return (trade ? ShopGroup.Trade : ShopGroup.None) | (vending ? ShopGroup.Vending : ShopGroup.None) | (price ? ShopGroup.Price : ShopGroup.None);
             }
             catch (Exception e)
             {
                 CorePatcher.DisableOwner(Shops.Owner);
                 ApiLog.Once(Cash.Owner, "shops install", e);
-                return false;
+                return ShopGroup.None;
             }
         }
 
@@ -49,6 +52,14 @@ namespace ObenseuerCore
             }
         }
 
+        internal static bool InPriceQuery
+        {
+            get
+            {
+                return reentered;
+            }
+        }
+
         internal static Money.Currency CurrencyOf(Trade trade, Trade.PriceMode mode)
         {
             return (Money.Currency)TradeGetCurrency.Invoke(trade, new object[] { mode });
@@ -56,8 +67,10 @@ namespace ObenseuerCore
 
         internal static float Adjust(Trade trade, int itemId, int count, bool playerBuys, Money.Currency currency, float price)
         {
-            if (reentered || !Shops.IsAvailable || !Shops.HasPriceQuery) return price;
-            PriceQueryArgs args = new PriceQueryArgs(Shops.InfoOf(trade), itemId, count, playerBuys, Cash.FromGame(currency), price);
+            if (!Shops.Installed(ShopGroup.Price)) return price;
+            float scaled = Settle(Traders.Scale(trade, playerBuys, price), currency, price, count);
+            if (reentered || !Shops.HasPriceQuery) return scaled;
+            PriceQueryArgs args = new PriceQueryArgs(Shops.InfoOf(trade), itemId, count, playerBuys, Cash.FromGame(currency), scaled);
             reentered = true;
             try
             {
@@ -67,19 +80,20 @@ namespace ObenseuerCore
             {
                 reentered = false;
             }
-            return Settle(args.Price, currency, price);
+            return Settle(args.Price, currency, scaled, count);
         }
 
-        private static bool Hook(Type type, string name, Type[] args, string prefix, string postfix)
+        private static bool Hook(string owner, Type type, string name, Type[] args, string prefix, string postfix)
         {
-            return CorePatcher.PatchCore(type, name, args, prefix == null ? null : CorePatcher.Handler(typeof(ShopsPatches), prefix), CorePatcher.Handler(typeof(ShopsPatches), postfix), null, true, Shops.Owner);
+            return CorePatcher.PatchCore(type, name, args, prefix == null ? null : CorePatcher.Handler(typeof(ShopsPatches), prefix), CorePatcher.Handler(typeof(ShopsPatches), postfix), null, true, owner);
         }
 
-        private static float Settle(float value, Money.Currency currency, float original)
+        private static float Settle(float value, Money.Currency currency, float original, int count)
         {
             if (value == original) return original;
             if (float.IsNaN(value) || float.IsInfinity(value)) return original;
-            if (value < 0f) value = 0f;
+            float floor = (currency == Money.Currency.RM ? Cash.OcToRm(1) : 1f) * count;
+            if (value < floor) value = floor;
             if (value > Cash.MaxAmount) value = Cash.MaxAmount;
             return currency == Money.Currency.RM ? Money.RoundRM(value) : (float)Math.Round(value);
         }
@@ -93,6 +107,7 @@ namespace ObenseuerCore
         private static void TradeBefore(Trade __instance, ItemData itemData, int amount, out TradeState __state)
         {
             __state = null;
+            if (!Shops.Installed(ShopGroup.Trade)) return;
             try
             {
                 __state = new TradeState(itemData.item.ID, amount, __instance.GetItemCurrency(itemData));
@@ -115,12 +130,15 @@ namespace ObenseuerCore
 
         private static void Report(Trade trade, bool success, TradeState state, bool bought)
         {
-            if (!success || state == null) return;
+            if (!success || state == null || !Shops.Installed(ShopGroup.Trade)) return;
             try
             {
                 TradeArgs evt = new TradeArgs(state.ItemId, state.Count, Moved(state.Currency, state.Before), Cash.FromGame(state.Currency), Shops.InfoOf(trade));
-                if (bought) Shops.RaiseBought(evt);
-                else Shops.RaiseSold(evt);
+                PlayerInventory.AfterCommit(() =>
+                {
+                    if (bought) Shops.RaiseBought(evt);
+                    else Shops.RaiseSold(evt);
+                });
             }
             catch (Exception e)
             {
@@ -131,6 +149,7 @@ namespace ObenseuerCore
         private static void VendingBefore(VendingMachine __instance, VendingMachine.VendingMachineItem item, out VendingState __state)
         {
             __state = null;
+            if (!Shops.Installed(ShopGroup.Vending)) return;
             try
             {
                 __state = new VendingState(item.item.ID, item.currentStock, item.currency);
@@ -157,6 +176,7 @@ namespace ObenseuerCore
 
         private static void StackPricePostfix(Trade __instance, ItemData itemData, int amount, Money.Currency currency, ref float __result)
         {
+            if (!Shops.Installed(ShopGroup.Price)) return;
             try
             {
                 __result = Adjust(__instance, itemData.item.ID, amount, !itemData.slotController.slot.playerSlot, currency, __result);

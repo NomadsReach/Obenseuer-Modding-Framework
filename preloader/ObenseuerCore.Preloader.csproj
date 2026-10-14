@@ -1,0 +1,59 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <AssemblyName>ObenseuerCore.Preloader</AssemblyName>
+    <OutputType>Library</OutputType>
+    <OutputPath>bin\$(LoaderOut)</OutputPath>
+    <NoStdLib>true</NoStdLib>
+    <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <NoWarn>$(NoWarn);649</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="mscorlib">
+      <HintPath>$(ManagedDir)/mscorlib.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="netstandard">
+      <HintPath>$(ManagedDir)/netstandard.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="System">
+      <HintPath>$(ManagedDir)/System.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="System.Core">
+      <HintPath>$(ManagedDir)/System.Core.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Loader)' == 'BepInEx6'">
+    <Reference Include="BepInEx.Core">
+      <HintPath>$(BepInExCore)/BepInEx.Core.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="BepInEx.Preloader.Core">
+      <HintPath>$(BepInExCore)/BepInEx.Preloader.Core.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Loader)' == 'BepInEx5'">
+    <PackageReference Include="BepInEx.BaseLib" Version="$(BepInEx5BaseLibVersion)" GeneratePathProperty="true" ExcludeAssets="all" PrivateAssets="all" />
+    <Reference Include="BepInEx">
+      <HintPath>$(PkgBepInEx_BaseLib)/lib/net35/BepInEx.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Mono.Cecil">
+      <HintPath>$(BepInExCore)/Mono.Cecil.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+</Project>

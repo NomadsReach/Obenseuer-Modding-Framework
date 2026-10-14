@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace ObenseuerCore
@@ -9,23 +10,20 @@ namespace ObenseuerCore
         {
             try
             {
-                const string guid = "example.spicy-jerky";
-                string id = FurnitureRegistry.IdFor(guid, "crate-red");
-                if (id != "obx:example.spicy-jerky/crate-red") return "id text";
-                if (!FurnitureRegistry.IsModId(id)) return "obx prefix not recognised";
-                string modGuid;
-                string key;
-                if (!FurnitureRegistry.TryParse(id, out modGuid, out key)) return "obx id not parsed";
-                if (modGuid != guid || key != "crate-red") return "round trip changed the parts";
-                if (FurnitureRegistry.TryParse("obx:example.spicy-jerky/bad/key", out modGuid, out key)) return "slash in key parsed";
-                if (FurnitureRegistry.TryParse("obx:bad guid/key", out modGuid, out key)) return "space in modGuid parsed";
-                if (FurnitureRegistry.TryParse("obx:nokey", out modGuid, out key)) return "id without a key parsed";
-                if (FurnitureRegistry.IsModId("Assets/Content/Prefabs/Building System/Furniture/Tables/Wooden Table.asset")) return "template path read as a mod id";
+                string ids = FurnitureIdsSelfTest.Run();
+                if (ids != "furniture id self-check ok") return ids;
+                if (FurnitureRegistry.IdFor("example.spicy-jerky", "crate-red") != "obx:example.spicy-jerky/crate-red") return "id text";
                 if (!Refused("ok", "bad/key")) return "slash in key not refused";
                 if (!Refused("bad guid", "k")) return "space in modGuid not refused";
                 if (!Refused("ok", "")) return "empty key not refused";
                 if (Refused("ok", "crate-red")) return "valid key refused";
                 if (!ForeignModelRefused()) return "model not from ModelRegistry not refused";
+                if (!BlueprintRefused("obx:example.spicy-jerky/crate-red", new BlueprintDefinition(), "furnitureId")) return "blueprint for an undefined furniture not refused";
+                if (!BlueprintRefused("obx:example.spicy-jerky/crate-red", null, "definition")) return "null blueprint definition not refused";
+                if (!BlueprintRefused("obx:example.spicy-jerky/crate-red", new BlueprintDefinition { MinimumSkill = 1 }, "definition")) return "minimum skill without a skill not refused";
+                if (!BlueprintRefused("obx:example.spicy-jerky/crate-red", new BlueprintDefinition { Pools = new List<string> { null } }, "definition")) return "null pool entry not refused";
+                if (FurnitureIds.CheckLoot("Toolbox", 0) == null) return "loot weight 0 accepted";
+                if (!LootRefused("obx:a/b", "Category", 0)) return "loot weight 0 through AddFlatpackLoot not refused";
                 if (FurnitureBuild.AlignOffset(Box(0f, 0.5f, 0f, 1f, 1f, 1f), Box(2f, 0.5f, -1f, 2f, 1f, 2f)) != new Vector3(2f, 0f, -1f)) return "bottom-centre offset";
                 if (FurnitureBuild.AlignOffset(Box(0f, 0f, 0f, 1f, 1f, 1f), Box(1f, 0.5f, 1f, 1f, 0.5f, 1f)) != new Vector3(1f, 0.75f, 1f)) return "bottom-centre offset above the floor";
                 if (FurnitureBuild.AlignOffset(Box(3f, 0.5f, 3f, 1f, 1f, 1f), Box(3f, 0.5f, 3f, 1f, 1f, 1f)) != Vector3.zero) return "same bounds not zero";
@@ -33,6 +31,8 @@ namespace ObenseuerCore
                 if (!FurnitureBuild.CompensatedScale(Vector3.one, new Vector3(0.5f, 0.5f, 0.5f), out scale) || scale != new Vector3(2f, 2f, 2f)) return "child 0 scale not compensated";
                 if (FurnitureBuild.AlignOffset(FurnitureBuild.ScaledBounds(Box(1f, 2f, 0f, 1f, 2f, 1f), scale), Box(3f, 0f, 4f, 1f, 1f, 1f)) != new Vector3(1f, -2.5f, 4f)) return "scaled child 0 offset";
                 if (FurnitureBuild.CompensatedScale(Vector3.one, new Vector3(0f, 1f, 1f), out scale)) return "zero child 0 scale not refused";
+                if (!Building.IsFinite(Vector3.one) || !Building.IsFinite(Quaternion.identity)) return "finite pose refused";
+                if (Building.IsFinite(new Vector3(float.NaN, 0f, 0f)) || Building.IsFinite(new Vector3(0f, float.PositiveInfinity, 0f)) || Building.IsFinite(new Quaternion(0f, 0f, 0f, float.NaN))) return "NaN or Infinity pose accepted";
             }
             catch (Exception e)
             {
@@ -56,6 +56,32 @@ namespace ObenseuerCore
                     Title = "Crate",
                     Model = new ModelHandle("crate", null, null, null, new ModelOptions(), "not from the registry")
                 });
+                return false;
+            }
+            catch (ArgumentException)
+            {
+                return true;
+            }
+        }
+
+        private static bool BlueprintRefused(string furnitureId, BlueprintDefinition definition, string paramName)
+        {
+            try
+            {
+                FurnitureRegistry.DefineBlueprint(furnitureId, definition);
+                return false;
+            }
+            catch (ArgumentException e)
+            {
+                return e.ParamName == paramName;
+            }
+        }
+
+        private static bool LootRefused(string furnitureId, string category, int weight)
+        {
+            try
+            {
+                FurnitureRegistry.AddFlatpackLoot(furnitureId, category, weight);
                 return false;
             }
             catch (ArgumentException)

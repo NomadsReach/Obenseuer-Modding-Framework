@@ -58,6 +58,7 @@ namespace ObenseuerCore
                 CoreLog.For(owner).Warn("computer apps not installed: computerScreen or DesktopWallpaper not found");
                 return false;
             }
+            Events.SceneLoaded += OnSceneLoaded;
             bool started = CorePatcher.PatchCore(typeof(InteractableComputer), "Start", Type.EmptyTypes, null, Method("StartPostfix"), null, true, owner);
             bool controls = CorePatcher.PatchCore(typeof(InteractableComputer), "Controls", Type.EmptyTypes, Method("ControlsPrefix"), null, null, true, owner);
             bool stopped = CorePatcher.PatchCore(typeof(InteractableComputer), "OnStopUseEnd", Type.EmptyTypes, null, Method("StopPostfix"), null, true, owner);
@@ -276,14 +277,17 @@ namespace ObenseuerCore
             Layout(desk);
         }
 
+        private static void OnSceneLoaded(string scene)
+        {
+            deskByComputer.Clear();
+        }
+
         private static RectTransform CachedDesk(InteractableComputer computer)
         {
             RectTransform desk;
-            if (!deskByComputer.TryGetValue(computer, out desk))
-            {
-                desk = DeskOf(computer);
-                deskByComputer[computer] = desk;
-            }
+            if (deskByComputer.TryGetValue(computer, out desk) && desk != null) return desk;
+            desk = DeskOf(computer);
+            if (desk != null) deskByComputer[computer] = desk;
             return desk;
         }
 

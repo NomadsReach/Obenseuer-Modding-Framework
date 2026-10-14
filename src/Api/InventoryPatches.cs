@@ -6,16 +6,18 @@ namespace ObenseuerCore
 {
     internal static class InventoryPatches
     {
+        private static int droppedAmount;
 
         internal static bool Install()
         {
             try
             {
-                bool added = Hook(typeof(SlotController), "AddItemAndReturnRemaining", new[] { typeof(Item), typeof(int), typeof(int), typeof(object[]), typeof(bool), typeof(GameObject), typeof(bool), typeof(int), typeof(ItemOperations.DropItemValues), typeof(ItemOperations.ItemOperationSettings) }, null, "AddedPostfix", null);
+                bool added = Hook(typeof(SlotController), "AddItemAndReturnRemaining", new[] { typeof(Item), typeof(int), typeof(int), typeof(object[]), typeof(bool), typeof(GameObject), typeof(bool), typeof(int), typeof(ItemOperations.DropItemValues), typeof(ItemOperations.ItemOperationSettings) }, "AddedPrefix", "AddedPostfix", null);
                 bool taken = Hook(typeof(SlotController), "TakeItem", new[] { typeof(Item), typeof(int), typeof(int), typeof(object[]) }, null, "TakenPostfix", null);
                 bool dragged = Hook(typeof(SlotController), "TakeItem", new[] { typeof(ItemData) }, "UiPrefix", null, "UiFinalizer");
                 bool dropped = Hook(typeof(SlotController), "DropItem", new[] { typeof(ItemData), typeof(int).MakeByRefType(), typeof(bool), typeof(bool), typeof(bool) }, "UiPrefix", null, "UiFinalizer");
-                return added && taken && dragged && dropped;
+                bool floorDrop = Hook(typeof(ItemOperations), "DropItem", new[] { typeof(Item), typeof(int), typeof(int), typeof(object[]), typeof(GameObject), typeof(ItemOperations.DropItemValues) }, "DropPrefix", null, null);
+                return added && taken && dragged && dropped && floorDrop;
             }
             catch (Exception e)
             {
@@ -39,12 +41,22 @@ namespace ObenseuerCore
             PlayerInventory.ExitUi();
         }
 
-        private static void AddedPostfix(SlotController __instance, Item item, int amount, int __result)
+        private static void AddedPrefix(out int __state)
+        {
+            __state = droppedAmount;
+        }
+
+        private static void DropPrefix(int amount)
+        {
+            droppedAmount += amount;
+        }
+
+        private static void AddedPostfix(SlotController __instance, Item item, int amount, int __result, int __state)
         {
             if (!PlayerInventory.HasHandlers) return;
             try
             {
-                int added = amount - __result;
+                int added = amount - __result - (droppedAmount - __state);
                 if (added > 0 && !PlayerInventory.UiActive && PlayerInventory.IsPlayerSlot(__instance)) PlayerInventory.RaiseItemAdded(item.ID, added);
             }
             catch (Exception e)

@@ -58,7 +58,7 @@ namespace ObenseuerCore
             List<SignInfo> list = new List<SignInfo>();
             try
             {
-                foreach (EditableSign sign in UnityEngine.Object.FindObjectsByType<EditableSign>(FindObjectsSortMode.None))
+                foreach (EditableSign sign in SceneIds.Active<EditableSign>())
                 {
                     if (sign != null) list.Add(ToInfo(sign));
                 }

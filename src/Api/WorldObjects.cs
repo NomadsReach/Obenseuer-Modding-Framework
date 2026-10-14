@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using HarmonyLib;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace ObenseuerCore
 {
@@ -34,7 +34,7 @@ namespace ObenseuerCore
     }
 
     [Serializable]
-    public sealed class WorldObjectDataEntry
+    internal sealed class WorldObjectDataEntry
     {
         public string Mod;
         public string Scene;
@@ -43,7 +43,7 @@ namespace ObenseuerCore
     }
 
     [Serializable]
-    public sealed class WorldObjectDataFile
+    internal sealed class WorldObjectDataFile
     {
         public List<WorldObjectDataEntry> Entries = new List<WorldObjectDataEntry>();
     }
@@ -57,7 +57,6 @@ namespace ObenseuerCore
 
         private static readonly Dictionary<string, WorldObjectDataEntry> data = new Dictionary<string, WorldObjectDataEntry>();
         private static readonly Dictionary<string, int> used = new Dictionary<string, int>();
-        private static readonly FieldInfo characterNameField = AccessTools.Field(typeof(SaveController), "CharacterName");
         private static bool ready;
 
         public static GameObject Find(string guid)
@@ -73,6 +72,38 @@ namespace ObenseuerCore
                 ApiLog.Once("ObenseuerCore", "WorldObjects.Find", e);
                 return null;
             }
+        }
+
+        public static GameObject FindByPath(string scene, string path, bool includeInactive)
+        {
+            if (string.IsNullOrEmpty(scene)) throw new ArgumentException("scene must be a non-empty string", "scene");
+            string[] names = ObjectPath.Split(path);
+            if (names == null) throw new ArgumentException("path must be names separated by '/', with no empty name", "path");
+            try
+            {
+                Scene loaded = SceneManager.GetSceneByName(scene);
+                if (!loaded.isLoaded) return null;
+                List<Transform> roots = new List<Transform>();
+                foreach (GameObject root in loaded.GetRootGameObjects()) roots.Add(root.transform);
+                Transform found = ObjectPath.Descend(roots, names, 0, t => t.name, t => includeInactive || t.gameObject.activeInHierarchy, ChildrenOf);
+                return found == null ? null : found.gameObject;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once("ObenseuerCore", "WorldObjects.FindByPath", e);
+                return null;
+            }
+        }
+
+        public static string PathOf(GameObject go)
+        {
+            if (go == null) throw new ArgumentNullException("go");
+            string path = go.name;
+            for (Transform node = go.transform.parent; node != null; node = node.parent)
+            {
+                path = node.name + "/" + path;
+            }
+            return path;
         }
 
         public static string GuidOf(GameObject go)
@@ -112,7 +143,7 @@ namespace ObenseuerCore
             try
             {
                 var seen = new HashSet<GameObject>();
-                foreach (SavableScript script in UnityEngine.Object.FindObjectsByType<SavableScript>(FindObjectsSortMode.None))
+                foreach (SavableScript script in SceneIds.Active<SavableScript>())
                 {
                     if (Vector3.Distance(script.transform.position, position) > radius || !seen.Add(script.gameObject)) continue;
                     WorldObjectInfo info = InfoOf(script.gameObject);
@@ -130,7 +161,7 @@ namespace ObenseuerCore
         {
             ModIds.Require(modId, "modId");
             WorldObjectDataEntry entry;
-            if (obj == null || string.IsNullOrEmpty(obj.Guid) || !data.TryGetValue(Key(modId, obj.Scene, obj.Guid), out entry)) return null;
+            if (SaveGate.Loading || obj == null || string.IsNullOrEmpty(obj.Guid) || !data.TryGetValue(Key(modId, obj.Scene, obj.Guid), out entry)) return null;
             return entry.Blob;
         }
 
@@ -138,19 +169,18 @@ namespace ObenseuerCore
         {
             ModIds.Require(modId, "modId");
             if (blob == null) throw new ArgumentException("blob must not be null", "blob");
-            if (!ready || obj == null || string.IsNullOrEmpty(obj.Guid) || string.IsNullOrEmpty(CharacterName())) return false;
+            if (!ready || SaveGate.Busy || obj == null || string.IsNullOrEmpty(obj.Guid)) return false;
             return TryPut(modId, obj.Scene, obj.Guid, blob);
         }
 
         internal static void Init()
         {
             SaveData.Register<WorldObjectDataFile>(StoreModId, SaveStore, LoadStore);
-            if (!CorePatcher.PatchCore(typeof(NewGame), "SaveCharacter", Type.EmptyTypes, null, AccessTools.Method(typeof(WorldObjects), "NewGamePostfix"), null, true, StoreModId))
+            if (!CorePatcher.PatchCore(typeof(NewGame), "SaveCharacter", Type.EmptyTypes, null, AccessTools.Method(typeof(WorldObjects), "NewGamePostfix"), null, true, ModIds.CoreId))
             {
                 CoreLog.For("ObenseuerCore").Warn("WorldObjects mod data is off: NewGame.SaveCharacter could not be patched");
                 return;
             }
-            SaveController.PlayerWillLoadGame += Reset;
             ready = true;
         }
 
@@ -158,8 +188,11 @@ namespace ObenseuerCore
         {
             try
             {
+                SaveController.LastSaveFolderPath = "";
+                StoryPump.Clear();
                 SaveData.ResetAll();
                 Reset();
+                Events.NewGameStarted();
             }
             catch (Exception e)
             {
@@ -217,10 +250,9 @@ namespace ObenseuerCore
             }
         }
 
-        private static string CharacterName()
+        private static IEnumerable<Transform> ChildrenOf(Transform node)
         {
-            if (characterNameField == null) return "";
-            return (string)characterNameField.GetValue(null) ?? "";
+            for (int i = 0; i < node.childCount; i++) yield return node.GetChild(i);
         }
 
         private static string Key(string modId, string scene, string guid)

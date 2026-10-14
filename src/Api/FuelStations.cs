@@ -65,7 +65,7 @@ namespace ObenseuerCore
             try
             {
                 if (price == null || currency == null) return list;
-                foreach (GasStation station in UnityEngine.Object.FindObjectsByType<GasStation>(FindObjectsSortMode.None))
+                foreach (GasStation station in SceneIds.Active<GasStation>())
                 {
                     if (station == null) continue;
                     list.Add(new FuelStationInfo(SceneIds.Of(station), (int)price.GetValue(station), Cash.FromGame((Money.Currency)currency.GetValue(station))));

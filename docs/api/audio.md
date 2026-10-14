@@ -1,10 +1,16 @@
+---
+title: Obenseuer Modding Framework audio API (Sounds)
+parent: API reference
+nav_order: 1
+---
+
 # Obenseuer Modding Framework audio API (Sounds)
 
-Experimental. Not checked in game.
-Game: Obenseuer 0.5.05 (build 25839246), Unity 6000.0.77f1 Mono.
+Experimental.
+Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Log owner: `obenseuer.moddingframework.audio`. Logs go to `BepInEx\logs\obenseuer.moddingframework.audio.log`.
 
-Everything not listed here is internal. Main thread only. No `Init` and no events: the facade only reads game state and plays sounds.
+Everything not listed here is internal. Main thread only. It has no events: the facade only reads game state and plays sounds.
 
 ## Rules
 
@@ -31,7 +37,7 @@ public static class Sounds
 - `LibraryNames` lists the `RandomAudioLibrary` slots (`foley`, `harvest`, `arrestSounds`, `stealSounds`, `prankSounds`, `scarySounds`, `crazyNeighborSounds`, `foleySounds`). `PlayLibrary` plays one in 2D. `PlayLibraryAt` plays one at a world position.
 - Each play returns `true` when a clip was started.
 
-Not wrapped: UI click and hover sounds and notification sounds. The game keeps them on each button or panel prefab (`SoundInfo`, `AudioSource`), not in a global registry.
+Not wrapped: UI click and hover sounds. The game keeps them on each button prefab (`SoundInfo`), with no sound id to pass in. For a notification sound, use `Hud.Notify`: the notification box plays its own clip.
 
 ## Mixer groups and mod clips
 
@@ -54,7 +60,7 @@ public static AudioClip LoadWav(string path);
 - Reads a file from disk and builds an `AudioClip` with `AudioClip.Create`. Supported: RIFF/WAVE, PCM at 8, 16, 24 or 32 bits, and IEEE float at 32 bits. Any channel count. Unknown chunks are skipped. A data chunk size of `-1` or larger than the file reads to the end of the file.
 - Returns `null` for a missing file, a non-WAV file, an unsupported format or a truncated file.
 - **WAV only. `.ogg` (and mp3 and any other format) is not supported and `LoadWav` returns `null` for it.** Convert to WAV first.
-- WAVE_FORMAT_EXTENSIBLE files are accepted when the sub-format is PCM or float. Files larger than 64 MiB are rejected (`null`).
+- WAVE_FORMAT_EXTENSIBLE files are accepted when the sub-format is PCM or float. Files larger than 16 MiB are rejected (`null`). Decoded samples are kept as floats, so a 16 MiB 8-bit file uses about 64 MiB of memory while it is decoded.
 
 ## Volumes
 
@@ -65,7 +71,18 @@ public static float MusicVolume { get; }    // dB, VolumeSave.soundSave.music
 ```
 
 - Read from the game's saved volume state. Reads `0` before `VolumeSave` exists.
-- Read only. Changing volume is done through the game's own options menu.
+- Read only. The saved values change only through the game's options menu. `SetMixerVolume` changes the live mixer for the session, see below.
+
+## Mixer volume (session only)
+
+```csharp
+public static bool SetMixerVolume(string modId, string group, float decibels);
+```
+
+- `group` is one of the game's mixer parameters: `Master`, `Sound`, `Music` or `Nasty`. `Sound` also sets `OtherSounds`, as the game's Sound slider does. `decibels` must be finite and from -80 to 0. The facade does not check that range against the game's sliders.
+- The write changes the live mixer only. It does not write the saved volume file, so `MasterVolume`, `SfxVolume` and `MusicVolume` still return the saved values.
+- The game puts the saved mix back when its options controller or options menu starts (`OptionsController.Start` and `OptionsMenu.Start`, which call `VolumeSave.GetVolume`), and when the pause menu sets up the options menu. Set the value again after a scene load if it has to last.
+- Returns `false` for an invalid mod id, an unknown group, a value out of range, a save or a load in progress, or a missing game mixer or parameter. Invalid input is logged once.
 
 ## Soundscape
 

@@ -31,7 +31,7 @@ namespace ObenseuerCore
 
             internal static bool HasConsumedHandlers
             {
-                get { return Consumed != null; }
+                get { return Consumed != null && Installed(SurvivalGroup.Consumables); }
             }
 
             internal static void RaiseConsumed(ConsumedArgs args)
@@ -43,7 +43,8 @@ namespace ObenseuerCore
             {
                 ModIds.RequireLegacy(modId, "modId");
                 if (handler == null) throw new ArgumentNullException("handler");
-                if (!IsAvailable) return;
+                if (!Installed(SurvivalGroup.Consumables)) return;
+                if (handlers.Exists(entry => entry.Key == modId && entry.Value == handler)) return;
                 handlers.Add(new KeyValuePair<string, ConsumeHandler>(modId, handler));
             }
 
@@ -51,6 +52,7 @@ namespace ObenseuerCore
             {
                 if (handlers.Count == 0) return true;
                 ConsumeArgs args = new ConsumeArgs();
+                bool cancelled = false;
                 foreach (KeyValuePair<string, ConsumeHandler> entry in handlers.ToArray())
                 {
                     try
@@ -61,14 +63,23 @@ namespace ObenseuerCore
                     {
                         CoreLog.For(entry.Key).Error("Intercept handler failed: " + e.ToString());
                     }
+                    cancelled |= args.Cancel;
+                    args.Cancel = cancelled;
                 }
-                return !args.Cancel;
+                return !cancelled;
             }
 
             public static bool Remove(string modId)
             {
                 ModIds.RequireLegacy(modId, "modId");
                 return handlers.RemoveAll(entry => entry.Key == modId) > 0;
+            }
+
+            public static bool Remove(string modId, ConsumeHandler handler)
+            {
+                ModIds.RequireLegacy(modId, "modId");
+                if (handler == null) throw new ArgumentNullException("handler");
+                return handlers.RemoveAll(entry => entry.Key == modId && entry.Value == handler) > 0;
             }
         }
     }

@@ -53,7 +53,7 @@ namespace ObenseuerCore
             List<TarpDoorInfo> list = new List<TarpDoorInfo>();
             try
             {
-                foreach (TarpDoor door in UnityEngine.Object.FindObjectsByType<TarpDoor>(FindObjectsSortMode.None))
+                foreach (TarpDoor door in SceneIds.Active<TarpDoor>())
                 {
                     if (door != null) list.Add(ToInfo(door));
                 }

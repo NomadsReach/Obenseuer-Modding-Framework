@@ -142,6 +142,22 @@ namespace ObenseuerCore
             }
         }
 
+        public static bool HasStolenGoods
+        {
+            get
+            {
+                return ReadValue("HasStolenGoods", c => Inventory.instance != null && c.HasStolenGoods(), false);
+            }
+        }
+
+        public static int StolenGoodsValue
+        {
+            get
+            {
+                return ReadValue("StolenGoodsValue", c => StolenValue(c), 0);
+            }
+        }
+
         public static float GetGeneric(CrimeKind kind)
         {
             return Read("GetGeneric", c => GenericAmount(c, kind));
@@ -179,6 +195,16 @@ namespace ObenseuerCore
         public static bool Clear(int victimNpcId)
         {
             return victimNpcId > 0 && CanEditRecords() && Run("Clear", c => ClearVictim(c, victimNpcId));
+        }
+
+        public static bool Clear(CrimeKind kind)
+        {
+            return ValidKind(kind) && CanEditRecords() && Run("ClearKind", c => c.ClearCrime(null, (Crime.CrimeType)(int)kind));
+        }
+
+        public static bool Clear(int victimNpcId, CrimeKind kind)
+        {
+            return victimNpcId > 0 && ValidKind(kind) && CanEditRecords() && Run("ClearKind", c => c.ClearCrime(new NPC.NPCReference(victimNpcId), (Crime.CrimeType)(int)kind));
         }
 
         public static bool Arrest(float severityFactor)
@@ -223,6 +249,7 @@ namespace ObenseuerCore
             running = true;
             try
             {
+                bool cancelled = false;
                 foreach (Interceptor interceptor in new List<Interceptor>(interceptors))
                 {
                     try
@@ -233,6 +260,8 @@ namespace ObenseuerCore
                     {
                         ApiLog.Once(Owner, "Intercept " + interceptor.ModId, e);
                     }
+                    cancelled |= args.Cancel;
+                    args.Cancel = cancelled;
                 }
             }
             finally
@@ -307,8 +336,13 @@ namespace ObenseuerCore
 
         private static float Read(string member, Func<Crime, float> read)
         {
+            return ReadValue(member, read, 0f);
+        }
+
+        private static T ReadValue<T>(string member, Func<Crime, T> read, T fallback)
+        {
             Crime crime = Current();
-            if (crime == null) return 0f;
+            if (crime == null) return fallback;
             try
             {
                 return read(crime);
@@ -316,8 +350,21 @@ namespace ObenseuerCore
             catch (Exception e)
             {
                 ApiLog.Once(Owner, member, e);
-                return 0f;
+                return fallback;
             }
+        }
+
+        private static bool ValidKind(CrimeKind kind)
+        {
+            return kind != CrimeKind.None && Enum.IsDefined(typeof(CrimeKind), kind);
+        }
+
+        private static int StolenValue(Crime crime)
+        {
+            if (Inventory.instance == null) return 0;
+            double value = crime.CountStolenGoodsValue();
+            if (double.IsNaN(value) || value <= 0d) return 0;
+            return (int)Math.Min(value, int.MaxValue);
         }
 
         private static bool Run(string member, Action<Crime> act)
@@ -370,7 +417,7 @@ namespace ObenseuerCore
             return Achievements.instance != null && PlayerStats.instance != null && WaitingController.instance != null && Inventory.instance != null;
         }
 
-        private static bool InPrison()
+        internal static bool InPrison()
         {
             try
             {

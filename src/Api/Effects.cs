@@ -29,13 +29,29 @@ namespace ObenseuerCore
         }
     }
 
+    [Flags]
+    internal enum EffectGroup
+    {
+        None = 0,
+        Drunk = 1,
+        Mushroom = 2,
+        Wasteland = 4,
+        OrangeMushroom = 8,
+        Required = Drunk | Mushroom | Wasteland
+    }
+
     public static class Effects
     {
         internal const string Owner = "obenseuer.moddingframework.effects";
+        private const string DrunkOwner = Owner + ".drunk";
+        private const string MushroomOwner = Owner + ".mushroom";
+        private const string WastelandOwner = Owner + ".wasteland";
+        private const string OrangeOwner = Owner + ".orange";
         private static readonly Dictionary<Effect, bool> reported = new Dictionary<Effect, bool>();
+        private static readonly Effect[] hookedEffects = { Effect.Drunk, Effect.Mushroom, Effect.Wasteland, Effect.OrangeMushroom };
         private static readonly FieldInfo shroomsEnabledField = AccessTools.Field(typeof(MushroomEffect), "shroomsEnabled");
         private static readonly FieldInfo orangeShroomsEnabledField = AccessTools.Field(typeof(OrangeMushroomEffect), "shroomsEnabled");
-        private static bool installed;
+        private static EffectGroup installed;
 
         public static event Action<EffectChangedArgs> Changed;
 
@@ -43,8 +59,13 @@ namespace ObenseuerCore
         {
             get
             {
-                return installed && !CorePatcher.IsDisabled(Owner);
+                return Installed(EffectGroup.Required);
             }
+        }
+
+        internal static bool Installed(EffectGroup group)
+        {
+            return (installed & group) == group && !CorePatcher.IsDisabled(Owner);
         }
 
         public static bool IsActive(Effect effect)
@@ -122,7 +143,19 @@ namespace ObenseuerCore
         internal static void Init()
         {
             installed = Install();
-            CoreLog.For(Owner).Info(installed ? "effect events installed" : "effect events not installed");
+            Events.Loaded += Resync;
+            Events.SceneLoaded += OnSceneLoaded;
+            CoreLog.For(Owner).Info(IsAvailable ? "effect events installed" : "effect events not installed, missing " + (EffectGroup.Required & ~installed));
+        }
+
+        private static void OnSceneLoaded(string scene)
+        {
+            if (scene == "Main Menu") Resync();
+        }
+
+        private static void Resync()
+        {
+            foreach (Effect effect in hookedEffects) Report(effect, IsActive(effect), "Resync");
         }
 
         private static void CheckEffect(Effect effect)
@@ -130,34 +163,42 @@ namespace ObenseuerCore
             if (!Enum.IsDefined(typeof(Effect), effect)) throw new ArgumentException("unknown effect", "effect");
         }
 
-        private static bool Install()
+        private static EffectGroup Install()
         {
             try
             {
                 if (shroomsEnabledField == null) throw new MissingFieldException("MushroomEffect", "shroomsEnabled");
-                bool result = Hook(typeof(DrunkEffect), "StartDrunkEffect", new[] { typeof(bool) }, "DrunkPostfix")
-                    & Hook(typeof(DrunkEffect), "StopDrunkEffect", new[] { typeof(bool) }, "DrunkPostfix")
-                    & Hook(typeof(MushroomEffect), "StartMushroomEffect", new[] { typeof(bool) }, "MushroomPostfix")
-                    & Hook(typeof(MushroomEffect), "StopMushroomEffect", new[] { typeof(bool) }, "MushroomPostfix")
-                    & Hook(typeof(SMVEffects), "WastelandActive", Type.EmptyTypes, "WastelandPostfix")
-                    & Hook(typeof(SMVEffects), "StopEffect", new[] { typeof(bool), typeof(bool) }, "WastelandStopPostfix");
+                bool drunk = Hook(DrunkOwner, typeof(DrunkEffect), "StartDrunkEffect", new[] { typeof(bool) }, "DrunkPostfix");
+                drunk &= Hook(DrunkOwner, typeof(DrunkEffect), "StopDrunkEffect", new[] { typeof(bool) }, "DrunkPostfix");
+                bool mushroom = Hook(MushroomOwner, typeof(MushroomEffect), "StartMushroomEffect", new[] { typeof(bool) }, "MushroomPostfix");
+                mushroom &= Hook(MushroomOwner, typeof(MushroomEffect), "StopMushroomEffect", new[] { typeof(bool) }, "MushroomPostfix");
+                bool wasteland = Hook(WastelandOwner, typeof(SMVEffects), "WastelandActive", Type.EmptyTypes, "WastelandPostfix");
+                wasteland &= Hook(WastelandOwner, typeof(SMVEffects), "StopEffect", new[] { typeof(bool), typeof(bool) }, "WastelandStopPostfix");
+                bool orange = true;
                 foreach (string name in new[] { "StartMushroomEffect", "StopMushroomEffect" })
                 {
-                    if (!Hook(typeof(OrangeMushroomEffect), name, new[] { typeof(bool) }, "OrangeMushroomPostfix", false)) CoreLog.For(Owner).Warn("orange mushroom hook " + name + " failed, OrangeMushroom changes are not reported");
+                    if (!Hook(OrangeOwner, typeof(OrangeMushroomEffect), name, new[] { typeof(bool) }, "OrangeMushroomPostfix", false))
+                    {
+                        orange = false;
+                        CoreLog.For(Owner).Warn("orange mushroom hook " + name + " failed, OrangeMushroom changes are not reported");
+                    }
                 }
-                return result;
+                return (drunk ? EffectGroup.Drunk : EffectGroup.None)
+                    | (mushroom ? EffectGroup.Mushroom : EffectGroup.None)
+                    | (wasteland ? EffectGroup.Wasteland : EffectGroup.None)
+                    | (orange ? EffectGroup.OrangeMushroom : EffectGroup.None);
             }
             catch (Exception e)
             {
                 ApiLog.Once(Owner, "install", e);
                 CorePatcher.DisableOwner(Owner);
-                return false;
+                return EffectGroup.None;
             }
         }
 
-        private static bool Hook(Type type, string name, Type[] args, string postfix, bool core = true)
+        private static bool Hook(string owner, Type type, string name, Type[] args, string postfix, bool core = true)
         {
-            return CorePatcher.PatchCore(type, name, args, null, CorePatcher.Handler(typeof(Effects), postfix), null, core, Owner);
+            return CorePatcher.PatchCore(type, name, args, null, CorePatcher.Handler(typeof(Effects), postfix), null, core, owner);
         }
 
         private static void DrunkPostfix(DrunkEffect __instance)
@@ -182,6 +223,7 @@ namespace ObenseuerCore
 
         private static void WastelandStopPostfix(SMVEffects __instance, ref IEnumerator __result)
         {
+            if (!Installed(EffectGroup.Wasteland)) return;
             try
             {
                 __result = WatchStop(__result, __instance);
@@ -198,10 +240,23 @@ namespace ObenseuerCore
             Report(Effect.Wasteland, effects.IsWastelandIsActive(), "WatchStop");
         }
 
+        private static EffectGroup GroupOf(Effect effect)
+        {
+            switch (effect)
+            {
+                case Effect.Drunk: return EffectGroup.Drunk;
+                case Effect.Mushroom: return EffectGroup.Mushroom;
+                case Effect.Wasteland: return EffectGroup.Wasteland;
+                case Effect.OrangeMushroom: return EffectGroup.OrangeMushroom;
+                default: return EffectGroup.None;
+            }
+        }
+
         private static void Report(Effect effect, bool active, string where)
         {
             try
             {
+                if (SaveGate.Loading || !Installed(GroupOf(effect))) return;
                 bool previous = reported.ContainsKey(effect) && reported[effect];
                 if (previous == active) return;
                 reported[effect] = active;

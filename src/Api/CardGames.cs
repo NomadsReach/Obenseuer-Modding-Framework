@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace ObenseuerCore
 {
@@ -64,9 +65,12 @@ namespace ObenseuerCore
     public static class CardGames
     {
         internal const string Owner = "obenseuer.moddingframework.cardgames";
+        internal const string PayoutOwner = Owner + ".payout";
         // copy of the local array in CardGameTable.OnGameFinished (CardGameTable.cs:368), not readable at runtime
         private static readonly float[] PlacementMultipliers = { 2f, 1.2f, 0.8f, 0f };
         private static bool installed;
+        private static bool payoutInstalled;
+        private static readonly PayoutFactors<CardGameKind> payouts = new PayoutFactors<CardGameKind>(Owner);
 
         public static event Action<CardTableInfo> Started;
 
@@ -80,12 +84,38 @@ namespace ObenseuerCore
             }
         }
 
+        public static bool PayoutFactorsAvailable
+        {
+            get
+            {
+                return payoutInstalled && !CorePatcher.IsDisabled(PayoutOwner);
+            }
+        }
+
+        public static bool SetPayoutFactor(string modId, CardGameKind kind, float factor)
+        {
+            if (!ValidMod(modId) || !PayoutFactorsAvailable || SaveGate.Busy) return false;
+            if (kind == CardGameKind.Unknown || !Enum.IsDefined(typeof(CardGameKind), kind) || !PayoutFactors<CardGameKind>.Valid(factor))
+            {
+                ApiLog.Once(Owner, "payout factor", "payout factor must be 0 to " + PayoutFactors<CardGameKind>.MaxFactor + " for ChinaHand or Ristiseiska");
+                return false;
+            }
+            payouts.Set(modId, kind, factor);
+            return true;
+        }
+
+        public static bool Clear(string modId)
+        {
+            if (!ValidMod(modId) || SaveGate.Busy) return false;
+            return payouts.Clear(modId);
+        }
+
         public static List<CardTableInfo> Tables()
         {
             List<CardTableInfo> tables = new List<CardTableInfo>();
             try
             {
-                foreach (CardGameTable table in UnityEngine.Object.FindObjectsByType<CardGameTable>(FindObjectsSortMode.None))
+                foreach (CardGameTable table in SceneIds.Active<CardGameTable>())
                 {
                     if (table != null) tables.Add(TableInfo(table));
                 }
@@ -109,6 +139,8 @@ namespace ObenseuerCore
         internal static void Init()
         {
             installed = CardGamesPatches.Install();
+            payoutInstalled = CardGamesPatches.InstallPayout();
+            Events.SceneLoadedWithMode += OnSceneLoaded;
             if (installed) return;
             CorePatcher.DisableOwner(Owner);
             CoreLog.For(Owner).Warn("card game hooks incomplete, card game events are disabled");
@@ -123,7 +155,27 @@ namespace ObenseuerCore
 
         internal static CardGameEndedArgs EndedArgs(CardGameTable table, CardTableInfo before, int placement)
         {
-            return new CardGameEndedArgs(before.Id, before.Kind, placement == 1, before.Stake, PayoutFor(before.Stake, placement), CardGamesPatches.ItemBetOf(table), Cash.FromGame(CardGamesPatches.CurrencyOf(table)));
+            return new CardGameEndedArgs(before.Id, before.Kind, placement == 1, before.Stake, Payout(PayoutFor(before.Stake, placement), before.Kind), CardGamesPatches.ItemBetOf(table), Cash.FromGame(CardGamesPatches.CurrencyOf(table)));
+        }
+
+        internal static int Payout(int amount, CardGameKind kind)
+        {
+            if (!payouts.Any || !PayoutFactorsAvailable) return amount;
+            return PayoutFactors<CardGameKind>.Scale(amount, payouts.Of(kind));
+        }
+
+        internal static int Payout(int amount, CardGameTable table)
+        {
+            if (!payouts.Any || !PayoutFactorsAvailable) return amount;
+            try
+            {
+                return Payout(amount, KindOf(CardGamesPatches.GameOf(table)));
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Owner, "Payout", e);
+                return amount;
+            }
         }
 
         internal static bool HasStartedHandlers
@@ -156,6 +208,19 @@ namespace ObenseuerCore
         {
             if (placement < 1 || placement > PlacementMultipliers.Length) return 0;
             return Mathf.RoundToInt((float)stake * PlacementMultipliers[placement - 1]);
+        }
+
+        private static void OnSceneLoaded(string scene, LoadSceneMode mode)
+        {
+            if (mode != LoadSceneMode.Single) return;
+            payouts.Reset();
+        }
+
+        private static bool ValidMod(string modId)
+        {
+            if (ModIds.IsValid(modId)) return true;
+            ApiLog.Once(Owner, "modId", "modId must be 1 to 64 characters of letters, digits, '.', '_' or '-'");
+            return false;
         }
 
         private static bool IsLive(CardGame game)

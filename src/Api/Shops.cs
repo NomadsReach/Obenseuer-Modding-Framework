@@ -85,10 +85,20 @@ namespace ObenseuerCore
         }
     }
 
+    [Flags]
+    internal enum ShopGroup
+    {
+        None = 0,
+        Trade = 1,
+        Vending = 2,
+        Price = 4,
+        All = Trade | Vending | Price
+    }
+
     public static class Shops
     {
         internal const string Owner = "obenseuer.moddingframework.shops";
-        private static bool installed;
+        private static ShopGroup installed;
 
         public static event Action<TradeArgs> Bought;
         public static event Action<TradeArgs> Sold;
@@ -106,8 +116,13 @@ namespace ObenseuerCore
         {
             get
             {
-                return installed && !CorePatcher.IsDisabled(Owner);
+                return Installed(ShopGroup.All);
             }
+        }
+
+        internal static bool Installed(ShopGroup group)
+        {
+            return (installed & group) == group && !CorePatcher.IsDisabled(Owner);
         }
 
         public static List<ShopInfo> All()
@@ -115,12 +130,12 @@ namespace ObenseuerCore
             List<ShopInfo> shops = new List<ShopInfo>();
             try
             {
-                foreach (Trade trade in UnityEngine.Object.FindObjectsByType<Trade>(FindObjectsSortMode.None))
+                foreach (Trade trade in SceneIds.Active<Trade>())
                 {
                     ShopInfo info = InfoOf(trade);
                     if (info.Id.Length > 0) shops.Add(info);
                 }
-                foreach (VendingMachine machine in UnityEngine.Object.FindObjectsByType<VendingMachine>(FindObjectsSortMode.None))
+                foreach (VendingMachine machine in SceneIds.Active<VendingMachine>())
                 {
                     ShopInfo info = InfoOf(machine);
                     if (info.Id.Length > 0) shops.Add(info);
@@ -191,7 +206,7 @@ namespace ObenseuerCore
         internal static void Init()
         {
             installed = ShopsPatches.Install();
-            CoreLog.For(Owner).Info(installed ? "shops installed" : "shops not installed");
+            CoreLog.For(Owner).Info(IsAvailable ? "shops installed" : "shops not installed, missing " + (ShopGroup.All & ~installed));
         }
 
         internal static ShopInfo InfoOf(Trade trade)
@@ -219,9 +234,9 @@ namespace ObenseuerCore
             Events.Raise(PriceQuery, "Shops.PriceQuery", h => h(args));
         }
 
-        private static Trade FindTrader(string shopId)
+        internal static Trade FindTrader(string shopId)
         {
-            foreach (Trade trade in UnityEngine.Object.FindObjectsByType<Trade>(FindObjectsSortMode.None))
+            foreach (Trade trade in SceneIds.Active<Trade>())
             {
                 if (trade.GUID == shopId) return trade;
             }
@@ -230,7 +245,7 @@ namespace ObenseuerCore
 
         private static VendingMachine FindVending(string shopId)
         {
-            foreach (VendingMachine machine in UnityEngine.Object.FindObjectsByType<VendingMachine>(FindObjectsSortMode.None))
+            foreach (VendingMachine machine in SceneIds.Active<VendingMachine>())
             {
                 if (machine.GUID == shopId) return machine;
             }
@@ -301,7 +316,7 @@ namespace ObenseuerCore
         internal static Item ItemOf(int itemId)
         {
             if (itemId <= 0 || ItemDatabase.instance == null) return null;
-            return ItemDatabase.instance.FetchItemByID(itemId);
+            return ItemRegistry.FindInDatabase(itemId);
         }
 
         private static string NameOf(int itemId)

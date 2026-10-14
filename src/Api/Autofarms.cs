@@ -162,7 +162,7 @@ namespace ObenseuerCore
         private static List<Autofarm> Machines()
         {
             List<Autofarm> machines = new List<Autofarm>();
-            foreach (Autofarm autofarm in UnityEngine.Object.FindObjectsByType<Autofarm>(FindObjectsSortMode.None))
+            foreach (Autofarm autofarm in SceneIds.Active<Autofarm>())
             {
                 if (autofarm != null) machines.Add(autofarm);
             }

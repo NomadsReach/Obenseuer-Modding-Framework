@@ -12,6 +12,14 @@ namespace ObenseuerCore
         private static readonly Dictionary<string, Harmony> harmonies = new Dictionary<string, Harmony>();
         private static readonly HashSet<string> disabled = new HashSet<string>();
         private const int Inherit = -1;
+        private static readonly List<MethodInfo> installedHandlers = new List<MethodInfo>();
+
+        internal static event Action<string, string, MethodInfo[], bool> Installed;
+
+        internal static IList<MethodInfo> InstalledHandlers
+        {
+            get { return installedHandlers.AsReadOnly(); }
+        }
 
         public static bool IsDisabled(string owner)
         {
@@ -40,12 +48,85 @@ namespace ObenseuerCore
             return PatchCore(type, name, args, prefix, postfix, finalizer, core, owner, priority);
         }
 
+        /// <summary>
+        /// Adds a static prefix handler to the method found by name, returning false on failure.
+        /// </summary>
+        public static bool Prefix(Type target, string method, Type handlerType, string handlerName, string owner)
+        {
+            return PatchNamed(target, method, null, Handler(handlerType, handlerName), null, null, owner);
+        }
+
+        /// <summary>
+        /// Adds a static prefix handler to the method with the given parameter types, returning false on failure.
+        /// </summary>
+        public static bool Prefix(Type target, string method, Type[] args, Type handlerType, string handlerName, string owner)
+        {
+            return PatchNamed(target, method, args, Handler(handlerType, handlerName), null, null, owner);
+        }
+
+        /// <summary>
+        /// Adds a static postfix handler to the method found by name, returning false on failure.
+        /// </summary>
+        public static bool Postfix(Type target, string method, Type handlerType, string handlerName, string owner)
+        {
+            return PatchNamed(target, method, null, null, Handler(handlerType, handlerName), null, owner);
+        }
+
+        /// <summary>
+        /// Adds a static postfix handler to the method with the given parameter types, returning false on failure.
+        /// </summary>
+        public static bool Postfix(Type target, string method, Type[] args, Type handlerType, string handlerName, string owner)
+        {
+            return PatchNamed(target, method, args, null, Handler(handlerType, handlerName), null, owner);
+        }
+
+        /// <summary>
+        /// Adds a static finalizer handler to the method found by name, returning false on failure.
+        /// </summary>
+        public static bool Finalizer(Type target, string method, Type handlerType, string handlerName, string owner)
+        {
+            return PatchNamed(target, method, null, null, null, Handler(handlerType, handlerName), owner);
+        }
+
+        /// <summary>
+        /// Adds a static finalizer handler to the method with the given parameter types, returning false on failure.
+        /// </summary>
+        public static bool Finalizer(Type target, string method, Type[] args, Type handlerType, string handlerName, string owner)
+        {
+            return PatchNamed(target, method, args, null, null, Handler(handlerType, handlerName), owner);
+        }
+
+        private static bool PatchNamed(Type target, string method, Type[] args, MethodInfo prefix, MethodInfo postfix, MethodInfo finalizer, string owner)
+        {
+            ValidatePublicOwner(owner);
+            if (args != null) return Patch(target, method, args, prefix, postfix, finalizer, false, owner);
+            MethodBase found = UniqueNamed(target, method);
+            if (found == null)
+            {
+                ApiLog.Once(owner, "patch " + target + "::" + method, "the name is missing or overloaded, pass the parameter types with the Type[] args overload");
+                return false;
+            }
+            return Patch(found, prefix, postfix, finalizer, false, owner);
+        }
+
+        internal static MethodBase UniqueNamed(Type target, string method)
+        {
+            MethodBase found = null;
+            foreach (MethodInfo candidate in target.GetMethods(AnyMethod))
+            {
+                if (candidate.Name != method) continue;
+                if (found != null) return null;
+                found = candidate;
+            }
+            return found;
+        }
+
         internal static bool PatchCore(Type type, string name, Type[] args, MethodInfo prefix, MethodInfo postfix, MethodInfo finalizer, bool core, string owner, int priority = Inherit, MethodInfo transpiler = null)
         {
             ValidateOwner(owner);
             try
             {
-                MethodBase target = type.GetMethod(name, AnyMethod, null, args, null);
+                MethodBase target = name == ".ctor" ? (MethodBase)type.GetConstructor(AnyMethod, null, args, null) : type.GetMethod(name, AnyMethod, null, args, null);
                 if (target == null && !IsDisabled(owner) && Core.PatchingAllowed) return Fail(owner, core, type + "::" + name, new MissingMethodException(type.Name, name));
                 return PatchCore(target, prefix, postfix, finalizer, core, owner, priority, transpiler);
             }
@@ -64,16 +145,20 @@ namespace ObenseuerCore
                 CoreLog.For(owner).Warn("patch skipped, unsupported game build " + Core.GameBuild);
                 return false;
             }
+            MethodInfo[] handlers = new[] { prefix, postfix, transpiler, finalizer };
+            string what = target == null ? "null target" : target.DeclaringType + "::" + target.Name;
             try
             {
                 if (target == null) throw new ArgumentNullException("target");
                 HarmonyFor(owner).Patch(target, Wrap(prefix, priority), Wrap(postfix, priority), Wrap(transpiler, priority), Wrap(finalizer, priority), null);
-                return true;
             }
             catch (Exception e)
             {
-                return Fail(owner, core, target == null ? "null target" : target.DeclaringType + "::" + target.Name, e);
+                Report(owner, what, handlers, false);
+                return Fail(owner, core, what, e);
             }
+            Report(owner, what, handlers, true);
+            return true;
         }
 
         private static void ValidatePublicOwner(string owner)
@@ -92,7 +177,8 @@ namespace ObenseuerCore
             Harmony harmony;
             if (!harmonies.TryGetValue(owner, out harmony))
             {
-                harmony = new Harmony(owner);
+                // UnpatchSelf matches by id, so Core's id must differ from the mod's own
+                harmony = new Harmony("core:" + owner);
                 harmonies[owner] = harmony;
             }
             return harmony;
@@ -106,10 +192,23 @@ namespace ObenseuerCore
             return harmony;
         }
 
+        private static void Report(string owner, string what, MethodInfo[] handlers, bool ok)
+        {
+            if (ok)
+            {
+                foreach (MethodInfo handler in handlers)
+                {
+                    if (handler != null) installedHandlers.Add(handler);
+                }
+            }
+            if (Installed != null) Installed(owner, what, handlers, ok);
+        }
+
         private static bool Fail(string owner, bool core, string what, Exception e)
         {
-            CoreLog.For(owner).Error("patch failed on " + what + ": " + e.GetType().Name + ": " + e.Message);
-            if (core) DisableOwner(owner);
+            string reason = what + ": " + e.GetType().Name + ": " + e.Message;
+            CoreLog.For(owner).Error("patch failed on " + reason);
+            if (core) DisableOwner(owner, reason);
             return false;
         }
 
@@ -121,13 +220,13 @@ namespace ObenseuerCore
             return method;
         }
 
-        internal static void DisableOwner(string owner)
+        internal static void DisableOwner(string owner, string reason = null)
         {
             if (IsDisabled(owner)) return;
             disabled.Add(owner);
             Harmony harmony;
             if (harmonies.TryGetValue(owner, out harmony)) harmony.UnpatchSelf();
-            CoreLog.For(owner).Error("core patch failed, all patches from " + owner + " removed and the owner disabled");
+            CoreLog.For(owner).Error("core patch failed, all patches from " + owner + " removed and the owner disabled" + (reason == null ? "" : ": " + reason));
         }
     }
 }

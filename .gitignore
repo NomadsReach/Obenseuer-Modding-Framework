@@ -1,5 +1,8 @@
 bin/
 lib/
+obj/
 *.user
+GameDir.user.props
+.vs/
 dist/
 bin-next/

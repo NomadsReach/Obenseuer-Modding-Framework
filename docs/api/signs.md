@@ -1,20 +1,20 @@
+---
+title: Signs API
+parent: API reference
+nav_order: 74
+---
+
 # Signs API
 
-Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 5.4.23.5.
+Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Patch owner: `obenseuer.moddingframework.signs`.
 Files: `src/Api/Signs.cs`, `src/Api/SignsPatches.cs`.
 
 This area wraps the editable sign (`EditableSign`): the text the player or a mod writes on it. Saved text is part of the save.
 
-## Wiring
+## If a hook cannot be installed
 
-```csharp
-internal static void Signs.Init();
-```
-
-Core calls this from `Core.Awake`.
-
-`Init` installs two hooks, `EditableSign.StartEditing` and `StopEditing`, which track player edits for `TextChanged`. If either fails, the owner is disabled and one warning is logged. The reads and `SetText` keep working. `TextChanged` stops for player edits, but still fires for `SetText`, because `SetText` raises it directly.
+The framework installs two hooks, `EditableSign.StartEditing` and `StopEditing`, which track player edits for `TextChanged`. If either fails, the owner is disabled and one warning is logged. The reads and `SetText` keep working. `TextChanged` stops for player edits, but still fires for `SetText`, because `SetText` raises it directly.
 
 ## Threading and safety
 
@@ -22,7 +22,7 @@ Core calls this from `Core.Awake`.
 - `Signs.IsAvailable` is false when the hooks were not installed or the owner was disabled.
 - Every member is safe at any time. On the main menu or with no save loaded, reads return an empty list or `null`, and `SetText` returns `false`.
 - Nothing throws except `ArgumentException` when `text` is `null`. A null or empty `id` finds nothing.
-- `SetText` returns `false` while a save is loading (`SaveController.Loading`), and while the sign is being edited.
+- `SetText` returns `false` while a save is loading or being written, and while the sign is being edited.
 - Objects on inactive GameObjects are not returned (`FindObjectsByType` default filter).
 - `TextChanged` is raised synchronously after the text has changed. A handler that throws is logged and the other handlers still run.
 
@@ -41,7 +41,7 @@ public static class Signs
 
 public sealed class SignInfo
 {
-    public string Id { get; }        // SceneIds.Of: the save GUID, else the scene path
+    public string Id { get; }        // the save GUID, else the scene path
     public string Text { get; }      // EditableSign.text, the saved text
     public int MaxLines { get; }     // EditableSign.maxLines, 1 for a single-line sign
     public int MaxLength { get; }    // TMP characterLimit of the sign's input, 0 = no limit
@@ -54,10 +54,10 @@ public sealed class SignTextChangedArgs    // payload of TextChanged
 }
 ```
 
-- `All` lists every `EditableSign` in the scene. `Get(id)` returns one `SignInfo`, or `null` when no sign has that id.
+- `All` lists every `EditableSign` in the active scene. `Get(id)` returns one `SignInfo`, or `null` when no sign has that id.
 - `SetText(id, text)` sets the sign's `text` and refreshes its display with the game's `UpdateText`, as the game does after a player edit. It returns `true` when the write happened. It returns `false` when:
   - no sign has that id;
-  - a save is loading;
+  - a save is loading or being written;
   - the sign is being edited right now (the game overwrites the text every frame while editing);
   - `text` is longer than `MaxLength` (when it is above 0);
   - `text` has more lines than `MaxLines` allows.

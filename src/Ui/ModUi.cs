@@ -1,5 +1,6 @@
 using System;
 using BepInEx.Configuration;
+using BepInEx.Unity.Mono.Configuration;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;

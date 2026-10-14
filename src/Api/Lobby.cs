@@ -32,12 +32,16 @@ namespace ObenseuerCore
         private static int generation;
         private static int requestGeneration;
         private static int refusedCount;
+        private static readonly List<ulong> refusedMembers = new List<ulong>();
+        private static ulong lastOwner;
         private static string sessionTag = "";
         private static string sessionVersion = "";
+        private static int hostLimit;
         private static string error = "";
 
         public static event Action<ulong> MemberJoined;
         public static event Action<ulong> MemberLeft;
+        public static event Action<ulong, ulong> OwnerChanged;
         public static event Action<ulong> JoinRequested
         {
             add
@@ -68,6 +72,24 @@ namespace ObenseuerCore
             get { return new List<ulong>(members); }
         }
 
+        public static ulong Owner
+        {
+            get
+            {
+                if (lobbyId == 0 || !Steam.IsReady) return 0UL;
+                return SteamBridge.LobbyOwner(lobbyId);
+            }
+        }
+
+        public static bool IsHost
+        {
+            get
+            {
+                ulong owner = Owner;
+                return owner != 0 && owner == Steam.LocalId;
+            }
+        }
+
         public static bool IsAvailable
         {
             get
@@ -88,11 +110,17 @@ namespace ObenseuerCore
                 if (lobbyId != 0)
                 {
                     if (!hosting) return Refuse("Leave the lobby first.");
+                    if (gameTag != sessionTag || version != sessionVersion || maxMembers != hostLimit)
+                    {
+                        Warn("Lobby.Host for game tag " + gameTag + " refused: already hosting lobby " + lobbyId + " for game tag " + sessionTag);
+                        return Refuse("The hosted lobby has other settings. Leave the lobby first.");
+                    }
                     if (openInvite) Invite();
                     return true;
                 }
                 if (pending) return Refuse("A lobby request is already running.");
                 Begin(gameTag, version);
+                hostLimit = maxMembers;
                 int gen = generation;
                 SteamBridge.CreateLobby(maxMembers, (ok, id) => OnCreated(gen, ok, id, openInvite));
                 return true;
@@ -113,7 +141,11 @@ namespace ObenseuerCore
                 if (!Steam.IsReady) return Refuse("Steam is not ready.");
                 if (lobby == 0 || pending) return false;
                 if (lobbyId == lobby) return true;
-                if (lobbyId != 0) Leave();
+                if (lobbyId != 0)
+                {
+                    Warn("Lobby.Join for game tag " + gameTag + " leaves lobby " + lobbyId + " of game tag " + sessionTag);
+                    Leave();
+                }
                 Begin(gameTag, version);
                 int gen = generation;
                 SteamBridge.JoinLobby(lobby, ok => OnJoined(gen, ok, lobby));
@@ -123,6 +155,13 @@ namespace ObenseuerCore
             {
                 return Fail("Lobby.Join", e);
             }
+        }
+
+        public static bool Leave(string gameTag)
+        {
+            NetChannels.CheckIdentifier(gameTag, "gameTag");
+            if (gameTag != sessionTag && (lobbyId != 0 || pending)) return false;
+            return Leave();
         }
 
         public static bool Leave()
@@ -161,6 +200,21 @@ namespace ObenseuerCore
             catch (Exception e)
             {
                 return Fail("Lobby.Invite", e);
+            }
+        }
+
+        public static string MemberName(ulong member)
+        {
+            if (lobbyId == 0 || member == 0) return "";
+            try
+            {
+                string name = Net.Plain(SteamBridge.MemberTag(lobbyId, member, "name"), Net.MaxTextLength);
+                if (name.Length > 0) return name;
+                return Steam.Name(member);
+            }
+            catch (Exception)
+            {
+                return "";
             }
         }
 
@@ -210,6 +264,11 @@ namespace ObenseuerCore
             return new List<ulong>(peers);
         }
 
+        public static bool IsRefused(ulong member)
+        {
+            return refusedMembers.Contains(member);
+        }
+
         internal static void OnMemberChanged(ulong id)
         {
             try
@@ -247,6 +306,8 @@ namespace ObenseuerCore
                 SteamBridge.SetLobbyTag(id, "game", sessionTag);
                 SteamBridge.SetLobbyTag(id, "v", sessionVersion);
                 SteamBridge.SetLobbyTag(id, "core", Net.CoreVersion);
+                SteamBridge.SetLobbyTag(id, "gv", Application.version);
+                SteamBridge.SetLobbyTag(id, "gb", Core.SteamBuildId ?? "");
                 AnnounceMember();
                 SteamBridge.SetConnect(id);
                 Refresh();
@@ -292,8 +353,10 @@ namespace ObenseuerCore
             string tag = SteamBridge.LobbyTag(id, "game");
             string hostVersion = SteamBridge.LobbyTag(id, "v");
             string hostCore = SteamBridge.LobbyTag(id, "core");
+            string hostGame = SteamBridge.LobbyTag(id, "gv");
+            string hostBuild = SteamBridge.LobbyTag(id, "gb");
             bool foreign = tag.Length > 0 && tag != sessionTag;
-            bool incomplete = tag.Length == 0 || hostVersion.Length == 0 || hostCore.Length == 0;
+            bool incomplete = tag.Length == 0 || hostVersion.Length == 0 || hostCore.Length == 0 || hostGame.Length == 0;
             if (incomplete && !foreign && Time.unscaledTime < verifyUntil) return;
             verifying = 0;
             pending = false;
@@ -306,7 +369,19 @@ namespace ObenseuerCore
             if (hostVersion != sessionVersion || hostCore != Net.CoreVersion)
             {
                 SteamBridge.LeaveLobby(id);
-                error = "Version mismatch: the lobby runs " + Shown(hostVersion) + " (Core " + Shown(hostCore) + "), you run " + sessionVersion + " (Core " + Net.CoreVersion + ").";
+                error = "Version mismatch: the lobby runs " + Shown(hostVersion) + " (framework " + Shown(hostCore) + "), you run " + sessionVersion + " (framework " + Net.CoreVersion + ").";
+                return;
+            }
+            if (hostGame != Application.version)
+            {
+                SteamBridge.LeaveLobby(id);
+                error = "The host runs game version " + Shown(hostGame) + ", you run " + Application.version + ".";
+                return;
+            }
+            if (!BuildMatches(hostBuild))
+            {
+                SteamBridge.LeaveLobby(id);
+                error = "The host runs game build " + Shown(hostBuild) + ", you run " + Core.SteamBuildId + ".";
                 return;
             }
             lobbyId = id;
@@ -318,13 +393,22 @@ namespace ObenseuerCore
 
         private static string Shown(string text)
         {
-            return text.Length > Net.MaxIdentifierLength ? text.Substring(0, Net.MaxIdentifierLength) : text;
+            return Net.Plain(text, Net.MaxIdentifierLength);
+        }
+
+        private static bool BuildMatches(string build)
+        {
+            string local = Core.SteamBuildId ?? "";
+            return build.Length == 0 || local.Length == 0 || build == local;
         }
 
         private static void AnnounceMember()
         {
             SteamBridge.SetMemberTag(lobbyId, "v", sessionVersion);
             SteamBridge.SetMemberTag(lobbyId, "core", Net.CoreVersion);
+            SteamBridge.SetMemberTag(lobbyId, "gv", Application.version);
+            SteamBridge.SetMemberTag(lobbyId, "gb", Core.SteamBuildId ?? "");
+            SteamBridge.SetMemberTag(lobbyId, "name", Net.Plain(SteamBridge.LocalName(), Net.MaxTextLength));
         }
 
         private static void Refresh()
@@ -339,17 +423,17 @@ namespace ObenseuerCore
                 return;
             }
             List<ulong> fresh = new List<ulong>();
-            int refused = 0;
+            refusedMembers.Clear();
             foreach (ulong id in members)
             {
                 if (id == Steam.LocalId) continue;
-                if (SteamBridge.MemberTag(lobbyId, id, "v") == sessionVersion && SteamBridge.MemberTag(lobbyId, id, "core") == Net.CoreVersion) fresh.Add(id);
-                else refused++;
+                if (SteamBridge.MemberTag(lobbyId, id, "v") == sessionVersion && SteamBridge.MemberTag(lobbyId, id, "core") == Net.CoreVersion && SteamBridge.MemberTag(lobbyId, id, "gv") == Application.version && BuildMatches(SteamBridge.MemberTag(lobbyId, id, "gb"))) fresh.Add(id);
+                else refusedMembers.Add(id);
             }
-            if (refused != refusedCount)
+            if (refusedMembers.Count != refusedCount)
             {
-                refusedCount = refused;
-                if (refused > 0) NetLog.Info(refused + " member(s) refused: mod version is not " + sessionVersion + " or Core is not " + Net.CoreVersion);
+                refusedCount = refusedMembers.Count;
+                if (refusedCount > 0) NetLog.Info(refusedCount + " member(s) refused: mod version is not " + sessionVersion + ", Core is not " + Net.CoreVersion + ", game version is not " + Application.version + " or game build differs");
             }
             List<ulong> old = new List<ulong>(peers);
             peers.Clear();
@@ -367,6 +451,19 @@ namespace ObenseuerCore
                 SteamBridge.CloseSession(id);
                 Events.Raise(MemberLeft, "Lobby.MemberLeft", h => h(id));
             }
+            ulong owner = Owner;
+            if (owner != lastOwner)
+            {
+                ulong previous = lastOwner;
+                lastOwner = owner;
+                if (owner != 0 && owner == Steam.LocalId && !hosting)
+                {
+                    hosting = true;
+                    hostLimit = SteamBridge.MemberLimit(lobbyId);
+                    SteamBridge.SetConnect(lobbyId);
+                }
+                Events.Raise(OwnerChanged, "Lobby.OwnerChanged", h => h(previous, owner));
+            }
         }
 
         private static void Clear()
@@ -377,7 +474,9 @@ namespace ObenseuerCore
             members.Clear();
             peers.Clear();
             waiting.Clear();
+            refusedMembers.Clear();
             refusedCount = 0;
+            lastOwner = 0;
             SteamBridge.ClearConnect();
             foreach (ulong id in gone)
             {
@@ -394,6 +493,11 @@ namespace ObenseuerCore
             sessionTag = tag;
             sessionVersion = version;
             error = "";
+        }
+
+        private static void Warn(string text)
+        {
+            CoreLog.For("obenseuer.moddingframework.net").Warn(text);
         }
 
         private static bool Refuse(string text)

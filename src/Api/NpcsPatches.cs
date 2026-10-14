@@ -5,31 +5,61 @@ namespace ObenseuerCore
 {
     internal static class NpcsPatches
     {
-        internal static bool Install()
+        internal static bool InstallSpawn()
         {
             bool ok = false;
             try
             {
-                ok = true;
-                ok &= Hook(typeof(NPCManager), "AddNpcToList", new[] { typeof(NPCInfo) }, "ListedPrefix", "SpawnPostfix");
-                ok &= Hook(typeof(NPCManager), "RemoveNpcFromList", new[] { typeof(NPCInfo) }, "ListedPrefix", "DespawnPostfix");
-                ok &= Hook(typeof(NPCInfo), "ChangeState", new[] { typeof(NPCInfo.State) }, "DiedPrefix", "DiedPostfix");
-                ok &= Hook(typeof(Relationship), "CheckDateAndTrigger", new[] { typeof(TimeAndDay), typeof(RelationshipController.RelationshipInfo) }, "RelationshipPrefix", "RelationshipPostfix");
+                ok = Hook(Npcs.Owner, typeof(NPCManager), "AddNpcToList", new[] { typeof(NPCInfo) }, "ListedPrefix", "SpawnPostfix");
+                ok &= Hook(Npcs.Owner, typeof(NPCManager), "RemoveNpcFromList", new[] { typeof(NPCInfo) }, "ListedPrefix", "DespawnPostfix");
             }
             catch (Exception e)
             {
                 ApiLog.Once(Npcs.Owner, "install", e);
                 ok = false;
             }
+            return Finish(Npcs.Owner, ok, "npc spawn events");
+        }
+
+        internal static bool InstallDied()
+        {
+            bool ok = false;
+            try
+            {
+                ok = Hook(Npcs.DiedOwner, typeof(NPCInfo), "ChangeState", new[] { typeof(NPCInfo.State) }, "DiedPrefix", "DiedPostfix");
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Npcs.DiedOwner, "install", e);
+            }
+            return Finish(Npcs.DiedOwner, ok, "npc died events");
+        }
+
+        internal static bool InstallRelationship()
+        {
+            bool ok = false;
+            try
+            {
+                ok = Hook(Npcs.RelationshipOwner, typeof(Relationship), "CheckDateAndTrigger", new[] { typeof(TimeAndDay), typeof(RelationshipController.RelationshipInfo) }, "RelationshipPrefix", "RelationshipPostfix");
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Npcs.RelationshipOwner, "install", e);
+            }
+            return Finish(Npcs.RelationshipOwner, ok, "npc relationship events");
+        }
+
+        private static bool Finish(string owner, bool ok, string what)
+        {
             if (ok) return true;
-            CorePatcher.DisableOwner(Npcs.Owner);
-            CoreLog.For(Npcs.Owner).Warn("npc events disabled, a game method was not patched");
+            CorePatcher.DisableOwner(owner);
+            CoreLog.For(owner).Warn(what + " disabled, a game method was not patched");
             return false;
         }
 
-        private static bool Hook(Type type, string name, Type[] args, string prefix, string postfix)
+        private static bool Hook(string owner, Type type, string name, Type[] args, string prefix, string postfix)
         {
-            return CorePatcher.PatchCore(type, name, args, CorePatcher.Handler(typeof(NpcsPatches), prefix), CorePatcher.Handler(typeof(NpcsPatches), postfix), null, false, Npcs.Owner);
+            return CorePatcher.PatchCore(type, name, args, CorePatcher.Handler(typeof(NpcsPatches), prefix), CorePatcher.Handler(typeof(NpcsPatches), postfix), null, false, owner);
         }
 
         private static void ListedPrefix(NPCInfo npc, out bool __state)

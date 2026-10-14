@@ -16,7 +16,7 @@ namespace ObenseuerCore
 
             public static bool Supports(Stat stat)
             {
-                if (!IsAvailable) return false;
+                if (!Installed(SurvivalGroup.Needs)) return false;
                 switch (stat)
                 {
                     case Stat.Hunger:
@@ -50,7 +50,7 @@ namespace ObenseuerCore
             {
                 ModIds.RequireLegacy(modId, "modId");
                 Dictionary<string, Modifier> mods;
-                return IsAvailable && byStat.TryGetValue(stat, out mods) && mods.Remove(modId);
+                return Installed(SurvivalGroup.Needs) && byStat.TryGetValue(stat, out mods) && mods.Remove(modId);
             }
 
             internal static float Apply(Stat stat, float rate)
@@ -64,7 +64,8 @@ namespace ObenseuerCore
                     product *= m.Multiplier;
                     offset += m.OffsetPerHour;
                 }
-                return rate * product + offset;
+                float effective = rate * product + offset;
+                return effective < 0f && (stat == Stat.AlcoholNeed || stat == Stat.MushroomNeed || stat == Stat.SmokingNeed || stat == Stat.GamblingNeed) ? 0f : effective;
             }
 
             internal static void RemoveOwner(string modId)

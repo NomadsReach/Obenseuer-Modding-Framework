@@ -1,7 +1,6 @@
 using System;
 using System.Reflection;
 using BepInEx;
-using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using ObenseuerCore.Ui;
 using UnityEngine;
@@ -45,8 +44,8 @@ namespace ObenseuerCore
         internal static void Update()
         {
             if (!wanted || searched) return;
-            PluginInfo info;
-            if (!Chainloader.PluginInfos.TryGetValue(ConfigurationManagerGuid, out info) || info.Instance == null) return;
+            PluginInfo info = Loader.Find(ConfigurationManagerGuid);
+            if (info == null || info.Instance == null) return;
             searched = true;
             manager = info.Instance;
             resolved = Resolve(manager.GetType());

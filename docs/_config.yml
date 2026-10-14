@@ -1,0 +1,10 @@
+title: Obenseuer Modding Framework
+description: Documentation for the Obenseuer Modding Framework, a base for Obenseuer mods on BepInEx 5 and 6.
+remote_theme: just-the-docs/just-the-docs
+color_scheme: dark
+search_enabled: true
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: default

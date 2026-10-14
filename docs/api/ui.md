@@ -1,12 +1,27 @@
+---
+title: Obenseuer Modding Framework Ui API (ModUi, UiTheme, UiSprites)
+parent: API reference
+nav_order: 87
+---
+
 # Obenseuer Modding Framework Ui API (ModUi, UiTheme, UiSprites)
 
+Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
 ## Setup
 
 Reference `Unity.TextMeshPro.dll` and `UnityEngine.UI.dll` from `Obenseuer_Data\Managed`. `ModUi.Title` and `ModUi.Text` return `TextMeshProUGUI`, and `ModUi.Button` returns `UnityEngine.UI.Button`. Without both references the compiler reports CS0012 (the type is defined in an assembly that is not referenced).
 
+Add `using ObenseuerCore.Ui;` to each file that uses these types. `KeyBinding` takes a `KeyboardShortcut` from BepInEx, so a file that calls it also needs `using BepInEx.Unity.Mono.Configuration;` on BepInEx 6, or `using BepInEx.Configuration;` on BepInEx 5.
+
+```csharp
+using BepInEx.Unity.Mono.Configuration; // BepInEx 6
+// using BepInEx.Configuration;         // BepInEx 5
+using ObenseuerCore.Ui;
+```
+
 ## Ui
 
-Widgets can be built in any host. `ModUi` finds the owner of its parent (`UiScope::For`): the `ModWindow` above it, else the desk or full-screen app host above it (its mod id is used for logs), else none (logs go to `ObenseuerCore`). Under a window, a callback that throws closes the window with reason `Fault`. Anywhere else it is logged to the owner's log (`ui callback failed: ...`), and the rest of the UI keeps working. Build the controls once and keep the handles. The widget classes change in place through `Set`, and `Set` never calls back.
+Widgets can be built in any host. `ModUi` finds the owner of its parent: the `ModWindow` above it, else the desk or full-screen app host above it (its mod id is used for logs), else none (logs go to `ObenseuerCore`). Under a window, a callback that throws closes the window with reason `Fault`. Anywhere else it is logged to the owner's log (`ui callback failed: ...`), and the rest of the UI keeps working. Build the controls once and keep the handles. The widget classes change in place through `Set`, and `Set` never calls back.
 
 ```csharp
 public enum ButtonStyle { Primary, Secondary, Ghost }
@@ -151,13 +166,13 @@ public static class UiSprites
 }
 ```
 
-The same palette drives the ConfigurationManager dark theme (`src/ConfigTheme.cs:ConfigTheme::Skin`).
+The same palette drives the ConfigurationManager dark theme.
 
-Not verified in game:
+Open questions:
 
 - Text field and key binding rows: focus, typing, Esc and Enter inside a real window, and the field lock released on blur.
 - A throwing callback under a window (Fault) and outside one (log only), in game.
-- The head, hands and body in the preview. The cause and the fix come from the decompile, not from a run.
+- The head, hands and body in the preview. The cause and the fix come from the game code, not from a run.
 - Clicks, wheel and drag on tab pages in a Full window.
 - Lighting, framing and the backdrop look, including a 330 px tall preview in a Right dock.
 - The release fallback when `ControlsEnabled` throws (keys, cursor and camera).

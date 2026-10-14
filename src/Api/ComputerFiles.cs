@@ -77,7 +77,7 @@ namespace ObenseuerCore
         private static List<ComputerInfo> ListAll()
         {
             List<ComputerInfo> result = new List<ComputerInfo>();
-            foreach (InteractableComputer computer in UnityEngine.Object.FindObjectsByType<InteractableComputer>(FindObjectsSortMode.None))
+            foreach (InteractableComputer computer in SceneIds.Active<InteractableComputer>())
             {
                 if (computer == null) continue;
                 result.Add(new ComputerInfo(IdFor(computer), computer.title ?? "", computer.gameObject.scene.name));
@@ -85,10 +85,10 @@ namespace ObenseuerCore
             return result;
         }
 
-        private static InteractableComputer FindComputer(string computerId)
+        internal static InteractableComputer FindComputer(string computerId)
         {
             if (computerId.Length == 0) return null;
-            foreach (InteractableComputer computer in UnityEngine.Object.FindObjectsByType<InteractableComputer>(FindObjectsSortMode.None))
+            foreach (InteractableComputer computer in SceneIds.Active<InteractableComputer>())
             {
                 if (computer != null && IdFor(computer) == computerId) return computer;
             }

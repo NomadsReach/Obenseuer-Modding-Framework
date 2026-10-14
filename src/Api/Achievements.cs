@@ -89,16 +89,21 @@ namespace ObenseuerCore
 
         public static bool AddProgress(string id, float amount)
         {
-            if (!CanTrigger(id)) return false;
+            if (!ValidAmount(amount) || !CanTrigger(id)) return false;
             Achievements.instance.TriggerAchievement(id, amount, false);
             return true;
         }
 
         public static bool SetProgress(string id, float value)
         {
-            if (!CanTrigger(id)) return false;
+            if (!ValidAmount(value) || !CanTrigger(id)) return false;
             Achievements.instance.TriggerAchievement(id, value, true);
             return true;
+        }
+
+        private static bool ValidAmount(float value)
+        {
+            return value >= 0f && !float.IsInfinity(value);
         }
 
         private static bool CanTrigger(string id)
@@ -106,7 +111,7 @@ namespace ObenseuerCore
             try
             {
                 Achievements game = Achievements.instance;
-                if (game == null || game.globalDisable || initializedField == null || !(bool)initializedField.GetValue(game)) return false;
+                if (SaveGate.Busy || game == null || game.globalDisable || initializedField == null || !(bool)initializedField.GetValue(game)) return false;
                 AchievementInfo info = Get(id);
                 return info != null && info.Enabled;
             }

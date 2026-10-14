@@ -1,7 +1,13 @@
+---
+title: Obenseuer Modding Framework medical API (Medical)
+parent: API reference
+nav_order: 46
+---
+
 # Obenseuer Modding Framework medical API (Medical)
 
-Status: experimental. Not run in game yet.
-Game: Obenseuer 0.5.05 (build 25839246), Unity Mono.
+Status: experimental.
+Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Log owner: `obenseuer.moddingframework.medical`. Logs go to `BepInEx\logs\<owner>.log`.
 
 Everything not listed here is internal.
@@ -9,7 +15,7 @@ Everything not listed here is internal.
 ## Rules
 
 - **Main thread only.** Every member is called from Unity's main thread.
-- **Safe at any time.** Every member can be called on the main menu, while loading, and with no save loaded. Reads return a neutral default (`false`, or an empty list). Writes return `false`. `Treat` also returns `false` and charges nothing unless the doctor's menu is open.
+- **Safe at any time.** Every member can be called on the main menu, while loading, and with no save loaded. Reads return a neutral default (`false`, or an empty list). Writes return `false`. `Treat` also returns `false` and charges nothing unless the doctor's menu is open. It also returns `false` while a save loads or saves (`SaveData.Busy`).
 - **Only `ArgumentException`.** An unknown `MedicalTreatment` value throws `ArgumentException`. Nothing else is thrown to the caller.
 - **Game purchase path.** `Treat` calls the game's own `BuyTreatment`, which charges the price through `Money.Buy`. The mod never subtracts money itself.
 
@@ -55,7 +61,7 @@ public static class Medical
 - `CanTreat` is `true` when the doctor's menu is open, the treatment belongs to the doctor whose menu is open, it is offered, and the player has at least `Price` in `Currency`. It is `false` on the main menu, in any other menu, and with no menu open.
 - `Treat` checks `CanTreat` first, so nothing is charged and no "not enough money" popup is shown when the menu is closed, the treatment is not offered or the player cannot pay. It then calls the game's `DoctorPanelSelection.BuyTreatment(Treatment)`. The game charges the price, plays the sound, and gives the item or applies the effect, the same as the doctor's buy button does.
 - `Treated` fires after the game's `BuyTreatment` returns `true`. It fires for a purchase made in the doctor's menu too, because the event comes from the game's `BuyTreatment` override, not from `Treat`.
-- `Treated` is raised through `Events.Raise`, so a throwing handler is logged and the others still run.
+- `Treated` is raised, so a throwing handler is logged and the others still run.
 
 ### Why `Treat` needs the doctor menu
 
@@ -63,7 +69,7 @@ public static class Medical
 
 ### Side effects a mod should know about
 
-- `HealWounds` asks `BlackCanvas.StartFadeInAndOut` to close the game menu (`closeMenu: true`). When the examination bed is loaded and the player is hurt, the fade runs through the bed's `teleportRelay` and `endRelay` (`TreatmentPhysicalHealth.cs:247`). What those relays do was not traced. The same happens when the game's own button is used.
+- `HealWounds` asks `BlackCanvas.StartFadeInAndOut` to close the game menu (`closeMenu: true`). When the examination bed is loaded and the player is hurt, the fade runs through the bed's `teleportRelay` and `endRelay`. What those relays do was not traced. The same happens when the game's own button is used.
 - `GetAvailableTreatments` on the physical health selection sets the `HealWounds` price. `Treatments` and `CanTreat` call it, as the game's menu does.
 - The charge comes first. If the sound step or the item step throws after `Money.Buy`, the money is already taken, `Treat` returns `false`, and `Treated` does not fire. Not seen in game.
 - For the item treatments the game calls `Inventory.AddItemDialogue`, which gives nothing when the inventory is full. The money is already taken by then and `BuyTreatment` still returns `true`. The doctor's own buy button does the same. `Treat` does not check for free inventory space.
@@ -75,17 +81,24 @@ public static class Medical
 - Condition and stat reads: `Conditions.All`, and `Survival.Get` for mood, radiation and fungal progression.
 - Addictions, mood and radiation values: `Survival`.
 
-## Setup
+## If a hook cannot be installed
 
-Core calls this from `Core.cs`.
+The framework logs `medical events installed` or `medical events not installed` at startup.
 
-`Init` installs the `BuyTreatment` postfixes on the five treatment classes (`TreatmentAddictions`, `TreatmentFungalDisease`, `TreatmentMentalHealth`, `TreatmentPhysicalHealth`, `TreatmentRadiation`). A failed patch disables the owner's events, logs one error, and leaves `Treatments`, `CanTreat` and `Treat` working.
+The framework installs the `BuyTreatment` postfixes on the five treatment classes (`TreatmentAddictions`, `TreatmentFungalDisease`, `TreatmentMentalHealth`, `TreatmentPhysicalHealth`, `TreatmentRadiation`). A failed patch disables the owner's events, logs one error, and leaves `Treatments`, `CanTreat` and `Treat` working.
 
-## In-game smoke test
+## Example
 
 Run with the BepInEx console open, a save loaded, and the player near the doctor.
 
 ```csharp
+using BepInEx;
+using BepInEx.Unity.Mono;
+using ObenseuerCore;
+using UnityEngine;
+
+[BepInPlugin("example.medical", "Medical Smoke", "0.1.0")]
+[BepInDependency("obenseuer.moddingframework", ">=0.10.0")]
 public class MedicalSmoke : BaseUnityPlugin
 {
     private void Start()
@@ -102,4 +115,10 @@ public class MedicalSmoke : BaseUnityPlugin
 }
 ```
 
+On BepInEx 5, write `"0.10.0"` instead, because BepInEx 5 cannot parse a version range, and drop `using BepInEx.Unity.Mono;` (`BaseUnityPlugin` then comes from `BepInEx`). See [Supporting BepInEx 5 too](../guides/getting-started/packaging.md#supporting-bepinex-5-too).
+
 Expected: F9 prints one line for each treatment of the loaded doctor. To test a purchase, change the `Update` method to call `Medical.Treat(MedicalTreatment.Bandages)` on a key press, with the player holding enough cash. The `treated` line appears, and the price is taken from the wallet. Check the examination bed behaviour separately with `HealWounds`.
+
+## Save loads
+
+The framework does not gate this event on a save load. A handler that should ignore events raised while a save loads can check `SaveData.Busy`, which is true while a save is loading or being written.

@@ -147,7 +147,7 @@ namespace ObenseuerCore
                     if (string.Equals(name, station, StringComparison.OrdinalIgnoreCase) && name != "None") return (RecipeType)Enum.Parse(typeof(RecipeType), name);
                 }
             }
-            throw new ArgumentException("Station must be a station name as reported by Recipes.Find(id).Station, other than None", "definition");
+            throw new ArgumentException("Station must be a station name as reported by Recipes.Get(id).Station, other than None", "definition");
         }
 
         private static RecipeDefinition Snapshot(RecipeDefinition definition)

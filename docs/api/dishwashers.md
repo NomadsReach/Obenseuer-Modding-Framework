@@ -1,20 +1,20 @@
+---
+title: Dishwashers API
+parent: API reference
+nav_order: 111
+---
+
 # Dishwashers API
 
-Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 5.4.23.5.
+Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Patch owner: `obenseuer.moddingframework.dishwashers`.
 Files: `src/Api/Dishwashers.cs`, `src/Api/DishwashersPatches.cs`.
 
 Everything not listed here is internal. Dishwasher speed stays in `TweaksDishwasher`. The general station list is `Crafting.All` (`docs/api/recipes.md`), which also includes dishwashers. This area adds the dishwasher-specific reads and the cycle event.
 
-## Wiring
+## If a hook cannot be installed
 
-```csharp
-internal static void Dishwashers.Init();
-```
-
-Core calls this from `Core.Awake`.
-
-`Init` installs one hook, `manufacturing.CraftDelayed`, and reads the station's private craft list. If either is missing, the owner is disabled and one warning is logged to `BepInEx\logs\obenseuer.moddingframework.dishwashers.log`. The reads keep working; `Progress` returns `0` without the craft list, and `Finished` stops.
+The framework installs one hook, `manufacturing.CraftDelayed`, and reads the station's private craft list. If either is missing, the owner is disabled and one warning is logged to `BepInEx\logs\obenseuer.moddingframework.dishwashers.log`. The reads keep working; `Progress` returns `0` without the craft list, and `Finished` stops.
 
 ## Threading and safety
 
@@ -22,7 +22,7 @@ Core calls this from `Core.Awake`.
 - `Dishwashers.IsAvailable` is false when the hook was not installed or the owner was disabled.
 - Every member is safe at any time. With no save loaded, or on the main menu, reads return an empty list, `false` or `0`.
 - Nothing throws. There are no writes, and no argument throws.
-- `Finished` is raised synchronously after the game has finished the cycle and created its outputs. A handler that throws is logged and the other handlers still run (`Events.Raise`).
+- `Finished` is raised synchronously after the game has finished the cycle and created its outputs. A handler that throws is logged and the other handlers still run.
 
 ## API
 
@@ -47,7 +47,7 @@ public sealed class DishwasherInfo
 }
 ```
 
-- `All` lists every dishwasher in the scene that has a `GUID`. A dishwasher with no `GUID` cannot be addressed, so it is left out.
+- `All` lists every dishwasher in the active scene that has a `GUID`. A dishwasher with no `GUID` cannot be addressed, so it is left out.
 - `Contents` lists the items in the dishwasher's input/output storage (`CraftingBase.InputOutputStorage`). It reuses `Containers.GetItems`, so the list matches the container view. It holds the dishes and the washing powder.
 - `Get(id)` returns one `DishwasherInfo`, or `null` when no dishwasher has that id.
 - `Ready` means powered and idle: `true` when the dishwasher is powered and switched on (`CraftingBase.PoweredAndActive`) and no wash is running at all. It equals powered and not `Busy`. A machine that allows several washes at once (`manufacturing.AllowSimultaneous` above 1) is not `Ready` while any wash runs, although the game would accept another. `Ready` does not check that the contents can be washed (the washing powder, the recipe, the skill). Use `Contents` for that.
@@ -63,3 +63,7 @@ public sealed class DishwasherInfo
 - Starting a wash. `manufacturing.Craft()` is driven by the manufacturing panel and reads its selection, so a mod cannot call it safely. This matches the decision in `docs/api/recipes.md`.
 - The dishwasher's washing powder, categories and blacklist. They are set in the game's data and are not exposed.
 - The recipe for a dishwasher item (`Dishwasher.GenerateRecipe`). It is built from the item, not from a stored recipe, and the speed tweak is in `TweaksDishwasher`.
+
+## Save loads
+
+The framework does not gate this event on a save load. A handler that should ignore events raised while a save loads can check `SaveData.Busy`, which is true while a save is loading or being written.

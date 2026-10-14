@@ -29,10 +29,22 @@ namespace ObenseuerCore
             get { return IsReady ? SteamUser.GetSteamID().m_SteamID : 0UL; }
         }
 
+        public static bool OverlayEnabled
+        {
+            get { return IsReady && SteamUtils.IsOverlayEnabled(); }
+        }
+
         public static string Name(ulong steamId)
         {
             if (steamId == 0 || !IsReady) return "";
-            return SteamFriends.GetFriendPersonaName(new CSteamID(steamId)) ?? "";
+            CSteamID id = new CSteamID(steamId);
+            string name = SteamFriends.GetFriendPersonaName(id) ?? "";
+            if (name.Length == 0 || name == "[unknown]")
+            {
+                SteamFriends.RequestUserInformation(id, true);
+                return "";
+            }
+            return Net.Plain(name, Net.MaxTextLength);
         }
 
         public static List<ulong> FriendsPlaying(uint appId)

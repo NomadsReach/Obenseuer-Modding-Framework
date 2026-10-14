@@ -5,16 +5,22 @@ namespace ObenseuerCore
 {
     public static class Spawn
     {
-        private const int MaxCount = 1000;
+        private const int MaxCount = 100;
 
         public static bool Item(int itemId, int count, Vector3 position)
         {
+            GameObject spawned;
+            return Item(itemId, count, position, out spawned);
+        }
+
+        public static bool Item(int itemId, int count, Vector3 position, out GameObject spawned)
+        {
+            spawned = null;
             if (count < 1 || count > MaxCount) throw new ArgumentException("count must be 1 to " + MaxCount, "count");
-            if (ItemDatabase.instance == null || DestructibleList.instance == null) return false;
-            WorldItemsPatches.CoreSpawnDepth++;
+            if (itemId == 0 || itemId == 1 || SaveGate.Busy || ItemDatabase.instance == null || DestructibleList.instance == null) return false;
             try
             {
-                var item = ItemDatabase.instance.FetchItemByID(itemId);
+                var item = ItemRegistry.FindInDatabase(itemId);
                 if (item == null) return false;
                 int perStack = Math.Max(1, item.Stackable);
                 for (int left = count; left > 0;)
@@ -24,7 +30,9 @@ namespace ObenseuerCore
                     stack.itemId = itemId;
                     stack.itemAmount = amount;
                     stack.itemReference = new ItemReference(item);
-                    ItemOperations.SpawnItemToPosition(stack, position, default(RaycastHit));
+                    GameObject created = ItemOperations.InstantiateItem(amount != 1 ? item.PrefabMany : item.Prefab, stack, position, default(RaycastHit));
+                    ItemOperations.SetCollectibleItemValues(stack, created);
+                    if (spawned == null) spawned = created;
                     left -= amount;
                 }
                 return true;
@@ -33,10 +41,6 @@ namespace ObenseuerCore
             {
                 CoreLog.For("ObenseuerCore").Error("Spawn.Item " + itemId + " failed: " + e.ToString());
                 return false;
-            }
-            finally
-            {
-                WorldItemsPatches.CoreSpawnDepth--;
             }
         }
     }

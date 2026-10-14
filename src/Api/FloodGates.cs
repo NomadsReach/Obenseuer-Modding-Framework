@@ -59,7 +59,7 @@ namespace ObenseuerCore
             List<FloodGateInfo> list = new List<FloodGateInfo>();
             try
             {
-                foreach (FloodGateControl gate in UnityEngine.Object.FindObjectsByType<FloodGateControl>(UnityEngine.FindObjectsSortMode.None))
+                foreach (FloodGateControl gate in SceneIds.Active<FloodGateControl>())
                 {
                     list.Add(ToInfo(gate));
                 }
@@ -121,6 +121,23 @@ namespace ObenseuerCore
             }
         }
 
+        public static bool SetPowered(string id, bool on)
+        {
+            FloodGateControl gate = Find(id);
+            if (gate == null || IsGatePowered(gate) == on || SaveGate.Busy) return false;
+            try
+            {
+                if (on) gate.TurnOn();
+                else gate.TurnOff();
+                return IsGatePowered(gate) == on;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Owner, "FloodGates.SetPowered", e);
+                return false;
+            }
+        }
+
         internal static void Init()
         {
             installed = openField != null && powerOffField != null && FloodGatesPatches.Install();
@@ -158,7 +175,7 @@ namespace ObenseuerCore
             if (string.IsNullOrEmpty(id)) return null;
             try
             {
-                foreach (FloodGateControl gate in UnityEngine.Object.FindObjectsByType<FloodGateControl>(UnityEngine.FindObjectsSortMode.None))
+                foreach (FloodGateControl gate in SceneIds.Active<FloodGateControl>())
                 {
                     if (SceneIds.Of(gate) == id) return gate;
                 }

@@ -71,6 +71,16 @@ namespace ObenseuerCore
             return members;
         }
 
+        internal static ulong LobbyOwner(ulong lobby)
+        {
+            return SteamMatchmaking.GetLobbyOwner(new CSteamID(lobby)).m_SteamID;
+        }
+
+        internal static int MemberLimit(ulong lobby)
+        {
+            return SteamMatchmaking.GetLobbyMemberLimit(new CSteamID(lobby));
+        }
+
         internal static void SetLobbyTag(ulong lobby, string key, string value)
         {
             SteamMatchmaking.SetLobbyData(new CSteamID(lobby), key, value);
@@ -89,6 +99,11 @@ namespace ObenseuerCore
         internal static string MemberTag(ulong lobby, ulong user, string key)
         {
             return SteamMatchmaking.GetLobbyMemberData(new CSteamID(lobby), new CSteamID(user), key) ?? "";
+        }
+
+        internal static string LocalName()
+        {
+            return SteamFriends.GetPersonaName() ?? "";
         }
 
         internal static void OpenInvite(ulong lobby)

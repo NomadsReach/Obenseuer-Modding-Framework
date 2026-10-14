@@ -14,8 +14,9 @@ namespace ObenseuerCore
         internal readonly Func<Appearance, float> GetLive;
         internal readonly Action<Appearance, float> SetLive;
         internal readonly Action<Character, float> SetCostume;
+        internal readonly Func<Character, float> GetCostume;
 
-        internal LookDial(string label, float min, float max, Func<PlayerLook.Look, float> getLook, Action<PlayerLook.Look, float> setLook, Func<Appearance, float> getLive, Action<Appearance, float> setLive, Action<Character, float> setCostume)
+        internal LookDial(string label, float min, float max, Func<PlayerLook.Look, float> getLook, Action<PlayerLook.Look, float> setLook, Func<Appearance, float> getLive, Action<Appearance, float> setLive, Action<Character, float> setCostume, Func<Character, float> getCostume)
         {
             Label = label;
             Min = min;
@@ -25,6 +26,7 @@ namespace ObenseuerCore
             GetLive = getLive;
             SetLive = setLive;
             SetCostume = setCostume;
+            GetCostume = getCostume;
         }
     }
 
@@ -36,8 +38,9 @@ namespace ObenseuerCore
         internal readonly Action<PlayerLook.Look, string> Set;
         internal readonly Func<Appearance, Wearable> Selected;
         internal readonly Action<Character, Wearable> Put;
+        internal readonly Func<Character, Wearable> Take;
 
-        internal LookSlot(string label, Func<Appearance, PlayerLook.Look, Wearable[]> choices, Func<PlayerLook.Look, string> get, Action<PlayerLook.Look, string> set, Func<Appearance, Wearable> selected, Action<Character, Wearable> put)
+        internal LookSlot(string label, Func<Appearance, PlayerLook.Look, Wearable[]> choices, Func<PlayerLook.Look, string> get, Action<PlayerLook.Look, string> set, Func<Appearance, Wearable> selected, Action<Character, Wearable> put, Func<Character, Wearable> take)
         {
             Label = label;
             Choices = choices;
@@ -45,6 +48,7 @@ namespace ObenseuerCore
             Set = set;
             Selected = selected;
             Put = put;
+            Take = take;
         }
     }
 
@@ -52,50 +56,50 @@ namespace ObenseuerCore
     {
         internal static readonly LookDial[] Body = new LookDial[]
         {
-            new LookDial("Height", 0f, 1f, l => l.height, (l, v) => l.height = v, a => a.height, (a, v) => a.height = v, (c, v) => c.Height = v),
-            new LookDial("Shape", -1f, 1f, l => l.shape, (l, v) => l.shape = v, a => a.shape, (a, v) => a.shape = v, (c, v) => c.Weight = v),
-            new LookDial("Gender", 0f, 1f, l => l.gender, (l, v) => l.gender = v, a => a.gender, (a, v) => a.gender = v, (c, v) => c.Gender = v),
-            new LookDial("Head size", 0f, 1f, l => l.headSize, (l, v) => l.headSize = v, a => a.headSize, (a, v) => a.headSize = v, (c, v) => c.HeadSize = v),
-            new LookDial("Face size", 0f, 1f, l => l.faceSize, (l, v) => l.faceSize = v, a => a.faceSize, (a, v) => a.faceSize = v, (c, v) => c.FaceSize = v),
-            new LookDial("Neck length", 0f, 1f, l => l.neckLength, (l, v) => l.neckLength = v, a => a.neckLength, (a, v) => a.neckLength = v, (c, v) => c.NeckLength = v),
-            new LookDial("Shoulder width", 0f, 1f, l => l.shoulderWidth, (l, v) => l.shoulderWidth = v, a => a.shoulderWidth, (a, v) => a.shoulderWidth = v, (c, v) => c.ShoulderWidth = v),
-            new LookDial("Breast size", 0f, 1f, l => l.breastSize, (l, v) => l.breastSize = v, a => a.breastSize, (a, v) => a.breastSize = v, (c, v) => c.BreastSize = v),
-            new LookDial("Hip width", 0f, 1f, l => l.hipWidth, (l, v) => l.hipWidth = v, a => a.hipWidth, (a, v) => a.hipWidth = v, (c, v) => c.HipWidth = v),
-            new LookDial("Hand size", 0f, 1f, l => l.handSize, (l, v) => l.handSize = v, a => a.handSize, (a, v) => a.handSize = v, (c, v) => c.HandSize = v),
-            new LookDial("Foot size", 0f, 1f, l => l.footSize, (l, v) => l.footSize = v, a => a.footSize, (a, v) => a.footSize = v, (c, v) => c.FootSize = v),
+            new LookDial("Height", 0f, 1f, l => l.height, (l, v) => l.height = v, a => a.height, (a, v) => a.height = v, (c, v) => c.Height = v, c => c.Height),
+            new LookDial("Shape", -1f, 1f, l => l.shape, (l, v) => l.shape = v, a => a.shape, (a, v) => a.shape = v, (c, v) => c.Weight = v, c => c.Weight),
+            new LookDial("Gender", 0f, 1f, l => l.gender, (l, v) => l.gender = v, a => a.gender, (a, v) => a.gender = v, (c, v) => c.Gender = v, c => c.Gender),
+            new LookDial("Head size", 0f, 1f, l => l.headSize, (l, v) => l.headSize = v, a => a.headSize, (a, v) => a.headSize = v, (c, v) => c.HeadSize = v, c => c.HeadSize),
+            new LookDial("Face size", 0f, 1f, l => l.faceSize, (l, v) => l.faceSize = v, a => a.faceSize, (a, v) => a.faceSize = v, (c, v) => c.FaceSize = v, c => c.FaceSize),
+            new LookDial("Neck length", 0f, 1f, l => l.neckLength, (l, v) => l.neckLength = v, a => a.neckLength, (a, v) => a.neckLength = v, (c, v) => c.NeckLength = v, c => c.NeckLength),
+            new LookDial("Shoulder width", 0f, 1f, l => l.shoulderWidth, (l, v) => l.shoulderWidth = v, a => a.shoulderWidth, (a, v) => a.shoulderWidth = v, (c, v) => c.ShoulderWidth = v, c => c.ShoulderWidth),
+            new LookDial("Breast size", 0f, 1f, l => l.breastSize, (l, v) => l.breastSize = v, a => a.breastSize, (a, v) => a.breastSize = v, (c, v) => c.BreastSize = v, c => c.BreastSize),
+            new LookDial("Hip width", 0f, 1f, l => l.hipWidth, (l, v) => l.hipWidth = v, a => a.hipWidth, (a, v) => a.hipWidth = v, (c, v) => c.HipWidth = v, c => c.HipWidth),
+            new LookDial("Hand size", 0f, 1f, l => l.handSize, (l, v) => l.handSize = v, a => a.handSize, (a, v) => a.handSize = v, (c, v) => c.HandSize = v, c => c.HandSize),
+            new LookDial("Foot size", 0f, 1f, l => l.footSize, (l, v) => l.footSize = v, a => a.footSize, (a, v) => a.footSize = v, (c, v) => c.FootSize = v, c => c.FootSize),
         };
 
         internal static readonly LookDial[] Face = new LookDial[]
         {
-            new LookDial("Eye size", 0f, 1f, l => l.eyeSize, (l, v) => l.eyeSize = v, a => a.eyeSize, (a, v) => a.eyeSize = v, (c, v) => c.EyeSize = v),
-            new LookDial("Eye distance", 0f, 1f, l => l.eyeDistance, (l, v) => l.eyeDistance = v, a => a.eyeDistance, (a, v) => a.eyeDistance = v, (c, v) => c.EyeDistance = v),
-            new LookDial("Eye position", 0f, 1f, l => l.eyePosition, (l, v) => l.eyePosition = v, a => a.eyePosition, (a, v) => a.eyePosition = v, (c, v) => c.EyePosition = v),
-            new LookDial("Eye depth", 0f, 1f, l => l.eyeDepth, (l, v) => l.eyeDepth = v, a => a.eyeDepth, (a, v) => a.eyeDepth = v, (c, v) => c.EyeDepth = v),
-            new LookDial("Ear size", 0f, 1f, l => l.earSize, (l, v) => l.earSize = v, a => a.earSize, (a, v) => a.earSize = v, (c, v) => c.EarSize = v),
-            new LookDial("Ear rotation", 0f, 1f, l => l.earRotation, (l, v) => l.earRotation = v, a => a.earRotation, (a, v) => a.earRotation = v, (c, v) => c.EarRotation = v),
-            new LookDial("Nose root", 0f, 1f, l => l.noseRootRotation, (l, v) => l.noseRootRotation = v, a => a.noseRootRotation, (a, v) => a.noseRootRotation = v, (c, v) => c.NoseRootRotation = v),
-            new LookDial("Nose tip", 0f, 1f, l => l.noseTipRotation, (l, v) => l.noseTipRotation = v, a => a.noseTipRotation, (a, v) => a.noseTipRotation = v, (c, v) => c.NoseTipRotation = v),
-            new LookDial("Nose width", 0f, 1f, l => l.noseWidth, (l, v) => l.noseWidth = v, a => a.noseWidth, (a, v) => a.noseWidth = v, (c, v) => c.NoseWidth = v),
-            new LookDial("Lip thickness", 0f, 1f, l => l.lipThickness, (l, v) => l.lipThickness = v, a => a.lipThickness, (a, v) => a.lipThickness = v, (c, v) => c.LipThickness = v),
-            new LookDial("Jaw", 0f, 1f, l => l.jawPosition, (l, v) => l.jawPosition = v, a => a.jawPosition, (a, v) => a.jawPosition = v, (c, v) => c.JawPosition = v),
-            new LookDial("Chin", 0f, 1f, l => l.chinPosition, (l, v) => l.chinPosition = v, a => a.chinPosition, (a, v) => a.chinPosition = v, (c, v) => c.ChinPosition = v),
+            new LookDial("Eye size", 0f, 1f, l => l.eyeSize, (l, v) => l.eyeSize = v, a => a.eyeSize, (a, v) => a.eyeSize = v, (c, v) => c.EyeSize = v, c => c.EyeSize),
+            new LookDial("Eye distance", 0f, 1f, l => l.eyeDistance, (l, v) => l.eyeDistance = v, a => a.eyeDistance, (a, v) => a.eyeDistance = v, (c, v) => c.EyeDistance = v, c => c.EyeDistance),
+            new LookDial("Eye position", 0f, 1f, l => l.eyePosition, (l, v) => l.eyePosition = v, a => a.eyePosition, (a, v) => a.eyePosition = v, (c, v) => c.EyePosition = v, c => c.EyePosition),
+            new LookDial("Eye depth", 0f, 1f, l => l.eyeDepth, (l, v) => l.eyeDepth = v, a => a.eyeDepth, (a, v) => a.eyeDepth = v, (c, v) => c.EyeDepth = v, c => c.EyeDepth),
+            new LookDial("Ear size", 0f, 1f, l => l.earSize, (l, v) => l.earSize = v, a => a.earSize, (a, v) => a.earSize = v, (c, v) => c.EarSize = v, c => c.EarSize),
+            new LookDial("Ear rotation", 0f, 1f, l => l.earRotation, (l, v) => l.earRotation = v, a => a.earRotation, (a, v) => a.earRotation = v, (c, v) => c.EarRotation = v, c => c.EarRotation),
+            new LookDial("Nose root", 0f, 1f, l => l.noseRootRotation, (l, v) => l.noseRootRotation = v, a => a.noseRootRotation, (a, v) => a.noseRootRotation = v, (c, v) => c.NoseRootRotation = v, c => c.NoseRootRotation),
+            new LookDial("Nose tip", 0f, 1f, l => l.noseTipRotation, (l, v) => l.noseTipRotation = v, a => a.noseTipRotation, (a, v) => a.noseTipRotation = v, (c, v) => c.NoseTipRotation = v, c => c.NoseTipRotation),
+            new LookDial("Nose width", 0f, 1f, l => l.noseWidth, (l, v) => l.noseWidth = v, a => a.noseWidth, (a, v) => a.noseWidth = v, (c, v) => c.NoseWidth = v, c => c.NoseWidth),
+            new LookDial("Lip thickness", 0f, 1f, l => l.lipThickness, (l, v) => l.lipThickness = v, a => a.lipThickness, (a, v) => a.lipThickness = v, (c, v) => c.LipThickness = v, c => c.LipThickness),
+            new LookDial("Jaw", 0f, 1f, l => l.jawPosition, (l, v) => l.jawPosition = v, a => a.jawPosition, (a, v) => a.jawPosition = v, (c, v) => c.JawPosition = v, c => c.JawPosition),
+            new LookDial("Chin", 0f, 1f, l => l.chinPosition, (l, v) => l.chinPosition = v, a => a.chinPosition, (a, v) => a.chinPosition = v, (c, v) => c.ChinPosition = v, c => c.ChinPosition),
         };
 
         internal static readonly LookDial[] All = Body.Concat(Face).ToArray();
 
         internal static readonly LookSlot[] Slots = new LookSlot[]
         {
-            new LookSlot("Head", (a, l) => l.male ? a.maleHeads : a.femaleHeads, l => l.head, (l, v) => l.head = v, a => a.selectedHead, (c, w) => c.Head = w),
-            new LookSlot("Hat", (a, l) => a.hats, l => l.hat, (l, v) => l.hat = v, a => a.selectedHat, (c, w) => c.Hat = w),
-            new LookSlot("Hair", (a, l) => a.hairs, l => l.hair, (l, v) => l.hair = v, a => a.selectedHair, (c, w) => c.Hair = w),
-            new LookSlot("Glasses", (a, l) => a.glasses, l => l.glasses, (l, v) => l.glasses = v, a => a.selectedGlasses, (c, w) => c.Glasses = w),
-            new LookSlot("Beard", (a, l) => a.beards, l => l.beard, (l, v) => l.beard = v, a => a.selectedBeard, (c, w) => c.Beard = w),
-            new LookSlot("Jacket", (a, l) => a.shirtsT, l => l.shirtT, (l, v) => l.shirtT = v, a => a.selectedShirtT, (c, w) => c.Jacket = w),
-            new LookSlot("Shirt", (a, l) => a.shirtsB, l => l.shirtB, (l, v) => l.shirtB = v, a => a.selectedShirtB, (c, w) => c.ShirtB = w),
-            new LookSlot("Pants", (a, l) => a.pantsT, l => l.pantsT, (l, v) => l.pantsT = v, a => a.selectedPantsT, (c, w) => c.PantsT = w),
-            new LookSlot("Leggings", (a, l) => a.pantsB, l => l.pantsB, (l, v) => l.pantsB = v, a => a.selectedPantsB, (c, w) => c.PantsB = w),
-            new LookSlot("Socks", (a, l) => a.socks, l => l.socks, (l, v) => l.socks = v, a => a.selectedSocks, (c, w) => c.Socks = w),
-            new LookSlot("Shoes", (a, l) => a.shoes, l => l.shoes, (l, v) => l.shoes = v, a => a.selectedShoes, (c, w) => c.Shoes = w),
+            new LookSlot("Head", (a, l) => l.male ? a.maleHeads : a.femaleHeads, l => l.head, (l, v) => l.head = v, a => a.selectedHead, (c, w) => c.Head = w, c => c.Head),
+            new LookSlot("Hat", (a, l) => a.hats, l => l.hat, (l, v) => l.hat = v, a => a.selectedHat, (c, w) => c.Hat = w, c => c.Hat),
+            new LookSlot("Hair", (a, l) => a.hairs, l => l.hair, (l, v) => l.hair = v, a => a.selectedHair, (c, w) => c.Hair = w, c => c.Hair),
+            new LookSlot("Glasses", (a, l) => a.glasses, l => l.glasses, (l, v) => l.glasses = v, a => a.selectedGlasses, (c, w) => c.Glasses = w, c => c.Glasses),
+            new LookSlot("Beard", (a, l) => a.beards, l => l.beard, (l, v) => l.beard = v, a => a.selectedBeard, (c, w) => c.Beard = w, c => c.Beard),
+            new LookSlot("Jacket", (a, l) => a.shirtsT, l => l.shirtT, (l, v) => l.shirtT = v, a => a.selectedShirtT, (c, w) => c.Jacket = w, c => c.Jacket),
+            new LookSlot("Shirt", (a, l) => a.shirtsB, l => l.shirtB, (l, v) => l.shirtB = v, a => a.selectedShirtB, (c, w) => c.ShirtB = w, c => c.ShirtB),
+            new LookSlot("Pants", (a, l) => a.pantsT, l => l.pantsT, (l, v) => l.pantsT = v, a => a.selectedPantsT, (c, w) => c.PantsT = w, c => c.PantsT),
+            new LookSlot("Leggings", (a, l) => a.pantsB, l => l.pantsB, (l, v) => l.pantsB = v, a => a.selectedPantsB, (c, w) => c.PantsB = w, c => c.PantsB),
+            new LookSlot("Socks", (a, l) => a.socks, l => l.socks, (l, v) => l.socks = v, a => a.selectedSocks, (c, w) => c.Socks = w, c => c.Socks),
+            new LookSlot("Shoes", (a, l) => a.shoes, l => l.shoes, (l, v) => l.shoes = v, a => a.selectedShoes, (c, w) => c.Shoes = w, c => c.Shoes),
         };
 
         internal static LookSlot Find(string label)
@@ -104,7 +108,16 @@ namespace ObenseuerCore
             {
                 if (slot.Label == label) return slot;
             }
-            throw new ArgumentException("unknown slot '" + label + "'", "slot");
+            return null;
+        }
+
+        internal static LookDial FindDial(string label)
+        {
+            foreach (LookDial dial in All)
+            {
+                if (dial.Label == label) return dial;
+            }
+            return null;
         }
 
         internal static float Clamp(LookDial dial, float value)
@@ -168,6 +181,25 @@ namespace ObenseuerCore
         internal static string NameOf(Wearable wearable)
         {
             return wearable == null ? "" : wearable.name;
+        }
+
+        internal static string FolderOf(string slot, bool male)
+        {
+            switch (slot)
+            {
+                case "Head": return male ? "Wearables/HeadsMale" : "Wearables/HeadsFemale";
+                case "Hat": return "Wearables/Hats";
+                case "Hair": return "Wearables/Hairs";
+                case "Glasses": return "Wearables/Glasses";
+                case "Beard": return "Wearables/Beards";
+                case "Jacket": return "Wearables/ShirtsT";
+                case "Shirt": return "Wearables/ShirtsB";
+                case "Pants": return "Wearables/PantsT";
+                case "Leggings": return "Wearables/PantsB";
+                case "Socks": return "Wearables/Socks";
+                case "Shoes": return "Wearables/Shoes";
+                default: return null;
+            }
         }
 
         private static void Wearables(PlayerLook.Look look, Appearance ap)

@@ -15,23 +15,55 @@ namespace ObenseuerCore
             }
         }
 
-        internal static void Install()
+        internal static bool Install()
         {
             try
             {
-                Hook(typeof(TaskController), "EditTask", new[] { typeof(TaskInfo), typeof(TaskObjective), typeof(ObjectiveStatus), typeof(bool), typeof(bool), typeof(CurrentTaskStatus), typeof(bool), typeof(bool), typeof(bool) }, "EditTaskPrefix", "EditTaskPostfix");
-                Hook(typeof(TaskController), "EditTaskStatus", new[] { typeof(TaskStatusInfo), typeof(CurrentTaskStatus) }, "EditTaskStatusPrefix", "EditTaskStatusPostfix");
-                Hook(typeof(TaskController), "EditTaskObjective", new[] { typeof(TaskStatusInfo), typeof(ObjectiveStatusInfo), typeof(ObjectiveStatus) }, "EditTaskObjectivePrefix", "EditTaskObjectivePostfix");
+                bool ok = Hook(typeof(TaskController), "EditTask", new[] { typeof(TaskInfo), typeof(TaskObjective), typeof(ObjectiveStatus), typeof(bool), typeof(bool), typeof(CurrentTaskStatus), typeof(bool), typeof(bool), typeof(bool) }, "EditTaskPrefix", "EditTaskPostfix");
+                ok &= Hook(typeof(TaskController), "EditTaskStatus", new[] { typeof(TaskStatusInfo), typeof(CurrentTaskStatus) }, "EditTaskStatusPrefix", "EditTaskStatusPostfix");
+                ok &= Hook(typeof(TaskController), "EditTaskObjective", new[] { typeof(TaskStatusInfo), typeof(ObjectiveStatusInfo), typeof(ObjectiveStatus) }, "EditTaskObjectivePrefix", "EditTaskObjectivePostfix");
+                return ok;
             }
             catch (Exception e)
             {
                 ApiLog.Once(Quests.Owner, "install", e);
+                return false;
             }
         }
 
-        private static void Hook(Type type, string name, Type[] args, string prefix, string postfix)
+        internal static bool InstallAuthoring()
         {
-            CorePatcher.PatchCore(type, name, args, CorePatcher.Handler(typeof(QuestsPatches), prefix), CorePatcher.Handler(typeof(QuestsPatches), postfix), CorePatcher.Handler(typeof(QuestsPatches), "HookExit"), false, Quests.Owner);
+            try
+            {
+                return CorePatcher.PatchCore(typeof(TaskInfo), "Compare", new[] { typeof(TaskInfo) }, CorePatcher.Handler(typeof(QuestsPatches), "ComparePrefix"), null, null, false, QuestAuthoring.Owner);
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(QuestAuthoring.Owner, "install", e);
+                return false;
+            }
+        }
+
+        private static bool Hook(Type type, string name, Type[] args, string prefix, string postfix)
+        {
+            return CorePatcher.PatchCore(type, name, args, CorePatcher.Handler(typeof(QuestsPatches), prefix), CorePatcher.Handler(typeof(QuestsPatches), postfix), CorePatcher.Handler(typeof(QuestsPatches), "HookExit"), false, Quests.Owner);
+        }
+
+        internal static bool ModCompare(string id, string path, string otherId, string otherPath, out bool equal)
+        {
+            equal = false;
+            if (!QuestAuthoring.IsModTask(id, path) && !QuestAuthoring.IsModTask(otherId, otherPath)) return false;
+            equal = id == otherId;
+            return true;
+        }
+
+        private static bool ComparePrefix(TaskInfo __instance, TaskInfo task, ref bool __result)
+        {
+            if (task == null) return true;
+            bool equal;
+            if (!ModCompare(__instance.id, __instance.addressableAssetPath, task.id, task.addressableAssetPath, out equal)) return true;
+            __result = equal;
+            return false;
         }
 
         private static void HookExit()

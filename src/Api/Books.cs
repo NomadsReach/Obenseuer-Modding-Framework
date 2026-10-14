@@ -51,7 +51,11 @@ namespace ObenseuerCore
 
         public static bool IsRead(string id)
         {
-            if (id == null) throw new ArgumentException("id must not be null", "id");
+            if (id == null)
+            {
+                ApiLog.Once(Owner, "IsRead", "id must not be null");
+                return false;
+            }
             return Guard(() => FindRead(id), false, "IsRead");
         }
 

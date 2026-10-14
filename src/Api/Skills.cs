@@ -103,7 +103,7 @@ namespace ObenseuerCore
             try
             {
                 PlayerStats stats = PlayerStats.instance;
-                return stats != null && stats.IncreaseSkill((PlayerStats.PlayerSkillType)(int)skill, amount);
+                return !SaveGate.Busy && stats != null && stats.IncreaseSkill((PlayerStats.PlayerSkillType)(int)skill, amount);
             }
             catch (Exception e)
             {

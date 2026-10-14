@@ -196,6 +196,7 @@ namespace ObenseuerCore
         }
     }
 
+    /// <seealso cref="ItemRegistry"/>
     public static class Items
     {
 

@@ -1,0 +1,9 @@
+<Solution>
+  <Project Path="src/ObenseuerCore.csproj" />
+  <Project Path="webui/ObenseuerCore.WebUi.csproj" />
+  <Project Path="tools/Publicize/Publicize.csproj" />
+  <Project Path="preloader/ObenseuerCore.Preloader.csproj" />
+  <Project Path="Examples/HelloCore/HelloCore.csproj" />
+  <Project Path="Examples/SlowHunger/SlowHunger.csproj" />
+  <Project Path="Examples/WebUiHello/WebUiHello.csproj" />
+</Solution>

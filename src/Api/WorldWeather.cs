@@ -15,7 +15,7 @@ namespace ObenseuerCore
         }
     }
 
-    public static class WorldWeather
+    public static partial class WorldWeather
     {
         private static readonly FieldInfo weatherControllerField = AccessTools.Field(typeof(WeatherManager), "weatherController");
         private static readonly FieldInfo effectsControllerField = AccessTools.Field(typeof(WeatherManager), "effectsController");
@@ -24,7 +24,7 @@ namespace ObenseuerCore
         {
             get
             {
-                return WorldPatches.Installed && !CorePatcher.IsDisabled(WorldPatches.Owner);
+                return WorldPatches.WeatherInstalled && !CorePatcher.IsDisabled(WorldPatches.WeatherOwner);
             }
         }
 
@@ -131,10 +131,11 @@ namespace ObenseuerCore
 
         public static bool Set(int index, float transitionSeconds = 0f)
         {
+            if (index < 0) throw new ArgumentException("weather index must not be negative", "index");
+            if (float.IsNaN(transitionSeconds) || float.IsInfinity(transitionSeconds) || transitionSeconds < 0f) throw new ArgumentException("transitionSeconds must be a finite number, 0 or more", "transitionSeconds");
             if (!Ready()) return false;
-            if (index < 0 || index >= Count) throw new ArgumentException("weather index out of range: " + index, "index");
-            if (!(transitionSeconds >= 0f)) throw new ArgumentException("transitionSeconds must be 0 or more", "transitionSeconds");
-            if (NameOf(index) == null) return false;
+            if (index >= Count) throw new ArgumentException("weather index out of range: " + index, "index");
+            if (SaveGate.Busy || NameOf(index) == null) return false;
             try
             {
                 WeatherManager.instance.SetWeather(index, true, transitionSeconds);
@@ -143,8 +144,20 @@ namespace ObenseuerCore
             catch (Exception e)
             {
                 CoreLog.For("ObenseuerCore").Error("Set weather " + index + " failed: " + e.ToString());
-                return false;
+                if (CurrentIndex != index) return false;
+                RaiseChanged();
+                return true;
             }
+        }
+
+        public static bool SetThunder(bool active)
+        {
+            if (!Ready() || SaveGate.Busy) return false;
+            WeatherManager manager = WeatherManager.instance;
+            if (manager.IsThunderActive() == active) return true;
+            if (active) manager.StartThunder();
+            else manager.StopThunder();
+            return true;
         }
 
         private static bool Ready()

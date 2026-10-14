@@ -44,6 +44,7 @@ namespace ObenseuerCore
 
         public static bool Add(GameObject target, string modId, string label, Action use)
         {
+            if (SaveGate.Busy) return false;
             if (target != null && use != null)
             {
                 try
@@ -85,6 +86,7 @@ namespace ObenseuerCore
                 {
                     UnityEngine.Object.DestroyImmediate(interaction);
                 }
+                ComputerApps.ForgetInteraction(interaction);
                 return true;
             }
             catch (Exception e)

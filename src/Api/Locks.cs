@@ -22,6 +22,8 @@ namespace ObenseuerCore
 
     public static class Locks
     {
+        private const int KeypadCodeMax = 4;
+        private const float LockDifficultyMax = 2f;
         internal static readonly FieldInfo KeypadOpen = typeof(Keypad).GetField("open", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
         private static readonly FieldInfo LockpickActive = typeof(PlayerLockpicking).GetField("ActiveLockpicking", BindingFlags.Static | BindingFlags.NonPublic);
 
@@ -53,7 +55,7 @@ namespace ObenseuerCore
             }
             catch (Exception e)
             {
-                CoreLog.For(Interactions.Owner).Error("Locks.IsLocked failed: " + e.ToString());
+                ApiLog.Once(Interactions.Owner, "Locks.IsLocked", e);
                 return false;
             }
         }
@@ -68,8 +70,23 @@ namespace ObenseuerCore
             }
             catch (Exception e)
             {
-                CoreLog.For(Interactions.Owner).Error("Locks.IsLockpickable failed: " + e.ToString());
+                ApiLog.Once(Interactions.Owner, "Locks.IsLockpickable", e);
                 return false;
+            }
+        }
+
+        public static float Difficulty(GameObject target)
+        {
+            Require(target);
+            try
+            {
+                Lock found = FindLock(target);
+                return found == null ? -1f : found.Difficulty;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Interactions.Owner, "Locks.Difficulty", e);
+                return -1f;
             }
         }
 
@@ -83,7 +100,7 @@ namespace ObenseuerCore
             }
             catch (Exception e)
             {
-                CoreLog.For(Interactions.Owner).Error("Locks.PlayerHasKey failed: " + e.ToString());
+                ApiLog.Once(Interactions.Owner, "Locks.PlayerHasKey", e);
                 return false;
             }
         }
@@ -117,7 +134,7 @@ namespace ObenseuerCore
             }
             catch (Exception e)
             {
-                CoreLog.For(Interactions.Owner).Error("Locks.Lock failed: " + e.ToString());
+                ApiLog.Once(Interactions.Owner, "Locks.Lock", e);
                 return false;
             }
         }
@@ -143,7 +160,44 @@ namespace ObenseuerCore
             }
             catch (Exception e)
             {
-                CoreLog.For(Interactions.Owner).Error("Locks.Unlock failed: " + e.ToString());
+                ApiLog.Once(Interactions.Owner, "Locks.Unlock", e);
+                return false;
+            }
+        }
+
+        public static bool SetLockpickable(GameObject target, bool lockpickable)
+        {
+            Require(target);
+            if (SaveGate.Busy) return false;
+            try
+            {
+                Lock found = FindLock(target);
+                if (found == null) return false;
+                found.Lockpickable = lockpickable;
+                return found.Lockpickable == lockpickable;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Interactions.Owner, "Locks.SetLockpickable", e);
+                return false;
+            }
+        }
+
+        public static bool SetDifficulty(GameObject target, float difficulty)
+        {
+            Require(target);
+            if (!(difficulty >= 0f && difficulty <= LockDifficultyMax)) throw new ArgumentException("difficulty must be between 0 and 2", "difficulty");
+            if (SaveGate.Busy) return false;
+            try
+            {
+                Lock found = FindLock(target);
+                if (found == null) return false;
+                found.Difficulty = difficulty;
+                return found.Difficulty == difficulty;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Interactions.Owner, "Locks.SetDifficulty", e);
                 return false;
             }
         }
@@ -161,7 +215,7 @@ namespace ObenseuerCore
             }
             catch (Exception e)
             {
-                CoreLog.For(Interactions.Owner).Error("Locks.SetKeypadOpen failed: " + e.ToString());
+                ApiLog.Once(Interactions.Owner, "Locks.SetKeypadOpen", e);
                 return false;
             }
         }
@@ -179,7 +233,7 @@ namespace ObenseuerCore
             }
             catch (Exception e)
             {
-                CoreLog.For(Interactions.Owner).Error("Locks.LockKeypad failed: " + e.ToString());
+                ApiLog.Once(Interactions.Owner, "Locks.LockKeypad", e);
                 return false;
             }
         }
@@ -198,7 +252,43 @@ namespace ObenseuerCore
             }
             catch (Exception e)
             {
-                CoreLog.For(Interactions.Owner).Error("Locks.TriggerKeypad failed: " + e.ToString());
+                ApiLog.Once(Interactions.Owner, "Locks.TriggerKeypad", e);
+                return false;
+            }
+        }
+
+        public static int[] KeypadCode(string id)
+        {
+            try
+            {
+                Keypad keypad = SceneIds.Find<Keypad>(id);
+                return keypad == null ? null : (int[])keypad.code.Clone();
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Interactions.Owner, "Locks.KeypadCode", e);
+                return null;
+            }
+        }
+
+        public static bool SetKeypadCode(string id, int[] code)
+        {
+            if (code == null || code.Length == 0 || code.Length > KeypadCodeMax) return false;
+            foreach (int digit in code)
+            {
+                if (digit < 0 || digit > 32) return false;
+            }
+            if (SaveGate.Busy) return false;
+            try
+            {
+                Keypad keypad = SceneIds.Find<Keypad>(id);
+                if (keypad == null) return false;
+                keypad.code = (int[])code.Clone();
+                return true;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Interactions.Owner, "Locks.SetKeypadCode", e);
                 return false;
             }
         }
@@ -224,7 +314,7 @@ namespace ObenseuerCore
             }
             catch (Exception e)
             {
-                CoreLog.For(Interactions.Owner).Error("Locks.StartLockpick failed: " + e.ToString());
+                ApiLog.Once(Interactions.Owner, "Locks.StartLockpick", e);
                 return false;
             }
         }
@@ -263,7 +353,7 @@ namespace ObenseuerCore
             }
             catch (Exception e)
             {
-                CoreLog.For(Interactions.Owner).Error(what + " failed: " + e.ToString());
+                ApiLog.Once(Interactions.Owner, what, e);
             }
         }
 

@@ -94,7 +94,7 @@ namespace ObenseuerCore
         private static List<DoctorPanelSelection> Selections(Doctor only)
         {
             List<DoctorPanelSelection> all = new List<DoctorPanelSelection>();
-            Doctor[] doctors = only == null ? UnityEngine.Object.FindObjectsByType<Doctor>(FindObjectsSortMode.None) : new[] { only };
+            Doctor[] doctors = only == null ? SceneIds.Active<Doctor>().ToArray() : new[] { only };
             foreach (Doctor doctor in doctors)
             {
                 if (doctor.treatments == null) continue;

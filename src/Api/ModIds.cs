@@ -1,11 +1,15 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
+using BepInEx;
 
 namespace ObenseuerCore
 {
     internal static class ModIds
     {
         private const int MaxLength = 64;
+        private static readonly Regex ReservedName = new Regex("^(CON|PRN|AUX|NUL|(COM|LPT)(\\d|[\\u00B9\\u00B2\\u00B3]))$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
         internal const string CoreId = "obenseuer.moddingframework";
         internal const string LegacyCoreId = "nomad.obenseuer.core";
 
@@ -21,10 +25,15 @@ namespace ObenseuerCore
 
         internal static void RequireLegacyFileName(string modId, string param)
         {
-            if (string.IsNullOrEmpty(modId) || modId.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || modId.IndexOfAny(new[] { '/', '\\' }) >= 0 || modId.Contains(".."))
+            if (string.IsNullOrEmpty(modId) || modId.Length > MaxLength || modId.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || modId.IndexOfAny(new[] { '/', '\\' }) >= 0 || modId.Contains("..") || IsReservedName(modId))
             {
                 throw new ArgumentException("invalid mod id: " + modId, param);
             }
+        }
+
+        internal static bool IsReservedName(string name)
+        {
+            return ReservedName.IsMatch(name.Split('.')[0].TrimEnd(' '));
         }
 
         internal static string LegacyOf(string modId)
@@ -40,6 +49,13 @@ namespace ObenseuerCore
             if (legacy == null || !hasFile(legacy)) return modId;
             if (!hasFile(modId)) return legacy;
             return writeTimeUtc(legacy) > writeTimeUtc(modId) ? legacy : modId;
+        }
+
+        internal static bool IsInstalled(string modId, HashSet<string> usedThisSession)
+        {
+            if (usedThisSession.Contains(modId)) return true;
+            PluginInfo info = Loader.Find(modId);
+            return info != null && info.Instance != null;
         }
 
         internal static bool IsValid(string text)

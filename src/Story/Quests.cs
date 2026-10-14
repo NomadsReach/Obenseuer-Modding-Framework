@@ -209,8 +209,10 @@ namespace ObenseuerCore
         internal static void Init()
         {
             StoryPump.Ensure();
-            installed = Core.PatchingAllowed;
-            if (installed) QuestsPatches.Install();
+            installed = Core.PatchingAllowed && QuestsPatches.Install();
+            if (Core.PatchingAllowed && !installed) CorePatcher.DisableOwner(Owner);
+            QuestAuthoring.Installed = Core.PatchingAllowed && QuestsPatches.InstallAuthoring();
+            if (Core.PatchingAllowed && !QuestAuthoring.Installed) CorePatcher.DisableOwner(QuestAuthoring.Owner);
             CoreLog.For(Owner).Info(installed ? "quests installed" : "quests not installed");
         }
 
@@ -241,12 +243,12 @@ namespace ObenseuerCore
             }
         }
 
-        private static TaskController Readable()
+        internal static TaskController Readable()
         {
             return IsAvailable ? TaskController.instance : null;
         }
 
-        private static TaskController Writable(string member)
+        internal static TaskController Writable(string member)
         {
             if (!IsAvailable || TaskPanel.instance == null || Notifications.instance == null) return null;
             if (QuestsPatches.Busy)
@@ -267,7 +269,7 @@ namespace ObenseuerCore
             return new QuestInfo(entry.task.Id, entry.task.title, entry.task.description, (TaskState)(int)entry.status, objectives.ToArray());
         }
 
-        private static TaskStatusInfo Resolve(TaskController controller, string taskId)
+        internal static TaskStatusInfo Resolve(TaskController controller, string taskId)
         {
             if (string.IsNullOrEmpty(taskId)) return null;
             TaskStatusInfo found = null;
@@ -287,7 +289,7 @@ namespace ObenseuerCore
             return null;
         }
 
-        private static ObjectiveStatusInfo Unique(TaskStatusInfo entry, string objectiveId)
+        internal static ObjectiveStatusInfo Unique(TaskStatusInfo entry, string objectiveId)
         {
             if (entry == null || string.IsNullOrEmpty(objectiveId)) return null;
             ObjectiveStatusInfo found = null;

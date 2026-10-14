@@ -2,6 +2,8 @@ using System;
 
 namespace ObenseuerCore
 {
+    /// <seealso cref="Cash"/>
+    /// <seealso cref="Banking"/>
     public static class Wallet
     {
         private const int MaxAmount = 16000000;
@@ -21,7 +23,7 @@ namespace ObenseuerCore
 
         public static bool TrySpend(int amount)
         {
-            if (amount <= 0 || amount > MaxAmount) return false;
+            if (amount <= 0 || amount > MaxAmount || SaveGate.Busy) return false;
             try
             {
                 if (InteractObjects.instance == null || !Has(amount)) return false;
@@ -30,14 +32,14 @@ namespace ObenseuerCore
             }
             catch (Exception e)
             {
-                CoreLog.For("ObenseuerCore").Error("TrySpend " + amount + " failed: " + e.ToString());
+                ApiLog.Once("ObenseuerCore", "TrySpend", e);
                 return false;
             }
         }
 
         public static bool Give(int amount)
         {
-            if (amount <= 0 || amount > MaxAmount) return false;
+            if (amount <= 0 || amount > MaxAmount || SaveGate.Busy) return false;
             try
             {
                 if (Money.instance == null || InteractObjects.instance == null) return false;
@@ -47,7 +49,7 @@ namespace ObenseuerCore
             }
             catch (Exception e)
             {
-                CoreLog.For("ObenseuerCore").Error("Give " + amount + " failed: " + e.ToString());
+                ApiLog.Once("ObenseuerCore", "Give", e);
                 return false;
             }
         }

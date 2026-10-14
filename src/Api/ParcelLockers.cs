@@ -49,7 +49,7 @@ namespace ObenseuerCore
             List<ParcelLockerInfo> list = new List<ParcelLockerInfo>();
             try
             {
-                foreach (ParcelLocker locker in UnityEngine.Object.FindObjectsByType<ParcelLocker>(FindObjectsSortMode.None))
+                foreach (ParcelLocker locker in SceneIds.Active<ParcelLocker>())
                 {
                     if (locker != null) list.Add(ToInfo(locker));
                 }
@@ -72,6 +72,43 @@ namespace ObenseuerCore
             {
                 ApiLog.Once(Owner, "ParcelLockers.Get", e);
                 return null;
+            }
+        }
+
+        public static bool TakeParcel(string id, int index)
+        {
+            try
+            {
+                ParcelLocker locker = SceneIds.Find<ParcelLocker>(id);
+                if (locker == null || locker.lockers == null || index < 0 || index >= locker.lockers.Length) return false;
+                ParcelLocker.Locker slot = locker.lockers[index];
+                if (slot == null || ParcelOf(slot) == null || Cash.Refused("ParcelLockers.TakeParcel")) return false;
+                if (!Mailboxes.MailSingletonsReady()) return false;
+                locker.TakeParcelFromLocker(index);
+                return ParcelOf(slot) == null;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Owner, "ParcelLockers.TakeParcel", e);
+                return false;
+            }
+        }
+
+        public static bool Claim(string id)
+        {
+            try
+            {
+                ParcelLocker locker = SceneIds.Find<ParcelLocker>(id);
+                if (locker == null || SaveGate.Busy || !Mailboxes.MailSingletonsReady()) return false;
+                int before = MailController.instance.GetPackageAmount();
+                if (before == 0) return false;
+                locker.Interact();
+                return MailController.instance.GetPackageAmount() < before;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Owner, "ParcelLockers.Claim", e);
+                return false;
             }
         }
 

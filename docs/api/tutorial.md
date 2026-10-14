@@ -1,7 +1,13 @@
+---
+title: Obenseuer Modding Framework tutorial API (opening tutorial)
+parent: API reference
+nav_order: 85
+---
+
 # Obenseuer Modding Framework tutorial API (opening tutorial)
 
-Experimental. Not checked in game.
-Game: Obenseuer 0.5.05 (build 25839246), Unity Mono.
+Experimental.
+Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Log owner: `obenseuer.moddingframework.tutorial`. Logs go to `BepInEx\logs\obenseuer.moddingframework.tutorial.log`.
 
 Everything not listed here is internal. Main thread only.

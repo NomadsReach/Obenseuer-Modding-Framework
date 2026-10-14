@@ -10,10 +10,11 @@ namespace ObenseuerCore
     internal static class FloorItems
     {
         private const string ErrorPath = "Prefabs/Items/ERROR";
+        private const string Owner = ModelPatches.Owner + ".floors";
 
         internal static void Init()
         {
-            bool installed = CorePatcher.PatchCore(typeof(DestructibleList), "OnLoadingGameDestructibleList", Type.EmptyTypes, null, null, null, false, ModelPatches.Owner, Priority.Last, CorePatcher.Handler(typeof(FloorItems), "Transpile"));
+            bool installed = CorePatcher.PatchCore(typeof(DestructibleList), "OnLoadingGameDestructibleList", Type.EmptyTypes, null, null, null, false, Owner, Priority.Last, CorePatcher.Handler(typeof(FloorItems), "Transpile"));
             if (installed) CoreLog.For(ModelPatches.Owner).Info("floor item load patch installed");
             else CoreLog.For(ModelPatches.Owner).Warn("floor item load patch not installed, dropped modded items may load as the ERROR model");
         }
@@ -86,7 +87,7 @@ namespace ObenseuerCore
 
         private static GameObject ModelOf(ItemStack stack)
         {
-            Item item = ItemDatabase.instance == null ? null : ItemDatabase.instance.FetchItemByID(stack.itemId);
+            Item item = ItemRegistry.FindInDatabase(stack.itemId);
             if (item == null || item.Appearance == null) return null;
             GameObject model = stack.itemAmount != 1 && item.PrefabMany != null ? item.PrefabMany : item.Prefab;
             return model == null || model == Resources.Load<GameObject>(ErrorPath) ? null : model;

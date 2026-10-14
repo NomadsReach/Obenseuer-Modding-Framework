@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using ObenseuerCore.Ui;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace ObenseuerCore
@@ -39,12 +40,17 @@ namespace ObenseuerCore
         public static bool Register(string modId, string appId, string title, Sprite icon, Action<RectTransform> open)
         {
             ModIds.RequireLegacy(modId, "modId");
-            ValidateAppId(appId);
-            if (string.IsNullOrEmpty(title)) throw new ArgumentException("title must be a non-empty string", "title");
-            if (open == null) throw new ArgumentNullException("open");
-            if (ComputerAppsDesk.Find(appId) != null)
+            if (!ValidAppId(appId)) return false;
+            if (string.IsNullOrEmpty(title))
             {
-                CoreLog.For(Owner).Warn("app " + appId + " is already registered, the call from " + modId + " is ignored");
+                ApiLog.Once(Owner, "title empty", "title must be a non-empty string");
+                return false;
+            }
+            if (open == null) throw new ArgumentNullException("open");
+            ComputerApp existing = ComputerAppsDesk.Find(appId);
+            if (existing != null)
+            {
+                CoreLog.For(Owner).Warn("app " + appId + " is already registered by " + existing.ModId + ", the call from " + modId + " is ignored");
                 return false;
             }
             if (!EnsureInstalled()) return false;
@@ -54,7 +60,7 @@ namespace ObenseuerCore
 
         public static void Close(string appId)
         {
-            ValidateAppId(appId);
+            if (!ValidAppId(appId)) return;
             ComputerAppsDesk.Hide(appId);
             if (overlay != null && overlay.AppId == appId) CloseOverlay();
         }
@@ -70,7 +76,7 @@ namespace ObenseuerCore
         public static bool OpenStandalone(string modId, string appId)
         {
             ModIds.RequireLegacy(modId, "modId");
-            ValidateAppId(appId);
+            if (!ValidAppId(appId)) return false;
             ComputerApp app = ComputerAppsDesk.Find(appId);
             if (app == null) return false;
             if (overlay != null && overlay.AppId == appId) return true;
@@ -102,7 +108,7 @@ namespace ObenseuerCore
             if (onUse == null) throw new ArgumentNullException("onUse");
             try
             {
-                if (!Core.PatchingAllowed || InteractObjects.instance == null || target.GetComponent<Collider>() == null) return false;
+                if (!Core.PatchingAllowed || SaveGate.Busy || InteractObjects.instance == null || target.GetComponent<Collider>() == null) return false;
                 if (HasGameInteractable(target))
                 {
                     if (!gameInteractableLogged)
@@ -113,7 +119,11 @@ namespace ObenseuerCore
                     return false;
                 }
                 ModInteraction interaction = target.GetComponent<ModInteraction>();
-                if (interaction != null && interaction.ModId != modId) return false;
+                if (interaction != null && interaction.ModId != modId)
+                {
+                    CoreLog.For(Owner).Warn("interaction on " + target.name + " is already registered by " + interaction.ModId + ", the call from " + modId + " is ignored");
+                    return false;
+                }
                 if (interaction == null)
                 {
                     int layer = ChooseLayer(target.layer);
@@ -139,7 +149,7 @@ namespace ObenseuerCore
 
         internal static void Init()
         {
-            Events.SceneLoaded += OnSceneLoaded;
+            Events.SceneLoadedWithMode += OnSceneLoaded;
         }
 
         internal static void RaiseAppClosed(string modId, string appId)
@@ -249,11 +259,14 @@ namespace ObenseuerCore
             return holder;
         }
 
-        private static void OnSceneLoaded(string scene)
+        private static void OnSceneLoaded(string scene, LoadSceneMode mode)
         {
-            CloseOverlay();
-            ComputerAppsDesk.HideAll();
-            SetActiveScreen(null);
+            if (mode == LoadSceneMode.Single)
+            {
+                CloseOverlay();
+                ComputerAppsDesk.HideAll();
+                SetActiveScreen(null);
+            }
             interactions.RemoveAll(i => i == null);
         }
 
@@ -283,6 +296,11 @@ namespace ObenseuerCore
             return objects.IsUsableLayer(layer) && (mask & (1 << layer)) != 0;
         }
 
+        internal static void ForgetInteraction(ModInteraction interaction)
+        {
+            interactions.Remove(interaction);
+        }
+
         private static void RemoveInteractions(string modId)
         {
             foreach (ModInteraction interaction in interactions.FindAll(i => i != null && i.ModId == modId))
@@ -294,9 +312,19 @@ namespace ObenseuerCore
             interactions.RemoveAll(i => i == null || i.ModId == modId);
         }
 
-        private static void ValidateAppId(string appId)
+        private static bool ValidAppId(string appId)
         {
-            if (string.IsNullOrEmpty(appId) || appId.IndexOf('/') >= 0) throw new ArgumentException("appId must be a non-empty id without '/'", "appId");
+            if (string.IsNullOrEmpty(appId))
+            {
+                ApiLog.Once(Owner, "appId empty", "appId must be a non-empty id");
+                return false;
+            }
+            if (appId.IndexOf('/') >= 0)
+            {
+                ApiLog.Once(Owner, "appId slash", "appId must be an id without '/'");
+                return false;
+            }
+            return true;
         }
 
         private sealed class Overlay

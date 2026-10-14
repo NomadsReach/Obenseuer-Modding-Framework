@@ -64,7 +64,7 @@ namespace ObenseuerCore
             List<SaunaInfo> list = new List<SaunaInfo>();
             try
             {
-                foreach (Sauna sauna in UnityEngine.Object.FindObjectsByType<Sauna>(FindObjectsSortMode.None))
+                foreach (Sauna sauna in SceneIds.Active<Sauna>())
                 {
                     if (sauna != null) list.Add(ToInfo(sauna));
                 }
@@ -95,6 +95,7 @@ namespace ObenseuerCore
         {
             try
             {
+                if (SaveGate.Busy) return false;
                 Sauna sauna = SceneIds.Find<Sauna>(id);
                 if (sauna == null) return false;
                 if (on)

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using HarmonyLib;
+using OS.Items;
 using UnityEngine;
 
 namespace ObenseuerCore
@@ -28,9 +29,17 @@ namespace ObenseuerCore
 
         public float MaxFuel { get; private set; }
 
+        public float StoredCharge { get; private set; }
+
+        public float MaxCharge { get; private set; }
+
         public List<int> FuelItemIds { get; private set; }
 
-        internal PowerDeviceInfo(string id, PowerDeviceKind kind, bool isOn, bool isPowered, float netPower, float fuelLevel, float maxFuel, List<int> fuelItemIds)
+        public bool IsBurning { get; private set; }
+
+        public float BurnTimeFactor { get; private set; }
+
+        internal PowerDeviceInfo(string id, PowerDeviceKind kind, bool isOn, bool isPowered, float netPower, float fuelLevel, float maxFuel, float storedCharge, float maxCharge, List<int> fuelItemIds, bool isBurning, float burnTimeFactor)
         {
             Id = id;
             Kind = kind;
@@ -39,7 +48,11 @@ namespace ObenseuerCore
             NetPower = netPower;
             FuelLevel = fuelLevel;
             MaxFuel = maxFuel;
+            StoredCharge = storedCharge;
+            MaxCharge = maxCharge;
             FuelItemIds = fuelItemIds;
+            IsBurning = isBurning;
+            BurnTimeFactor = burnTimeFactor;
         }
     }
 
@@ -56,14 +69,28 @@ namespace ObenseuerCore
         }
     }
 
+    public sealed class FuelRanOutArgs
+    {
+        public string Id { get; private set; }
+
+        internal FuelRanOutArgs(string id)
+        {
+            Id = id;
+        }
+    }
+
     public static class PowerDevices
     {
         internal const string Owner = "obenseuer.moddingframework.powerdevices";
+        internal const string FuelOwner = Owner + ".fuel";
+        internal const string BatteryOwner = Owner + ".battery";
         private static bool installed;
         private static readonly FieldInfo batteryDrain = AccessTools.Field(typeof(BatteryPowerSource), "drainEnabled");
         private static readonly FieldInfo batteryPowering = AccessTools.Field(typeof(BatteryPowerSource), "powering");
 
         public static event Action<PoweredChangedArgs> PoweredChanged;
+
+        public static event Action<FuelRanOutArgs> FuelRanOut;
 
         public static bool IsAvailable
         {
@@ -150,6 +177,14 @@ namespace ObenseuerCore
             }
         }
 
+        internal static bool HasFuelHandlers
+        {
+            get
+            {
+                return FuelRanOut != null;
+            }
+        }
+
         internal static void Init()
         {
             installed = PowerDevicesPatches.Install();
@@ -164,18 +199,73 @@ namespace ObenseuerCore
             Events.Raise(PoweredChanged, "PowerDevices.PoweredChanged", h => h(args));
         }
 
+        internal static void RaisePoweredChanged(BatteryPowerSource battery, bool powered)
+        {
+            PoweredChangedArgs args = new PoweredChangedArgs(SceneIds.Of(battery), powered);
+            Events.Raise(PoweredChanged, "PowerDevices.PoweredChanged", h => h(args));
+        }
+
+        internal static void RaiseFuelRanOut(string id)
+        {
+            FuelRanOutArgs args = new FuelRanOutArgs(id);
+            Events.Raise(FuelRanOut, "PowerDevices.FuelRanOut", h => h(args));
+        }
+
+        internal static bool BatteryPowering(BatteryPowerSource battery)
+        {
+            return Flag(batteryPowering, battery);
+        }
+
         private static PowerDeviceInfo ToInfo(Component component)
         {
             FurnitureStats stats = component as FurnitureStats;
             if (stats != null)
             {
                 PowerDeviceKind kind = stats.netPowerOn > 0f ? PowerDeviceKind.Source : PowerDeviceKind.Consumer;
-                return new PowerDeviceInfo(SceneIds.Of(stats), kind, stats.isOn, stats.isActive, stats.netPowerOn, 0f, 0f, new List<int>());
+                return new PowerDeviceInfo(SceneIds.Of(stats), kind, stats.isOn, stats.isActive, stats.netPowerOn, 0f, 0f, 0f, 0f, new List<int>(), false, 0f);
             }
             CraftingBase crafting = component as CraftingBase;
             if (crafting != null) return CraftingInfo(crafting);
-            BatteryPowerSource battery = (BatteryPowerSource)component;
-            return new PowerDeviceInfo(SceneIds.Of(battery), PowerDeviceKind.Source, Flag(batteryDrain, battery), Flag(batteryPowering, battery), 0f, 0f, 0f, new List<int>());
+            return BatteryInfo((BatteryPowerSource)component);
+        }
+
+        private static PowerDeviceInfo BatteryInfo(BatteryPowerSource battery)
+        {
+            float stored;
+            float max;
+            ChargeOf(battery, out stored, out max);
+            float secondsPerUnit = battery.fuelDrainPerHour > 0f ? 3600f / battery.fuelDrainPerHour : 0f;
+            return new PowerDeviceInfo(SceneIds.Of(battery), PowerDeviceKind.Source, Flag(batteryDrain, battery), Flag(batteryPowering, battery), 0f, stored * secondsPerUnit, max * secondsPerUnit, stored, max, new List<int>(), false, 0f);
+        }
+
+        private static void ChargeOf(BatteryPowerSource battery, out float stored, out float max)
+        {
+            stored = 0f;
+            max = 0f;
+            Storage storage = battery.GetComponent<Storage>();
+            if (storage == null || storage.storageSlots == null) return;
+            foreach (global::ItemStack stack in storage.storageSlots)
+            {
+                if (stack == null) continue;
+                if (battery.fuelType.HasFlag(BatteryPowerSource.FuelType.ItemAmmoData))
+                {
+                    ItemAmmodata ammo = stack.GetMetaOfType<ItemAmmodata>();
+                    if (ammo != null)
+                    {
+                        stored += ammo.ammo;
+                        max += ammo.maxAmmo;
+                    }
+                }
+                if (battery.fuelType.HasFlag(BatteryPowerSource.FuelType.ItemLiquidData))
+                {
+                    ItemLiquidData liquid = stack.GetMetaOfType<ItemLiquidData>();
+                    if (liquid != null)
+                    {
+                        stored += liquid.GetLiquidAmount(stack.itemAmount);
+                        max += liquid.GetLiquidMaxAmount(stack.itemAmount);
+                    }
+                }
+            }
         }
 
         private static PowerDeviceInfo CraftingInfo(CraftingBase crafting)
@@ -185,7 +275,7 @@ namespace ObenseuerCore
             PowerDeviceKind kind = crafting is Generator ? PowerDeviceKind.Source : PowerDeviceKind.Consumer;
             float fuelLevel = fuel == null ? 0f : fuel.BurnTimeRemaining;
             float maxFuel = fuel == null ? 0f : fuel.MaxBurnTime;
-            return new PowerDeviceInfo(SceneIds.Of(crafting), kind, crafting.On, crafting.PoweredAndActive, 0f, fuelLevel, maxFuel, FuelItems(fuel));
+            return new PowerDeviceInfo(SceneIds.Of(crafting), kind, crafting.On, crafting.PoweredAndActive, 0f, fuelLevel, maxFuel, 0f, 0f, FuelItems(fuel), fuel != null && fuel.active, fuel == null ? 0f : fuel.BurnTimeFactor);
         }
 
         private static List<int> FuelItems(Fuel fuel)
@@ -221,15 +311,15 @@ namespace ObenseuerCore
         private static List<Component> Components()
         {
             List<Component> list = new List<Component>();
-            foreach (FurnitureStats stats in UnityEngine.Object.FindObjectsByType<FurnitureStats>(FindObjectsSortMode.None))
+            foreach (FurnitureStats stats in SceneIds.Active<FurnitureStats>())
             {
                 list.Add(stats);
             }
-            foreach (CraftingBase crafting in UnityEngine.Object.FindObjectsByType<CraftingBase>(FindObjectsSortMode.None))
+            foreach (CraftingBase crafting in SceneIds.Active<CraftingBase>())
             {
                 if (crafting._Power != null) list.Add(crafting);
             }
-            foreach (BatteryPowerSource battery in UnityEngine.Object.FindObjectsByType<BatteryPowerSource>(FindObjectsSortMode.None))
+            foreach (BatteryPowerSource battery in SceneIds.Active<BatteryPowerSource>())
             {
                 list.Add(battery);
             }

@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace ObenseuerCore
 {
     public static class Travel
     {
+        private static readonly Dictionary<PlayerLevelEntrypoints.Entrypoint, string> added = new Dictionary<PlayerLevelEntrypoints.Entrypoint, string>();
+
         public static bool UsingMinitrain
         {
             get
@@ -32,6 +35,79 @@ namespace ObenseuerCore
                 if (entry != null && !string.IsNullOrEmpty(entry.Name)) names.Add(entry.Name);
             }
             return names;
+        }
+
+        public static bool AddEntrypoint(string name, Transform location)
+        {
+            return Add(string.Empty, name, location);
+        }
+
+        public static bool AddEntrypoint(string modId, string name, Transform location)
+        {
+            ModIds.Require(modId, "modId");
+            return Add(modId, name, location);
+        }
+
+        public static bool RemoveEntrypoint(string name)
+        {
+            return Remove(string.Empty, name);
+        }
+
+        public static bool RemoveEntrypoint(string modId, string name)
+        {
+            ModIds.Require(modId, "modId");
+            return Remove(modId, name);
+        }
+
+        private static bool Add(string modId, string name, Transform location)
+        {
+            if (SaveGate.Busy || string.IsNullOrEmpty(name) || location == null) return false;
+            try
+            {
+                PlayerLevelEntrypoints points = PlayerLevelEntrypoints.instance;
+                if (points == null || points.Entrypoints == null) return false;
+                PlayerLevelEntrypoints.Entrypoint existing = points.GetEntrypoint(name);
+                if (existing != null)
+                {
+                    string holder;
+                    string by = added.TryGetValue(existing, out holder) ? (holder.Length == 0 ? "a mod" : holder) : "the level";
+                    string from = modId.Length == 0 ? "a mod" : modId;
+                    ApiLog.Once(PlayerState.Owner, "Travel.AddEntrypoint \"" + name + "\" from " + from, "the name already exists (added by " + by + "), the call is ignored");
+                    return false;
+                }
+                PlayerLevelEntrypoints.Entrypoint entry = new PlayerLevelEntrypoints.Entrypoint(name, location);
+                foreach (PlayerLevelEntrypoints.Entrypoint old in new List<PlayerLevelEntrypoints.Entrypoint>(added.Keys))
+                {
+                    if (!points.Entrypoints.Contains(old)) added.Remove(old);
+                }
+                points.Entrypoints.Add(entry);
+                added[entry] = modId;
+                return true;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(PlayerState.Owner, "Travel.AddEntrypoint", e);
+                return false;
+            }
+        }
+
+        private static bool Remove(string modId, string name)
+        {
+            if (SaveGate.Busy || string.IsNullOrEmpty(name)) return false;
+            try
+            {
+                PlayerLevelEntrypoints points = PlayerLevelEntrypoints.instance;
+                if (points == null || points.Entrypoints == null) return false;
+                PlayerLevelEntrypoints.Entrypoint entry = points.Entrypoints.Find(candidate => candidate != null && candidate.Name == name && added.ContainsKey(candidate) && added[candidate] == modId);
+                if (entry == null) return false;
+                added.Remove(entry);
+                return points.Entrypoints.Remove(entry);
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(PlayerState.Owner, "Travel.RemoveEntrypoint", e);
+                return false;
+            }
         }
 
         public static bool TeleportTo(string name)

@@ -68,7 +68,7 @@ namespace ObenseuerCore
             List<TrashInfo> list = new List<TrashInfo>();
             try
             {
-                foreach (FurnitureTrash trash in UnityEngine.Object.FindObjectsByType<FurnitureTrash>(FindObjectsSortMode.None))
+                foreach (FurnitureTrash trash in SceneIds.Active<FurnitureTrash>())
                 {
                     try
                     {

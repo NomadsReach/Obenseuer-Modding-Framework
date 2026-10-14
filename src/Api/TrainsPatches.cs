@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using UnityEngine;
 
 namespace ObenseuerCore
 {
@@ -14,6 +15,19 @@ namespace ObenseuerCore
             catch (Exception e)
             {
                 CoreLog.For(Trains.Owner).Error("install failed: " + e.ToString());
+                return false;
+            }
+        }
+
+        internal static bool InstallCrash()
+        {
+            try
+            {
+                return CorePatcher.PatchCore(typeof(TrackTrain), "Crash", new[] { typeof(GameObject), typeof(bool) }, CorePatcher.Handler(typeof(TrainsPatches), "CrashPrefix"), CorePatcher.Handler(typeof(TrainsPatches), "CrashPostfix"), null, true, Trains.CrashOwner);
+            }
+            catch (Exception e)
+            {
+                CoreLog.For(Trains.CrashOwner).Error("install crash failed: " + e.ToString());
                 return false;
             }
         }
@@ -40,6 +54,23 @@ namespace ObenseuerCore
             catch (Exception e)
             {
                 ApiLog.Once(Trains.Owner, "Trains.Departed/Arrived", e);
+            }
+        }
+
+        private static void CrashPrefix(TrackTrain __instance, out float __state)
+        {
+            __state = __instance.currentSpeed;
+        }
+
+        private static void CrashPostfix(TrackTrain __instance, GameObject other, float __state)
+        {
+            try
+            {
+                if (__state != 0f && __instance.currentSpeed == 0f) Trains.RaiseCrashed(__instance, other, __state);
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Trains.Owner, "Trains.Crashed", e);
             }
         }
     }

@@ -1,28 +1,28 @@
+---
+title: Renovations API
+parent: API reference
+nav_order: 62
+---
+
 # Renovations API
 
-Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 5.4.23.5.
+Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Patch owner: `obenseuer.moddingframework.renovations`.
 Files: `src/Api/Renovations.cs`, `src/Api/RenovationsPatches.cs`.
 
 Everything not listed here is internal. Renovation cost and build-time tweaks stay in `TweaksRenovations`. Housing's tenement rules are in `docs/api/housing.md`.
 
-## Wiring
+## If a hook cannot be installed
 
-```csharp
-internal static void Renovations.Init();
-```
-
-Core calls this from `Core.Awake`.
-
-`Init` installs one hook, `TenementUpgradeProgress.FinishUpgrade`. If it is missing, the owner is disabled and one warning is logged to `BepInEx\logs\obenseuer.moddingframework.renovations.log`. The reads and `Start` keep working; only `Finished` stops.
+The framework installs one hook, `TenementUpgradeProgress.FinishUpgrade`. If it is missing, the owner is disabled and one warning is logged to `BepInEx\logs\obenseuer.moddingframework.renovations.log`. The reads and `Start` keep working; only `Finished` stops.
 
 ## Threading and safety
 
 - Main thread only.
 - `Renovations.IsAvailable` is false when the hook was not installed or the owner was disabled.
 - Every member is safe at any time. With no save loaded, or on the main menu, `All` returns an empty list and the other reads return `0`.
-- `Start` throws `ArgumentException` for a null or empty id. Every other failure returns `false`.
-- `Finished` is raised synchronously after the game's own `FinishUpgrade` has run. A handler that throws is logged and the other handlers still run (`Events.Raise`).
+- `Start` returns `false`, and logs once, for a null or empty id. It also returns `false` while a save loads or saves (`SaveData.Busy`). Every other failure returns `false`.
+- `Finished` is raised synchronously after the game's own `FinishUpgrade` has run. A handler that throws is logged and the other handlers still run.
 
 ## Ids
 
@@ -80,7 +80,11 @@ public sealed class RenovationInfo
 
 ## Not wrapped
 
-- The final RM payment and the act of finishing an upgrade by hand. That is the player's action in the upgrade panel (`UpgradeUI.OnPressed`, `RE/World/UpgradeUI.cs:457`). No public call is exposed.
-- Requested build-time overrides and silent orders (`TenementUpgradeStart.Upgrade`, `RE/World/TenementUpgradeStart.cs:34`). Only the game's default order is made.
-- Marking an upgrade with the star (`TenementController.MarkUpgrade`, `RE/World/TenementController.cs:1070`).
+- The final RM payment and the act of finishing an upgrade by hand. That is the player's action in the upgrade panel (`UpgradeUI.OnPressed`). No public call is exposed.
+- Requested build-time overrides and silent orders (`TenementUpgradeStart.Upgrade`). Only the game's default order is made.
+- Marking an upgrade with the star (`TenementController.MarkUpgrade`).
 - Apartment condition and cleaning: see `docs/api/cleaning.md`.
+
+## Save loads
+
+The framework does not gate this event on a save load. A handler that should ignore events raised while a save loads can check `SaveData.Busy`, which is true while a save is loading or being written.

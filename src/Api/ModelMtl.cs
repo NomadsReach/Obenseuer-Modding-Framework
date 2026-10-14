@@ -23,6 +23,7 @@ namespace ObenseuerCore
     internal static class MtlParser
     {
         internal const long MaxFileBytes = 1024L * 1024;
+        private static readonly char[] Blanks = new char[] { ' ', '\t' };
 
         internal static MtlData Parse(string mtlPath, string objFolder)
         {
@@ -65,13 +66,13 @@ namespace ObenseuerCore
                 }
                 else if (current != null)
                 {
-                    Statement(data, current, t, mtlFolder, objFolder);
+                    Statement(data, current, line, t, mtlFolder, objFolder);
                 }
             }
             return data;
         }
 
-        private static void Statement(MtlData data, MtlMaterial m, string[] t, string mtlFolder, string objFolder)
+        private static void Statement(MtlData data, MtlMaterial m, string line, string[] t, string mtlFolder, string objFolder)
         {
             switch (t[0])
             {
@@ -86,7 +87,7 @@ namespace ObenseuerCore
                     else data.Warnings.Add("material " + m.Name + ": bad Ke line ignored");
                     break;
                 case "map_Kd":
-                    m.MapKd = MapPath(data, m, t, mtlFolder, objFolder);
+                    m.MapKd = MapPath(data, m, MapArgs(line.Substring(t[0].Length)), mtlFolder, objFolder);
                     break;
                 case "d":
                     float d;
@@ -117,14 +118,95 @@ namespace ObenseuerCore
             data.Warnings.Add("material " + m.Name + ": transparency (d or Tr) is not supported in v1; drawn opaque");
         }
 
-        private static string MapPath(MtlData data, MtlMaterial m, string[] t, string mtlFolder, string objFolder)
+        private static string MapArgs(string rest)
         {
-            string token = t.Length > 1 ? t[t.Length - 1] : "";
+            rest = rest.Trim();
+            while (rest.StartsWith("-", StringComparison.Ordinal))
+            {
+                string option = FirstWord(rest);
+                rest = SkipWord(rest);
+                int count = OptionArgCount(option);
+                for (int i = 0; i < count && IsOptionArg(option, FirstWord(rest)); i++) rest = SkipWord(rest);
+            }
+            return rest;
+        }
+
+        private static int OptionArgCount(string option)
+        {
+            switch (option)
+            {
+                case "-blendu":
+                case "-blendv":
+                case "-cc":
+                case "-clamp":
+                case "-bm":
+                case "-boost":
+                case "-texres":
+                case "-imfchan":
+                case "-type":
+                    return 1;
+                case "-mm":
+                    return 2;
+                default:
+                    return 3;
+            }
+        }
+
+        private static bool IsOptionArg(string option, string word)
+        {
+            switch (option)
+            {
+                case "-blendu":
+                case "-blendv":
+                case "-cc":
+                case "-clamp":
+                    return word == "on" || word == "off";
+                case "-imfchan":
+                    return word.Length == 1 && "rgbmlz".IndexOf(word[0]) >= 0;
+                case "-type":
+                    return word.Length > 0;
+                default:
+                    return IsNumber(word);
+            }
+        }
+
+        private static bool IsNumber(string word)
+        {
+            float value;
+            return float.TryParse(word, NumberStyles.Float, CultureInfo.InvariantCulture, out value);
+        }
+
+        private static string FirstWord(string text)
+        {
+            int end = text.IndexOfAny(Blanks);
+            return end < 0 ? text : text.Substring(0, end);
+        }
+
+        private static string SkipWord(string text)
+        {
+            int end = text.IndexOfAny(Blanks);
+            return end < 0 ? "" : text.Substring(end).TrimStart(Blanks);
+        }
+
+        private static bool ImageFile(string rel)
+        {
+            if (rel.IndexOf(':') >= 0) return false;
+            string ext = Path.GetExtension(rel).ToLowerInvariant();
+            if (ext != ".png" && ext != ".jpg" && ext != ".jpeg") return false;
+            foreach (string segment in rel.Split('/'))
+            {
+                if (ModIds.IsReservedName(segment)) return false;
+            }
+            return true;
+        }
+
+        private static string MapPath(MtlData data, MtlMaterial m, string token, string mtlFolder, string objFolder)
+        {
             string rel = token.Replace('\\', '/');
             try
             {
                 string name = Path.GetFileName(rel);
-                if (name.Length > 0 && name != "." && name != ".." && !Path.IsPathRooted(rel))
+                if (name.Length > 0 && name != "." && name != ".." && !Path.IsPathRooted(rel) && ImageFile(rel))
                 {
                     string full = Path.GetFullPath(Path.Combine(mtlFolder, rel));
                     string root = Path.GetFullPath(objFolder).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
@@ -134,7 +216,7 @@ namespace ObenseuerCore
             catch (Exception)
             {
             }
-            data.Warnings.Add("material " + m.Name + ": map_Kd not used (no file, or outside the model folder): " + token);
+            data.Warnings.Add("material " + m.Name + ": map_Kd not used (no file, not a .png/.jpg/.jpeg, or outside the model folder): " + token);
             return null;
         }
     }

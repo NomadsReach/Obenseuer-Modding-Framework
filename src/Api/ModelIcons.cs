@@ -5,22 +5,41 @@ using UnityEngine;
 
 namespace ObenseuerCore
 {
+    internal sealed class StampedEntry<T>
+    {
+        internal T Value;
+        internal long Stamp;
+    }
+
     internal static class ModelIcons
     {
         internal const string Owner = "obenseuer.moddingframework.icons";
         private const int MaxSide = 1024;
         private const int WarnSide = 256;
-        private static readonly Dictionary<string, Sprite> sprites = new Dictionary<string, Sprite>(StringComparer.OrdinalIgnoreCase);
+        private static readonly Dictionary<string, StampedEntry<Sprite>> sprites = new Dictionary<string, StampedEntry<Sprite>>(StringComparer.OrdinalIgnoreCase);
 
         internal static Sprite Load(string absPath)
         {
             if (string.IsNullOrEmpty(absPath)) return null;
             string key = FullPath(absPath);
-            Sprite sprite;
-            if (sprites.TryGetValue(key, out sprite)) return sprite;
-            sprite = Build(key);
-            sprites[key] = sprite;
-            return sprite;
+            long stamp = WriteStamp(key);
+            StampedEntry<Sprite> cached;
+            if (sprites.TryGetValue(key, out cached) && cached.Stamp == stamp) return cached.Value;
+            cached = new StampedEntry<Sprite> { Value = Build(key), Stamp = stamp };
+            sprites[key] = cached;
+            return cached.Value;
+        }
+
+        internal static long WriteStamp(string path)
+        {
+            try
+            {
+                return File.GetLastWriteTimeUtc(path).Ticks;
+            }
+            catch (Exception)
+            {
+                return -1;
+            }
         }
 
         private static string FullPath(string absPath)
@@ -39,8 +58,14 @@ namespace ObenseuerCore
         {
             try
             {
+                byte[] bytes = new FileInfo(absPath).Length > ModelBuild.MaxImageBytes ? null : File.ReadAllBytes(absPath);
+                if (bytes == null || ModelBuild.ImageRefused(bytes, MaxSide))
+                {
+                    CoreLog.For(Owner).Error("icon " + absPath + " is not a readable PNG or JPEG, or is over " + MaxSide + " px a side or " + (ModelBuild.MaxImageBytes >> 20) + " MB, it is not decoded, the template icon is kept");
+                    return null;
+                }
                 Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
-                if (!ImageConversion.LoadImage(texture, File.ReadAllBytes(absPath)))
+                if (!ImageConversion.LoadImage(texture, bytes))
                 {
                     UnityEngine.Object.Destroy(texture);
                     CoreLog.For(Owner).Error("icon " + absPath + " is not a readable image, the template icon is kept");

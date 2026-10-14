@@ -1,19 +1,25 @@
+---
+title: Obenseuer Modding Framework computer contents API (files and emails)
+parent: API reference
+nav_order: 12
+---
+
 # Obenseuer Modding Framework computer contents API (files and emails)
 
-Experimental. Not checked in game.
-Game: Obenseuer 0.5.05 (build 25839246), Unity Mono.
+Experimental.
+Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Log owner: `obenseuer.moddingframework.computerfiles`. Logs go to `BepInEx\logs\obenseuer.moddingframework.computerfiles.log`.
 
 Everything not listed here is internal. Main thread only.
 
-Named `ComputerContents` because `ComputerFiles` is a game class. The file keeps the area name. Desk app registration is `ComputerApps` (`src\ComputerApps.cs`), not this facade.
+Named `ComputerContents` because `ComputerFiles` is a game class. The file keeps the area name. Desk app registration is `ComputerApps`, not this facade.
 
-Scope: the recycle bin files and the email inbox of a computer in the loaded scene.
+Scope: the recycle bin files and the email inbox of a computer in the active scene.
 
 ## Rules
 
-- **Read-only, no writes.** The computer keeps its files and emails in inspector-set lists (`InteractableComputer.emails` and `recycleBinFiles`). They are not saved (`[fsIgnore]`), and the game only copies them to the screen at `Start`. The game has no method to add or remove a file or an email at runtime, so the facade cannot write them.
-- **Computer id.** `computerId` is what `ComputerContents.All()` or `ComputerContents.IdOf` returns. It is the computer's world GUID when the game gave one, otherwise the scene id (`Scene:Root[0]/Child[2]/Computer[1]`, each node with its sibling index, the `SceneIds.Of` scheme in `src/Api/SceneIds.cs`). Most computers have no GUID, so the path form is the usual one. It is stable while the scene is unchanged and is not meant for computers spawned at runtime.
+- **Read-only, no writes.** The computer keeps its files and emails in inspector-set lists (`InteractableComputer.emails` and `recycleBinFiles`). They are not saved (`[fsIgnore]`), and the game copies them to the screen once, in the computer's `Start`. The game has public methods to add to them at run time, `ComputerScreen.AddEmails` and `ComputerScreen.AddRecycleBinFiles`. Each one replaces the list and builds a row for every entry, so a second call shows the old rows twice. The framework does not wrap them, and this facade does not write files or emails. The wallpaper is set with `ComputerDesk.SetWallpaper`.
+- **Computer id.** `computerId` is what `ComputerContents.All()` or `ComputerContents.IdOf` returns. It is the computer's world GUID when the game gave one, otherwise the scene id (`Scene:Root[0]/Child[2]/Computer[1]`, each node with its sibling index). Most computers have no GUID, so the path form is the usual one. It is stable while the scene is unchanged and is not meant for computers spawned at runtime.
 - **Bad arguments.** A `null` id throws `ArgumentException`. An unknown id, or a computer that is not loaded, returns an empty list.
 
 ## API
@@ -45,4 +51,4 @@ public sealed class ComputerDocInfo
 - `Files`: `Title` is the file name, `Sender` is `""`, and `Body` is the text of a text file. A file that is not a text file has `Body` `""`.
 - `Emails`: `Title` is the subject, `Sender` is the sender's name, and `Body` is the email text.
 - Lists are copies, in the order the game holds them. Each call reads the game's current lists.
-- The facade has no events and no patches, so there is no `Init` and no `IsAvailable`.
+- The facade has no events and no patches, so there is no `IsAvailable`.

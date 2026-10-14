@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using NPC;
+using UnityEngine;
 
 namespace ObenseuerCore
 {
@@ -13,12 +15,18 @@ namespace ObenseuerCore
 
         public bool Moving { get; private set; }
 
-        internal DoorInfo(string id, string name, bool isOpen, bool moving)
+        public Vector3 Position { get; private set; }
+
+        public Vector3? StandPosition { get; private set; }
+
+        internal DoorInfo(string id, string name, bool isOpen, bool moving, Vector3 position, Vector3? standPosition)
         {
             Id = id;
             Name = name;
             IsOpen = isOpen;
             Moving = moving;
+            Position = position;
+            StandPosition = standPosition;
         }
     }
 
@@ -32,7 +40,7 @@ namespace ObenseuerCore
         }
     }
 
-    public static class Doors
+    public static partial class Doors
     {
         internal const string Owner = "obenseuer.moddingframework.doors";
         private static bool installed;
@@ -54,9 +62,10 @@ namespace ObenseuerCore
             List<DoorInfo> list = new List<DoorInfo>();
             try
             {
-                foreach (Door door in UnityEngine.Object.FindObjectsByType<Door>(UnityEngine.FindObjectsSortMode.None))
+                Dictionary<Door, Vector3> stands = StandPositions();
+                foreach (Door door in SceneIds.Active<Door>())
                 {
-                    list.Add(ToInfo(door));
+                    list.Add(ToInfo(door, stands));
                 }
             }
             catch (Exception e)
@@ -69,7 +78,7 @@ namespace ObenseuerCore
         public static DoorInfo Get(string id)
         {
             Door door = Find(id);
-            return door == null ? null : ToInfo(door);
+            return door == null ? null : ToInfo(door, StandPositions());
         }
 
         public static bool IsOpen(string id)
@@ -139,7 +148,7 @@ namespace ObenseuerCore
             if (string.IsNullOrEmpty(id)) return null;
             try
             {
-                foreach (Door door in UnityEngine.Object.FindObjectsByType<Door>(UnityEngine.FindObjectsSortMode.None))
+                foreach (Door door in SceneIds.Active<Door>())
                 {
                     if (IdOf(door) == id) return door;
                 }
@@ -151,9 +160,21 @@ namespace ObenseuerCore
             return null;
         }
 
-        private static DoorInfo ToInfo(Door door)
+        private static Dictionary<Door, Vector3> StandPositions()
         {
-            return new DoorInfo(IdOf(door), door.name, door.doorIsOpen, door.moving);
+            Dictionary<Door, Vector3> stands = new Dictionary<Door, Vector3>();
+            foreach (Waypoint_Door waypoint in SceneIds.Active<Waypoint_Door>())
+            {
+                if (waypoint.door != null && !stands.ContainsKey(waypoint.door)) stands.Add(waypoint.door, waypoint.transform.position);
+            }
+            return stands;
+        }
+
+        private static DoorInfo ToInfo(Door door, Dictionary<Door, Vector3> stands)
+        {
+            Vector3 stand;
+            Vector3? standPosition = stands.TryGetValue(door, out stand) ? stand : (Vector3?)null;
+            return new DoorInfo(IdOf(door), door.name, door.doorIsOpen, door.moving, door.transform.position, standPosition);
         }
     }
 }

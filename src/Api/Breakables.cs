@@ -30,21 +30,76 @@ namespace ObenseuerCore
         }
     }
 
+    public sealed class BreakableLockInfo
+    {
+        public string Id { get; private set; }
+
+        public bool Locked { get; private set; }
+
+        public int Strength { get; private set; }
+
+        internal BreakableLockInfo(string id, bool locked, int strength)
+        {
+            Id = id;
+            Locked = locked;
+            Strength = strength;
+        }
+    }
+
+    public sealed class SmashedArgs
+    {
+        public string Id { get; private set; }
+
+        public Vector3 Position { get; private set; }
+
+        public bool IsAnimal { get; private set; }
+
+        public int SpawnItemId { get; private set; }
+
+        internal SmashedArgs(string id, Vector3 position, bool isAnimal, int spawnItemId)
+        {
+            Id = id;
+            Position = position;
+            IsAnimal = isAnimal;
+            SpawnItemId = spawnItemId;
+        }
+    }
+
+    [Flags]
+    internal enum BreakableGroup
+    {
+        None = 0,
+        Break = 1,
+        Repair = 2,
+        LockBreak = 4,
+        Smash = 8,
+        All = Break | Repair | LockBreak | Smash
+    }
+
     public static class Breakables
     {
         internal const string Owner = "obenseuer.moddingframework.breakables";
-        private static bool installed;
+        private static BreakableGroup installed;
 
         public static event Action<BreakableArgs> Broken;
 
         public static event Action<BreakableArgs> Repaired;
 
+        public static event Action<BreakableArgs> LockBroken;
+
+        public static event Action<SmashedArgs> Smashed;
+
         public static bool IsAvailable
         {
             get
             {
-                return installed && !CorePatcher.IsDisabled(Owner);
+                return Installed(BreakableGroup.All);
             }
+        }
+
+        internal static bool Installed(BreakableGroup group)
+        {
+            return (installed & group) == group && !CorePatcher.IsDisabled(Owner);
         }
 
         public static List<BreakableInfo> All()
@@ -52,7 +107,7 @@ namespace ObenseuerCore
             List<BreakableInfo> list = new List<BreakableInfo>();
             try
             {
-                foreach (Breakable breakable in UnityEngine.Object.FindObjectsByType<Breakable>(UnityEngine.FindObjectsSortMode.None))
+                foreach (Breakable breakable in SceneIds.Active<Breakable>())
                 {
                     list.Add(ToInfo(breakable));
                 }
@@ -111,19 +166,52 @@ namespace ObenseuerCore
             }
         }
 
+        public static List<BreakableLockInfo> Locks()
+        {
+            List<BreakableLockInfo> list = new List<BreakableLockInfo>();
+            try
+            {
+                foreach (BreakableLock breakableLock in SceneIds.Active<BreakableLock>())
+                {
+                    list.Add(new BreakableLockInfo(SceneIds.Of(breakableLock), breakableLock.Locked, breakableLock.strength));
+                }
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Owner, "Breakables.Locks", e);
+            }
+            return list;
+        }
+
+        public static bool BreakLock(string id)
+        {
+            BreakableLock breakableLock = null;
+            try
+            {
+                breakableLock = SceneIds.Find<BreakableLock>(id);
+                if (breakableLock == null || breakableLock.strength <= 0 || SaveGate.Busy) return false;
+                breakableLock.Break(breakableLock.strength, DamageReceiver.DamageType.Any);
+                return breakableLock.strength <= 0;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Owner, "Breakables.BreakLock", e);
+                return breakableLock != null && breakableLock.strength <= 0;
+            }
+        }
+
         internal static void Init()
         {
             installed = BreakablesPatches.Install();
-            if (installed) return;
-            CorePatcher.DisableOwner(Owner);
-            CoreLog.For(Owner).Warn("breakable hooks incomplete, Broken and Repaired events are disabled");
+            if (IsAvailable) return;
+            CoreLog.For(Owner).Warn("breakable hooks incomplete, IsAvailable is false, the events whose hooks are missing are disabled");
         }
 
         internal static bool HasBrokenHandlers
         {
             get
             {
-                return Broken != null;
+                return Broken != null && Installed(BreakableGroup.Break);
             }
         }
 
@@ -131,7 +219,7 @@ namespace ObenseuerCore
         {
             get
             {
-                return Repaired != null;
+                return Repaired != null && Installed(BreakableGroup.Repair);
             }
         }
 
@@ -147,12 +235,39 @@ namespace ObenseuerCore
             Events.Raise(Repaired, "Breakables.Repaired", h => h(args));
         }
 
+        internal static bool HasLockBrokenHandlers
+        {
+            get
+            {
+                return LockBroken != null && Installed(BreakableGroup.LockBreak);
+            }
+        }
+
+        internal static void RaiseLockBroken(BreakableLock breakableLock)
+        {
+            BreakableArgs args = new BreakableArgs(SceneIds.Of(breakableLock));
+            Events.Raise(LockBroken, "Breakables.LockBroken", h => h(args));
+        }
+
+        internal static bool HasSmashedHandlers
+        {
+            get
+            {
+                return Smashed != null && Installed(BreakableGroup.Smash);
+            }
+        }
+
+        internal static void RaiseSmashed(SmashedArgs args)
+        {
+            Events.Raise(Smashed, "Breakables.Smashed", h => h(args));
+        }
+
         private static Breakable Find(string id)
         {
             if (string.IsNullOrEmpty(id)) return null;
             try
             {
-                foreach (Breakable breakable in UnityEngine.Object.FindObjectsByType<Breakable>(UnityEngine.FindObjectsSortMode.None))
+                foreach (Breakable breakable in SceneIds.Active<Breakable>())
                 {
                     if (SceneIds.Of(breakable) == id) return breakable;
                 }

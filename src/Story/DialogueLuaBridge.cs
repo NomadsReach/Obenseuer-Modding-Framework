@@ -18,6 +18,7 @@ namespace ObenseuerCore
                 BindCore("Core_ObjectiveState", "ObjectiveStateName");
                 BindCore("Core_CrimeTotal", "CrimeTotal");
                 BindCore("Core_CrimeAgainst", "CrimeAgainst");
+                BindCore("Core_ResponsePicked", "ResponsePicked");
             }
             catch (Exception e)
             {
@@ -93,6 +94,11 @@ namespace ObenseuerCore
         public static float CrimeAgainst(float npcId)
         {
             return Law.GetAgainst((int)npcId);
+        }
+
+        public static void ResponsePicked(string key)
+        {
+            DialogueResponses.Picked(key);
         }
 
         private static string Hash(string text)

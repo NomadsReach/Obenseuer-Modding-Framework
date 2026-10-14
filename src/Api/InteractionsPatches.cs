@@ -19,22 +19,24 @@ namespace ObenseuerCore
             }
         }
 
-        private static void UsePrefix(InteractObjects __instance, out Component __state)
+        private static void UsePrefix(InteractObjects __instance, out UseState __state)
         {
-            __state = null;
-            if (__instance.savedForceInteractable != null) __state = __instance.savedForceInteractable;
-            else if (__instance.interactable == null) __state = __instance.savedInteractable;
-            else __state = __instance.interactable as Component;
-            Interactions.Dispatching = __state;
+            Component target = null;
+            if (__instance.savedForceInteractable != null) target = __instance.savedForceInteractable;
+            else if (__instance.interactable == null) target = __instance.savedInteractable;
+            else target = __instance.interactable as Component;
+            __state = new UseState { Target = target, Previous = Interactions.Dispatching };
+            Interactions.Dispatching = target;
         }
 
-        private static void UsePostfix(Component __state)
+        private static void UsePostfix(UseState __state)
         {
-            Interactions.Dispatching = null;
-            if (__state == null || !Interactions.HasUsedHandlers) return;
+            if (__state == null) return;
+            Interactions.Dispatching = __state.Previous;
+            if (__state.Target == null || !Interactions.HasUsedHandlers) return;
             try
             {
-                Interactions.RaiseUsed(new InteractionArgs(__state.gameObject, __state));
+                Interactions.RaiseUsed(new InteractionArgs(__state.Target.gameObject, __state.Target));
             }
             catch (Exception e)
             {
@@ -42,9 +44,15 @@ namespace ObenseuerCore
             }
         }
 
-        private static void UseFinalizer()
+        private static void UseFinalizer(UseState __state)
         {
-            Interactions.Dispatching = null;
+            if (__state != null) Interactions.Dispatching = __state.Previous;
+        }
+
+        internal sealed class UseState
+        {
+            internal Component Target;
+            internal Component Previous;
         }
     }
 }

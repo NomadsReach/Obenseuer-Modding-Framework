@@ -5,13 +5,22 @@ using System.Linq;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
+#if !BEPINEX5
+using BepInEx.Preloader.Core.Patching;
+#endif
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
 namespace ObenseuerCore.Preloader
 {
+#if BEPINEX5
     public static class L0Publicizer
     {
+#else
+    [PatcherPluginInfo("obenseuer.moddingframework.preloader", "Obenseuer Modding Framework Preloader", "0.10.0")]
+    public class L0Publicizer : BasePatcher
+    {
+#endif
         private const string Target = "Assembly-CSharp.dll";
         private const string ConfigFileName = "ObenseuerCore.L0.cfg";
         private const string FsIgnore = "FullSerializer.fsIgnoreAttribute";
@@ -25,6 +34,7 @@ namespace ObenseuerCore.Preloader
         private static readonly string[] DefaultFlagNames = { "GUID", "global" };
         private static readonly string[] NameLookups = { "GetMethod", "GetField", "GetProperty" };
 
+#if BEPINEX5
         public static IEnumerable<string> TargetDLLs
         {
             get { yield return Target; }
@@ -32,22 +42,34 @@ namespace ObenseuerCore.Preloader
 
         public static void Patch(ref AssemblyDefinition assembly)
         {
+            Publicize(assembly);
+        }
+#else
+        [TargetAssembly(Target)]
+        public bool Patch(ref AssemblyDefinition assembly)
+        {
+            return Publicize(assembly);
+        }
+#endif
+
+        private static bool Publicize(AssemblyDefinition assembly)
+        {
             ManualLogSource log = Logger.CreateLogSource("ObenseuerCore.Preloader");
-            Context c = null;
+            PublicizeContext c = null;
             bool applied = false;
             try
             {
                 if (!ReadPublicize())
                 {
                     log.LogInfo("L0 publicize off (" + ConfigFileName + " Publicize is not true); " + Target + " unchanged");
-                    return;
+                    return false;
                 }
                 if (!FlagHidesFromFs())
                 {
                     log.LogWarning("L0 publicize skipped: NonSerialized does not hide fields from FullSerializer on this runtime; " + Target + " unchanged");
-                    return;
+                    return false;
                 }
-                c = new Context(assembly.MainModule);
+                c = new PublicizeContext(assembly.MainModule);
                 foreach (TypeDefinition type in c.Module.Types)
                 {
                     PlanType(type, c);
@@ -61,9 +83,10 @@ namespace ObenseuerCore.Preloader
             catch (Exception e)
             {
                 log.LogError("L0 publicize failed, " + Target + (applied ? " may be partially patched: " : " left unchanged: ") + e);
-                return;
+                return applied;
             }
             Report(log, c);
+            return applied;
         }
 
         private static bool ReadPublicize()
@@ -83,7 +106,7 @@ namespace ObenseuerCore.Preloader
             return typeof(FlagProbe).GetField("Hidden").IsDefined(typeof(NonSerializedAttribute), true);
         }
 
-        private sealed class Context
+        private sealed class PublicizeContext
         {
             public readonly ModuleDefinition Module;
             public readonly MethodReference FsIgnoreCtor;
@@ -93,7 +116,7 @@ namespace ObenseuerCore.Preloader
             public readonly SortedDictionary<string, int> Changed = new SortedDictionary<string, int>();
             public readonly SortedDictionary<string, int> Skipped = new SortedDictionary<string, int>();
 
-            public Context(ModuleDefinition module)
+            public PublicizeContext(ModuleDefinition module)
             {
                 Module = module;
                 FsIgnoreCtor = FsIgnoreConstructor(module);
@@ -133,7 +156,7 @@ namespace ObenseuerCore.Preloader
             counts[key] = n + 1;
         }
 
-        private static void CollectLookups(MethodDefinition method, Context c)
+        private static void CollectLookups(MethodDefinition method, PublicizeContext c)
         {
             if (!method.HasBody || !method.Body.Instructions.Any(ins => IsReflectionCall(ins, NameLookups)))
             {
@@ -166,7 +189,7 @@ namespace ObenseuerCore.Preloader
             }
         }
 
-        private static void PlanType(TypeDefinition type, Context c)
+        private static void PlanType(TypeDefinition type, PublicizeContext c)
         {
             if (IsCompilerGeneratedName(type.Name) || Has(type, CompilerGenerated))
             {
@@ -205,7 +228,7 @@ namespace ObenseuerCore.Preloader
             }
         }
 
-        private static void PlanMethod(MethodDefinition method, Context c)
+        private static void PlanMethod(MethodDefinition method, PublicizeContext c)
         {
             if (method.IsPublic)
             {
@@ -247,7 +270,7 @@ namespace ObenseuerCore.Preloader
             c.Change(method.IsConstructor ? "constructors" : "methods");
         }
 
-        private static void PlanProperty(PropertyDefinition property, Context c)
+        private static void PlanProperty(PropertyDefinition property, PublicizeContext c)
         {
             if (property.HasParameters || c.NameGuards.Contains(property.Name) || HasPublicAccessor(property))
             {
@@ -269,7 +292,7 @@ namespace ObenseuerCore.Preloader
             return (property.GetMethod != null && property.GetMethod.IsPublic) || (property.SetMethod != null && property.SetMethod.IsPublic);
         }
 
-        private static void PlanField(FieldDefinition field, Context c)
+        private static void PlanField(FieldDefinition field, PublicizeContext c)
         {
             if (field.IsPublic)
             {
@@ -337,7 +360,7 @@ namespace ObenseuerCore.Preloader
             Publicize(field, c, "protected/internal fields", false, true);
         }
 
-        private static void Publicize(FieldDefinition field, Context c, string key, bool fsIgnore, bool notSerialized)
+        private static void Publicize(FieldDefinition field, PublicizeContext c, string key, bool fsIgnore, bool notSerialized)
         {
             if (fsIgnore)
             {
@@ -357,7 +380,7 @@ namespace ObenseuerCore.Preloader
             c.Change(key);
         }
 
-        private static void AddAttribute(ICustomAttributeProvider target, MethodReference ctor, Context c, string key)
+        private static void AddAttribute(ICustomAttributeProvider target, MethodReference ctor, PublicizeContext c, string key)
         {
             CustomAttribute attribute = new CustomAttribute(ctor);
             c.Edits.Add(() => target.CustomAttributes.Add(attribute));
@@ -380,7 +403,7 @@ namespace ObenseuerCore.Preloader
             return underscore > 0 ? method.Name.Substring(underscore + 1) : method.Name;
         }
 
-        private static void Report(ManualLogSource log, Context c)
+        private static void Report(ManualLogSource log, PublicizeContext c)
         {
             log.LogInfo("L0 publicize applied in memory to " + Target + " (disk file untouched)");
             log.LogInfo("L0 changed: " + Join(c.Changed));

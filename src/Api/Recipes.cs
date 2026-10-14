@@ -68,6 +68,14 @@ namespace ObenseuerCore
 
         public List<ItemCount> FailResults { get; private set; }
 
+        public List<string> RequiredConditions { get; private set; }
+
+        public List<string> ExcludingConditions { get; private set; }
+
+        public float BaseFailChance { get; private set; }
+
+        public bool HardMinimumSkill { get; private set; }
+
         internal RecipeInfo(Recipe recipe, bool known)
         {
             Id = recipe.ID;
@@ -85,12 +93,32 @@ namespace ObenseuerCore
             }
             Results = ItemCount.FromDictionary(recipe.output, 1f);
             FailResults = ItemCount.FromDictionary(recipe.outputFail, 1f);
+            RequiredConditions = Recipes.Names(recipe.RequiredConditions);
+            ExcludingConditions = Recipes.Names(recipe.ExcludingConditions);
+            BaseFailChance = recipe.FailChance;
+            HardMinimumSkill = recipe.HardMinimumSkill;
+        }
+    }
+
+    public sealed class RecipeUnlockedArgs
+    {
+        public int RecipeId { get; private set; }
+
+        public bool Learned { get; private set; }
+
+        internal RecipeUnlockedArgs(int recipeId, bool learned)
+        {
+            RecipeId = recipeId;
+            Learned = learned;
         }
     }
 
     public static class Recipes
     {
         internal const string Owner = "obenseuer.moddingframework.recipes";
+        private static bool installed;
+
+        public static event Action<RecipeUnlockedArgs> Unlocked;
 
         public static List<RecipeInfo> All()
         {
@@ -164,7 +192,7 @@ namespace ObenseuerCore
             {
                 Recipe recipe = FindRecipe(recipeId);
                 RecipeController controller = RecipeController.instance;
-                if (recipe == null || controller == null || TaskItemsManager.instance == null) return false;
+                if (SaveGate.Busy || recipe == null || controller == null || TaskItemsManager.instance == null) return false;
                 return controller.AddRecipe(recipe, false, notify);
             }
             catch (Exception e)
@@ -172,6 +200,72 @@ namespace ObenseuerCore
                 ApiLog.Once(Recipes.Owner, "Unlock", e);
                 return false;
             }
+        }
+
+        public static bool CanCraftAt(int recipeId, CraftingStationInfo station)
+        {
+            try
+            {
+                Recipe recipe = FindRecipe(recipeId);
+                CraftingBase source = station == null ? null : station.Source;
+                if (recipe == null || source == null) return false;
+                return Array.IndexOf(source.RecipesWithUpgrades, recipe.Type) >= 0 && RecipeInfoUI.CheckModifiers(recipe, source.ModifiersWithUpgrades);
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Recipes.Owner, "CanCraftAt", e);
+                return false;
+            }
+        }
+
+        public static bool MeetsSkill(int recipeId)
+        {
+            try
+            {
+                Recipe recipe = FindRecipe(recipeId);
+                if (recipe == null || PlayerStats.instance == null) return false;
+                return RecipeInfoUI.CheckSkillSoft(recipe, 1f);
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Recipes.Owner, "MeetsSkill", e);
+                return false;
+            }
+        }
+
+        public static bool IsAvailable
+        {
+            get
+            {
+                return installed && !CorePatcher.IsDisabled(Owner);
+            }
+        }
+
+        internal static void Init()
+        {
+            installed = RecipesPatches.Install();
+            if (installed) return;
+            CorePatcher.DisableOwner(Owner);
+            CoreLog.For(Owner).Warn("recipe unlock hook incomplete, Unlocked is disabled");
+        }
+
+        internal static bool HasUnlockedHandlers
+        {
+            get { return Unlocked != null; }
+        }
+
+        internal static void RaiseUnlocked(int recipeId, bool learned)
+        {
+            RecipeUnlockedArgs args = new RecipeUnlockedArgs(recipeId, learned);
+            Events.Raise(Unlocked, "Recipes.Unlocked", h => h(args));
+        }
+
+        internal static List<string> Names<T>(IEnumerable<T> values)
+        {
+            List<string> names = new List<string>();
+            if (values == null) return names;
+            foreach (T value in values) names.Add(value.ToString());
+            return names;
         }
 
         internal static Recipe FindRecipe(int recipeId)

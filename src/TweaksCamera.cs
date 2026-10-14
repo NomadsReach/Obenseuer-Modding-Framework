@@ -1,5 +1,6 @@
 using System;
 using BepInEx.Configuration;
+using BepInEx.Unity.Mono.Configuration;
 using UnityEngine;
 
 namespace ObenseuerCore
@@ -23,7 +24,7 @@ namespace ObenseuerCore
             try
             {
                 CameraView.Enforce();
-                if (toggleEnabled && toggleKey.Value.IsDown() && !CoreInput.GameBusy()) CameraView.Toggle();
+                if (toggleEnabled && KeyChord.Down(toggleKey.Value, KeyChord.KeyDownOf, KeyChord.KeyHeldOf) && !CoreInput.GameBusy()) CameraView.Toggle(Tweaks.Owner);
             }
             catch (Exception e)
             {
@@ -34,7 +35,7 @@ namespace ObenseuerCore
         private static void SetToggle(bool enabled)
         {
             toggleEnabled = enabled;
-            if (!enabled) CameraView.Release();
+            if (!enabled) CameraView.Release(Tweaks.Owner);
         }
 
     }

@@ -58,6 +58,44 @@ namespace ObenseuerCore
         public bool IsReady { get; private set; }
         public string Error { get; private set; }
         public Bounds Bounds { get; private set; }
+
+        public Mesh CreateMesh()
+        {
+            if (!IsReady || Data == null) return null;
+            if (!Core.OnMain())
+            {
+                ApiLog.Once(ModelPatches.Owner, "CreateMesh off main thread", "not on the Unity main thread or Core has not started, returns null");
+                return null;
+            }
+            try
+            {
+                return ModelBuild.BuildMesh(Data, Options, 1f, Key);
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(ModelPatches.Owner, "CreateMesh", e);
+                return null;
+            }
+        }
+
+        public Material[] CreateMaterials(Material source)
+        {
+            if (!IsReady || source == null) return null;
+            if (!Core.OnMain())
+            {
+                ApiLog.Once(ModelPatches.Owner, "CreateMaterials off main thread", "not on the Unity main thread or Core has not started, returns null");
+                return null;
+            }
+            try
+            {
+                return ModelBuild.BuildMaterials(this, source);
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(ModelPatches.Owner, "CreateMaterials", e);
+                return null;
+            }
+        }
     }
 
     public static class ModelRegistry

@@ -44,10 +44,19 @@ namespace ObenseuerCore
         }
     }
 
+    [Flags]
+    internal enum HazardGroup
+    {
+        None = 0,
+        Radiation = 1,
+        Hurt = 2,
+        All = Radiation | Hurt
+    }
+
     public static class Hazards
     {
         internal const string Owner = "obenseuer.moddingframework.hazards";
-        private static bool installed;
+        private static HazardGroup installed;
 
         public static event Action<HazardEnteredArgs> Entered;
 
@@ -55,8 +64,13 @@ namespace ObenseuerCore
         {
             get
             {
-                return installed && !CorePatcher.IsDisabled(Owner);
+                return Installed(HazardGroup.All);
             }
+        }
+
+        internal static bool Installed(HazardGroup group)
+        {
+            return (installed & group) == group && !CorePatcher.IsDisabled(Owner);
         }
 
         public static List<HazardInfo> All()
@@ -116,9 +130,8 @@ namespace ObenseuerCore
         internal static void Init()
         {
             installed = HazardsPatches.Install();
-            if (installed) return;
-            CorePatcher.DisableOwner(Owner);
-            CoreLog.For(Owner).Warn("hazard hooks incomplete, Entered is disabled");
+            if (IsAvailable) return;
+            CoreLog.For(Owner).Warn("hazard hooks incomplete, IsAvailable is false, Entered is disabled for the missing hooks");
         }
 
         internal static bool HasHandlers
@@ -156,7 +169,7 @@ namespace ObenseuerCore
 
         private static void Collect<T>(List<HazardInfo> list, HazardKind kind, Func<T, bool> enabled) where T : Component
         {
-            foreach (T zone in UnityEngine.Object.FindObjectsByType<T>(UnityEngine.FindObjectsSortMode.None))
+            foreach (T zone in SceneIds.Active<T>())
             {
                 list.Add(new HazardInfo(IdOf(zone, kind), kind, zone.transform.position, enabled(zone)));
             }
@@ -164,7 +177,7 @@ namespace ObenseuerCore
 
         private static T Find<T>(string id, HazardKind kind) where T : Component
         {
-            foreach (T zone in UnityEngine.Object.FindObjectsByType<T>(UnityEngine.FindObjectsSortMode.None))
+            foreach (T zone in SceneIds.Active<T>())
             {
                 if (IdOf(zone, kind) == id) return zone;
             }

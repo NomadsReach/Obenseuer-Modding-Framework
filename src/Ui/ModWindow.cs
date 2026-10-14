@@ -267,7 +267,7 @@ namespace ObenseuerCore.Ui
             if (game == null) return;
             try
             {
-                game.ControlsEnabled(gameObject);
+                CoreInput.EnableControls(game, gameObject);
             }
             catch (Exception e)
             {

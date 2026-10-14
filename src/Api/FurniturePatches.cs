@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using HarmonyLib;
 using UnityEngine;
@@ -14,6 +15,13 @@ namespace ObenseuerCore
         {
             bool ok = Install();
             Installed = ok;
+            if (ok)
+            {
+                FurniturePools.Install();
+                FurnitureLoot.Install();
+                FurniturePlacement.Install();
+                FurnitureConsole.Install();
+            }
             if (!ok) CoreLog.For(FurnitureRegistry.Owner).Warn("furniture patches not installed, Define returns null");
             try
             {
@@ -23,8 +31,9 @@ namespace ObenseuerCore
             {
                 CoreLog.For(FurnitureRegistry.Owner).Error("save manifest not registered: " + e.ToString());
             }
-            SaveController.PlayerWillLoadGame += FurnitureManifestStore.BeginLoad;
             Events.HourPassed += OnHourPassed;
+            SaveController.LoadingDone += FurnitureBuild.ForgetFailures;
+            Events.SceneLoaded += scene => FurnitureBuild.ForgetFailures();
         }
 
         private static bool Install()
@@ -37,6 +46,8 @@ namespace ObenseuerCore
                 ok &= Hook(typeof(FurnitureShop), "CanSell", new[] { typeof(BuildingSystem.FurnitureInfo) }, null, "CanSellPostfix");
                 ok &= Hook(typeof(BuildingSystem), "AddFurniture", new[] { typeof(Furniture), typeof(GameObject), typeof(GameObject).MakeByRefType(), typeof(int), typeof(BuildingSystem.FurnitureInfo.Meta) }, "AddFurniturePrefix", null);
                 ok &= Hook(typeof(Furniture), "CreateTaskItem", new[] { typeof(Furniture), typeof(BuildingSystem.FurnitureInfo.Meta), typeof(TaskItem) }, null, "CreateTaskItemPostfix");
+                ok &= Hook(typeof(TaskItem), "Compare", new[] { typeof(TaskItem) }, "ComparePrefix", null);
+                ok &= Hook(typeof(SaveController), "SaveGame", new[] { typeof(string), typeof(string), typeof(string) }, "SaveGamePrefix", null, "SaveGameFinalizer");
                 return ok;
             }
             catch (Exception e)
@@ -47,13 +58,15 @@ namespace ObenseuerCore
             }
         }
 
-        private static bool Hook(Type type, string name, Type[] args, string prefix, string postfix)
+        private static bool Hook(Type type, string name, Type[] args, string prefix, string postfix, string finalizer = null)
         {
-            return CorePatcher.PatchCore(type, name, args, CorePatcher.Handler(typeof(FurniturePatches), prefix), CorePatcher.Handler(typeof(FurniturePatches), postfix), null, true, FurnitureRegistry.Owner);
+            return CorePatcher.PatchCore(type, name, args, CorePatcher.Handler(typeof(FurniturePatches), prefix), CorePatcher.Handler(typeof(FurniturePatches), postfix), CorePatcher.Handler(typeof(FurniturePatches), finalizer), true, FurnitureRegistry.Owner);
         }
 
         private static bool LoadFromPathPrefix(SavableScriptableObject __instance, ref ScriptableObject __result)
         {
+            TaskItemBlueprint blueprint = __instance as TaskItemBlueprint;
+            if (blueprint != null) return BlueprintPrefix(blueprint, ref __result);
             Furniture saved = __instance as Furniture;
             if (saved == null || !FurnitureRegistry.IsModId(saved.id)) return true;
             try
@@ -67,6 +80,64 @@ namespace ObenseuerCore
             {
                 ApiLog.Once(FurnitureRegistry.Owner, "LoadFromPath prefix", e);
                 return true;
+            }
+        }
+
+        private static bool BlueprintPrefix(TaskItemBlueprint saved, ref ScriptableObject __result)
+        {
+            if (!FurnitureRegistry.IsModId(saved.id)) return true;
+            try
+            {
+                __result = FurnitureBlueprints.Resolve(saved);
+                return false;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(FurnitureRegistry.Owner, "LoadFromPath blueprint prefix", e);
+                return true;
+            }
+        }
+
+        private static bool ComparePrefix(TaskItem __instance, TaskItem taskItem, ref bool __result)
+        {
+            if (__instance == null || taskItem == null) return true;
+            try
+            {
+                if (!FurnitureIds.IsModId(__instance.id) && !FurnitureIds.IsModId(taskItem.id)) return true;
+                if (__instance.id == taskItem.id) return true;
+                __result = false;
+                return false;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(FurnitureRegistry.Owner, "TaskItem Compare prefix", e);
+                return true;
+            }
+        }
+
+        private static void SaveGamePrefix(out object __state)
+        {
+            List<StrippedBlueprint> stripped = new List<StrippedBlueprint>();
+            __state = stripped;
+            try
+            {
+                FurnitureBlueprints.Strip(stripped);
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(FurnitureRegistry.Owner, "SaveGame prefix", e);
+            }
+        }
+
+        private static void SaveGameFinalizer(object __state)
+        {
+            try
+            {
+                FurnitureBlueprints.Restore(__state as List<StrippedBlueprint>);
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(FurnitureRegistry.Owner, "SaveGame finalizer", e);
             }
         }
 

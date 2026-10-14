@@ -56,7 +56,11 @@ namespace ObenseuerCore
 
         private static float Sample(byte[] d, int p, int width, int format)
         {
-            if (format == FormatFloat) return BitConverter.ToSingle(d, p);
+            if (format == FormatFloat)
+            {
+                float value = BitConverter.ToSingle(d, p);
+                return float.IsNaN(value) ? 0f : Mathf.Clamp(value, -1f, 1f);
+            }
             if (width == 1) return (d[p] - 128) / 128f;
             if (width == 2) return BitConverter.ToInt16(d, p) / 32768f;
             if (width == 3) return ((d[p] | d[p + 1] << 8 | d[p + 2] << 16) << 8 >> 8) / 8388608f;

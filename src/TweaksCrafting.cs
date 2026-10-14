@@ -54,7 +54,7 @@ namespace ObenseuerCore
         private static void ProcessTimePostfix(Recipe __instance, float multpiler, float equipmentQuality, ref int __result)
         {
             if (noMinimumSkill) __result = (int)((float)__instance.ProcessTime * multpiler / equipmentQuality);
-            if (speed != Tweaks.Default && __result > 0) __result = Math.Max(1, (int)(__result / speed));
+            if (speed != Tweaks.Default && __result > 0) __result = Math.Max(1, (int)Math.Min(__result / (double)speed, 2000000000.0));
         }
 
         private static void StartCraftingPostfix(BaseCrafting __instance)
@@ -63,9 +63,9 @@ namespace ObenseuerCore
             __instance.craftingLength /= speed;
         }
 
-        private static void CheckSkillSoftPostfix(ref bool __result)
+        private static void CheckSkillSoftPostfix(Recipe recipe, float equipmentquality, ref bool __result)
         {
-            if (noMinimumSkill) __result = true;
+            if (noMinimumSkill && Recipe.CurrentFailChance(recipe.FailChance, recipe.RelevantSkill, equipmentquality, recipe.SkillFactor, 0) < 1f) __result = true;
         }
     }
 }

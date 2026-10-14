@@ -15,6 +15,7 @@ namespace ObenseuerCore
             InstallFailed = !ok;
             Installed = ok;
             if (!ok) CoreLog.For(RegistryIds.Owner).Warn("item and recipe patches not installed, Define returns -1");
+            InstallPlaceholders();
             try
             {
                 SaveData.Register<RegistryManifest>(RegistryIds.Owner, RegistryManifestStore.Build, RegistryManifestStore.Warn);
@@ -44,9 +45,81 @@ namespace ObenseuerCore
             }
         }
 
+        private static void InstallPlaceholders()
+        {
+            bool ok = PlaceholderHook(typeof(ItemDatabase), "FetchItemByID", new[] { typeof(int) }, "FetchItemByIdPostfix", true);
+            ok &= PlaceholderHook(typeof(ItemReference), ".ctor", new[] { typeof(Item) }, "ItemReferencePostfix", true);
+            ok &= PlaceholderHook(typeof(ItemReference), ".ctor", new[] { typeof(int) }, "ItemReferencePostfix", true);
+            PlaceholderHook(typeof(Trade), "CheckIfAllowed", new[] { typeof(ItemData) }, "CheckIfAllowedPostfix", false);
+            CorePatcher.PatchCore(typeof(ItemOperations), "SetCollectibleItemValues", new[] { typeof(ItemStack), typeof(UnityEngine.GameObject), typeof(bool) }, CorePatcher.Handler(typeof(RegistryPatches), "DropPrefix"), null, null, false, RegistryIds.PlaceholderOwner);
+            if (!ok) CoreLog.For(RegistryIds.Owner).Warn("missing item placeholders not installed: an unknown item id shows as coin again");
+        }
+
+        private static bool PlaceholderHook(Type type, string name, Type[] args, string postfix, bool core)
+        {
+            return CorePatcher.PatchCore(type, name, args, null, CorePatcher.Handler(typeof(RegistryPatches), postfix), null, core, RegistryIds.PlaceholderOwner);
+        }
+
         private static bool Hook(Type type, string name, Type[] args, string postfix)
         {
             return CorePatcher.PatchCore(type, name, args, null, CorePatcher.Handler(typeof(RegistryPatches), postfix), null, true, RegistryIds.Owner);
+        }
+
+        private static void FetchItemByIdPostfix(int id, ref Item __result)
+        {
+            try
+            {
+                if (id < RegistryIds.FirstId) return;
+                if (__result != null)
+                {
+                    RegistryPlaceholders.Forget(id);
+                    return;
+                }
+                __result = RegistryPlaceholders.For(id);
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(RegistryIds.Owner, "item placeholder", e);
+            }
+        }
+
+        private static void ItemReferencePostfix(ItemReference __instance)
+        {
+            try
+            {
+                if (RegistryPlaceholders.IsPlaceholder(__instance.ID)) __instance.name = "";
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(RegistryIds.Owner, "item placeholder reference", e);
+            }
+        }
+
+        private static void DropPrefix(ItemStack item, UnityEngine.GameObject gameObject)
+        {
+            try
+            {
+                if (item == null || gameObject == null || !RegistryPlaceholders.IsMissing(item.itemId)) return;
+                CollectibleItem collectible = gameObject.GetComponent<CollectibleItem>();
+                if (collectible != null) collectible.Item = new ItemReference(item.itemId);
+                else ApiLog.Once(RegistryIds.Owner, "item placeholder drop without CollectibleItem", "the dropped placeholder's prefab has no CollectibleItem, so its item id is not set on the drop");
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(RegistryIds.Owner, "item placeholder drop", e);
+            }
+        }
+
+        private static void CheckIfAllowedPostfix(ItemData itemData, ref bool __result)
+        {
+            try
+            {
+                if (__result && itemData != null && itemData.item != null && RegistryPlaceholders.IsPlaceholder(itemData.item.ID)) __result = false;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(RegistryIds.Owner, "item placeholder sale", e);
+            }
         }
 
         private static void DeSerializePostfix(Type type, object __result)

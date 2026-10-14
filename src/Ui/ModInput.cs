@@ -14,13 +14,28 @@ namespace ObenseuerCore.Ui
 
         internal static bool Engaged
         {
+            get { return applied; }
+        }
+
+        internal static bool Locked
+        {
             get { return locks > 0; }
         }
 
         internal static void Engage()
         {
             locks++;
-            if (locks > 1 || applied) return;
+            Apply();
+        }
+
+        internal static void Tick()
+        {
+            if (locks > 0) Apply();
+        }
+
+        private static void Apply()
+        {
+            if (applied) return;
             GameController game = GameController.instance;
             if (game == null) return;
             try

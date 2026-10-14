@@ -1,10 +1,16 @@
-# ObenseuerCore story API (Quests, Dialogue, Law)
+---
+title: Story API (Quests, Dialogue, Law)
+parent: API reference
+nav_order: 94
+---
 
-Experimental. Not checked in game.
+# Story API (Quests, Dialogue, Law)
+
+Experimental.
 Game: Obenseuer 0.5.05 (build 25839246), Unity Mono.
 Namespace: `ObenseuerCore`. Log owners: `obenseuer.moddingframework.quests`, `obenseuer.moddingframework.dialogue`, `obenseuer.moddingframework.law`. Logs go to `BepInEx\logs\<owner>.log`.
 
-Everything not listed here is internal. Items marked **experimental** are not checked in game.
+Everything not listed here is internal. Items marked **experimental** may change.
 
 ## Rules for all three facades
 
@@ -14,8 +20,8 @@ Everything not listed here is internal. Items marked **experimental** are not ch
 - **Events are deferred.** A story event is queued during the game's own call and raised from `LateUpdate` of a `DontDestroyOnLoad` host object that the facades create. Handlers run outside the game's call, so they may call writers. Events are raised in the order they were queued. An event queued while events are being raised waits for the next frame. A handler that throws is logged, and the other handlers still run.
 - **Intercepts are synchronous.** `Intercept` handlers run inside the game's call, in registration order, and may cancel or redirect it. A call made from inside an intercept handler skips the intercept handlers, so that game call goes through unchanged. A handler that throws is logged and skipped.
 - **After a load.** Loading a save replaces the dialogue variable table. A mod that needs Lua variables must set them again on `Events.Loaded`, which fires when a save finishes loading. Lua functions registered with `RegisterFunction` live in memory, so register them again after each start.
-- **Removing a mod.** `RemoveAll(modId)` removes that mod's intercepts. Dialogue also unregisters that mod's Lua functions.
-- **Saves.** Write calls in Money, Inventory, Containers, Quests, Dialogue, Law and the world-object APIs return false while the game is loading or saving. Story events queued meanwhile are raised once the save or load ends.
+- **Removing a mod.** `RemoveAll(modId)` removes that mod's intercepts and its responses from `AddResponse`. Dialogue also unregisters that mod's Lua functions.
+- **Saves.** Write calls in Money, Inventory, Containers, Quests, Dialogue, Law and the world-object APIs return false while the game is loading or saving. A story event queued before a load starts is dropped when the load is of another character, when the main menu opens, or when a new game starts. A level change of the same character keeps it, because the game saves and reloads the same character's save. Story events queued while a save or load runs are raised once it ends.
 
 ## Quests (experimental)
 
@@ -66,7 +72,7 @@ A task id or objective id must match exactly one entry. Zero or several matches 
 
 **Writes.**
 - `SetTask(taskId, state)` accepts `Failed`, `Finished` and `Abandoned`. The task must be Active. Returns `true` when the task has the new state after the call.
-- **Experimental: `SetTask(taskId, Finished)` does not run the game's own completion effects or the task's follow-up tasks.** The game's `TaskController.EditTaskStatus` (`QuestsDialogue/TaskController.cs`) only changes the task's status and moves it to the finished list. It marks each still-active objective Abandoned, which runs that objective's abandon follow-ups. Not checked in game.
+- **Experimental: `SetTask(taskId, Finished)` does not run the game's own completion effects or the task's follow-up tasks.** The game's `TaskController.EditTaskStatus` only changes the task's status and moves it to the finished list. It marks each still-active objective Abandoned, which runs that objective's abandon follow-ups.
 - `SetObjective(taskId, objectiveId, state)` accepts `Failed`, `Finished` and `Abandoned`. The objective must be Active. `Finished` also needs the game's complete requirements to pass. Returns `true` when the objective has the new state after the call.
 - `AddProgress(taskId, objectiveId, amount)` needs `amount` above 0 and an Active objective with a counter. The amount is clamped to the room left on the counter, so the counter never passes its target. When the add reaches the target, the objective completes through the game unless it is set not to complete by its counter. In that case the complete requirements must pass first, or the call returns `false` and changes nothing. Returns `true` when the counter or the status changed.
 - Writers refuse while a quest hook is running. A quest hook is one of the game's own `EditTask`, `EditTaskStatus` or `EditTaskObjective` calls, including calls made from another mod's Harmony patch. The refusal returns `false` and is logged once as "called while a quest hook is running". Event handlers run after the hook, so they may call writers.
@@ -116,6 +122,9 @@ public static class Dialogue
     public static bool Start(string title, Transform actor, Transform conversant);   // experimental
     public static void Stop();                                                       // experimental
     public static void Intercept(string modId, ConversationHandler handler);
+    public static string AddResponse(string modId, string conversationTitle, string anchorText, string playerText, string npcReply, string luaCondition, Action onPicked);   // experimental
+    public static string AddResponse(string modId, string conversationTitle, int anchorId, string playerText, string npcReply, string luaCondition, Action onPicked);   // experimental
+    public static bool RemoveResponse(string modId, string key);   // experimental
     public static void RemoveAll(string modId);
 }
 ```
@@ -134,18 +143,19 @@ The game saves dialogue variables in `Globals.dialogue` as Lua text, and a bad n
 
 **Conversations.**
 - `Start(title, actor, conversant)` (experimental) returns `false` when a conversation is running, `title` is empty, or the game is loading or saving. It starts the conversation through `InteractableTalk.StartDialogue` when the conversant has that component, and through `DialogueManager.StartConversation` otherwise. It returns whether a conversation is running after the call, because the game can refuse to start one, for example when no dialogue UI is present.
-- `Stop()` (experimental) ends all running conversations through the Dialogue System's `StopAllConversations`. It may leave the conversant mid-dialogue: the state that `InteractableTalk.CheckStartDialogueInterrupt` set when the talk started (`PlayerStats.Active`, the control locks, the dialogue registration) is cleared only when the game's close callback (`DialogueController.OnDialogueClosed`) runs. Not checked in game.
-- `Intercept(modId, handler)` runs before every conversation start, whether the game or this API starts it. `args.Title` redirects the conversation, and `args.Cancel` stops it. A redirect is used only when `Exists(title)` is true. Otherwise the original title is kept and the refusal is logged once. Handlers run in registration order. Registering the same handler for the same mod again does nothing.
-- **Cancel (experimental).** A cancelled start skips the game's `StartConversation`, so the code that asked for the conversation gets none. Known risks, from review and not checked in game: a BehaviorDesigner task that waits for `waitForConversationCompletion` can stall; cutscene starters that wait for a conversation can freeze; `InteractableTalk` changes its own state before it starts a conversation (`RE/InteractableTalk.cs`, about lines 233-262), and its `DelayCheck` (about lines 294-301) repairs that state. Cancel only where you know the starter.
-- `Started(title)` and `Ended(title)` come from the game's `OnConversationStart` and `OnConversationEnd` messages. They fire for every conversation, including those the game starts itself. A message can reach the object twice in some setups (not checked in game). `CurrentTitle` is `""` whenever `IsActive` is false.
+- `Stop()` (experimental) ends all running conversations through the Dialogue System's `StopAllConversations`, also while a save loads or saves (`SaveGate.Busy`), so it is never refused. It may leave the conversant mid-dialogue: the state that `InteractableTalk.CheckStartDialogueInterrupt` set when the talk started (`PlayerStats.Active`, the control locks, the dialogue registration) is cleared only when the game's close callback (`DialogueController.OnDialogueClosed`) runs.
+- `Intercept(modId, handler)` runs before every conversation start, whether the game or this API starts it. `args.Title` redirects the conversation, and `args.Cancel` stops it. A redirect is used only when `Exists(title)` is true. Otherwise the original title is kept and the refusal is logged once. Handlers run in registration order. Any `Cancel` wins: once a handler sets it, the later handlers still run and see `Cancel` as `true`, and setting it back to `false` has no effect. `Title` is last-writer-wins and is ignored once cancelled. Registering the same handler for the same mod again does nothing.
+- **Cancel (experimental).** A cancelled start skips the game's `StartConversation`, so the code that asked for the conversation gets none. Known risks: a BehaviorDesigner task that waits for `waitForConversationCompletion` can stall; cutscene starters that wait for a conversation can freeze; `InteractableTalk` changes its own state before it starts a conversation (the game's `InteractableTalk` class), and its `DelayCheck` repairs that state. Cancel only where you know the starter.
+- `Started(title)` and `Ended(title)` come from the game's `OnConversationStart` and `OnConversationEnd` messages. They fire for every conversation, including those the game starts itself. A message can reach the object twice in some setups. `CurrentTitle` is `""` whenever `IsActive` is false.
 
 **Lua functions.** `RegisterFunction` registers the Lua global `Mod_<prefix>_<name>` and returns that name. `prefix` is the mod id with each character that is not an ASCII letter or digit replaced by `_`. When that replacement changes the id, the prefix also gets `_` and an 8-digit hex FNV-1a hash of the original mod id. So `a.b` and `a_b` never collide, and the name does not depend on which mod loads first. `name` must be a Lua identifier. Parameters must be `float`, `string` or `bool`, because Lua numbers arrive as `float`. `target` is `null` for a static method, and an instance of the method's class otherwise. Registering a name again replaces the earlier function. Returns `null` when the facade is not available.
 
-Core registers four functions when Dialogue is available, at startup and after each scene load. They are not in the `Mod_` namespace.
+The framework registers five functions when Dialogue is available, at startup and after each scene load. They are not in the `Mod_` namespace.
 - `Core_QuestState(taskId)` returns `"Active"`, `"Failed"`, `"Finished"`, `"Abandoned"` or `""`.
 - `Core_ObjectiveState(taskId, objectiveId)` returns the objective state name, or `""`.
 - `Core_CrimeTotal()` returns `Law.Total`.
 - `Core_CrimeAgainst(npcId)` returns `Law.GetAgainst(npcId)`. `npcId` is a number.
+- `Core_ResponsePicked(key)` runs the `onPicked` of the response with that key. The framework's response lines call it, so a mod does not.
 
 Example:
 
@@ -197,11 +207,15 @@ public static class Law
     public static int SentenceHours { get; }    // sentence length, rounded
     public static int TimesInJail { get; }
     public static bool IsArrestInProgress { get; }
+    public static bool HasStolenGoods { get; }  // carried stolen goods, false when the inventory is not loaded
+    public static int StolenGoodsValue { get; } // carried stolen goods minus permitted items, 0 to int.MaxValue
     public static float GetGeneric(CrimeKind kind);  // amount of the generic records of that kind
     public static float GetAgainst(int npcId);       // amount recorded against one NPC, 0 for ids of 0 or less
     public static bool Commit(CrimeKind kind, int severity, int victimNpcId, bool silent);
     public static bool Clear();                 // all crime records
     public static bool Clear(int victimNpcId);  // one victim's records, across every crime type
+    public static bool Clear(CrimeKind kind);   // the first generic record of that kind
+    public static bool Clear(int victimNpcId, CrimeKind kind);  // the first record of that kind against one victim
     public static bool Arrest(float severityFactor);  // experimental
     public static void Intercept(string modId, CrimeHandler handler);
     public static void RemoveAll(string modId);
@@ -210,12 +224,14 @@ public static class Law
 
 **Reads.** Reads return 0 or false when the crime system is not loaded (main menu) or the call fails.
 - `Total` includes carried stolen goods. `TotalFromRecords` counts crime records only. `FineRM` is the fine, rounded.
+- `HasStolenGoods` and `StolenGoodsValue` read the stolen goods the player carries. `StolenGoodsValue` leaves out goods with a permitted owner, and it is 0 when the inventory is not loaded.
 - `SentenceHours` is the game's sentence formula, computed from the crime fields: the crime count without stolen goods divided by `crimePerPrisonHour`, rounded, then clamped to 1 through 100 plus 12 for each earlier jail term. `TimesInJail` counts the earlier jail terms.
 
 **Crimes.**
 - `Commit(kind, severity, victimNpcId, silent)` records a crime through the game's `CommitCrime`, which every crime goes through. It returns `true` when the crime was recorded. It returns `false` and records nothing when the crime system is not loaded, `kind` is `None` or undefined, `severity` is outside 1 through 1000000, the achievements are not loaded, an intercept cancels the crime, or the game call throws. `victimNpcId` above 0 names the victim. 0 means no victim.
 - `Clear()` clears all crime records. `Clear(victimNpcId)` clears one victim's records across every crime type, and returns `false` for an id of 0 or less. Both return `false` while an arrest is in progress or a level change is active.
-- `Intercept(modId, handler)` runs for every crime, before it is recorded. In `CrimeArgs`, `Kind` can be changed (a `None` or undefined value keeps the game's kind), `Severity` is clamped to 1 through 1000000 only when the handler changed it, and `Silent` and `Cancel` can be set. A cancelled crime is not recorded, and `Committed` does not fire. Registering the same handler for the same mod again does nothing.
+- `Clear(kind)` clears the first generic record of that kind, the one `GetGeneric` sums, and leaves victim records alone. `Clear(victimNpcId, kind)` clears the first record of that kind against that victim, and leaves generic records alone. Both return `false` for a `None` or undefined kind, and `Clear(victimNpcId, kind)` also returns `false` for an id of 0 or less. Both refuse under the same conditions as `Clear()`. They reset the game's bribe flag even when no record matches, so `true` means the game call ran, not that a record was cleared.
+- `Intercept(modId, handler)` runs for every crime, before it is recorded. In `CrimeArgs`, `Kind` can be changed (a `None` or undefined value keeps the game's kind), `Severity` is clamped to 1 through 1000000 only when the handler changed it, and `Silent` and `Cancel` can be set. A cancelled crime is not recorded, and `Committed` does not fire. Handlers run in registration order. Any `Cancel` wins: once a handler sets it, the later handlers still run and see `Cancel` as `true`, and setting it back to `false` has no effect. `Kind`, `Severity` and `Silent` are last-writer-wins and are ignored once cancelled. Registering the same handler for the same mod again does nothing.
 - `Committed(crime)` fires for each crime that was recorded. Its `Severity` is the recorded value, at least 1.
 
 **Arrest (experimental).** `Arrest(severityFactor)` sends the player to prison through the game's `Crime.GoToPrison`. `severityFactor` must be above 0 and at most 100. It returns `false` and does nothing when:
@@ -231,7 +247,7 @@ A successful call has these effects, all from the game's `GoToPrison`:
 - `timesInJail` increases by one, which raises the sentence cap by 12 hours;
 - police pursuits stop, the `ARRESTED` achievement is triggered, tiredness is set to at least 10, the player passes out, and the arrest sleep event is scheduled 10 seconds later.
 
-If the game throws during the call, Core clears the arrest-in-progress flag, and `Arrest` returns `false`.
+If the game throws during the call, the framework clears the arrest-in-progress flag, and `Arrest` returns `false`.
 
 **Events.**
 - `Spotted` fires when `Witness.IsWitnessed` returns true for a crime witness, only for calls with `invoke` set, at most once per frame.
@@ -249,6 +265,5 @@ int owed = Law.FineRM;
 
 ## Not in this version
 
-- Quests: `Define`, `QuestDef`, `ObjectiveDef`, `Start`, `RemoveAll`. Defining quests needs an unverified save round trip, and starting a game quest needs an id-to-asset catalog.
-- Dialogue: `Add`, `ConversationDef`, `LineDef`, `SetText`, `SetConditions`, `Describe`, `SetActorField`, `IsTrue`, and the `LuaHandler` delegate. `RegisterFunction` takes a `MethodInfo` and a target instead of a delegate.
+- Quests and dialogue authoring are not on this page. See [Quest authoring](api/quest-authoring.md) and [Dialogue authoring](api/dialogue-authoring.md).
 - Law: `SetFineMultiplier`, `SetPrisonDrainPerHour`. They would write game fields whose lifecycle is unverified.

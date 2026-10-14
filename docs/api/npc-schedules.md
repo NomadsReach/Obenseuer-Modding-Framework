@@ -1,7 +1,13 @@
+---
+title: Obenseuer Modding Framework NPC schedule API (npcschedules)
+parent: API reference
+nav_order: 50
+---
+
 # Obenseuer Modding Framework NPC schedule API (npcschedules)
 
-Status: experimental. Not checked in game.
-Game: Obenseuer 0.5.05 (build 25839246), Unity Mono.
+Status: experimental.
+Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Log owner: `obenseuer.moddingframework.npcschedules`. Logs go to `BepInEx\logs\obenseuer.moddingframework.npcschedules.log`.
 
 Ids are the NPC ids from the `Npcs` facade (`NpcInfo.Id`, `Npcs.All()`). This area does not list NPCs.
@@ -13,8 +19,8 @@ Ids are the NPC ids from the `Npcs` facade (`NpcInfo.Id`, `Npcs.All()`). This ar
 - **Availability.** Every member is safe at any time: main menu, loading, no save loaded. Reads return a neutral default (`null` or an empty list) when no NPC data exists for the id.
 - **Bad arguments.** No member throws. An unknown id returns `null` or an empty list.
 - **Game failures.** When a read throws inside the game, it returns its neutral default. The first throw of each member is logged at Error.
-- **Events run inside the game's call.** `ActivityChanged` is raised from a postfix on the game's activity setter, on the main thread. It is raised only when there is at least one subscriber. Handlers run through `Events.Raise`, so a handler that throws is logged and the other handlers still run. Do not start or stop NPC activities synchronously from a handler.
-- **No polling.** Core runs no timer. The event comes from the game's own activity setter. The game assigns `null` to an idle NPC's activity every frame (`NPCController.cs:246`), so the hook runs often, but with no subscriber, or when the activity did not change, it only reads one field and returns. The NPC lookup runs only for a real change with a subscriber.
+- **Events run inside the game's call.** `ActivityChanged` is raised from a postfix on the game's activity setter, on the main thread. It is raised only when there is at least one subscriber. Handlers run one at a time, so a handler that throws is logged and the other handlers still run. Do not start or stop NPC activities synchronously from a handler.
+- **No polling.** The framework runs no timer. The event comes from the game's own activity setter. The game assigns `null` to an idle NPC's activity every frame, so the hook runs often, but with no subscriber, or when the activity did not change, it only reads one field and returns. The NPC lookup runs only for a real change with a subscriber.
 - **All or nothing.** The activity hook is one patch under the owner `obenseuer.moddingframework.npcschedules`. If it is missing in this build, the owner is disabled, one warning is logged, and `ActivityChanged` never fires. The reads keep working.
 
 ## Schedules
@@ -63,9 +69,9 @@ public static class NpcSchedules
 
 ## Not included
 
-- **SetPaused.** Not added. The game's off-screen pause flag (`NPCDataState.schedulerDisabled`) does not stop an NPC that is in the loaded scene. The scheduler keeps starting activities for in-scene NPCs. The in-scene switch (`NPCController.DisableActivity`) interrupts the running activity and needs a live controller. There is no single pause that works for both.
+- **SetPaused.** Not added. The game's off-screen pause flag (`NPCDataState.schedulerDisabled`) does not stop an NPC that is in the loaded scene. The scheduler keeps starting activities for in-scene NPCs. The in-scene switch (`NPCController.DisableActivity`) interrupts the running activity and needs a live controller. There is no single pause that works for both. The flag is also saved, and a flagged NPC is not spawned when its scene loads, so a pause would hide the NPC. For an in-scene hold, use `NpcMovement.SetActivityEnabled`.
 - **GoTo.** Not added. `NPCPathfinding` only computes a path (`SearchForPath`) and does not set an NPC's target. The NPC-level move (`NPCController.SetTargetPosition`) works only in the loaded scene, and the scheduler replaces it with the next scheduled activity.
 
-## Install
+## Save loads
 
-- `NpcSchedules.Init` is internal. It is called once from `Core` (`src/Core.cs`), with `Isolate`.
+The framework does not gate this event on a save load. A handler that should ignore events raised while a save loads can check `SaveData.Busy`, which is true while a save is loading or being written.

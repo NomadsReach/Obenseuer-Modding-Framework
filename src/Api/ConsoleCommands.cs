@@ -59,7 +59,18 @@ namespace ObenseuerCore
             ModIds.Require(modId, "modId");
             if (string.IsNullOrEmpty(name) || name.IndexOfAny(InvalidNameChars) >= 0) throw new ArgumentException("name must be one word without spaces or quotes", "name");
             if (run == null) throw new ArgumentNullException("run");
-            if (!IsAvailable || Array.IndexOf(BuiltIn, name) >= 0 || Find(name) != null) return false;
+            if (!IsAvailable) return false;
+            if (Array.IndexOf(BuiltIn, name) >= 0)
+            {
+                CoreLog.For(HudReport.Owner).Warn("console command " + name + " is a game command, the call from " + modId + " is ignored");
+                return false;
+            }
+            ConsoleCommandEntry existing = Find(name);
+            if (existing != null)
+            {
+                if (existing.ModId != modId) CoreLog.For(HudReport.Owner).Warn("console command " + name + " is already registered by " + existing.ModId + ", the call from " + modId + " is ignored");
+                return false;
+            }
             commands.Add(new ConsoleCommandEntry(modId, name, help ?? "", run));
             return true;
         }

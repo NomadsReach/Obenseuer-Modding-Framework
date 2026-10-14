@@ -3,27 +3,67 @@ using System.Collections.Generic;
 
 namespace ObenseuerCore
 {
+    public enum BreakdownKind
+    {
+        Suicide,
+        SelfHarm,
+        Mushrooms,
+        Alcohol
+    }
+
+    public sealed class BreakdownArgs
+    {
+        public BreakdownKind Kind { get; private set; }
+
+        public bool Cancel { get; set; }
+
+        internal BreakdownArgs(BreakdownKind kind)
+        {
+            Kind = kind;
+        }
+    }
+
+    [Flags]
+    internal enum SurvivalGroup
+    {
+        None = 0,
+        Consumables = 1,
+        Needs = 2,
+        Death = 4,
+        Damage = 8,
+        Breakdown = 16,
+        Depression = 32,
+        All = Consumables | Needs | Death | Damage | Breakdown | Depression
+    }
+
     public static partial class Survival
     {
         internal const string Owner = "obenseuer.moddingframework.survival";
-        private static bool installed;
+        private static SurvivalGroup installed;
         private static readonly List<Watch> watches = new List<Watch>();
+        private static Watch[] ticking = new Watch[0];
+        private static bool inTick;
 
         public static event Action<DamageTypeNames> PlayerDied;
         public static event Action PassedOut;
         public static event Action<float, DamageTypeNames> Damaged;
+        public static event Action<BreakdownArgs> Breakdown;
 
         public static bool IsAvailable
         {
             get
             {
-                return installed && !CorePatcher.IsDisabled(Owner);
+                return Installed(SurvivalGroup.All);
             }
+        }
+
+        internal static bool Installed(SurvivalGroup group)
+        {
+            return (installed & group) == group && !CorePatcher.IsDisabled(Owner);
         }
 
         public static float Get(Stat stat)
         {
-            if (!IsAvailable) return 0f;
             try
             {
                 PlayerStats p = PlayerStats.instance;
@@ -38,7 +78,7 @@ namespace ObenseuerCore
 
         public static bool Set(Stat stat, float value)
         {
-            if (!IsAvailable || float.IsNaN(value)) return false;
+            if (SaveGate.Busy || float.IsNaN(value)) return false;
             try
             {
                 PlayerStats p = PlayerStats.instance;
@@ -57,9 +97,17 @@ namespace ObenseuerCore
         {
             ModIds.RequireLegacy(modId, "modId");
             if (callback == null) throw new ArgumentNullException("callback");
-            if (!IsAvailable) return false;
+            if (!Installed(SurvivalGroup.Needs)) return false;
+            if (watches.Exists(w => w.ModId == modId && w.Watched == stat && w.Threshold == threshold && w.Callback == callback)) return true;
             watches.Add(new Watch { ModId = modId, Watched = stat, Threshold = threshold, Callback = callback });
             return true;
+        }
+
+        public static bool RemoveCrossed(string modId, Action<Stat, float, bool> callback)
+        {
+            ModIds.RequireLegacy(modId, "modId");
+            if (callback == null) throw new ArgumentNullException("callback");
+            return watches.RemoveAll(w => w.ModId == modId && w.Callback == callback) > 0;
         }
 
         public static void RemoveAll(string modId)
@@ -67,6 +115,7 @@ namespace ObenseuerCore
             ModIds.RequireLegacy(modId, "modId");
             Decay.RemoveOwner(modId);
             Consumables.Remove(modId);
+            damageHandlers.RemoveAll(entry => entry.Key == modId);
             watches.RemoveAll(w => w.ModId == modId);
         }
 
@@ -74,14 +123,26 @@ namespace ObenseuerCore
         {
             installed = SurvivalPatches.Install();
             Events.Loaded += ResetBaselines;
-            CoreLog.For(Owner).Info(installed ? "survival installed" : "survival not installed");
+            CoreLog.For(Owner).Info(installed == SurvivalGroup.All ? "survival installed" : "survival not installed, missing " + (SurvivalGroup.All & ~installed));
         }
 
         internal static void Tick()
         {
             PlayerStats p = PlayerStats.instance;
-            if (p == null) return;
-            foreach (Watch w in watches.ToArray()) CheckWatch(p, w);
+            if (p == null || watches.Count == 0 || inTick) return;
+            inTick = true;
+            try
+            {
+                int count = watches.Count;
+                if (ticking.Length < count) ticking = new Watch[count];
+                watches.CopyTo(ticking);
+                for (int i = 0; i < count; i++) CheckWatch(p, ticking[i]);
+                Array.Clear(ticking, 0, count);
+            }
+            finally
+            {
+                inTick = false;
+            }
         }
 
         internal static void RaisePlayerDied(DamageTypeNames reason)
@@ -99,9 +160,29 @@ namespace ObenseuerCore
             Events.Raise(Damaged, "Survival.Damaged", h => h(lost, reason));
         }
 
+        internal static bool RaiseBreakdown(BreakdownKind kind)
+        {
+            if (!Installed(SurvivalGroup.Breakdown | SurvivalGroup.Depression) || Breakdown == null || SaveGate.Busy) return true;
+            BreakdownArgs args = new BreakdownArgs(kind);
+            bool cancelled = false;
+            Events.Raise(Breakdown, "Survival.Breakdown", h =>
+            {
+                try
+                {
+                    h(args);
+                }
+                finally
+                {
+                    cancelled |= args.Cancel;
+                    args.Cancel = cancelled;
+                }
+            });
+            return !cancelled;
+        }
+
         internal static void Fail(string what, Exception e)
         {
-            CoreLog.For(Owner).Error(what + " failed: " + e.ToString());
+            ApiLog.Once(Owner, what, e);
         }
 
         private static void CheckWatch(PlayerStats p, Watch w)
@@ -120,7 +201,7 @@ namespace ObenseuerCore
             }
             catch (Exception e)
             {
-                CoreLog.For(w.ModId).Error("OnCrossed " + w.Watched + " failed: " + e.ToString());
+                ApiLog.Once(w.ModId, "OnCrossed " + w.Watched, e);
             }
         }
 

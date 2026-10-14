@@ -1,0 +1,41 @@
+<Project>
+  <PropertyGroup>
+    <ObenseuerSteamRoot Condition="'$(ObenseuerSteamRoot)' == ''">C:\Program Files (x86)\Steam</ObenseuerSteamRoot>
+    <GameDir Condition="'$(GameDir)' == ''">$(OBENSEUER_DIR)</GameDir>
+  </PropertyGroup>
+
+  <Import Project="$(MSBuildThisFileDirectory)GameDir.user.props" Condition="'$(GameDir)' == '' And Exists('$(MSBuildThisFileDirectory)GameDir.user.props')" />
+
+  <PropertyGroup Condition="'$(GameDir)' == '' And Exists('$(ObenseuerSteamRoot)\steamapps\common\Obenseuer\Obenseuer_Data\Managed\Assembly-CSharp.dll')">
+    <GameDir>$(ObenseuerSteamRoot)\steamapps\common\Obenseuer</GameDir>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(GameDir)' == ''">
+    <SteamLibraryText Condition="Exists('$(ObenseuerSteamRoot)\steamapps\libraryfolders.vdf')">$([System.IO.File]::ReadAllText('$(ObenseuerSteamRoot)\steamapps\libraryfolders.vdf'))</SteamLibraryText>
+    <SteamLibrary1>$([System.Text.RegularExpressions.Regex]::Replace($(SteamLibraryText), '(?s)^(?:.*?"path"\s+"([^"]*)"){1}.*|.*', '$1'))</SteamLibrary1>
+    <SteamLibrary2>$([System.Text.RegularExpressions.Regex]::Replace($(SteamLibraryText), '(?s)^(?:.*?"path"\s+"([^"]*)"){2}.*|.*', '$1'))</SteamLibrary2>
+    <SteamLibrary3>$([System.Text.RegularExpressions.Regex]::Replace($(SteamLibraryText), '(?s)^(?:.*?"path"\s+"([^"]*)"){3}.*|.*', '$1'))</SteamLibrary3>
+    <SteamLibrary4>$([System.Text.RegularExpressions.Regex]::Replace($(SteamLibraryText), '(?s)^(?:.*?"path"\s+"([^"]*)"){4}.*|.*', '$1'))</SteamLibrary4>
+    <GameDir Condition="Exists('$(SteamLibrary1)\steamapps\common\Obenseuer\Obenseuer_Data\Managed\Assembly-CSharp.dll')">$(SteamLibrary1)\steamapps\common\Obenseuer</GameDir>
+    <GameDir Condition="'$(GameDir)' == '' And Exists('$(SteamLibrary2)\steamapps\common\Obenseuer\Obenseuer_Data\Managed\Assembly-CSharp.dll')">$(SteamLibrary2)\steamapps\common\Obenseuer</GameDir>
+    <GameDir Condition="'$(GameDir)' == '' And Exists('$(SteamLibrary3)\steamapps\common\Obenseuer\Obenseuer_Data\Managed\Assembly-CSharp.dll')">$(SteamLibrary3)\steamapps\common\Obenseuer</GameDir>
+    <GameDir Condition="'$(GameDir)' == '' And Exists('$(SteamLibrary4)\steamapps\common\Obenseuer\Obenseuer_Data\Managed\Assembly-CSharp.dll')">$(SteamLibrary4)\steamapps\common\Obenseuer</GameDir>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(GameDir)' == ''">
+    <GameDir>$(ObenseuerSteamRoot)\steamapps\common\Obenseuer</GameDir>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <ManagedDir>$(GameDir)\Obenseuer_Data\Managed</ManagedDir>
+    <BepInExCore>$(GameDir)\BepInEx\core</BepInExCore>
+    <Loader Condition="'$(Loader)' == '' And Exists('$(BepInExCore)\BepInEx.Core.dll')">BepInEx6</Loader>
+    <Loader Condition="'$(Loader)' == '' And Exists('$(BepInExCore)\BepInEx.dll')">BepInEx5</Loader>
+    <Loader Condition="'$(Loader)' == ''">BepInEx6</Loader>
+    <DefineConstants Condition="'$(Loader)' == 'BepInEx5'">$(DefineConstants);BEPINEX5</DefineConstants>
+    <DefineConstants Condition="'$(Loader)' == 'BepInEx6'">$(DefineConstants);BEPINEX6</DefineConstants>
+    <FrameworkFile Condition="'$(Loader)' == 'BepInEx5'">ObenseuerCore.BepInEx5.dll</FrameworkFile>
+    <FrameworkFile Condition="'$(Loader)' == 'BepInEx6'">ObenseuerCore.dll</FrameworkFile>
+    <FrameworkDll>$(GameDir)\BepInEx\plugins\ObenseuerCore\$(FrameworkFile)</FrameworkDll>
+  </PropertyGroup>
+</Project>

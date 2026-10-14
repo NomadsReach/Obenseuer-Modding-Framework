@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 namespace ObenseuerCore
@@ -36,6 +37,24 @@ namespace ObenseuerCore
             host = new GameObject("ObenseuerCore.Story");
             Object.DontDestroyOnLoad(host);
             host.AddComponent<StoryDriver>();
+            SaveController.PlayerWillLoadGame += OnWillLoadGame;
+        }
+
+        internal static void Clear()
+        {
+            queue.Clear();
+        }
+
+        private static void OnWillLoadGame()
+        {
+            if (!SameCharacter(SaveController.LastSaveFolderPath, SaveData.CharacterName)) queue.Clear();
+        }
+
+        private static bool SameCharacter(string folder, string character)
+        {
+            string trimmed = (folder ?? "").TrimEnd('/', '\\');
+            if (trimmed.Length == 0 || character == null) return false;
+            return string.Equals(Path.GetFileName(Path.GetDirectoryName(trimmed)), character, System.StringComparison.OrdinalIgnoreCase);
         }
 
         internal static void Enqueue(StoryEvent e)

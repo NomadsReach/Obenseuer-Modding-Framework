@@ -2,12 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using OS.Items;
 
 namespace ObenseuerCore
 {
     public sealed class ItemDefinition
     {
         public int TemplateId;
+        public int WieldTemplateId = -1;
         public string Title;
         public string Description;
         public int BaseValue = -1;
@@ -17,6 +19,7 @@ namespace ObenseuerCore
         public ModelHandle Model;
     }
 
+    /// <seealso cref="Items"/>
     public static class ItemRegistry
     {
         private const int MaxCategories = 32;
@@ -33,9 +36,22 @@ namespace ObenseuerCore
             get { return loaded; }
         }
 
+        internal static bool IsAnnounced
+        {
+            get { return announced != null; }
+        }
+
         public static bool IsAvailable
         {
             get { return RegistryPatches.Installed && !CorePatcher.IsDisabled(RegistryIds.Owner); }
+        }
+
+        /// <summary>
+        /// True while Define is accepted: the item database has not loaded and the registry did not fail to install.
+        /// </summary>
+        public static bool CanDefine
+        {
+            get { return !loaded && !RegistryPatches.InstallFailed; }
         }
 
         public static int IdFor(string modGuid, string key)
@@ -58,12 +74,79 @@ namespace ObenseuerCore
             return id;
         }
 
+        public static bool SetHeldModel(string modGuid, int itemId, ModelHandle model)
+        {
+            ModIds.Require(modGuid, "modGuid");
+            if (itemId < 0) throw new ArgumentException("itemId must be 0 or more", "itemId");
+            if (model == null) throw new ArgumentNullException("model");
+            if (!ModelRegistry.Owns(model)) throw new ArgumentException("model must come from ModelRegistry.LoadObj", "model");
+            if (!IsAvailable)
+            {
+                CoreLog.For(RegistryIds.Owner).Error("held model for item " + itemId + " refused by " + modGuid + ": the item registry is not installed");
+                return false;
+            }
+            return RegistryHeld.Set(modGuid, itemId, model);
+        }
+
+        public static List<MissingItemInfo> MissingItems()
+        {
+            if (SaveGate.Busy || !IsAnnounced) return new List<MissingItemInfo>();
+            try
+            {
+                return RegistryMissing.Scan();
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(RegistryIds.Owner, "ItemRegistry.MissingItems", e);
+                return new List<MissingItemInfo>();
+            }
+        }
+
+        public static bool RemoveMissingItems(string modId)
+        {
+            if (string.IsNullOrEmpty(modId))
+            {
+                ApiLog.Once(RegistryIds.Owner, "ItemRegistry.RemoveMissingItems", "modId is empty, so no item was removed. Call RemoveAllMissingItems to clear every mod.");
+                return false;
+            }
+            ModIds.Require(modId, "modId");
+            return RemoveStacks(modId);
+        }
+
+        public static bool RemoveAllMissingItems()
+        {
+            return RemoveStacks(null);
+        }
+
+        private static bool RemoveStacks(string modId)
+        {
+            if (SaveGate.Busy || !IsAnnounced) return false;
+            try
+            {
+                return RegistryMissing.Remove(modId);
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(RegistryIds.Owner, "ItemRegistry.RemoveMissingItems", e);
+                return false;
+            }
+        }
+
         internal static void AddManifestEntries(List<RegistryManifestEntry> entries)
         {
             foreach (PendingItem entry in pending)
             {
                 if (entry.Applied) entries.Add(new RegistryManifestEntry { Id = entry.Id, Mod = entry.ModGuid, Key = entry.Key, Title = entry.Title });
             }
+        }
+
+        internal static bool IsDefined(int id)
+        {
+            foreach (PendingItem entry in pending)
+            {
+                if (entry.Id == id) return true;
+            }
+            return false;
         }
 
         internal static bool IsApplied(int id)
@@ -118,6 +201,7 @@ namespace ObenseuerCore
             {
                 CoreLog.For(RegistryIds.Owner).Error("item " + entry.ModGuid + "/" + entry.Key + " not added: " + entry.Error);
             }
+            RegistryHeld.Apply(list);
         }
 
         internal static void OnAssigned()
@@ -133,6 +217,7 @@ namespace ObenseuerCore
         private static ItemDefinition Snapshot(ItemDefinition definition)
         {
             if (definition.TemplateId < 0) throw new ArgumentException("TemplateId must be 0 or more", "definition");
+            if (definition.WieldTemplateId < -1) throw new ArgumentException("WieldTemplateId must be 0 or more, or -1 for none", "definition");
             RegistryIds.CheckText(definition.Title, 1, 200, "Title");
             RegistryIds.CheckText(definition.Description, 0, 2000, "Description");
             if (definition.BaseValue < -1) throw new ArgumentException("BaseValue must be 0 or more, or -1 to keep the template's", "definition");
@@ -151,6 +236,7 @@ namespace ObenseuerCore
             return new ItemDefinition
             {
                 TemplateId = definition.TemplateId,
+                WieldTemplateId = definition.WieldTemplateId,
                 Title = definition.Title,
                 Description = definition.Description,
                 BaseValue = definition.BaseValue,
@@ -179,6 +265,8 @@ namespace ObenseuerCore
             Item template = Find(list, entry.Definition.TemplateId);
             if (template == null || template.Appearance == null) return "template id " + entry.Definition.TemplateId + " is not in the catalogue";
             Item item = Clone(template, entry);
+            string wield = CopyWield(list, item, entry.Definition.WieldTemplateId);
+            if (wield != null) return wield;
             ItemDatabase.LoadItemReferencedAssets(item);
             ItemIcons.Apply(item, entry.Definition.IconPath);
             ModelRegistry.Attach(item, entry.Definition.TemplateId, entry.Definition.Model);
@@ -205,7 +293,26 @@ namespace ObenseuerCore
             };
         }
 
-        private static Item Find(List<Item> list, int id)
+        private static string CopyWield(List<Item> list, Item item, int wieldTemplateId)
+        {
+            if (wieldTemplateId < 0) return null;
+            Item source = Find(list, wieldTemplateId);
+            if (source == null) return "WieldTemplateId " + wieldTemplateId + " is not in the catalogue";
+            ItemEquipable from = source.GetActionOfType<ItemEquipable>() as ItemEquipable;
+            if (from == null) return "WieldTemplateId " + wieldTemplateId + " is not an equipable item";
+            ItemEquipable to = item.GetActionOfType<ItemEquipable>() as ItemEquipable;
+            if (to == null) return "TemplateId of an item with WieldTemplateId must be an equipable item";
+            to.wieldPrefab = from.wieldPrefab;
+            to.wieldPrefabPath = from.wieldPrefabPath;
+            return null;
+        }
+
+        internal static Item FindInDatabase(int id)
+        {
+            return ItemDatabase.instance == null ? null : Find(ItemDatabase.database, id);
+        }
+
+        internal static Item Find(List<Item> list, int id)
         {
             foreach (Item item in list)
             {

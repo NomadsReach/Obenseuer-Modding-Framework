@@ -27,6 +27,19 @@ namespace ObenseuerCore
             }
         }
 
+        internal static bool InstallPayout()
+        {
+            try
+            {
+                return CorePatcher.PatchCore(typeof(RatFightArena), "EndRound", new[] { typeof(int) }, CorePatcher.Handler(typeof(ContestsPatches), "RoundPayoutPrefix"), CorePatcher.Handler(typeof(ContestsPatches), "RoundPayoutPostfix"), null, true, Contests.PayoutOwner);
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Contests.Owner, "install payout", e);
+                return false;
+            }
+        }
+
         internal static ContestController.IContestParticipant ActiveParticipant()
         {
             if (ContestController.instance == null || activeParticipantField == null) return null;
@@ -118,6 +131,33 @@ namespace ObenseuerCore
             catch (Exception e)
             {
                 ApiLog.Once(Contests.Owner, "EndRound postfix", e);
+            }
+        }
+
+        private static void RoundPayoutPrefix(RatFightArena __instance, int winningCombatant, out bool __state)
+        {
+            __state = false;
+            try
+            {
+                __state = __instance.currentState == RatFightArena.State.Fighting && __instance.playerBettingOn == winningCombatant && __instance.betAmount.IsNonZero();
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Contests.Owner, "EndRound payout prefix", e);
+            }
+        }
+
+        private static void RoundPayoutPostfix(RatFightArena __instance, bool __state)
+        {
+            try
+            {
+                if (!__state) return;
+                __instance.winAmount = Contests.Payout(__instance, __instance.winAmount);
+                if (!__instance.winAmount.IsMoreThanZero()) __instance.currentState = RatFightArena.State.Betting;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Contests.Owner, "EndRound payout postfix", e);
             }
         }
     }

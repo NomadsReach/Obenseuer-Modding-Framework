@@ -12,25 +12,75 @@ namespace ObenseuerCore
         {
             try
             {
-                bool ok = Hook(typeof(TenementController), "MoveResident", new[] { typeof(TenementApartment) }, null, "MoveInPostfix");
-                ok &= Hook(typeof(TenementController), "EvictResident", new[] { typeof(TenementApartment), typeof(bool), typeof(bool), typeof(bool) }, "EvictPrefix", "EvictPostfix");
-                ok &= Hook(typeof(TenementController), "UpdateRentPayment", new[] { typeof(int) }, "RentPrefix", "RentPostfix");
-                ok &= Hook(typeof(DifficultyInfo), "GetRentPayment", new[] { typeof(TimeAndDay) }, null, "RentDuePostfix");
-                ok &= Hook(typeof(TenementEvent), "OnTrigger", new[] { typeof(int) }, null, "EventPostfix");
-                ok &= Hook(typeof(FurnitureManager), "PlacedFurniture", new[] { typeof(GameObject) }, null, "PlacedPostfix");
-                ok &= Hook(typeof(FurnitureManager), "TookFurniture", new[] { typeof(GameObject) }, null, "TookPostfix");
-                return ok;
+                bool ok = Hook(Housing.Owner, typeof(TenementController), "MoveResident", new[] { typeof(TenementApartment) }, null, "MoveInPostfix");
+                ok &= Hook(Housing.Owner, typeof(TenementController), "EvictResident", new[] { typeof(TenementApartment), typeof(bool), typeof(bool), typeof(bool) }, "EvictPrefix", "EvictPostfix");
+                return ok & Hook(Housing.Owner, typeof(TenementEvent), "OnTrigger", new[] { typeof(int) }, null, "EventPostfix");
             }
             catch (Exception e)
             {
+                CorePatcher.DisableOwner(Housing.Owner);
                 ApiLog.Once(Housing.Owner, "install", e);
                 return false;
             }
         }
 
-        private static bool Hook(Type type, string name, Type[] args, string prefix, string postfix)
+        internal static bool InstallRent()
         {
-            return CorePatcher.PatchCore(type, name, args, CorePatcher.Handler(typeof(HousingPatches), prefix), CorePatcher.Handler(typeof(HousingPatches), postfix), null, false, Housing.Owner);
+            try
+            {
+                bool rent = Hook(Housing.RentOwner, typeof(TenementController), "UpdateRentPayment", new[] { typeof(int) }, "RentPrefix", "RentPostfix");
+                rent &= Hook(Housing.RentOwner, typeof(DifficultyInfo), "GetRentPayment", new[] { typeof(TimeAndDay) }, null, "RentDuePostfix");
+                return rent;
+            }
+            catch (Exception e)
+            {
+                CorePatcher.DisableOwner(Housing.RentOwner);
+                ApiLog.Once(Housing.Owner, "install rent", e);
+                return false;
+            }
+        }
+
+        internal static bool InstallFurniture()
+        {
+            try
+            {
+                bool placed = Hook(Housing.FurnitureOwner, typeof(FurnitureManager), "PlacedFurniture", new[] { typeof(GameObject) }, null, "PlacedPostfix");
+                bool took = Hook(Housing.FurnitureOwner, typeof(FurnitureManager), "TookFurniture", new[] { typeof(GameObject) }, null, "TookPostfix");
+                bool built = Hook(Housing.FurnitureOwner, typeof(BuildingSystem), "Place", Type.EmptyTypes, "BuildPrefix", null, "BuildFinalizer");
+                bool info = Hook(Housing.FurnitureOwner, typeof(FurniturePlaceable), "SetFurnitureInfo", new[] { typeof(BuildingSystem.FurnitureInfo), typeof(FurnitureManager) }, null, "SetInfoPostfix");
+                return placed & took & built & info;
+            }
+            catch (Exception e)
+            {
+                CorePatcher.DisableOwner(Housing.FurnitureOwner);
+                ApiLog.Once(Housing.Owner, "install furniture", e);
+                return false;
+            }
+        }
+
+        internal static bool InstallEviction()
+        {
+            try
+            {
+                bool started = Hook(Housing.EvictionOwner, typeof(TenementController), "StartEviction", new[] { typeof(TenementApartment), typeof(float) }, "EvictionPrefix", null, "StartEvictionFinalizer");
+                return started & Hook(Housing.EvictionOwner, typeof(TenementController), "CancelEviction", new[] { typeof(TenementApartment) }, "EvictionPrefix", null, "CancelEvictionFinalizer");
+            }
+            catch (Exception e)
+            {
+                CorePatcher.DisableOwner(Housing.EvictionOwner);
+                ApiLog.Once(Housing.Owner, "install eviction", e);
+                return false;
+            }
+        }
+
+        private static bool Hook(string owner, Type type, string name, Type[] args, string prefix, string postfix)
+        {
+            return Hook(owner, type, name, args, prefix, postfix, null);
+        }
+
+        private static bool Hook(string owner, Type type, string name, Type[] args, string prefix, string postfix, string finalizer)
+        {
+            return CorePatcher.PatchCore(type, name, args, CorePatcher.Handler(typeof(HousingPatches), prefix), CorePatcher.Handler(typeof(HousingPatches), postfix), CorePatcher.Handler(typeof(HousingPatches), finalizer), true, owner);
         }
 
         private static void MoveInPostfix(TenementApartment apartment)
@@ -125,6 +175,76 @@ namespace ObenseuerCore
             catch (Exception e)
             {
                 ApiLog.Once(Housing.Owner, "PlacedFurniture postfix", e);
+            }
+        }
+
+        private static void BuildPrefix()
+        {
+            Building.Placing = true;
+            Building.Placed = null;
+        }
+
+        private static void BuildFinalizer(Exception __exception)
+        {
+            try
+            {
+                FurniturePlaceable placed = Building.Placed;
+                if (__exception == null && placed != null && placed.manager != null) Building.RaiseFurniturePlaced(Building.Describe(placed.manager.GUID, placed.gameObject));
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Housing.Owner, "BuildingSystem.Place finalizer", e);
+            }
+            finally
+            {
+                Building.Placing = false;
+                Building.Placed = null;
+            }
+        }
+
+        private static void SetInfoPostfix(FurniturePlaceable __instance)
+        {
+            if (Building.Placing) Building.Placed = __instance;
+        }
+
+        private static void EvictionPrefix(TenementApartment apartment, out bool __state)
+        {
+            __state = false;
+            try
+            {
+                __state = apartment != null && apartment.evictionStarted;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Housing.Owner, "eviction prefix", e);
+            }
+        }
+
+        private static void StartEvictionFinalizer(TenementApartment apartment, bool __state)
+        {
+            try
+            {
+                if (__state || SaveGate.Busy || apartment == null || !apartment.evictionStarted) return;
+                TenantInfo tenant = Housing.ActiveTenant(apartment);
+                if (tenant != null) Housing.RaiseEvictionStarted(new TenantArgs(apartment.apartmentNumber, tenant));
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Housing.Owner, "StartEviction finalizer", e);
+            }
+        }
+
+        private static void CancelEvictionFinalizer(TenementApartment apartment, bool __state)
+        {
+            try
+            {
+                if (!__state || SaveGate.Busy || apartment == null || apartment.evictionStarted) return;
+                TenantInfo tenant = Housing.ActiveTenant(apartment);
+                if (tenant != null) Housing.RaiseEvictionCancelled(new TenantArgs(apartment.apartmentNumber, tenant));
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Housing.Owner, "CancelEviction finalizer", e);
             }
         }
 

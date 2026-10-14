@@ -57,6 +57,14 @@ namespace ObenseuerCore
             {
                 NetLog.Once("NetPump.Presence", e);
             }
+            try
+            {
+                NetBlob.Tick();
+            }
+            catch (Exception e)
+            {
+                NetLog.Once("NetPump.NetBlob", e);
+            }
         }
     }
 

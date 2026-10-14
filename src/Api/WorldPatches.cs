@@ -6,27 +6,31 @@ namespace ObenseuerCore
     internal static class WorldPatches
     {
         internal const string Owner = "obenseuer.moddingframework.world";
-        internal static bool Installed;
+        internal const string WeatherOwner = Owner + ".weather";
+        internal const string BlackoutOwner = Owner + ".blackout";
+        internal const string GeneratorOwner = Owner + ".generator";
+        internal static bool WeatherInstalled;
+        internal static bool BlackoutInstalled;
+        internal static bool GeneratorInstalled;
 
         internal static void Init()
         {
-            bool ok = Hook(typeof(WeatherManager), "ChangeWeather", new[] { typeof(float) }, null, "WeatherChangedPostfix");
-            ok &= Hook(typeof(BlackoutTrigger), "StartBlackout", Type.EmptyTypes, "StartBlackoutPrefix", "StartBlackoutPostfix");
-            ok &= Hook(typeof(CraftingBase), "Toggle", new[] { typeof(bool) }, "ToggleCraftingPrefix", "ToggleCraftingPostfix");
-            Installed = ok;
-            if (ok) return;
-            CorePatcher.DisableOwner(Owner);
-            CoreLog.For("ObenseuerCore").Warn("world hooks incomplete, world events are disabled, the read and write facades still work");
+            WeatherInstalled = Hook(WeatherOwner, typeof(WeatherManager), "ChangeWeather", new[] { typeof(float) }, null, "WeatherChangedPostfix");
+            BlackoutInstalled = Hook(BlackoutOwner, typeof(BlackoutTrigger), "StartBlackout", Type.EmptyTypes, "StartBlackoutPrefix", "StartBlackoutPostfix");
+            GeneratorInstalled = Hook(GeneratorOwner, typeof(CraftingBase), "Toggle", new[] { typeof(bool) }, "ToggleCraftingPrefix", "ToggleCraftingPostfix");
+            if (WeatherInstalled && BlackoutInstalled && GeneratorInstalled) return;
+            CoreLog.For("ObenseuerCore").Warn("world hooks incomplete, events whose hooks are missing are disabled, the read and write facades still work");
         }
 
-        private static bool Hook(Type type, string name, Type[] args, string prefix, string postfix)
+        private static bool Hook(string owner, Type type, string name, Type[] args, string prefix, string postfix)
         {
             try
             {
-                return CorePatcher.PatchCore(type, name, args, CorePatcher.Handler(typeof(WorldPatches), prefix), CorePatcher.Handler(typeof(WorldPatches), postfix), null, true, Owner);
+                return CorePatcher.PatchCore(type, name, args, CorePatcher.Handler(typeof(WorldPatches), prefix), CorePatcher.Handler(typeof(WorldPatches), postfix), null, true, owner);
             }
             catch (Exception e)
             {
+                CorePatcher.DisableOwner(owner);
                 CoreLog.For("ObenseuerCore").Error("world hook " + type.Name + "." + name + " failed: " + e.ToString());
                 return false;
             }

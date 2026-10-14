@@ -1,7 +1,13 @@
+---
+title: Obenseuer Modding Framework shop hours API (opening times)
+parent: API reference
+nav_order: 71
+---
+
 # Obenseuer Modding Framework shop hours API (opening times)
 
-Experimental. Not checked in game.
-Game: Obenseuer 0.5.05 (build 25839246), Unity Mono.
+Experimental.
+Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Log owner: `obenseuer.moddingframework.shophours`. Logs go to `BepInEx\logs\obenseuer.moddingframework.shophours.log`.
 
 Everything not listed here is internal. Main thread only.
@@ -36,4 +42,4 @@ public sealed class ShopDayInfo
 - `Opens > Closes` means the shop is open overnight. The game applies both windows to the same weekday row: from `Opens` until midnight and from midnight until `Closes`, on that day. A row does not carry on into the next day, so Monday `20` to `4` is open on Monday from 00:00 to 04:00 and from 20:00.
 - `Opens < Closes` means the shop is open from `Opens` up to `Closes`.
 - `Hours` starts at Monday (`DayOfWeek.Monday`), which is the game's weekday 0.
-- The facade has no events and no patches, so there is no `Init` and no `IsAvailable`.
+- The facade has no events and no patches, so there is no `IsAvailable`.

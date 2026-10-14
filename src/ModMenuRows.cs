@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
 using BepInEx;
-using BepInEx.Bootstrap;
 using BepInEx.Configuration;
+using BepInEx.Unity.Mono;
+using BepInEx.Unity.Mono.Configuration;
 using ObenseuerCore.Ui;
 using TMPro;
 using UnityEngine;
@@ -31,14 +32,14 @@ namespace ObenseuerCore
             groups.Clear();
             query = "";
             ModUi.TextField(content, "Search", "", Filter);
-            List<PluginInfo> plugins = new List<PluginInfo>(Chainloader.PluginInfos.Values);
+            List<PluginInfo> plugins = Loader.All();
             plugins.Sort(ByName);
             int failed = 0;
             for (int p = 0; p < plugins.Count; p++)
             {
                 PluginInfo info = plugins[p];
                 if (info.Instance == null) continue;
-                List<ConfigEntryBase> entries = Visible(info.Instance.Config);
+                List<ConfigEntryBase> entries = Visible(((BaseUnityPlugin)info.Instance).Config);
                 if (entries.Count == 0) continue;
                 Group group = AddGroup(content, info.Metadata.Name);
                 string section = null;
@@ -80,6 +81,25 @@ namespace ObenseuerCore
                     CoreLog.For(ModMenu.Owner).Warn("config not saved: " + e.GetType().Name + ": " + e.Message);
                 }
             }
+        }
+
+        internal static void InitQuitFlush()
+        {
+            CorePatcher.PatchCore(typeof(PauseMenu), "QuitDesktop", Type.EmptyTypes, CorePatcher.Handler(typeof(ModMenuConfigList), "FlushBeforeQuit"), null, null, false, ModMenu.Owner);
+            CorePatcher.PatchCore(typeof(global::MainMenu), "QuitOK", Type.EmptyTypes, CorePatcher.Handler(typeof(ModMenuConfigList), "FlushBeforeQuit"), null, null, false, ModMenu.Owner);
+        }
+
+        private static void FlushBeforeQuit()
+        {
+            try
+            {
+                FlushSaves(true);
+            }
+            catch (Exception e)
+            {
+                CoreLog.For(ModMenu.Owner).Warn("config not saved before quit: " + e.GetType().Name + ": " + e.Message);
+            }
+            Core.Guard("CoreLog.FlushSuppressed", CoreLog.FlushSuppressed);
         }
 
         internal static void MarkDirty(ConfigFile file)

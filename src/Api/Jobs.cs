@@ -64,7 +64,7 @@ namespace ObenseuerCore
             List<JobInfo> list = new List<JobInfo>();
             try
             {
-                foreach (InteractableWaitWork job in UnityEngine.Object.FindObjectsByType<InteractableWaitWork>(UnityEngine.FindObjectsSortMode.None))
+                foreach (InteractableWaitWork job in SceneIds.Active<InteractableWaitWork>())
                 {
                     list.Add(ToInfo(job));
                 }
@@ -115,7 +115,7 @@ namespace ObenseuerCore
             if (string.IsNullOrEmpty(id)) return null;
             try
             {
-                foreach (InteractableWaitWork job in UnityEngine.Object.FindObjectsByType<InteractableWaitWork>(UnityEngine.FindObjectsSortMode.None))
+                foreach (InteractableWaitWork job in SceneIds.Active<InteractableWaitWork>())
                 {
                     if (IdOf(job) == id) return job;
                 }

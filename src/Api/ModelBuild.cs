@@ -16,10 +16,11 @@ namespace ObenseuerCore
         private const string HolderName = "ObxModels";
         private const string ErrorPath = "Prefabs/Items/ERROR";
         private const int MaxTextureSide = 2048;
+        internal const long MaxImageBytes = 16L * 1024 * 1024;
         private const int MaxConvexTriangles = 255;
         private const int MaxUInt16Vertices = 65535;
         internal const float MinColliderEdge = 0.01f;
-        private static readonly Dictionary<string, Texture2D> textures = new Dictionary<string, Texture2D>(StringComparer.OrdinalIgnoreCase);
+        private static readonly Dictionary<string, StampedEntry<Texture2D>> textures = new Dictionary<string, StampedEntry<Texture2D>>(StringComparer.OrdinalIgnoreCase);
         private static readonly string[] ClearedMaps = { "_BumpMap", "_MetallicGlossMap", "_OcclusionMap", "_EmissionMap", "_DetailAlbedoMap" };
         private static readonly string[] DisabledKeywords = { "_NORMALMAP", "_METALLICGLOSSMAP", "_DETAIL_MULX2" };
         private static readonly HashSet<string> diagnosed = new HashSet<string>();
@@ -167,7 +168,7 @@ namespace ObenseuerCore
             return best;
         }
 
-        private static float Largest(Vector3 size)
+        internal static float Largest(Vector3 size)
         {
             return Mathf.Max(size.x, Mathf.Max(size.y, size.z));
         }
@@ -255,9 +256,20 @@ namespace ObenseuerCore
         {
             List<ObjSubMesh> subs = handle.Data.SubMeshes;
             Material[] materials = new Material[subs.Count];
-            for (int i = 0; i < subs.Count; i++)
+            try
             {
-                materials[i] = MaterialFor(source, Named(handle.Mtl, subs[i].Material), handle.TexturePath);
+                for (int i = 0; i < subs.Count; i++)
+                {
+                    materials[i] = MaterialFor(source, Named(handle.Mtl, subs[i].Material), handle.TexturePath);
+                }
+            }
+            catch (Exception)
+            {
+                foreach (Material material in materials)
+                {
+                    if (material != null) UnityEngine.Object.DestroyImmediate(material);
+                }
+                throw;
             }
             return materials;
         }
@@ -307,21 +319,22 @@ namespace ObenseuerCore
 
         private static Texture2D Texture(string absPath)
         {
-            Texture2D texture;
-            if (textures.TryGetValue(absPath, out texture)) return texture;
-            texture = Decode(absPath);
-            textures[absPath] = texture;
-            return texture;
+            long stamp = ModelIcons.WriteStamp(absPath);
+            StampedEntry<Texture2D> cached;
+            if (textures.TryGetValue(absPath, out cached) && cached.Stamp == stamp) return cached.Value;
+            cached = new StampedEntry<Texture2D> { Value = Decode(absPath), Stamp = stamp };
+            textures[absPath] = cached;
+            return cached.Value;
         }
 
         private static Texture2D Decode(string absPath)
         {
             try
             {
-                byte[] bytes = File.ReadAllBytes(absPath);
-                if (PngOverSize(bytes))
+                byte[] bytes = new FileInfo(absPath).Length > MaxImageBytes ? null : File.ReadAllBytes(absPath);
+                if (bytes == null || ImageRefused(bytes, MaxTextureSide))
                 {
-                    CoreLog.For(ModelPatches.Owner).Warn("texture " + absPath + " is over " + MaxTextureSide + " px a side, it is not decoded, the material keeps its colour");
+                    CoreLog.For(ModelPatches.Owner).Warn("texture " + absPath + " is not a readable PNG or JPEG, or is over " + MaxTextureSide + " px a side or " + (MaxImageBytes >> 20) + " MB, it is not decoded, the material keeps its colour");
                     return null;
                 }
                 Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, true);
@@ -349,15 +362,48 @@ namespace ObenseuerCore
             }
         }
 
-        private static bool PngOverSize(byte[] bytes)
+        internal static bool PngOverSize(byte[] bytes, int limit)
         {
             if (bytes.Length < 24 || bytes[0] != 0x89 || bytes[1] != 0x50 || bytes[2] != 0x4E || bytes[3] != 0x47) return false;
             for (int at = 16; at <= 20; at += 4)
             {
                 long side = ((long)bytes[at] << 24) | ((long)bytes[at + 1] << 16) | ((long)bytes[at + 2] << 8) | bytes[at + 3];
-                if (side > MaxTextureSide) return true;
+                if (side > limit) return true;
             }
             return false;
+        }
+
+        internal static bool ImageRefused(byte[] bytes, int limit)
+        {
+            if (bytes.Length >= 4 && bytes[0] == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4E && bytes[3] == 0x47) return PngOverSize(bytes, limit);
+            return bytes.Length < 2 || bytes[0] != 0xFF || bytes[1] != 0xD8 || JpegOverSize(bytes, limit);
+        }
+
+        internal static bool JpegOverSize(byte[] bytes, int limit)
+        {
+            if (bytes.Length < 2 || bytes[0] != 0xFF || bytes[1] != 0xD8) return false;
+            int at = 2;
+            while (at + 1 < bytes.Length)
+            {
+                if (bytes[at] != 0xFF || bytes[at + 1] == 0x00 || bytes[at + 1] == 0xFF)
+                {
+                    at++;
+                    continue;
+                }
+                int marker = bytes[at + 1];
+                if (marker == 0xD9) return true;
+                if (marker >= 0xC0 && marker <= 0xCF && marker != 0xC4 && marker != 0xC8 && marker != 0xCC)
+                {
+                    if (at + 9 > bytes.Length) return true;
+                    int height = bytes[at + 5] << 8 | bytes[at + 6];
+                    int width = bytes[at + 7] << 8 | bytes[at + 8];
+                    return width > limit || height > limit;
+                }
+                if (marker == 0x01 || marker == 0xD8 || (marker >= 0xD0 && marker <= 0xD7)) at += 2;
+                else if (at + 4 > bytes.Length) return true;
+                else at += 2 + (bytes[at + 2] << 8 | bytes[at + 3]);
+            }
+            return true;
         }
 
         private static GameObject Instance(WorldModel world, Item item)
@@ -435,7 +481,7 @@ namespace ObenseuerCore
             return path;
         }
 
-        private static GameObject Holder()
+        internal static GameObject Holder()
         {
             if (holder == null)
             {

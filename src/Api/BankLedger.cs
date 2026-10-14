@@ -31,7 +31,7 @@ namespace ObenseuerCore
     }
 
     [Serializable]
-    public sealed class BankLedgerAccount
+    internal sealed class BankLedgerAccount
     {
         public string BankName;
 
@@ -47,7 +47,7 @@ namespace ObenseuerCore
     }
 
     [Serializable]
-    public sealed class BankLedgerData
+    internal sealed class BankLedgerData
     {
         public int NextId = 1;
 
@@ -60,12 +60,24 @@ namespace ObenseuerCore
         public List<BankLedgerEntry> Entries = new List<BankLedgerEntry>();
     }
 
+    [Flags]
+    internal enum BankLedgerGroup
+    {
+        None = 0,
+        Accounts = 1,
+        Interest = 2,
+        Debt = 4,
+        Scam = 8,
+        Legal = 16,
+        All = Accounts | Interest | Debt | Scam | Legal
+    }
+
     public static class BankLedger
     {
         internal const string Owner = "obenseuer.moddingframework.bankledger";
         private const int Cap = 500;
         private const float Tolerance = 0.0001f;
-        private static bool installed;
+        private static BankLedgerGroup installed;
         private static bool failed;
         private static BankLedgerData data = new BankLedgerData();
 
@@ -75,7 +87,7 @@ namespace ObenseuerCore
         {
             get
             {
-                return installed && !failed && !CorePatcher.IsDisabled(Owner);
+                return (installed & BankLedgerGroup.Accounts) == BankLedgerGroup.Accounts && !failed && !CorePatcher.IsDisabled(Owner);
             }
         }
 
@@ -110,19 +122,20 @@ namespace ObenseuerCore
         internal static void Init()
         {
             installed = BankLedgerPatches.Install();
-            if (!installed)
+            if ((installed & BankLedgerGroup.Accounts) != BankLedgerGroup.Accounts)
             {
                 CorePatcher.DisableOwner(Owner);
                 CoreLog.For(Owner).Warn("bank ledger hooks incomplete, the history is off and banking still works");
                 return;
             }
+            if (installed != BankLedgerGroup.All) CoreLog.For(Owner).Warn("bank ledger hooks incomplete, a missing group's changes are recorded as Other");
             try
             {
                 SaveData.Register<BankLedgerData>(Owner, () => data, Load);
             }
             catch (Exception e)
             {
-                installed = false;
+                installed = BankLedgerGroup.None;
                 CorePatcher.DisableOwner(Owner);
                 CoreLog.For(Owner).Error("bank ledger save data not registered, the history is off: " + e);
                 return;
@@ -271,34 +284,44 @@ namespace ObenseuerCore
 
     internal static class BankLedgerPatches
     {
-        internal static bool Install()
+        private const string AccountsOwner = BankLedger.Owner + ".accounts";
+        private const string InterestOwner = BankLedger.Owner + ".interest";
+        private const string DebtOwner = BankLedger.Owner + ".debt";
+        private const string ScamOwner = BankLedger.Owner + ".scam";
+        private const string LegalOwner = BankLedger.Owner + ".legal";
+
+        internal static BankLedgerGroup Install()
         {
             try
             {
-                bool ok = Hook(typeof(Bank), "DepositWithdraw", new[] { typeof(int), typeof(float) }, null, "DepositPostfix");
-                ok &= Hook(typeof(Bank), "TakeLoan", new[] { typeof(Money.money) }, null, "LoanPostfix");
-                ok &= Hook(typeof(Bank), "PayLoan", new[] { typeof(int) }, null, "RepaymentPostfix");
-                ok &= Hook(typeof(Bank), "CreateAccount", Type.EmptyTypes, null, "OpenedPostfix");
-                ok &= Hook(typeof(Bank), "CreateAccountWithMoney", new[] { typeof(int), typeof(int) }, null, "OpenedPostfix");
-                ok &= Hook(typeof(Bank), "AddRMToAccount", new[] { typeof(int) }, null, "CreditPostfix");
-                ok &= Hook(typeof(Bank), "AddOCToAccount", new[] { typeof(int) }, null, "CreditPostfix");
-                ok &= Hook(typeof(Bank), "SetAccountFrozen", new[] { typeof(bool) }, null, "FrozenPostfix");
-                ok &= Hook(typeof(Money), "CurrentTime", new[] { typeof(TimeAndDay) }, "FlushPrefix", "InterestPostfix");
-                ok &= Hook(typeof(Money), "DebtDownpaymentCallback", new[] { typeof(ItemInvoiceData) }, null, "DebtPaymentPostfix");
-                ok &= Hook(typeof(FakeInvoiceReceiver), "HandleMail", new[] { typeof(MailController.Mail) }, "FlushPrefix", "ScamPostfix");
-                ok &= Hook(typeof(LegalServicesController).GetNestedType("LegalAction"), "TriggerAction", Type.EmptyTypes, null, "FlushPrefix");
-                return ok;
+                bool accounts = Hook(AccountsOwner, typeof(Bank), "DepositWithdraw", new[] { typeof(int), typeof(float) }, "FlushPrefix", "DepositPostfix");
+                accounts &= Hook(AccountsOwner, typeof(Bank), "TakeLoan", new[] { typeof(Money.money) }, "FlushPrefix", "LoanPostfix");
+                accounts &= Hook(AccountsOwner, typeof(Bank), "PayLoan", new[] { typeof(int) }, "FlushPrefix", "RepaymentPostfix");
+                accounts &= Hook(AccountsOwner, typeof(Bank), "CreateAccount", Type.EmptyTypes, "FlushPrefix", "OpenedPostfix");
+                accounts &= Hook(AccountsOwner, typeof(Bank), "CreateAccountWithMoney", new[] { typeof(int), typeof(int) }, "FlushPrefix", "OpenedPostfix");
+                accounts &= Hook(AccountsOwner, typeof(Bank), "AddRMToAccount", new[] { typeof(int) }, "FlushPrefix", "CreditPostfix");
+                accounts &= Hook(AccountsOwner, typeof(Bank), "AddOCToAccount", new[] { typeof(int) }, "FlushPrefix", "CreditPostfix");
+                accounts &= Hook(AccountsOwner, typeof(Bank), "SetAccountFrozen", new[] { typeof(bool) }, "FlushPrefix", "FrozenPostfix");
+                bool interest = Hook(InterestOwner, typeof(Money), "CurrentTime", new[] { typeof(TimeAndDay) }, "FlushPrefix", "InterestPostfix");
+                bool debt = Hook(DebtOwner, typeof(Money), "DebtDownpaymentCallback", new[] { typeof(ItemInvoiceData) }, "FlushPrefix", "DebtPaymentPostfix");
+                bool scam = Hook(ScamOwner, typeof(FakeInvoiceReceiver), "HandleMail", new[] { typeof(MailController.Mail) }, "FlushPrefix", "ScamPostfix");
+                bool legal = Hook(LegalOwner, typeof(LegalServicesController).GetNestedType("LegalAction"), "TriggerAction", Type.EmptyTypes, null, "FlushPrefix");
+                return (accounts ? BankLedgerGroup.Accounts : BankLedgerGroup.None)
+                    | (interest ? BankLedgerGroup.Interest : BankLedgerGroup.None)
+                    | (debt ? BankLedgerGroup.Debt : BankLedgerGroup.None)
+                    | (scam ? BankLedgerGroup.Scam : BankLedgerGroup.None)
+                    | (legal ? BankLedgerGroup.Legal : BankLedgerGroup.None);
             }
             catch (Exception e)
             {
                 CoreLog.For(BankLedger.Owner).Error("bank ledger patches failed: " + e);
-                return false;
+                return BankLedgerGroup.None;
             }
         }
 
-        private static bool Hook(Type type, string name, Type[] args, string prefix, string postfix)
+        private static bool Hook(string owner, Type type, string name, Type[] args, string prefix, string postfix)
         {
-            return CorePatcher.PatchCore(type, name, args, CorePatcher.Handler(typeof(BankLedgerPatches), prefix), CorePatcher.Handler(typeof(BankLedgerPatches), postfix), null, true, BankLedger.Owner);
+            return CorePatcher.PatchCore(type, name, args, CorePatcher.Handler(typeof(BankLedgerPatches), prefix), CorePatcher.Handler(typeof(BankLedgerPatches), postfix), null, true, owner);
         }
 
         private static void FlushPrefix()

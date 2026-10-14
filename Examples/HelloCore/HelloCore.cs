@@ -1,5 +1,8 @@
 using System;
 using BepInEx;
+#if BEPINEX6
+using BepInEx.Unity.Mono;
+#endif
 using ObenseuerCore;
 
 [Serializable]
@@ -9,7 +12,11 @@ public class HelloState
 }
 
 [BepInPlugin("example.hellocore", "HelloCore", "0.1.0")]
-[BepInDependency("obenseuer.moddingframework", "0.9.0")]
+#if BEPINEX5
+[BepInDependency("obenseuer.moddingframework", "0.10.0")]
+#else
+[BepInDependency("obenseuer.moddingframework", ">=0.10.0")]
+#endif
 public class HelloCore : BaseUnityPlugin
 {
     private static readonly CoreLog Log = CoreLog.For("HelloCore");

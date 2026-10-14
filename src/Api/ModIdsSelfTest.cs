@@ -25,6 +25,7 @@ namespace ObenseuerCore
                 if (ModIds.LoadId(id, n => both.Contains(n), n => n == id ? newer : older) != id) return "new file not chosen when it is newer";
                 if (ModIds.LoadId(id, n => none.Contains(n), n => older) != id) return "no file changed the id";
                 if (ModIds.LoadId("example.hellocore", n => legacyOnly.Contains(n), n => older) != "example.hellocore") return "other id changed";
+                if (!ModIds.IsReservedName("con") || !ModIds.IsReservedName("LPT\u00B9.save") || ModIds.IsReservedName("console")) return "device name check wrong";
             }
             catch (Exception e)
             {

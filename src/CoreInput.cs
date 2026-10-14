@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using BepInEx;
-using BepInEx.Bootstrap;
+using HarmonyLib;
 using UnityEngine;
 
 namespace ObenseuerCore
@@ -16,6 +16,8 @@ namespace ObenseuerCore
         private static bool held;
         private static bool configSearched;
         private static PropertyInfo configShown;
+        private static readonly FieldInfo moveDisabledField = AccessTools.Field(typeof(ThirdPersonCameraController), "moveDisabled");
+        private static readonly FieldInfo firstpersonMoveDisabledField = AccessTools.Field(typeof(ThirdPersonCameraController), "firstpersonMoveDisabled");
 
         internal static void BlockGameplay(object owner)
         {
@@ -75,14 +77,34 @@ namespace ObenseuerCore
         {
             held = false;
             GameController game = GameController.instance;
-            if (game != null) game.ControlsEnabled(holder);
+            if (game != null) EnableControls(game, holder);
+        }
+
+        internal static void EnableControls(GameController game, GameObject holder)
+        {
+            ThirdPersonCameraController camera = ThirdPersonCameraController.instance;
+            bool restore = camera != null && moveDisabledField != null && firstpersonMoveDisabledField != null;
+            bool moveDisabled = restore && (bool)moveDisabledField.GetValue(camera);
+            bool firstpersonMoveDisabled = restore && (bool)firstpersonMoveDisabledField.GetValue(camera);
+            try
+            {
+                game.ControlsEnabled(holder);
+            }
+            finally
+            {
+                if (restore)
+                {
+                    moveDisabledField.SetValue(camera, moveDisabled);
+                    firstpersonMoveDisabledField.SetValue(camera, firstpersonMoveDisabled);
+                }
+            }
         }
 
         private static void FindConfigWindow()
         {
             if (configSearched) return;
-            PluginInfo info;
-            if (!Chainloader.PluginInfos.TryGetValue(ConfigurationManagerGuid, out info) || info.Instance == null) return;
+            PluginInfo info = Loader.Find(ConfigurationManagerGuid);
+            if (info == null || info.Instance == null) return;
             configSearched = true;
             object window = info.Instance;
             Type type = window.GetType();

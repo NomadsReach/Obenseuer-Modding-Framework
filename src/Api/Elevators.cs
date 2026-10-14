@@ -59,7 +59,7 @@ namespace ObenseuerCore
             List<ElevatorInfo> list = new List<ElevatorInfo>();
             try
             {
-                foreach (Elevator elevator in UnityEngine.Object.FindObjectsByType<Elevator>(UnityEngine.FindObjectsSortMode.None))
+                foreach (Elevator elevator in SceneIds.Active<Elevator>())
                 {
                     if (!string.IsNullOrEmpty(elevator.GUID)) list.Add(ToInfo(elevator));
                 }
@@ -123,7 +123,7 @@ namespace ObenseuerCore
             if (string.IsNullOrEmpty(id)) return null;
             try
             {
-                foreach (Elevator elevator in UnityEngine.Object.FindObjectsByType<Elevator>(UnityEngine.FindObjectsSortMode.None))
+                foreach (Elevator elevator in SceneIds.Active<Elevator>())
                 {
                     if (elevator.GUID == id) return elevator;
                 }

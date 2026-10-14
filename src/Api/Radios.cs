@@ -33,7 +33,7 @@ namespace ObenseuerCore
             List<RadioInfo> list = new List<RadioInfo>();
             try
             {
-                foreach (Radio radio in UnityEngine.Object.FindObjectsByType<Radio>(FindObjectsSortMode.None))
+                foreach (Radio radio in SceneIds.Active<Radio>())
                 {
                     try
                     {
@@ -97,9 +97,14 @@ namespace ObenseuerCore
 
         public static bool SetEnabled(string id, bool enabled)
         {
-            if (string.IsNullOrEmpty(id)) throw new ArgumentException("id must be a non-empty radio id", "id");
+            if (string.IsNullOrEmpty(id))
+            {
+                ApiLog.Once("ObenseuerCore", "Radios.SetEnabled.id", "id must be a non-empty radio id");
+                return false;
+            }
             try
             {
+                if (SaveGate.Busy) return false;
                 Radio radio = SceneIds.Find<Radio>(id);
                 if (radio == null) return false;
                 radio.EnableRadio(enabled);

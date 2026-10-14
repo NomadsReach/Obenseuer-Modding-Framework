@@ -42,7 +42,7 @@ namespace ObenseuerCore
         private static Trade TradeOf(string shopId)
         {
             if (shopId.Length == 0) return null;
-            Trade[] trades = UnityEngine.Object.FindObjectsByType<Trade>(UnityEngine.FindObjectsSortMode.None);
+            Trade[] trades = SceneIds.Active<Trade>().ToArray();
             foreach (Trade trade in trades)
             {
                 if (trade != null && trade.GUID == shopId) return trade;
@@ -53,7 +53,7 @@ namespace ObenseuerCore
         private static bool IsVending(string shopId)
         {
             if (shopId.Length == 0) return false;
-            VendingMachine[] machines = UnityEngine.Object.FindObjectsByType<VendingMachine>(UnityEngine.FindObjectsSortMode.None);
+            VendingMachine[] machines = SceneIds.Active<VendingMachine>().ToArray();
             foreach (VendingMachine machine in machines)
             {
                 if (machine != null && machine.GUID == shopId) return true;

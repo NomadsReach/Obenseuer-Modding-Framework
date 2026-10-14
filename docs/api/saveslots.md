@@ -1,7 +1,13 @@
+---
+title: Obenseuer Modding Framework save slots API
+parent: API reference
+nav_order: 66
+---
+
 # Obenseuer Modding Framework save slots API
 
-Experimental. Not checked in game.
-Game: Obenseuer 0.5.05 (build 25839246), Unity Mono.
+Experimental.
+Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Log owner: `obenseuer.moddingframework.saveslots`. Logs go to `BepInEx\logs\obenseuer.moddingframework.saveslots.log`.
 
 Everything not listed here is internal. Main thread only. Do not poll `All()` or `CanSaveNow` every frame: `All()` reads the save headers.
@@ -40,7 +46,7 @@ public sealed class SaveSlotInfo
 public enum SaveAutosaveMode { Default, EveryDay, EveryHour }
 ```
 
-- `CurrentName` is null when the saved folder belongs to a different character than the one in play. The game keeps its save folder after the credits end and does not clear it on a new game, so it can name the previous character's folder.
+- `CurrentName` is null when the saved folder belongs to a different character than the one in play. The game does not clear its save folder when the credits end, so the framework clears it when the main menu loads (`SaveData`) and when a new game starts (`WorldObjects`). `CurrentName` is then null until a save is loaded.
 - `CurrentName` does not change when the game saves into another slot. The game sets its save folder on load and clears it on quit to the main menu, and it does not update it on save.
 - `All()` lists the characters the Load menu lists. For each, it returns the autosave pair and the ten manual slots that have an Info file. A character whose headers all fail to parse is left out. Duplicate character names get the game's " 2" suffix.
 - `AutosaveMode` is read-only. The game stores this setting in the difficulty and saves it with the game; no gameplay code reads it in 0.5.05.
@@ -49,7 +55,7 @@ public enum SaveAutosaveMode { Default, EveryDay, EveryHour }
 
 Both return false, and nothing is written, when any of these holds:
 
-- a save is loading, a screen fade is running, or a level load has not finished;
+- a save is loading or being written, a screen fade is running, or a level load has not finished;
 - no save was loaded this session (`CurrentName` is null), the loaded save's folder does not exist, or that folder belongs to another character than the one in play. A new game has no loaded save until its first load or level change;
 - no character is in play (`PlayerIdentity.identity` is null, as on the main menu);
 - one of the game's save controls is missing from the scene: `GameController`, `SavingUI`, `PauseMenu` or `DestructibleList`;
@@ -59,4 +65,4 @@ Both return false, and nothing is written, when any of these holds:
 
 ## Lifecycle
 
-- No patches, no events and no `Init`. Nothing needs to be wired. The owner is used only for the log file.
+- No patches and no events. The owner is used only for the log file.

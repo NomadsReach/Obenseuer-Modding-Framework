@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <ProjectGuid>{156885DB-54AA-4BFD-ADBD-F9D55F6527BF}</ProjectGuid>
+    <RootNamespace>ObxWebView</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup>
+    <OutDir>$(MSBuildProjectDirectory)\bin\</OutDir>
+    <IntDir>$(MSBuildProjectDirectory)\obj\</IntDir>
+    <GenerateManifest>false</GenerateManifest>
+    <WebView2Dir Condition="'$(WebView2Dir)' == ''">$(USERPROFILE)\.nuget\packages\microsoft.web.webview2\1.0.4022.49\build\native</WebView2Dir>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <WarningLevel>Level4</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <DebugInformationFormat>None</DebugInformationFormat>
+      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <PreprocessorDefinitions>UNICODE;_UNICODE</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(WebView2Dir)\include</AdditionalIncludeDirectories>
+      <ObjectFileName>$(IntDir)ObxWebView.obj</ObjectFileName>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TreatAngleIncludeAsExternal>true</TreatAngleIncludeAsExternal>
+      <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <ImportLibrary>$(IntDir)ObxWebView.lib</ImportLibrary>
+      <OutputFile>$(OutDir)ObxWebView.dll</OutputFile>
+      <AdditionalDependencies>$(WebView2Dir)\x64\WebView2LoaderStatic.lib;user32.lib;ole32.lib;oleaut32.lib;advapi32.lib;comctl32.lib;gdi32.lib;d3d11.lib;dxgi.lib;dcomp.lib</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildProjectDirectory)\ObxWebView.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ObxComposition.h" />
+    <ClInclude Include="ObxLockDown.h" />
+    <ClInclude Include="ObxThread.h" />
+    <ClInclude Include="ObxTiming.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>

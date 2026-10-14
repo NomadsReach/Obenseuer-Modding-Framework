@@ -20,6 +20,8 @@ namespace ObenseuerCore
         private static ScrollRect scroll;
         private static List<ModMenuPage> shown;
         private static ConfigEntry<string> style;
+        internal static Func<ModWindow, bool> StartWeb;
+        internal static Func<bool> WebBusy;
 
         internal static bool IsOpen
         {
@@ -39,7 +41,7 @@ namespace ObenseuerCore
 
         internal static void Tick()
         {
-            if (!IsOpen || UiInput.Engaged || ModMenuWebHost.Busy || !Input.GetKeyDown(KeyCode.Joystick1Button1)) return;
+            if (!IsOpen || UiInput.Locked || (WebBusy != null && WebBusy()) || !Input.GetKeyDown(KeyCode.Joystick1Button1)) return;
             window.Close();
         }
 
@@ -53,7 +55,8 @@ namespace ObenseuerCore
             window = host;
             host.Closed += Forget;
             if (style != null && style.Value == "classic") CoreLog.For(ModMenu.Owner).Info("Mods menu uses classic: [UI] ModMenuStyle is classic");
-            else if (ModMenuWebHost.Start(host))
+            else if (StartWeb == null) CoreLog.For(ModMenu.Owner).Info("Mods menu uses classic: WebUi module not loaded");
+            else if (StartWeb(host))
             {
                 CoreLog.For(ModMenu.Owner).Info("Mods menu opened the web page");
                 return;

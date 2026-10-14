@@ -83,7 +83,7 @@ namespace ObenseuerCore
             try
             {
                 List<HotelRoomInfo> list = new List<HotelRoomInfo>();
-                foreach (Hotel hotel in UnityEngine.Object.FindObjectsByType<Hotel>(FindObjectsSortMode.None))
+                foreach (Hotel hotel in SceneIds.Active<Hotel>())
                 {
                     string hotelId = SceneIds.Of(hotel);
                     foreach (HotelRoom room in hotel.rooms)
@@ -192,7 +192,7 @@ namespace ObenseuerCore
             hotel = null;
             index = -1;
             if (string.IsNullOrEmpty(roomId)) return false;
-            foreach (Hotel candidate in UnityEngine.Object.FindObjectsByType<Hotel>(FindObjectsSortMode.None))
+            foreach (Hotel candidate in SceneIds.Active<Hotel>())
             {
                 for (int i = 0; i < candidate.rooms.Length; i++)
                 {

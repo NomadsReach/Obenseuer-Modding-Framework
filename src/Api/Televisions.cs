@@ -54,7 +54,7 @@ namespace ObenseuerCore
             List<TelevisionInfo> list = new List<TelevisionInfo>();
             try
             {
-                foreach (TelevisionNoise television in UnityEngine.Object.FindObjectsByType<TelevisionNoise>(UnityEngine.FindObjectsSortMode.None))
+                foreach (TelevisionNoise television in SceneIds.Active<TelevisionNoise>())
                 {
                     list.Add(ToInfo(television));
                 }

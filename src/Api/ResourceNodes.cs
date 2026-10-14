@@ -134,6 +134,7 @@ namespace ObenseuerCore
             if (stock < 0) throw new ArgumentException("stock must not be negative", "stock");
             try
             {
+                if (SaveGate.Busy) return false;
                 WorkableResourceSource node = SceneIds.Find<WorkableResourceSource>(id);
                 if (node == null) return false;
                 int max = (int)MaxStockField.GetValue(node);
@@ -178,7 +179,7 @@ namespace ObenseuerCore
         private static List<WorkableResourceSource> Nodes()
         {
             List<WorkableResourceSource> nodes = new List<WorkableResourceSource>();
-            foreach (WorkableResourceSource node in UnityEngine.Object.FindObjectsByType<WorkableResourceSource>(FindObjectsSortMode.None))
+            foreach (WorkableResourceSource node in SceneIds.Active<WorkableResourceSource>())
             {
                 if (node != null) nodes.Add(node);
             }

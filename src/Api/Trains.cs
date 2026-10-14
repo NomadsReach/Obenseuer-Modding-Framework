@@ -17,13 +17,44 @@ namespace ObenseuerCore
 
         public string BackCoupledTo { get; private set; }
 
-        internal TrackTrainInfo(string id, float speed, Vector3 position, string frontCoupledTo, string backCoupledTo)
+        public string WagonType { get; private set; }
+
+        public string CargoGuid { get; private set; }
+
+        internal TrackTrainInfo(string id, float speed, Vector3 position, string frontCoupledTo, string backCoupledTo, string wagonType, string cargoGuid)
         {
             Id = id;
             Speed = speed;
             Position = position;
             FrontCoupledTo = frontCoupledTo;
             BackCoupledTo = backCoupledTo;
+            WagonType = wagonType;
+            CargoGuid = cargoGuid;
+        }
+    }
+
+    public sealed class TrackSegmentInfo
+    {
+        public string Id { get; private set; }
+
+        public bool Occupied { get; private set; }
+
+        public string OccupiedBy { get; private set; }
+
+        public int ActiveBranch { get; private set; }
+
+        public string Previous { get; private set; }
+
+        public List<string> Next { get; private set; }
+
+        internal TrackSegmentInfo(string id, bool occupied, string occupiedBy, int activeBranch, string previous, List<string> next)
+        {
+            Id = id;
+            Occupied = occupied;
+            OccupiedBy = occupiedBy;
+            ActiveBranch = activeBranch;
+            Previous = previous;
+            Next = next;
         }
     }
 
@@ -59,14 +90,34 @@ namespace ObenseuerCore
         }
     }
 
+    public sealed class TrainCrashArgs
+    {
+        public string Id { get; private set; }
+
+        public float Speed { get; private set; }
+
+        public string OtherTrainId { get; private set; }
+
+        internal TrainCrashArgs(string id, float speed, string otherTrainId)
+        {
+            Id = id;
+            Speed = speed;
+            OtherTrainId = otherTrainId;
+        }
+    }
+
     public static class Trains
     {
         internal const string Owner = "obenseuer.moddingframework.trains";
+        internal const string CrashOwner = Owner + ".crash";
         private static readonly FieldInfo BranchRotations = typeof(MinitrainSwitch).GetField("branchRotations", BindingFlags.Instance | BindingFlags.NonPublic);
+        private static readonly HashSet<string> crashedIds = new HashSet<string>();
         private static bool installed;
+        private static int crashFrame = -1;
 
         public static event Action<TrainArgs> Departed;
         public static event Action<TrainArgs> Arrived;
+        public static event Action<TrainCrashArgs> Crashed;
 
         public static bool IsAvailable
         {
@@ -83,7 +134,7 @@ namespace ObenseuerCore
                 try
                 {
                     global::Minitrain first = null;
-                    foreach (global::Minitrain minitrain in UnityEngine.Object.FindObjectsByType<global::Minitrain>(UnityEngine.FindObjectsSortMode.None))
+                    foreach (global::Minitrain minitrain in SceneIds.Active<global::Minitrain>())
                     {
                         if (minitrain == null) continue;
                         if (minitrain.playerUsing) return ToInfo(minitrain);
@@ -125,7 +176,7 @@ namespace ObenseuerCore
                 List<GameObject> list = new List<GameObject>();
                 try
                 {
-                    foreach (MinitrainSwitch found in UnityEngine.Object.FindObjectsByType<MinitrainSwitch>(UnityEngine.FindObjectsSortMode.None))
+                    foreach (MinitrainSwitch found in SceneIds.Active<MinitrainSwitch>())
                     {
                         if (found != null) list.Add(found.gameObject);
                     }
@@ -145,7 +196,7 @@ namespace ObenseuerCore
                 List<GameObject> list = new List<GameObject>();
                 try
                 {
-                    foreach (MinitrainWagonLoader found in UnityEngine.Object.FindObjectsByType<MinitrainWagonLoader>(UnityEngine.FindObjectsSortMode.None))
+                    foreach (MinitrainWagonLoader found in SceneIds.Active<MinitrainWagonLoader>())
                     {
                         if (found != null) list.Add(found.gameObject);
                     }
@@ -156,6 +207,24 @@ namespace ObenseuerCore
                 }
                 return list;
             }
+        }
+
+        public static List<TrackSegmentInfo> Segments()
+        {
+            List<TrackSegmentInfo> list = new List<TrackSegmentInfo>();
+            foreach (Track_Segment segment in SceneIds.Active<Track_Segment>())
+            {
+                if (segment == null) continue;
+                try
+                {
+                    list.Add(ToInfo(segment));
+                }
+                catch (Exception e)
+                {
+                    ApiLog.Once(Owner, "Trains.Segments", e);
+                }
+            }
+            return list;
         }
 
         public static int GetBranch(GameObject target)
@@ -235,6 +304,7 @@ namespace ObenseuerCore
         internal static void Init()
         {
             installed = TrainsPatches.Install();
+            TrainsPatches.InstallCrash();
             if (installed) return;
             CorePatcher.DisableOwner(Owner);
             CoreLog.For(Owner).Warn("train hooks incomplete, train events are disabled");
@@ -254,6 +324,22 @@ namespace ObenseuerCore
             Events.Raise(Arrived, "Trains.Arrived", h => h(args));
         }
 
+        internal static void RaiseCrashed(TrackTrain train, GameObject other, float speed)
+        {
+            if (Crashed == null) return;
+            TrackTrain otherTrain = other == null ? null : other.GetComponentInParent<TrackTrain>();
+            if (Time.frameCount != crashFrame)
+            {
+                crashFrame = Time.frameCount;
+                crashedIds.Clear();
+            }
+            if (crashedIds.Contains(train.GUID)) return;
+            crashedIds.Add(train.GUID);
+            if (otherTrain != null) crashedIds.Add(otherTrain.GUID);
+            TrainCrashArgs args = new TrainCrashArgs(train.GUID, speed, otherTrain == null ? null : otherTrain.GUID);
+            Events.Raise(Crashed, "Trains.Crashed", h => h(args));
+        }
+
         private static MinitrainInfo ToInfo(global::Minitrain minitrain)
         {
             MinitrainFuelTank tank = minitrain.fuelTank;
@@ -263,13 +349,28 @@ namespace ObenseuerCore
 
         private static TrackTrainInfo ToInfo(TrackTrain train)
         {
-            return new TrackTrainInfo(train.GUID, train.currentSpeed, train.transform.position, CoupledTo(train.frontCoupler), CoupledTo(train.backCoupler));
+            global::MinitrainWagonData data = train.GetComponentInChildren<global::MinitrainWagonData>(true);
+            string wagonType = data == null ? "None" : data.wagonType.ToString();
+            string cargo = data == null || data.connectedStorage == null || string.IsNullOrEmpty(data.connectedStorage.GUID) ? null : data.connectedStorage.GUID;
+            return new TrackTrainInfo(train.GUID, train.currentSpeed, train.transform.position, CoupledTo(train.frontCoupler), CoupledTo(train.backCoupler), wagonType, cargo);
         }
 
         private static string CoupledTo(TrackTrain.TrainCoupler coupler)
         {
             if (coupler == null || coupler.coupledTo == null || coupler.coupledTo.parent == null) return null;
             return coupler.coupledTo.parent.GUID;
+        }
+
+        private static TrackSegmentInfo ToInfo(Track_Segment segment)
+        {
+            List<string> next = new List<string>();
+            foreach (Track_Segment.SegmentBranch branch in segment.Branches)
+            {
+                next.Add(branch == null || branch.nextSegment == null ? null : SceneIds.Of(branch.nextSegment));
+            }
+            TrackTrain train = segment.occupiedBy;
+            Track_Segment previous = segment.previousSegment;
+            return new TrackSegmentInfo(SceneIds.Of(segment), segment.occupied, train == null ? null : train.GUID, (int)segment.activeBranchIndex, previous == null ? null : SceneIds.Of(previous), next);
         }
 
         private static bool SwitchBlocked(MinitrainSwitch track)

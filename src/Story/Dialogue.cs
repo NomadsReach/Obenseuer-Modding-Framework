@@ -248,6 +248,25 @@ namespace ObenseuerCore
             ModIds.Require(modId, "modId");
             interceptors.RemoveAll(i => i.ModId == modId);
             DialogueLuaBridge.RemoveAll(modId);
+            DialogueResponses.RemoveAll(modId);
+        }
+
+        public static string AddResponse(string modId, string conversationTitle, string anchorText, string playerText, string npcReply, string luaCondition, Action onPicked)
+        {
+            ModIds.Require(modId, "modId");
+            return DialogueResponses.Add(modId, conversationTitle, anchorText, -1, playerText, npcReply, luaCondition, onPicked);
+        }
+
+        public static string AddResponse(string modId, string conversationTitle, int anchorId, string playerText, string npcReply, string luaCondition, Action onPicked)
+        {
+            ModIds.Require(modId, "modId");
+            return DialogueResponses.Add(modId, conversationTitle, null, anchorId, playerText, npcReply, luaCondition, onPicked);
+        }
+
+        public static bool RemoveResponse(string modId, string key)
+        {
+            ModIds.Require(modId, "modId");
+            return DialogueResponses.Remove(modId, key);
         }
 
         internal static void Init()
@@ -269,6 +288,7 @@ namespace ObenseuerCore
             try
             {
                 ConversationArgs args = new ConversationArgs(title, actor, conversant);
+                bool cancelled = false;
                 foreach (Interceptor interceptor in new List<Interceptor>(interceptors))
                 {
                     try
@@ -279,7 +299,10 @@ namespace ObenseuerCore
                     {
                         ApiLog.Once(Owner, "Intercept " + interceptor.ModId, e);
                     }
+                    cancelled |= args.Cancel;
+                    args.Cancel = cancelled;
                 }
+                if (cancelled) return false;
                 if (args.Title != title && !string.IsNullOrEmpty(args.Title))
                 {
                     if (Exists(args.Title)) title = args.Title;

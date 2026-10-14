@@ -152,6 +152,25 @@ namespace ObenseuerCore
             }
         }
 
+        public static bool FireSender(string id)
+        {
+            if (string.IsNullOrEmpty(id) || !Writable() || MailController.instance == null) return false;
+            try
+            {
+                logic_invoice_sender sender = SceneIds.Find<logic_invoice_sender>(id);
+                if (sender == null) return false;
+                InvoiceController controller = InvoiceController.instance;
+                int before = controller.invoices.Count;
+                sender.SendInvoice();
+                return controller.invoices.Count > before;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Owner, "Invoices.FireSender", e);
+                return false;
+            }
+        }
+
         internal static void Init()
         {
             installed = InvoicesPatches.Install();

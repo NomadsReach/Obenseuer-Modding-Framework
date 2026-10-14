@@ -105,6 +105,7 @@ namespace ObenseuerCore
         public static bool Treat(MedicalTreatment kind)
         {
             CheckKind(kind);
+            if (SaveGate.Busy) return false;
             try
             {
                 MedicalOffer offer = Ready(kind);

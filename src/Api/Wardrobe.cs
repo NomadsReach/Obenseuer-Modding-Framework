@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using OS.Items;
 
 namespace ObenseuerCore
 {
@@ -158,15 +159,41 @@ namespace ObenseuerCore
                 }
             }
             if (source == null) return false;
-            Item item = ItemDatabase.instance == null ? null : ItemDatabase.instance.FetchItemByID(itemId);
+            if (!OwnerAllows(source))
+            {
+                ApiLog.Once(Owner, "Equip", "the item is owned and its owner does not allow use, it was not equipped");
+                return false;
+            }
+            Item item = ItemRegistry.FindInDatabase(itemId);
             string target = SlotFor(item);
             if (target == null) return false;
             int index = IndexOf(target);
             if (inventory.CharacterSlots == null || index >= inventory.CharacterSlots.Length) return false;
             SlotController worn = inventory.CharacterSlots[index];
             if (worn == null || !worn.CheckIfAllowed(item)) return false;
+            if (Owned(worn))
+            {
+                ApiLog.Once(Owner, "Equip", "the worn item is owned, it was not swapped out");
+                return false;
+            }
             inventory.EquipItem(target, source);
             return WornOn(target) == itemId;
+        }
+
+        private static bool Owned(SlotController slot)
+        {
+            return ItemIdOf(slot) >= 0 && slot.itemStack.ownerId > 0;
+        }
+
+        private static bool OwnerAllows(SlotController slot)
+        {
+            object[] meta = slot.itemStack.Meta;
+            if (meta == null) return true;
+            foreach (object obj in meta)
+            {
+                if (obj is ItemOwnerPermission) return ((ItemOwnerPermission)obj).allowUse;
+            }
+            return true;
         }
 
         private static string SlotFor(Item item)
@@ -185,6 +212,11 @@ namespace ObenseuerCore
             if (inventory == null || inventory.CharacterSlots == null || index >= inventory.CharacterSlots.Length) return false;
             SlotController worn = inventory.CharacterSlots[index];
             if (ItemIdOf(worn) < 0) return false;
+            if (Owned(worn))
+            {
+                ApiLog.Once(Owner, "Unequip", "the worn item is owned, it was not taken off");
+                return false;
+            }
             inventory.Unequip(worn);
             return ItemIdOf(worn) < 0;
         }

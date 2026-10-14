@@ -18,8 +18,10 @@ namespace ObenseuerCore
         public GameScreenMode ScreenMode { get; private set; }
         public bool VSync { get; private set; }
         public int Fov { get; private set; }
+        public int Brightness { get; private set; }
+        public bool RunInBackground { get; private set; }
 
-        internal GameDisplay(int width, int height, int refreshRate, GameScreenMode screenMode, bool vSync, int fov)
+        internal GameDisplay(int width, int height, int refreshRate, GameScreenMode screenMode, bool vSync, int fov, int brightness, bool runInBackground)
         {
             Width = width;
             Height = height;
@@ -27,6 +29,8 @@ namespace ObenseuerCore
             ScreenMode = screenMode;
             VSync = vSync;
             Fov = fov;
+            Brightness = brightness;
+            RunInBackground = runInBackground;
         }
     }
 
@@ -91,6 +95,42 @@ namespace ObenseuerCore
             return SettingsGuard.Read<bool>("GameSettings.HintsEnabled", ReadHintsEnabled, false);
         }
 
+        public static bool ToggleSprint()
+        {
+            return SettingsGuard.Read<bool>("GameSettings.ToggleSprint", ReadToggleSprint, true);
+        }
+
+        public static bool ToggleCrouch()
+        {
+            return SettingsGuard.Read<bool>("GameSettings.ToggleCrouch", ReadToggleCrouch, true);
+        }
+
+        public static bool SetFov(int fov)
+        {
+            try
+            {
+                if (DisplaySave.instance == null || SaveGate.Busy || fov < ScreenFx.MinFov || fov > ScreenFx.MaxFov) return false;
+                DisplaySave.instance.SaveDisplay("Fov", "", false, fov);
+                return true;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Owner, "GameSettings.SetFov", e);
+                return false;
+            }
+        }
+
+        public static bool SetFov(string owner, int fov)
+        {
+            ModIds.Require(owner, "owner");
+            return fov >= ScreenFx.MinFov && fov <= ScreenFx.MaxFov && ScreenFx.SetFovOverride(owner, fov);
+        }
+
+        public static bool ClearFov(string owner)
+        {
+            return ScreenFx.ClearFovOverride(owner);
+        }
+
         public static bool IsAvailable
         {
             get
@@ -113,7 +153,7 @@ namespace ObenseuerCore
         {
             if (DisplaySave.instance == null) return null;
             display saved = DisplaySave.instance.displaySave;
-            return new GameDisplay(saved.screenWidth, saved.screenHeight, saved.preferredRefreshRate, ScreenModeOf(saved.screenMode), saved.VSync, saved.fov);
+            return new GameDisplay(saved.screenWidth, saved.screenHeight, saved.preferredRefreshRate, ScreenModeOf(saved.screenMode), saved.VSync, saved.fov, saved.brightness, saved.runInBackground);
         }
 
         private static GameQuality ReadQuality()
@@ -152,6 +192,18 @@ namespace ObenseuerCore
             return HintOverlay.HintsEnabled;
         }
 
+        private static bool ReadToggleSprint()
+        {
+            if (ControlsSave.instance == null) return true;
+            return ControlsSave.instance.controlsSave.toggleSprint;
+        }
+
+        private static bool ReadToggleCrouch()
+        {
+            if (ControlsSave.instance == null) return true;
+            return ControlsSave.instance.controlsSave.toggleCrouch;
+        }
+
         private static GameScreenMode ScreenModeOf(string mode)
         {
             if (mode == "Full Screen") return GameScreenMode.FullScreen;
@@ -176,6 +228,18 @@ namespace ObenseuerCore
             }
         }
 
+        internal static T Read<A, T>(string member, Func<A, T> read, A arg, T fallback)
+        {
+            try
+            {
+                return read(arg);
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(GameSettings.Owner, member, e);
+                return fallback;
+            }
+        }
 
         internal static void RequireText(string value, string name)
         {

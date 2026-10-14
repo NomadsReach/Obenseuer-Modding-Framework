@@ -49,6 +49,7 @@ namespace ObenseuerCore
     public static class SleepEvents
     {
         internal const string Owner = "obenseuer.moddingframework.sleepevents";
+        internal const string InterceptOwner = Owner + ".intercept";
         private static bool installed;
 
         public static event Action<SleepEventOccurredArgs> Occurred;
@@ -72,12 +73,32 @@ namespace ObenseuerCore
             }
         }
 
+        public static bool PlayerInSafeArea
+        {
+            get
+            {
+                SleepEventController controller = SleepEventController.instance;
+                return controller != null && controller.playerInSafeArea;
+            }
+        }
+
+        public static float SafetyFactor
+        {
+            get
+            {
+                SleepEventController controller = SleepEventController.instance;
+                if (controller == null) return 0f;
+                if (controller.playerInSafeArea) return 1f;
+                if (info_game_logic.instance == null) return 0f;
+                return controller.playerSafetyFactor;
+            }
+        }
+
         internal static void Init()
         {
             installed = SleepEventsPatches.Install();
             if (installed) return;
-            CorePatcher.DisableOwner(Owner);
-            CoreLog.For(Owner).Warn("sleep event hooks incomplete, Occurred and Intercept events are disabled");
+            CoreLog.For(Owner).Warn("sleep event hooks incomplete, SleepEvents.IsAvailable is false");
         }
 
         internal static bool RaiseIntercept(SleepEvent[] candidates)
@@ -92,8 +113,20 @@ namespace ObenseuerCore
                 }
             }
             SleepEventInterceptArgs args = new SleepEventInterceptArgs(kinds);
-            Events.Raise(Intercept, "SleepEvents.Intercept", h => h(args));
-            return args.Cancel;
+            bool cancelled = false;
+            Events.Raise(Intercept, "SleepEvents.Intercept", h =>
+            {
+                try
+                {
+                    h(args);
+                }
+                finally
+                {
+                    cancelled |= args.Cancel;
+                    args.Cancel = cancelled;
+                }
+            });
+            return cancelled;
         }
 
         internal static void RaiseOccurred(SleepEventController.SleepEvents kind)

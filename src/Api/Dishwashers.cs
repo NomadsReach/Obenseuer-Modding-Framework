@@ -51,7 +51,7 @@ namespace ObenseuerCore
             List<DishwasherInfo> list = new List<DishwasherInfo>();
             try
             {
-                foreach (Dishwasher dishwasher in UnityEngine.Object.FindObjectsByType<Dishwasher>(FindObjectsSortMode.None))
+                foreach (Dishwasher dishwasher in SceneIds.Active<Dishwasher>())
                 {
                     if (dishwasher != null && !string.IsNullOrEmpty(dishwasher.GUID)) list.Add(ToInfo(dishwasher));
                 }
@@ -159,7 +159,7 @@ namespace ObenseuerCore
         private static Dishwasher Find(string id)
         {
             if (string.IsNullOrEmpty(id)) return null;
-            foreach (Dishwasher dishwasher in UnityEngine.Object.FindObjectsByType<Dishwasher>(FindObjectsSortMode.None))
+            foreach (Dishwasher dishwasher in SceneIds.Active<Dishwasher>())
             {
                 if (dishwasher != null && dishwasher.GUID == id) return dishwasher;
             }
