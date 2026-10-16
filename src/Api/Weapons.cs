@@ -155,13 +155,18 @@ namespace ObenseuerCore
 
         public static bool SetHitFactor(string modId, HitTarget target, float factor)
         {
+            return SetHitFactor(modId, target, factor, false);
+        }
+
+        public static bool SetHitFactor(string modId, HitTarget target, float factor, bool chanceRounding)
+        {
             if (!ValidMod(modId) || !HitAvailable) return false;
             if (!Enum.IsDefined(typeof(HitTarget), target) || float.IsNaN(factor) || factor < 0f || factor > MaxHitFactor)
             {
                 ApiLog.Once(Owner, "hit factor", "factor must be 0 to " + MaxHitFactor + " and the target must be a HitTarget value");
                 return false;
             }
-            hitFactors.Set(modId, target, factor);
+            hitFactors.Set(modId, target, factor, chanceRounding);
             return true;
         }
 
@@ -247,7 +252,8 @@ namespace ObenseuerCore
         {
             if (!HitAvailable || hitter == null || !hitLands || (!hitFactors.Any && !WatchesHit) || !((IDamageReceiver)receiver).CheckDamageType(type)) return;
             HitTarget target = TargetOf(receiver, type);
-            int scaled = PayoutFactors<HitTarget>.Scale(damage, hitFactors.Of(target));
+            float factor = hitFactors.Of(target);
+            int scaled = hitFactors.ChanceRounds(target) ? PayoutFactors<HitTarget>.ScaleChance(damage, factor) : PayoutFactors<HitTarget>.Scale(damage, factor);
             int baseDamage = damage;
             damage = scaled;
             if (WatchesHit)

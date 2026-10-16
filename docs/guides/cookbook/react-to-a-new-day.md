@@ -17,7 +17,7 @@ using BepInEx.Unity.Mono;
 using ObenseuerCore;
 
 [BepInPlugin("example.newday", "New Day", "0.1.0")]
-[BepInDependency("obenseuer.moddingframework", ">=0.10.0")]
+[BepInDependency("obenseuer.moddingframework", ">=0.11.0")]
 public class NewDay : BaseUnityPlugin
 {
     private static readonly CoreLog Log = CoreLog.For("example.newday");
@@ -36,7 +36,7 @@ public class NewDay : BaseUnityPlugin
 }
 ```
 
-On BepInEx 5, write `"0.10.0"` instead, because BepInEx 5 cannot parse a version range, and drop `using BepInEx.Unity.Mono;` (`BaseUnityPlugin` then comes from `BepInEx`). See [Supporting BepInEx 5 too](../getting-started/packaging.md#supporting-bepinex-5-too).
+On BepInEx 5, write `"0.11.0"` instead, because BepInEx 5 cannot parse a version range, and drop `using BepInEx.Unity.Mono;` (`BaseUnityPlugin` then comes from `BepInEx`). See [Supporting BepInEx 5 too](../getting-started/packaging.md#supporting-bepinex-5-too).
 
 Notes:
 

@@ -188,18 +188,71 @@ namespace ObenseuerCore
             return false;
         }
 
+        public static bool Vignette(string owner, Color color, float strength)
+        {
+            return Vignette(owner, color, strength, 0f);
+        }
+
+        public static bool Vignette(string owner, Color color, float strength, float fadeSeconds)
+        {
+            ModIds.Require(owner, "owner");
+            if (!IsFinite(color.r) || !IsFinite(color.g) || !IsFinite(color.b) || !IsFinite(color.a)) throw new ArgumentException("color components must be finite", "color");
+            if (float.IsNaN(strength) || float.IsInfinity(strength)) throw new ArgumentException("strength must be finite", "strength");
+            if (float.IsNaN(fadeSeconds) || float.IsInfinity(fadeSeconds)) throw new ArgumentException("fadeSeconds must be finite", "fadeSeconds");
+            if (fadeSeconds < 0f) throw new ArgumentException("fadeSeconds must not be negative", "fadeSeconds");
+            return ScreenFxVignette.Set(owner, color, Mathf.Clamp01(strength), fadeSeconds);
+        }
+
+        public static bool ClearVignette(string owner)
+        {
+            ModIds.Require(owner, "owner");
+            return ScreenFxVignette.Clear(owner);
+        }
+
+        public static bool Blur(string owner, float amount)
+        {
+            return Blur(owner, amount, 0f);
+        }
+
+        public static bool Blur(string owner, float amount, float fadeSeconds)
+        {
+            ModIds.Require(owner, "owner");
+            if (!IsFinite(amount)) throw new ArgumentException("amount must be finite", "amount");
+            if (!IsFinite(fadeSeconds)) throw new ArgumentException("fadeSeconds must be finite", "fadeSeconds");
+            if (fadeSeconds < 0f) throw new ArgumentException("fadeSeconds must not be negative", "fadeSeconds");
+            return ScreenFxBlur.Set(owner, Mathf.Clamp01(amount), fadeSeconds);
+        }
+
+        public static bool ClearBlur(string owner)
+        {
+            ModIds.Require(owner, "owner");
+            return ScreenFxBlur.Clear(owner);
+        }
+
         internal static void Init()
         {
             installed = ScreenFxPatches.Install();
             if (!installed) CorePatcher.DisableOwner(Owner);
+            ScreenFxBlur.Init();
             Events.SceneLoadedWithMode += OnSceneLoaded;
         }
 
         private static void OnSceneLoaded(string scene, LoadSceneMode mode)
         {
-            if (mode != LoadSceneMode.Single) return;
+            if (mode != LoadSceneMode.Single)
+            {
+                ScreenFxBlur.Refresh();
+                return;
+            }
             fovOverrides.Clear();
             fades.Clear();
+            ScreenFxVignette.Reset();
+            ScreenFxBlur.Reset();
+        }
+
+        private static bool IsFinite(float value)
+        {
+            return !float.IsNaN(value) && !float.IsInfinity(value);
         }
 
         private static void RequireSpeed(float speed)

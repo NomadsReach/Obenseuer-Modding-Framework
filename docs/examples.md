@@ -31,7 +31,7 @@ public class CounterState
 }
 
 [BepInPlugin("example.counter", "Example Counter", "0.1.0")]
-[BepInDependency("obenseuer.moddingframework", ">=0.10.0")]
+[BepInDependency("obenseuer.moddingframework", ">=0.11.0")]
 public class ExampleCounter : BaseUnityPlugin
 {
     private static readonly CoreLog Log = CoreLog.For("example.counter");
@@ -67,7 +67,7 @@ public class ExampleCounter : BaseUnityPlugin
 }
 ```
 
-On BepInEx 5, write `"0.10.0"` instead, because BepInEx 5 cannot parse a version range, and drop `using BepInEx.Unity.Mono;` (`BaseUnityPlugin` then comes from `BepInEx`). See [Supporting BepInEx 5 too](guides/getting-started/packaging.md#supporting-bepinex-5-too).
+On BepInEx 5, write `"0.11.0"` instead, because BepInEx 5 cannot parse a version range, and drop `using BepInEx.Unity.Mono;` (`BaseUnityPlugin` then comes from `BepInEx`). See [Supporting BepInEx 5 too](guides/getting-started/packaging.md#supporting-bepinex-5-too).
 
 After it loads, change `LogEveryHours` in the Mods menu, press F7 in the game, and check `BepInEx\logs\example.counter.log`. The player can rebind the key on the Mods menu page "Mod Keybinds".
 

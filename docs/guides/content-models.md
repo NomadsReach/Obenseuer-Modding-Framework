@@ -103,7 +103,7 @@ if (!ModelRegistry.OverrideVanilla(19990, tin, null)) Log.Error("tin model was n
 
 It returns false when the models are not installed, the handle is not ready, or the catalogue is loaded and has no item with that id and an appearance. It throws `ArgumentNullException` for a null `world`.
 
-`held` must be null. A held (wield) model throws `ArgumentException`, because held models are not in this version.
+`held` must be null. A held (wield) model throws `ArgumentException`; set one with `ItemRegistry.SetHeldModel` instead ([registry](../api/registry.md#models)).
 
 ## Limits
 

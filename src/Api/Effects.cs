@@ -51,6 +51,11 @@ namespace ObenseuerCore
         private static readonly Effect[] hookedEffects = { Effect.Drunk, Effect.Mushroom, Effect.Wasteland, Effect.OrangeMushroom };
         private static readonly FieldInfo shroomsEnabledField = AccessTools.Field(typeof(MushroomEffect), "shroomsEnabled");
         private static readonly FieldInfo orangeShroomsEnabledField = AccessTools.Field(typeof(OrangeMushroomEffect), "shroomsEnabled");
+        private static readonly FieldInfo drunkVolumeField = AccessTools.Field(typeof(DrunkEffect), "postProcessVolume");
+        private static readonly FieldInfo mushroomVolumeField = AccessTools.Field(typeof(MushroomEffect), "postProcessVolume");
+        private static readonly FieldInfo orangeVolumeField = AccessTools.Field(typeof(OrangeMushroomEffect), "postProcessVolume");
+        private static readonly FieldInfo orangeBadVolumeField = AccessTools.Field(typeof(OrangeMushroomEffect), "postProcessVolumeBad");
+        private static readonly FieldInfo volumeWeightField = drunkVolumeField == null ? null : AccessTools.Field(drunkVolumeField.FieldType, "weight");
         private static EffectGroup installed;
 
         public static event Action<EffectChangedArgs> Changed;
@@ -91,6 +96,35 @@ namespace ObenseuerCore
             {
                 ApiLog.Once(Owner, "IsActive", e);
                 return false;
+            }
+        }
+
+        public static float Strength(Effect effect)
+        {
+            if (!Enum.IsDefined(typeof(Effect), effect)) return 0f;
+            try
+            {
+                switch (effect)
+                {
+                    case Effect.Drunk: return Weight(drunkVolumeField, DrunkEffect.instance);
+                    case Effect.Mushroom: return Weight(mushroomVolumeField, MushroomEffect.instance);
+                    case Effect.OrangeMushroom: return Math.Max(Weight(orangeVolumeField, OrangeMushroomEffect.instance), Weight(orangeBadVolumeField, OrangeMushroomEffect.instance));
+                    case Effect.Wasteland: return IsActive(effect) ? 1f : 0f;
+                }
+                if (!IsActive(effect)) return 0f;
+                PlayerStats stats = PlayerStats.instance;
+                switch (effect)
+                {
+                    case Effect.Sleepy: return Clamp01((stats.tiredness.currentStatus / 100f - 0.5f) / 0.5f);
+                    case Effect.Depression: return Clamp01(stats.mentalHealth.currentStatus / 100f - 0.5f);
+                    case Effect.LowHealth: return Clamp01(1.5f - stats.health.currentStatus / 100f);
+                    default: return 0f;
+                }
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Owner, "Strength", e);
+                return 0f;
             }
         }
 
@@ -161,6 +195,23 @@ namespace ObenseuerCore
         private static void CheckEffect(Effect effect)
         {
             if (!Enum.IsDefined(typeof(Effect), effect)) throw new ArgumentException("unknown effect", "effect");
+        }
+
+        private static float Weight(FieldInfo volumeField, object owner)
+        {
+            if (owner == null) return 0f;
+            if (volumeField == null || volumeWeightField == null)
+            {
+                ApiLog.Once(Owner, "Strength weight", "post process volume field not found, strength reads 0");
+                return 0f;
+            }
+            object volume = volumeField.GetValue(owner);
+            return volume == null ? 0f : Clamp01((float)volumeWeightField.GetValue(volume));
+        }
+
+        private static float Clamp01(float value)
+        {
+            return Math.Min(1f, Math.Max(0f, value));
         }
 
         private static EffectGroup Install()

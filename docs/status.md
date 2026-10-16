@@ -5,7 +5,7 @@ nav_order: 11
 
 # Status
 
-**This is a beta.** The latest release is 0.10.0-beta. Its API can change before 1.0. Only Obenseuer 0.5.05 (Steam build 25839246) is supported.
+**This is a beta.** The latest release is 0.11.0-beta. Its API can change before 1.0. Only Obenseuer 0.5.05 (Steam build 25839246) is supported.
 
 Some parts are experimental, including the Story API (quests, dialogue and law), Net (Steam, lobby and presence helpers for co-op), mod NPCs, NPC appearance, the debug trace, the tutorial and computer files.
 
@@ -150,8 +150,9 @@ Version 0.10.0-beta adds the calls below on top of 0.9.0-beta. Each line names t
 **Modding tools and framework helpers**
 
 - Debug master switch: `[Debug] Master` traces framework calls, events, saves and loads to the debug log, and `TraceFilter` narrows it. It is off by default. See [Debug](api/debug.md).
-- Debug self-checks: `[Debug] ModelSelfCheck`, `RegistrySelfCheck`, `FloorItemsSelfCheck`, `CoreModSelfCheck`, `SaveDataSelfCheck`, `SaveJsonSelfCheck` and `KeyChordSelfCheck`. See [Debug](api/debug.md).
-- Debug probes: `[Debug] PlayerShopProbe`, the `core_jsonprobe` command (with `[Debug] JsonProbeCommand` on), and `WebUiFocusDiag` for focus loss. See [Debug](api/debug.md).
+- Debug self-checks: `[Debug] ModelSelfCheck`, `RegistrySelfCheck`, `FloorItemsSelfCheck`, `CoreModSelfCheck`, `SaveDataSelfCheck`, `SaveJsonSelfCheck`, `KeyChordSelfCheck` and `FrameworkModsSelfCheck`. See [Debug](api/debug.md).
+- Debug probes: `[Debug] PlayerShopProbe`, the `core_jsonprobe` command (with `[Debug] JsonProbeCommand` on), and `WebUiFocusDiag` for focus loss. See [Debug](api/debug.md). The `scenelooks` command (with `[Debug] SceneLooksCommand` on) prints the scene look index and reads the installed game files only. See [Scene looks](api/scenelooks.md).
+- Mods menu action: the framework's own Settings page has a `Scene looks` section with a `Run scene looks checks` button. It runs the same checks as the `scenelooks` command for the loaded scene, needs no `[Debug]` flag and no console, and shows the character and root counts on the menu status line and the full text in the log. See [Scene looks](api/scenelooks.md).
 - Framework helpers: `CoreMod.For(plugin)` returns one handle per mod, with `Save<T>`, `Key` and the patch helpers. See [Framework helpers](api/core-helpers.md).
 - Patch helpers: `CorePatcher.Prefix`, `Postfix` and `Finalizer` find their target by name or by `Type[]`. See [Framework helpers](api/core-helpers.md).
 - Run once loaded: `Events.WhenReady` runs an action now, or on the next load. See [Framework helpers](api/core-helpers.md).
@@ -170,7 +171,7 @@ Version 0.10.0-beta adds the calls below on top of 0.9.0-beta. Each line names t
 - WebUi is an optional module, `ObenseuerCore.WebUi.dll`. Mods that use WebUi depend on it and reference that DLL. Without it, the Mods menu uses the classic window. See [WebUi](api/webui.md).
 - The `WebTheme` setting moved to the module's config file, and `WebMenuSelfCheck` moved there too and is not carried over. See [WebUi](api/webui.md).
 - WebUi pages and frames can no longer create a `Worker`, because a worker could open sockets outside the lockdown. A mod id that does not fit the host rules gets an `h--` host, so its web storage starts empty. See [WebUi](api/webui.md).
-- Mods built for BepInEx 6 use a SemVer range in `BepInDependency`, such as `">=0.10.0"`. BepInEx 5 needs a plain version, such as `"0.10.0"`. See [Packaging](guides/getting-started/packaging.md).
+- Mods built for BepInEx 6 use a SemVer range in `BepInDependency`, such as `">=0.11.0"`. BepInEx 5 needs a plain version, such as `"0.11.0"`. See [Packaging](guides/getting-started/packaging.md).
 - The preloader, `ObenseuerCore.Preloader.dll`, is an optional patcher that is not in the zips. It builds for BepInEx 6 and, with `-p:Loader=BepInEx5`, for BepInEx 5. Copy the BepInEx 6 build from `preloader\bin\` or the BepInEx 5 build from `preloader\bin\be5\` to `BepInEx\patchers\ObenseuerCore\` to use it.
 - The Starter build no longer copies the DLL into the game folder. Add `-p:DeployToGame=true` to copy it. See [First mod](guides/getting-started/first-mod.md).
 - Traders: `Sell` is all or nothing, like `Buy`. A trade cannot start inside another trade, and cash writes, mail sends, `PlayerInventory.Give` and `Take`, and `Traders.SetMoney` and `Restock` are refused while one runs. See [Traders](api/traders.md).

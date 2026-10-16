@@ -26,6 +26,9 @@ namespace ObenseuerCore
         private const float LockDifficultyMax = 2f;
         internal static readonly FieldInfo KeypadOpen = typeof(Keypad).GetField("open", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
         private static readonly FieldInfo LockpickActive = typeof(PlayerLockpicking).GetField("ActiveLockpicking", BindingFlags.Static | BindingFlags.NonPublic);
+        private static Action<bool> pendingDone;
+        private static Lock pendingLock;
+        private static bool pendingCalled;
 
         public static event Action<LockArgs> Locked;
 
@@ -303,8 +306,14 @@ namespace ObenseuerCore
                 Lock found = FindLock(target);
                 PlayerLockpicking picking = PlayerLockpicking.instance;
                 if (found == null || !found.Locked || !found.Lockpickable || picking == null || LockpickActive.GetValue(null) != null) return false;
+                pendingDone = done;
+                pendingLock = found;
+                pendingCalled = false;
                 picking.ToggleLockpicking(ok =>
                 {
+                    pendingCalled = true;
+                    pendingDone = null;
+                    pendingLock = null;
                     if (ok) Guard("Locks.StartLockpick unlock", () => Unlock(target));
                     bool unlocked = ok && !IsLocked(target);
                     Guard("Locks.StartLockpick event", () => RaiseLockpick(new LockArgs(target), unlocked));
@@ -314,9 +323,21 @@ namespace ObenseuerCore
             }
             catch (Exception e)
             {
+                pendingDone = null;
+                pendingLock = null;
                 ApiLog.Once(Interactions.Owner, "Locks.StartLockpick", e);
                 return false;
             }
+        }
+
+        internal static void LockpickAborted(Lock aborted)
+        {
+            Action<bool> done = pendingDone;
+            if (done == null || pendingCalled || !ReferenceEquals(pendingLock, aborted)) return;
+            pendingDone = null;
+            pendingLock = null;
+            pendingCalled = true;
+            Guard("Locks.StartLockpick callback", () => done(false));
         }
 
         internal static void RaiseChanged(LockArgs lockEvent, bool nowLocked)

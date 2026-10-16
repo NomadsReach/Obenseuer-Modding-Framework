@@ -21,7 +21,7 @@ A mod that references `ObenseuerCore.dll` must have a hard `BepInDependency` on 
 
 1. Open `BepInEx\LogOutput.log` and search for your mod's name. BepInEx writes a line for each plugin it loads or skips.
 2. Check that the framework is in `BepInEx\plugins\ObenseuerCore\`. BepInEx skips a mod whose dependency is missing.
-3. Check that your plugin has `[BepInDependency("obenseuer.moddingframework", ">=0.10.0")]`. On BepInEx 5, write `"0.10.0"` instead, because BepInEx 5 cannot parse a version range. See [Supporting BepInEx 5 too](guides/getting-started/packaging.md#supporting-bepinex-5-too).
+3. Check that your plugin has `[BepInDependency("obenseuer.moddingframework", ">=0.11.0")]`. On BepInEx 5, write `"0.11.0"` instead, because BepInEx 5 cannot parse a version range. See [Supporting BepInEx 5 too](guides/getting-started/packaging.md#supporting-bepinex-5-too).
 4. Check that your DLL is directly in `BepInEx\plugins\<your mod>\`, not one folder deeper.
 5. Open `BepInEx\logs\ObenseuerCore.log` and check the game build on the first line. The framework is built for 0.5.05.
 6. Check that your mod id does not start with `obenseuer.moddingframework` or `nomad.obenseuer.core`. Both prefixes are reserved for the framework.

@@ -1,21 +1,13 @@
-using BepInEx;
-#if BEPINEX6
-using BepInEx.Unity.Mono;
-#endif
 using ObenseuerCore;
 
-[BepInPlugin("example.myfirstmod", "My First Mod", "0.1.0")]
-#if BEPINEX5
-[BepInDependency("obenseuer.moddingframework", "0.10.0")]
-#else
-[BepInDependency("obenseuer.moddingframework", ">=0.10.0")]
-#endif
-public class MyFirstMod : BaseUnityPlugin
+[ModInfo("example.myfirstmod", "My First Mod", "0.1.0")]
+[ModDependency("obenseuer.moddingframework", "0.11.0")]
+public class MyFirstMod : FrameworkMod
 {
-    private void Awake()
+    protected override void OnLoad()
     {
-        var mod = CoreMod.For(this);
-        mod.Log.Info("loaded");
-        Events.WhenReady(() => Hud.ShowHint(mod.Id, "My First Mod", new[] { "Hello from My First Mod." }));
+        Log.Info("loaded");
+        ModSetting<float> speed = Config.Bind("General", "Speed", 1f, "Walk speed factor.", 0.5f, 2f);
+        Events.WhenReady(() => Hud.ShowHint(Mod.Id, "My First Mod", new[] { "Hello from My First Mod." }));
     }
 }

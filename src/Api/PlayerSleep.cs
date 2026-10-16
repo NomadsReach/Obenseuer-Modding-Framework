@@ -30,6 +30,8 @@ namespace ObenseuerCore
         public bool IgnoreNeeds { get; set; }
 
         public bool NoPassOut { get; set; }
+
+        public string Label { get; set; }
     }
 
     public static partial class PlayerState

@@ -32,16 +32,16 @@ namespace ObenseuerCore
             groups.Clear();
             query = "";
             ModUi.TextField(content, "Search", "", Filter);
-            List<PluginInfo> plugins = Loader.All();
-            plugins.Sort(ByName);
+            List<KeyValuePair<string, ConfigFile>> files = ConfigFiles();
+            files.Sort(ByName);
             int failed = 0;
-            for (int p = 0; p < plugins.Count; p++)
+            for (int p = 0; p < files.Count; p++)
             {
-                PluginInfo info = plugins[p];
-                if (info.Instance == null) continue;
-                List<ConfigEntryBase> entries = Visible(((BaseUnityPlugin)info.Instance).Config);
-                if (entries.Count == 0) continue;
-                Group group = AddGroup(content, info.Metadata.Name);
+                List<ConfigEntryBase> entries = Visible(files[p].Value);
+                string modId = ModIdOf(files[p].Value);
+                bool hasActions = ModMenuActions.Any(modId);
+                if (entries.Count == 0 && !hasActions) continue;
+                Group group = AddGroup(content, files[p].Key);
                 string section = null;
                 Section current = null;
                 for (int e = 0; e < entries.Count; e++)
@@ -52,7 +52,7 @@ namespace ObenseuerCore
                         current = new Section(section);
                         group.Sections.Add(current);
                     }
-                    ModMenuRow row = ModMenuRow.Create(entries[e], info.Metadata.Name);
+                    ModMenuRow row = ModMenuRow.Create(entries[e], files[p].Key);
                     if (row == null) failed++;
                     else
                     {
@@ -60,6 +60,7 @@ namespace ObenseuerCore
                         current.Rows.Add(row);
                     }
                 }
+                AddActions(group, modId, files[p].Key);
             }
             Apply();
             if (failed > 0) CoreLog.For(ModMenu.Owner).Error(failed + " config rows could not be read");
@@ -153,6 +154,37 @@ namespace ObenseuerCore
             }
         }
 
+        private static void AddActions(Group group, string modId, string plugin)
+        {
+            List<ModMenuAction> found = ModMenuActions.For(modId);
+            if (found.Count == 0) return;
+            Section section = null;
+            for (int i = 0; i < found.Count; i++)
+            {
+                ModMenuAction action = found[i];
+                if (section == null || section.Name != action.Section)
+                {
+                    section = new Section(action.Section);
+                    group.Sections.Add(section);
+                }
+                section.Actions.Add(new ModMenuActionRow(action, plugin));
+            }
+        }
+
+        private static string ModIdOf(ConfigFile file)
+        {
+            if (file == null) return null;
+            foreach (PluginInfo info in Loader.All())
+            {
+                if (info.Instance != null && ReferenceEquals(((BaseUnityPlugin)info.Instance).Config, file)) return info.Metadata.GUID;
+            }
+            foreach (FrameworkMod mod in FrameworkMods.Loaded())
+            {
+                if (ReferenceEquals(mod.Config.Existing, file)) return mod.Info.Id;
+            }
+            return null;
+        }
+
         private static Group AddGroup(RectTransform content, string name)
         {
             Group group = new Group(name, groups.Count == 0);
@@ -194,6 +226,11 @@ namespace ObenseuerCore
                     {
                         if (Matches(sectionRows[r])) any = true;
                     }
+                    List<ModMenuActionRow> sectionActions = group.Sections[s].Actions;
+                    for (int a = 0; a < sectionActions.Count; a++)
+                    {
+                        if (Matches(sectionActions[a].Search)) any = true;
+                    }
                 }
                 bool open = searching ? any : group.Expanded;
                 group.Header.gameObject.SetActive(!searching || any);
@@ -208,6 +245,12 @@ namespace ObenseuerCore
                     {
                         bool visible = open && Matches(section.Rows[r]);
                         section.Rows[r].SetVisible(visible);
+                        if (visible) shown = true;
+                    }
+                    for (int a = 0; a < section.Actions.Count; a++)
+                    {
+                        bool visible = open && Matches(section.Actions[a].Search);
+                        section.Actions[a].SetVisible(visible);
                         if (visible) shown = true;
                     }
                     if (section.Header != null) section.Header.SetActive(shown);
@@ -234,6 +277,7 @@ namespace ObenseuerCore
                     }
                 }
                 for (int r = 0; r < section.Rows.Count; r++) section.Rows[r].Build(group.Container);
+                for (int a = 0; a < section.Actions.Count; a++) section.Actions[a].Build(group.Container);
             }
         }
 
@@ -242,9 +286,28 @@ namespace ObenseuerCore
             return query.Length == 0 || row.Search.IndexOf(query, StringComparison.Ordinal) >= 0;
         }
 
-        private static int ByName(PluginInfo a, PluginInfo b)
+        private static bool Matches(string search)
         {
-            return string.CompareOrdinal(a.Metadata.Name, b.Metadata.Name);
+            return query.Length == 0 || search.IndexOf(query, StringComparison.Ordinal) >= 0;
+        }
+
+        private static int ByName(KeyValuePair<string, ConfigFile> a, KeyValuePair<string, ConfigFile> b)
+        {
+            return string.CompareOrdinal(a.Key, b.Key);
+        }
+
+        private static List<KeyValuePair<string, ConfigFile>> ConfigFiles()
+        {
+            List<KeyValuePair<string, ConfigFile>> files = new List<KeyValuePair<string, ConfigFile>>();
+            foreach (PluginInfo info in Loader.All())
+            {
+                if (info.Instance != null) files.Add(new KeyValuePair<string, ConfigFile>(info.Metadata.Name, ((BaseUnityPlugin)info.Instance).Config));
+            }
+            foreach (FrameworkMod mod in FrameworkMods.Loaded())
+            {
+                if (mod.Config.Existing != null) files.Add(new KeyValuePair<string, ConfigFile>(mod.Info.Name, mod.Config.Existing));
+            }
+            return files;
         }
 
         private static int BySectionAndKey(ConfigEntryBase a, ConfigEntryBase b)
@@ -279,6 +342,7 @@ namespace ObenseuerCore
             internal readonly string Name;
             internal GameObject Header;
             internal readonly List<ModMenuRow> Rows = new List<ModMenuRow>();
+            internal readonly List<ModMenuActionRow> Actions = new List<ModMenuActionRow>();
 
             internal Section(string name)
             {
@@ -339,9 +403,12 @@ namespace ObenseuerCore
             if (tags == null) return false;
             for (int i = 0; i < tags.Length; i++)
             {
-                PropertyInfo browsable = tags[i] == null ? null : tags[i].GetType().GetProperty("Browsable", Members);
-                if (browsable == null) continue;
-                object shown = browsable.GetValue(tags[i], null);
+                if (tags[i] == null) continue;
+                Type type = tags[i].GetType();
+                PropertyInfo property = type.GetProperty("Browsable", Members);
+                FieldInfo field = property == null ? type.GetField("Browsable", Members) : null;
+                if (property == null && field == null) continue;
+                object shown = property != null ? property.GetValue(tags[i], null) : field.GetValue(tags[i]);
                 return shown is bool && !(bool)shown;
             }
             return false;
@@ -562,6 +629,54 @@ namespace ObenseuerCore
         {
             if (value is float) return ((float)value).ToString("0.##", CultureInfo.InvariantCulture);
             return Convert.ToString(value, CultureInfo.InvariantCulture);
+        }
+    }
+
+    internal sealed class ModMenuActionRow
+    {
+        private readonly ModMenuAction action;
+        internal readonly string Search;
+        private RectTransform rect;
+        private TextMeshProUGUI status;
+        private bool attempted;
+
+        internal ModMenuActionRow(ModMenuAction action, string plugin)
+        {
+            this.action = action;
+            Search = ((plugin ?? "") + " " + action.Section + " " + action.Title).ToLowerInvariant();
+        }
+
+        internal void SetVisible(bool visible)
+        {
+            if (rect != null) rect.gameObject.SetActive(visible);
+        }
+
+        internal void Build(RectTransform content)
+        {
+            if (attempted) return;
+            attempted = true;
+            try
+            {
+                RectTransform control;
+                rect = ModUi.Field(content, action.Title, out control);
+                status = ModUi.Label(control, action.Description, UiTheme.MutedSize, UiTheme.Muted, TextAlignmentOptions.MidlineRight, false);
+                LayoutElement share = ModUi.Sizing(status.gameObject);
+                share.preferredWidth = 0f;
+                share.flexibleWidth = 1f;
+                ModUi.Button(control, ModMenuActions.ButtonText, ButtonStyle.Secondary, Run);
+            }
+            catch (Exception e)
+            {
+                if (rect != null) UnityEngine.Object.DestroyImmediate(rect.gameObject);
+                rect = null;
+                CoreLog.For(ModMenu.Owner).Warn("menu action " + action.ModId + " " + action.Name + " skipped: " + e.GetType().Name + ": " + e.Message);
+            }
+        }
+
+        private void Run()
+        {
+            string text = ModMenuActions.Run(action);
+            if (status != null) status.text = text;
         }
     }
 }

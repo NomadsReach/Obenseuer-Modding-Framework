@@ -16,9 +16,9 @@ Everything not listed here is internal.
 
 ## Install and requirements
 
-WebUi is a separate BepInEx plugin, `ObenseuerCore.WebUi.dll` (GUID `obenseuer.moddingframework.webui`, version 0.10.0). The framework is required, and the module depends on it. Install the module from the WebUi zip, `ObenseuerModdingFramework-WebUi-<version>-beta.zip`. It goes to `BepInEx\plugins\ObenseuerCore.WebUi\` with `ObxWebView.dll` and `web\`.
+WebUi is a separate BepInEx plugin, `ObenseuerCore.WebUi.dll` (GUID `obenseuer.moddingframework.webui`, version 0.11.0). The framework is required, and the module depends on it. Install the module from the WebUi zip, `ObenseuerModdingFramework-WebUi-<version>-beta.zip`. It goes to `BepInEx\plugins\ObenseuerCore.WebUi\` with `ObxWebView.dll` and `web\`.
 
-- A mod that uses WebUi declares `[BepInDependency("obenseuer.moddingframework.webui", ">=0.10.0")]` and references `ObenseuerCore.WebUi.dll`. The WebUi types are not in `ObenseuerCore.dll`. On BepInEx 5, write `"0.10.0"` instead, because BepInEx 5 cannot parse a version range. See [Supporting BepInEx 5 too](../guides/getting-started/packaging.md#supporting-bepinex-5-too).
+- A mod that uses WebUi declares `[BepInDependency("obenseuer.moddingframework.webui", ">=0.11.0")]` and references `ObenseuerCore.WebUi.dll`. The WebUi types are not in `ObenseuerCore.dll`. On BepInEx 5, write `"0.11.0"` instead, because BepInEx 5 cannot parse a version range. See [Supporting BepInEx 5 too](../guides/getting-started/packaging.md#supporting-bepinex-5-too).
 - Without the module, the WebUi types are missing and the Mods menu uses the classic window.
 - The WebView2 Runtime is needed for the view. It is preinstalled on Windows 10 and 11.
 
@@ -166,6 +166,6 @@ The framework adds no Content-Security-Policy to mod pages, so a page should set
 
 ## Messages from the shim
 
-The framework reads the shim's queue each frame. Messages from the shim (`obx.key`, `obx.error`, `obx.status`) are not page messages. `obx.frame` is the exception: The framework posts it to the page unchanged. When the queue overflows, the dropped count is reported as `obx.error` `messages-dropped` and logged as a warning at most once a minute. A burst inside that minute is added to the next warning, so a count with no later burst is not logged.
+The framework reads the shim's queue each frame. Messages from the shim (`obx.key`, `obx.error`, `obx.status`) are not page messages. `obx.frame` is the exception: the framework posts it to the page unchanged. When the queue overflows, the dropped count is reported as `obx.error` `messages-dropped` and logged as a warning at most once a minute. A burst inside that minute is added to the next warning, so a count with no later burst is not logged.
 
 - `obx.key`: a view gets Escape or F10. It goes to `KeyPressed`, and Escape may then hide the view (see [Step 7 of the UI guide](../guides/ui.md#step-7-hide-close-and-escape)).

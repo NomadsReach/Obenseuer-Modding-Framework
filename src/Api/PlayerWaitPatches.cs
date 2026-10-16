@@ -6,11 +6,14 @@ namespace ObenseuerCore
 {
     internal static class PlayerWaitPatches
     {
+        private const string LabelOwner = PlayerState.WaitResultOwner + ".label";
+
         internal static bool Install()
         {
             string owner = PlayerState.WaitResultOwner;
             try
             {
+                CorePatcher.PatchCore(typeof(WaitingUI), "GetTypeString", Type.EmptyTypes, null, Handler("TypeStringPostfix"), null, true, LabelOwner);
                 bool ok = true;
                 ok &= CorePatcher.PatchCore(typeof(WaitingController), "Wakeup", new[] { typeof(bool), typeof(bool) }, null, null, Handler("WakeupFinalizer"), true, owner);
                 ok &= CorePatcher.PatchCore(typeof(WaitingController), "PassOut", new[] { typeof(bool), typeof(WaitingController.Type) }, Handler("PassOutPrefix"), null, Handler("PassOutFinalizer"), true, owner);
@@ -56,6 +59,20 @@ namespace ObenseuerCore
             catch (Exception e)
             {
                 ApiLog.Once(PlayerState.WaitResultOwner, "WaitPrefix", e);
+            }
+        }
+
+        private static void TypeStringPostfix(ref string __result)
+        {
+            try
+            {
+                string label = PlayerWait.Label;
+                WaitingController waiting = WaitingController.instance;
+                if (!string.IsNullOrEmpty(label) && waiting != null && waiting.IsWaiting) __result = label;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(LabelOwner, "TypeStringPostfix", e);
             }
         }
 

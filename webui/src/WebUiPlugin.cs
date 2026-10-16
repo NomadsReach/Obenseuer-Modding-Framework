@@ -6,11 +6,11 @@ using BepInEx.Unity.Mono;
 
 namespace ObenseuerCore
 {
-    [BepInPlugin("obenseuer.moddingframework.webui", "Obenseuer Modding Framework WebUi", "0.10.0")]
+    [BepInPlugin("obenseuer.moddingframework.webui", "Obenseuer Modding Framework WebUi", "0.11.0")]
 #if BEPINEX5
-    [BepInDependency("obenseuer.moddingframework", "0.10.0")]
+    [BepInDependency("obenseuer.moddingframework", "0.11.0")]
 #else
-    [BepInDependency("obenseuer.moddingframework", ">=0.10.0")]
+    [BepInDependency("obenseuer.moddingframework", ">=0.11.0")]
 #endif
     public class WebUiPlugin : BaseUnityPlugin
     {
@@ -32,7 +32,7 @@ namespace ObenseuerCore
             {
                 if (Config.Bind("Debug", "WebMenuSelfCheck", false, "Run the web mod menu JSON writer and key-map self-check at start and log the result.").Value)
                 {
-                    string error = ModMenuJson.SelfCheck() ?? ModMenuWebKeys.SelfCheck() ?? ModMenuWebConfig.SelfCheck() ?? ModMenuWebHost.SelfCheck();
+                    string error = ModMenuJson.SelfCheck() ?? ModMenuActions.SelfCheck() ?? ModMenuWebKeys.SelfCheck() ?? ModMenuWebConfig.SelfCheck() ?? ModMenuWebHost.SelfCheck();
                     CoreLog.For(WebUi.Owner).Info(error == null ? "web menu self-check ok" : "web menu self-check failed: " + error);
                 }
             });

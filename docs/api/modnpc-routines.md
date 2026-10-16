@@ -106,6 +106,7 @@ public static partial class ModNpcRoutines
 
 ### Setting and removing
 
+- **Source.** A routine spawns its NPC with the same rules as `ModNpcs.Spawn`. When the source has no prefab, the spawn uses the default body (see [mod NPC API](modnpcs.md#spawn)).
 - **Set** stores a copy of the routine for the mod and the id. Later changes to the builder do not reach the stored copy. Calling `Set` again with the same id replaces the routine. It can be called at any time, including on the main menu. The NPC appears once a save is loaded and its scene is active.
 - **Set** returns `false` when `ModNpcRoutines.IsAvailable` is false, when the mod already has 64 routines, when the same id is in use by an NPC that no routine started, or when a saved mod NPC (`ModNpcs.SpawnSaved`) holds the id, even if that NPC is not in the loaded scene. Do not use one id for both `ModNpcs.SpawnSaved` and a routine.
 - **Remove** forgets the routine and despawns its NPC if a routine spawned it. **Clear** does the same for every routine of the mod. Both return `false` when there was nothing to remove.

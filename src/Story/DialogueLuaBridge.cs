@@ -19,6 +19,7 @@ namespace ObenseuerCore
                 BindCore("Core_CrimeTotal", "CrimeTotal");
                 BindCore("Core_CrimeAgainst", "CrimeAgainst");
                 BindCore("Core_ResponsePicked", "ResponsePicked");
+                BindCore("Core_LineText", "LineText");
             }
             catch (Exception e)
             {
@@ -99,6 +100,11 @@ namespace ObenseuerCore
         public static void ResponsePicked(string key)
         {
             DialogueResponses.Picked(key);
+        }
+
+        public static string LineText(string id)
+        {
+            return DialogueAuthoring.LineText(id);
         }
 
         private static string Hash(string text)

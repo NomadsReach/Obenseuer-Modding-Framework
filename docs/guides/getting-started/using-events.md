@@ -14,7 +14,7 @@ using BepInEx.Unity.Mono;
 using ObenseuerCore;
 
 [BepInPlugin("example.hello", "Example Hello", "0.1.0")]
-[BepInDependency("obenseuer.moddingframework", ">=0.10.0")]
+[BepInDependency("obenseuer.moddingframework", ">=0.11.0")]
 public class ExampleHello : BaseUnityPlugin
 {
     private static readonly CoreLog Log = CoreLog.For("example.hello");
@@ -34,7 +34,7 @@ public class ExampleHello : BaseUnityPlugin
 }
 ```
 
-On BepInEx 5, write `"0.10.0"` instead, because BepInEx 5 cannot parse a version range, and drop `using BepInEx.Unity.Mono;` (`BaseUnityPlugin` then comes from `BepInEx`). See [Supporting BepInEx 5 too](packaging.md#supporting-bepinex-5-too).
+On BepInEx 5, write `"0.11.0"` instead, because BepInEx 5 cannot parse a version range, and drop `using BepInEx.Unity.Mono;` (`BaseUnityPlugin` then comes from `BepInEx`). See [Supporting BepInEx 5 too](packaging.md#supporting-bepinex-5-too).
 
 - `Events.HourPassed(int hour)` runs once for each game hour.
 - `Events.DayPassed(int day)` runs when the game day changes.
@@ -42,7 +42,7 @@ On BepInEx 5, write `"0.10.0"` instead, because BepInEx 5 cannot parse a version
 - `Events.Saved` and `Events.Loaded` run after a save and after a load. `Loaded` also runs on every door change, so for work that should happen once per loaded save, use `Events.WhenReady`.
 - Handlers run in the order they were added. The first throw from each handler is logged to `ObenseuerCore.log`, and the other handlers still run.
 - `GameTime` reads `Day`, `DayOfWeek`, `Hour`, `Minute` and `IsPaused`. On the main menu, and while a load runs, `Day`, `Hour` and `Minute` are 0.
-- `GameTime.IsPaused` means the game clock is stopped. It is not the pause menu. For the pause menu, use `UiState.IsPaused`.
+- `GameTime.IsPaused` is `Time.timeScale == 0`, so it is true whenever the game clock is stopped. The pause menu and the saving screen both set the time scale to 0, so it is true while either is open. For the pause menu flag itself, use `UiState.IsPaused`.
 - The game raises events on Unity's main thread. Call the framework from there too.
 
 Next: [Save data](save-data.md).

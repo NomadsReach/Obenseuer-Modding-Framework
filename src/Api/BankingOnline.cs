@@ -166,12 +166,17 @@ namespace ObenseuerCore
                 BankResult result = Debit(data, currency, value);
                 if (result != BankResult.Ok) return result;
                 debited = true;
+                BankLedger.Reconcile("Invoice");
                 if (invoice.onPaid != null) invoice.onPaid.Invoke(invoice);
                 InvoiceController.instance.invoices.Remove(invoice);
             }
             catch (Exception e)
             {
-                if (debited && InvoiceController.instance.invoices.Contains(invoice)) Restore(data, oc, rm);
+                if (debited && InvoiceController.instance.invoices.Contains(invoice))
+                {
+                    Restore(data, oc, rm);
+                    BankLedger.Reconcile("Invoice");
+                }
                 ApiLog.Once(Cash.Owner, "Banking.PayInvoiceFromAccount", e);
                 return BankResult.Unavailable;
             }
@@ -201,13 +206,13 @@ namespace ObenseuerCore
                 Money.BankAccountData account = FindAccount(bankName);
                 if (account == null) return BankResult.NoAccount;
                 if (account.Frozen) return BankResult.Frozen;
-                int owed = currency == MoneyCurrency.RM ? (int)account.CurrentDebt.RM : account.CurrentDebt.OC;
-                int pay = Math.Min(amount, owed);
-                if (pay <= 0) return BankResult.Refused;
+                float owed = currency == MoneyCurrency.RM ? account.CurrentDebt.RM : account.CurrentDebt.OC;
+                float pay = Math.Min(amount, owed);
+                if (pay <= 0f) return BankResult.Refused;
                 BankResult result = Debit(account, currency, pay);
                 if (result != BankResult.Ok) return result;
                 if (currency == MoneyCurrency.RM) account.CurrentDebt.RM -= pay;
-                else account.CurrentDebt.OC -= pay;
+                else account.CurrentDebt.OC -= (int)pay;
             }
             catch (Exception e)
             {

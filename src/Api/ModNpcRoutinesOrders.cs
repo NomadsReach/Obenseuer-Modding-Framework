@@ -165,7 +165,7 @@ namespace ObenseuerCore
             {
                 int characterId = ModNpcs.CharacterIdOf(modId, npcId);
                 NPCController controller = characterId == 0 ? null : NpcMovement.LiveController(characterId);
-                if (controller == null || controller.richAI == null || controller.activityDisabled) return false;
+                if (controller == null || controller.richAI == null || controller.activityDisabled || NpcControl.HoldsMovement(characterId)) return false;
                 NPCInfo info = NPCManager.instance.FindNpcById(characterId);
                 Activity activity = null;
                 if (kind == NpcStepKind.Sit || kind == NpcStepKind.Sleep)
@@ -211,7 +211,7 @@ namespace ObenseuerCore
                 Finish(order, false);
                 return;
             }
-            if (controller.activityDisabled || IsTalking(npc)) return;
+            if (controller.activityDisabled || NpcControl.HoldsMovement(order.CharacterId) || IsTalking(npc)) return;
             Activity current = controller.Data.state.CurrentActivity;
             if (order.Activity != null)
             {

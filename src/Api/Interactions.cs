@@ -33,6 +33,7 @@ namespace ObenseuerCore
     public static class Interactions
     {
         internal const string Owner = "obenseuer.moddingframework.interaction";
+        private const string DefaultVerb = "Use";
         private static bool installed;
 
         private static readonly List<ModInteraction> pending = new List<ModInteraction>();
@@ -44,6 +45,15 @@ namespace ObenseuerCore
 
         public static bool Add(GameObject target, string modId, string label, Action use)
         {
+            return Add(target, modId, label, DefaultVerb, use);
+        }
+
+        public static bool Add(GameObject target, string modId, string label, string verb, Action use)
+        {
+            if (target == null) throw new ArgumentNullException("target");
+            ModIds.RequireLegacy(modId, "modId");
+            if (label == null) throw new ArgumentNullException("label");
+            if (use == null) throw new ArgumentNullException("use");
             if (SaveGate.Busy) return false;
             if (target != null && use != null)
             {
@@ -64,7 +74,25 @@ namespace ObenseuerCore
                     return false;
                 }
             }
-            return ComputerApps.AddInteraction(target, modId, label, "Use", use);
+            return ComputerApps.AddInteraction(target, modId, label, string.IsNullOrWhiteSpace(verb) ? DefaultVerb : verb, use);
+        }
+
+        public static bool SetReason(GameObject target, string modId, Func<string> reason)
+        {
+            if (target == null) throw new ArgumentNullException("target");
+            ModIds.Require(modId, "modId");
+            try
+            {
+                ModInteraction interaction = target.GetComponent<ModInteraction>();
+                if (interaction == null || interaction.ModId != modId || pending.Contains(interaction)) return false;
+                interaction.Reason = reason;
+                return true;
+            }
+            catch (Exception e)
+            {
+                CoreLog.For(Owner).Error("Interactions.SetReason failed: " + e.ToString());
+                return false;
+            }
         }
 
         public static bool Remove(GameObject target, string modId)

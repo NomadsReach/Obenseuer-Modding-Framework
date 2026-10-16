@@ -5,6 +5,8 @@ namespace ObenseuerCore
 {
     internal static class LandmarksPatches
     {
+        internal static bool Detached;
+
         internal static bool Install()
         {
             try
@@ -40,6 +42,7 @@ namespace ObenseuerCore
             try
             {
                 __state = Landmarks.Detach();
+                Detached = __state != null;
             }
             catch (Exception e)
             {
@@ -56,6 +59,10 @@ namespace ObenseuerCore
             catch (Exception e)
             {
                 ApiLog.Once(Landmarks.Owner, "SaveController.SaveGame finalizer", e);
+            }
+            finally
+            {
+                Detached = false;
             }
         }
 

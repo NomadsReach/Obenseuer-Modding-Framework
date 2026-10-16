@@ -34,6 +34,7 @@ namespace ObenseuerCore
         public string Mod;
         public string NpcId;
         public int Source;
+        public int Body;
         public string Name;
         public string LastName;
         public float X;
@@ -170,7 +171,7 @@ namespace ObenseuerCore
 
         private static bool Valid(SavedNpcEntry entry)
         {
-            return entry != null && ModIds.IsValid(entry.Mod) && !string.IsNullOrEmpty(entry.NpcId) && entry.NpcId.Length <= MaxIdLength && !string.IsNullOrEmpty(entry.Name) && !string.IsNullOrEmpty(entry.Scene) && Finite(entry.X) && Finite(entry.Y) && Finite(entry.Z) && Finite(entry.Yaw);
+            return entry != null && ModIds.IsValid(entry.Mod) && !string.IsNullOrEmpty(entry.NpcId) && entry.NpcId.Length <= MaxIdLength && entry.Body >= 0 && !string.IsNullOrEmpty(entry.Name) && !string.IsNullOrEmpty(entry.Scene) && Finite(entry.X) && Finite(entry.Y) && Finite(entry.Z) && Finite(entry.Yaw);
         }
 
         private static int LengthOf<T>(List<T> list)

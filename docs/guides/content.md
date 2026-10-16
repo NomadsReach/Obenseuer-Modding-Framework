@@ -12,7 +12,7 @@ The item, model, furniture and shop stock reference pages are marked experimenta
 
 ## What you need
 
-- Obenseuer 0.5.05, BepInEx 5.4.23 or later (Mono) or BepInEx 6 Unity.Mono, and the Obenseuer Modding Framework 0.10.0 (`obenseuer.moddingframework`). The samples use BepInEx 6 names. For BepInEx 5, see [Supporting BepInEx 5 too](getting-started/packaging.md#supporting-bepinex-5-too).
+- Obenseuer 0.5.05, BepInEx 5.4.23 or later (Mono) or BepInEx 6 Unity.Mono, and the Obenseuer Modding Framework 0.11.0 (`obenseuer.moddingframework`). The samples use BepInEx 6 names. For BepInEx 5, see [Supporting BepInEx 5 too](getting-started/packaging.md#supporting-bepinex-5-too).
 - The .NET 10 SDK, for `dotnet build`. Start from the project in [Your first mod](getting-started/first-mod.md). The samples avoid newer C# syntax: no string interpolation, no `?.`, no `nameof`. The Starter project uses the latest C# version, so you can use it in your own code.
 - Your own PNG icons, OBJ and MTL models and textures.
 - Put the DLL and these asset files in `BepInEx\plugins\<your-mod>\`.
@@ -31,7 +31,7 @@ using ObenseuerCore;
 using UnityEngine;
 
 [BepInPlugin("example.content", "Content Example", "0.1.0")]
-[BepInDependency("obenseuer.moddingframework", ">=0.10.0")]
+[BepInDependency("obenseuer.moddingframework", ">=0.11.0")]
 public class ContentExample : BaseUnityPlugin
 {
     private const string ModGuid = "example.content";
@@ -43,7 +43,7 @@ public class ContentExample : BaseUnityPlugin
 }
 ```
 
-On BepInEx 5, write `"0.10.0"` instead, because BepInEx 5 cannot parse a version range, and drop `using BepInEx.Unity.Mono;` (`BaseUnityPlugin` then comes from `BepInEx`). See [Supporting BepInEx 5 too](getting-started/packaging.md#supporting-bepinex-5-too).
+On BepInEx 5, write `"0.11.0"` instead, because BepInEx 5 cannot parse a version range, and drop `using BepInEx.Unity.Mono;` (`BaseUnityPlugin` then comes from `BepInEx`). See [Supporting BepInEx 5 too](getting-started/packaging.md#supporting-bepinex-5-too).
 
 Use `example.` ids while you test. Avoid ids that start with `obenseuer.moddingframework`, because the framework uses them for its own data.
 
@@ -230,7 +230,7 @@ Action sitDown = () =>
 
 ### Placement
 
-The API has no call that places a furniture piece. The player places it with the game's building tool. `Give` puts the piece into the player's stock, and the player places it from there.
+The framework can place, move and remove a furniture piece: `Building.Place(managerGuid, furnitureId, position, rotation, childRotation, skin, altPrefab)` returns the new piece, `Building.Move(guid, position, rotation)` moves one and `Building.Remove(guid)` removes one ([housing](../api/housing.md)). The player places furniture with the game's building tool. `Give` puts the piece into the player's stock, and the player places it from there.
 
 ```csharp
 Building.FurniturePlaced += item => Log.Info("placed " + item.Id + " in " + item.AreaId + " at " + item.Position);
@@ -372,7 +372,7 @@ using ObenseuerCore;
 using UnityEngine;
 
 [BepInPlugin("example.spicy-jerky", "Spicy Jerky", "0.1.0")]
-[BepInDependency("obenseuer.moddingframework", ">=0.10.0")]
+[BepInDependency("obenseuer.moddingframework", ">=0.11.0")]
 public class SpicyJerky : BaseUnityPlugin
 {
     private const string ModGuid = "example.spicy-jerky";
@@ -439,4 +439,4 @@ public class SpicyJerky : BaseUnityPlugin
 
 Build it with the project from [Your first mod](getting-started/first-mod.md), with the source file and `AssemblyName` changed. Copy the DLL and the four asset files to `BepInEx\plugins\example.spicy-jerky\`.
 
-On BepInEx 5, write `"0.10.0"` instead, because BepInEx 5 cannot parse a version range, and drop `using BepInEx.Unity.Mono;` (`BaseUnityPlugin` then comes from `BepInEx`). See [Supporting BepInEx 5 too](getting-started/packaging.md#supporting-bepinex-5-too).
+On BepInEx 5, write `"0.11.0"` instead, because BepInEx 5 cannot parse a version range, and drop `using BepInEx.Unity.Mono;` (`BaseUnityPlugin` then comes from `BepInEx`). See [Supporting BepInEx 5 too](getting-started/packaging.md#supporting-bepinex-5-too).

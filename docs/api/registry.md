@@ -280,7 +280,7 @@ public static class ItemRegistry
 - `RemoveAllMissingItems()` empties the placeholder stacks of every mod, and drops the carried manifest entries of every mod by the same rule: all recipe entries, and each item entry whose id no scanned stack holds. It returns true, and false in the same cases as `RemoveMissingItems`. When it removes a stack it logs a warning with the count per mod, because it also clears mods the player only disabled for this session. Call it only from a cleanup the player asked for; a mod clearing its own stacks calls `RemoveMissingItems(modId)`.
 - An emptied stack is gone. Reinstalling the mod does not bring it back.
 - Not checked: stacks in scenes that are not loaded, on the floor, or in the respawn list (`Storage.nextItemsToSpawn`). The log line says so. Run the call again after those scenes load. Their ID is kept, but the mod title is lost when the cleanup dropped its entry, because only checked stacks keep their entries.
-- The load warning names this call as the way to clear it. There is no Mods menu entry: The framework's Mods menu has per-row Reset buttons and no confirmation step, so the cleanup is API only.
+- The load warning names this call as the way to clear it. There is no Mods menu entry: the framework's Mods menu has per-row Reset buttons and no confirmation step, so the cleanup is API only.
 
 ## Worked example: Spicy Sewer Jerky
 

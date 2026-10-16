@@ -11,7 +11,7 @@ Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 6 U
 
 Reference `Unity.TextMeshPro.dll` and `UnityEngine.UI.dll` from `Obenseuer_Data\Managed`. `ModUi.Title` and `ModUi.Text` return `TextMeshProUGUI`, and `ModUi.Button` returns `UnityEngine.UI.Button`. Without both references the compiler reports CS0012 (the type is defined in an assembly that is not referenced).
 
-Add `using ObenseuerCore.Ui;` to each file that uses these types. `KeyBinding` takes a `KeyboardShortcut` from BepInEx, so a file that calls it also needs `using BepInEx.Unity.Mono.Configuration;` on BepInEx 6, or `using BepInEx.Configuration;` on BepInEx 5.
+Add `using ObenseuerCore.Ui;` to each file that uses these types. `KeyBinding` takes a `KeyboardShortcut` from BepInEx, so a file that calls it also needs `using BepInEx.Unity.Mono.Configuration;` on BepInEx 6, or `using BepInEx.Configuration;` on BepInEx 5. `KeyBinding` and `ModKeyBinding.Set` are loader-specific, so only BepInEx plugins can call them. See [framework mods](framework-mods.md#loader-specific-members).
 
 ```csharp
 using BepInEx.Unity.Mono.Configuration; // BepInEx 6

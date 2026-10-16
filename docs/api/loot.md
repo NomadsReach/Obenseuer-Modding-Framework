@@ -85,6 +85,7 @@ These read the same lists, so a change to a category reaches them too:
 
 - Collectible spawners spawn world items and record them in a saved list. Pool changes change what they spawn.
 - Storage packages fill their contents from a category when `spawnFromCategory` is set.
+- A trader's stock is the `Storage` on the trader (`Trade` requires one). When that storage spawns from a category, for example `General Store Bazaar`, a change to that category reaches the trader from its next restock, because the next batch is rolled in advance.
 
 Check these before adding an item to a category that they share.
 

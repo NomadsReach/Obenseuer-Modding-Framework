@@ -54,13 +54,16 @@ Melee hits scale per target kind. The factors are kept for the session only.
 
 ```csharp
 public static bool SetHitFactor(string modId, HitTarget target, float factor);
+public static bool SetHitFactor(string modId, HitTarget target, float factor, bool chanceRounding);
 public static bool ClearHitFactors(string modId);
 ```
 
 - `SetHitFactor` takes a factor from 0 to 10. `1` leaves the hit alone, `0` deals no damage and `2` doubles it. The scaled damage is `Math.Round` of damage times factor (`Api/PayoutFactors.cs:33`), so a half rounds to the even neighbour. Damage is a whole number, so low-damage tools lose fine factors: on damage 1, `0.5` gives 0, `1.4` gives 1, `1.5` gives 2 and `2.5` gives 2. It returns `false` when the mod id is invalid, the target is not a `HitTarget`, the factor is `NaN`, infinite, negative or above 10, or the hit hooks are unavailable.
+- The four-argument overload with `chanceRounding` set to `true` keeps the fraction as a chance instead of rounding it. The whole part of the scaled damage is kept, and one more point is added with a probability equal to the fraction, using `UnityEngine.Random`. On damage 1, a factor of `1.3` gives 2 about 30% of the hits and 1 otherwise. A factor of `1.5` gives 2 about half the time. A factor of `0.5` gives 0 or 1, one half of the time each. The three-argument overload is `chanceRounding` `false`, so it keeps the `Math.Round` above.
+- The rounding follows the factor. The newest call for a target supplies its factor, and that same entry's `chanceRounding` decides the rounding for every hit on the target. Factors are not multiplied, so an older `chanceRounding` `true` factor does not apply once a newer call for the target sets `false`, and the reverse.
 - `ClearHitFactors(modId)` removes that mod's factors for every target. It returns `false` when the mod id is invalid or the mod had none.
 - Per target, the newest call wins. Factors for different targets do not interact, and two mods' values are not multiplied. When a second mod sets a target that another mod already set, the log names both mods once, and the newest value applies.
-- A Single scene load clears every factor. A neighbouring scene loaded additively does not.
+- A Single scene load clears every factor, and so does loading a save, which loads the player's level as a Single scene load. A neighbouring scene loaded additively does not. Set factors again from `Events.Loaded` or `Events.SceneLoaded` after each reset.
 - Scope: only the damage of melee hits, from `MeleeWeapon.Hit`. Other weapons, explosions and the player's own damage are not changed.
 
 | Target | Receiver | How it is detected |
@@ -77,7 +80,7 @@ Not included:
 - Wild animals. A melee hit does not reach them. Animal props, the `Animal` target above, are included.
 - Guns. This build has none.
 
-The game code has no prefab data, so which nodes use the `Mining` skill and which weapons use the `Chop` type is not verified.
+The game code has no prefab data, so which nodes use the `Mining` skill and which weapons use the `Chop` type is not listed here.
 
 ## Flashlight
 

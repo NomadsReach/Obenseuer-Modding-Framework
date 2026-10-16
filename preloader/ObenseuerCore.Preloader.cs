@@ -17,7 +17,7 @@ namespace ObenseuerCore.Preloader
     public static class L0Publicizer
     {
 #else
-    [PatcherPluginInfo("obenseuer.moddingframework.preloader", "Obenseuer Modding Framework Preloader", "0.10.0")]
+    [PatcherPluginInfo("obenseuer.moddingframework.preloader", "Obenseuer Modding Framework Preloader", "0.11.0")]
     public class L0Publicizer : BasePatcher
     {
 #endif

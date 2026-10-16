@@ -16,6 +16,19 @@ namespace ObenseuerCore
         public string[] ShopIds;
         public int ShopStock = 3;
         public ModelHandle Model;
+        public FurniturePlacement Placement = FurniturePlacement.Template;
+        public Bounds[] Colliders;
+        public string CategoryName;
+    }
+
+    public enum FurniturePlacement
+    {
+        Template,
+        Floor,
+        Wall,
+        Ceiling,
+        FloorAndWall,
+        Any
     }
 
     public sealed class BlueprintDefinition
@@ -36,6 +49,7 @@ namespace ObenseuerCore
     {
         internal const string Owner = "obenseuer.moddingframework.furniture";
         private const int MaxAmount = 1000;
+        private const int MaxColliders = 64;
         private static readonly Dictionary<string, FurnitureEntry> entries = new Dictionary<string, FurnitureEntry>();
 
         public static event Action Loaded;
@@ -59,6 +73,11 @@ namespace ObenseuerCore
             FurnitureDefinition snapshot = Snapshot(definition);
             FurnitureEntry existing;
             if (entries.TryGetValue(id, out existing)) return existing.Id;
+            if (definition.Colliders != null && definition.Colliders.Length > MaxColliders)
+            {
+                ApiLog.Once(Owner, "Define colliders", "Colliders must hold at most " + MaxColliders + " Bounds, each one becomes a BoxCollider on the piece and on its clones");
+                return null;
+            }
             if (!IsAvailable || FurnitureBuild.Started)
             {
                 CoreLog.For(Owner).Error("furniture " + id + " refused: the furniture patches are not installed, or a furniture was already built");
@@ -82,6 +101,20 @@ namespace ObenseuerCore
             {
                 ApiLog.Once(Owner, "Give", e);
                 return false;
+            }
+        }
+
+        public static Furniture Get(string id)
+        {
+            try
+            {
+                FurnitureEntry entry = Find(id);
+                return FurnitureManifestStore.Ready && entry != null ? FurnitureBuild.Registered(entry) : null;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Owner, "Get", e);
+                return null;
             }
         }
 
@@ -109,13 +142,19 @@ namespace ObenseuerCore
 
         public static bool GiveBlueprint(string furnitureId)
         {
+            return GiveBlueprint(furnitureId, false);
+        }
+
+        public static bool GiveBlueprint(string furnitureId, bool silent)
+        {
             if (furnitureId == null || !IsAvailable || !FurnitureManifestStore.Ready || SaveGate.Busy || !FurnitureBlueprints.ManagersLoaded()) return false;
             try
             {
                 BlueprintEntry entry = FurnitureBlueprints.Find(FurnitureIds.BlueprintIdFor(furnitureId));
                 if (entry == null || FurnitureBlueprints.IsKnown(entry.Id)) return false;
                 TaskItemBlueprint blueprint = FurnitureBlueprints.Registered(entry);
-                return blueprint != null && blueprint.GiveItemWithResults();
+                if (blueprint == null) return false;
+                return silent ? TaskItemsManager.instance.AddTaskItem(blueprint) : blueprint.GiveItemWithResults();
             }
             catch (Exception e)
             {
@@ -205,6 +244,18 @@ namespace ObenseuerCore
                 if (string.IsNullOrEmpty(shop)) throw new ArgumentException("ShopIds must not contain empty entries", "definition");
             }
             if (definition.Model != null && !ModelRegistry.Owns(definition.Model)) throw new ArgumentException("Model must come from ModelRegistry.LoadObj, or be null to keep the template's mesh", "definition");
+            if (!Enum.IsDefined(typeof(FurniturePlacement), definition.Placement)) throw new ArgumentException("Placement is not a defined value", "definition");
+            RegistryIds.CheckText(definition.CategoryName, 0, 40, "CategoryName");
+            if (FurnitureCategories.IsReserved(definition.CategoryName)) throw new ArgumentException("CategoryName " + definition.CategoryName + " is a game group with no build menu group of its own, use another name", "definition");
+            if (definition.Colliders != null && definition.Model == null) throw new ArgumentException("Colliders needs Model, the boxes are fitted to the model", "definition");
+            if (definition.Colliders != null)
+            {
+                if (definition.Colliders.Length == 0) throw new ArgumentException("Colliders must hold at least one Bounds, or be null", "definition");
+                foreach (Bounds bounds in definition.Colliders)
+                {
+                    if (!Building.IsFinite(bounds.center) || !Building.IsFinite(bounds.size) || !(bounds.size.x > 0f && bounds.size.y > 0f && bounds.size.z > 0f)) throw new ArgumentException("each Colliders box needs a finite center and a size above 0 on every axis", "definition");
+                }
+            }
             return new FurnitureDefinition
             {
                 TemplatePath = definition.TemplatePath,
@@ -216,7 +267,10 @@ namespace ObenseuerCore
                 Icon = definition.Icon,
                 ShopIds = (string[])shops.Clone(),
                 ShopStock = definition.ShopStock,
-                Model = definition.Model
+                Model = definition.Model,
+                Placement = definition.Placement,
+                Colliders = definition.Colliders == null ? null : (Bounds[])definition.Colliders.Clone(),
+                CategoryName = definition.CategoryName
             };
         }
 

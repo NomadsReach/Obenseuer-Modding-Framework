@@ -37,7 +37,7 @@ float? StarsIntensity; float? CloudDensity;
 
 `SkyState` has the same names as read-only values. The fog and ambient values are always set. `SkyboxExposure`, `SunColor`, `SunIntensity`, `StarsIntensity` and `CloudDensity` are `null` when the scene has no object that carries them.
 
-- `Set` returns `false` while `SaveData.Busy` or when `IsAvailable` is `false`. It throws `ArgumentException` for an invalid mod id, a `null` `values`, a value that is not finite, or a negative density, intensity or exposure. `CloudDensity` is clamped to 0 to 1. The values are copied, so changing the `SkyOverride` afterwards has no effect.
+- `Set` returns `false` when `IsAvailable` is `false`. It throws `ArgumentException` for an invalid mod id, a `null` `values`, a value that is not finite, or a negative density, intensity or exposure. `CloudDensity` is clamped to 0 to 1. The values are copied, so changing the `SkyOverride` afterwards has no effect.
 - A mod that calls `Set` again replaces its own earlier values. When another mod already overrides one of the same properties, the framework logs one warning naming both mods, and the newer call applies.
 - `Clear` returns `true` only when that mod had an override. It throws `ArgumentException` for an invalid mod id.
 - `Current` returns what the sky shows now, including any override. It returns `null` when reading fails.
@@ -65,7 +65,7 @@ WorldSky.Clear("com.example.mymod");
 - `SunColor` and `SunIntensity` set every directional sun light the sky systems drive. Sun and moon share one light in the game.
 - Overrides drop on a save load and on a Single scene load. Set them again from `Events.SceneLoaded` or `Events.Loaded`. Fog and ambient values belong to the scene, so on a scene change they are not written back. A skybox material is written back.
 - The scene is searched for sky objects at most once every 120 frames, and only while an override is active or a value is held. A sun light that is no longer found, a replaced Azure sky controller and a replaced skybox material get their remembered values written back.
-- Writes return `false` while `SaveData.Busy`.
+- `Set` and `Clear` are not gated on `SaveData.Busy`, so the re-apply from `Events.SceneLoaded` above works. An override is session state and is never saved.
 
 ## Not exposed
 

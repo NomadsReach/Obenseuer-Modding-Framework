@@ -96,7 +96,7 @@ public static class LevelsExample
 
 ## Locks and saves
 
-- A door's lock is saved under the key `<OtherLevel>_<OtherEntrypoint>` in `GlobalState`, when the game saves. The door at the other end reads that key when it loads. So `SetLocked` is kept only as far as this sync carries it. See `docs/api/global-flags.md:54`.
+- A door's lock is saved under the key `<OtherLevel>_<OtherEntrypoint>` in `GlobalState`, when the game saves. The door at the other end reads that key when it loads. So `SetLocked` is kept only as far as this sync carries it. See [Global flags](global-flags.md#globalflags).
 - When scene A loads again, `DoorChangelevel.OnLoadingGame` overwrites A's lock from the A-to-B key that B's last save wrote. So a stale state from B can undo `SetLocked`.
 
 ## Not exposed

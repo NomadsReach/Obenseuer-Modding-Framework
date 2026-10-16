@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <Compile Include="..\..\src\Loader.cs" Link="Core\Loader.cs" />
+    <Compile Include="..\FrameworkModsStub.cs" Link="Core\FrameworkModsStub.cs" />
     <Compile Include="..\..\src\LoaderNamespaces.cs" Link="Core\LoaderNamespaces.cs" />
     <Compile Include="..\..\src\Api\ModIds.cs" Link="Core\ModIds.cs" />
     <Compile Include="..\..\src\Api\ModelObj.cs" Link="Core\ModelObj.cs" />

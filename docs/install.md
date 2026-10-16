@@ -24,6 +24,10 @@ Use either BepInEx version. The framework zip works with both.
 
 If you use ConfigurationManager or UnityExplorer, they need the builds for your BepInEx version.
 
+### Updating
+
+Close the game first. Then delete `BepInEx\plugins\ObenseuerCore\`, and `BepInEx\plugins\ObenseuerCore.WebUi\` if it exists, before you extract the new zips. Extracting over the old folders does not remove files that a newer version dropped. For example, `ObxWebView.dll` and the `web` folder came with the framework zip in 0.9.0-beta, and moved to the WebUi zip in 0.10.0-beta. Your settings in `BepInEx\config\` are kept. If the log then reports an error about the other loader's copy, see [BepInEx 5 or 6?](faq.md#bepinex-5-or-6).
+
 ### Optional: WebUi
 
 WebUi lets mods show HTML pages. It also gives the framework's Mods menu its web look, styled like the game's own menu. Without it, the framework still runs and the Mods menu opens as the classic window. Install it if you want the web Mods menu, or if a mod asks for it. Extract the WebUi zip from the [releases page](https://github.com/NomadsReach/Obenseuer-Modding-Framework/releases) into the game folder. Its files land in `BepInEx\plugins\ObenseuerCore.WebUi\`, with a BepInEx 6 build (`ObenseuerCore.WebUi.dll`) and a BepInEx 5 build (`ObenseuerCore.WebUi.BepInEx5.dll`). WebUi also needs the Microsoft Edge WebView2 Runtime. Windows 10 and 11 have it already.

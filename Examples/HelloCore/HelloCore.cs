@@ -13,9 +13,9 @@ public class HelloState
 
 [BepInPlugin("example.hellocore", "HelloCore", "0.1.0")]
 #if BEPINEX5
-[BepInDependency("obenseuer.moddingframework", "0.10.0")]
+[BepInDependency("obenseuer.moddingframework", "0.11.0")]
 #else
-[BepInDependency("obenseuer.moddingframework", ">=0.10.0")]
+[BepInDependency("obenseuer.moddingframework", ">=0.11.0")]
 #endif
 public class HelloCore : BaseUnityPlugin
 {

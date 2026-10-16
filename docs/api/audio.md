@@ -9,6 +9,7 @@ nav_order: 1
 Experimental.
 Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Log owner: `obenseuer.moddingframework.audio`. Logs go to `BepInEx\logs\obenseuer.moddingframework.audio.log`.
+`AudioClip` is in `UnityEngine.AudioModule`, so a mod project needs a reference to `UnityEngine.AudioModule.dll`.
 
 Everything not listed here is internal. Main thread only. It has no events: the facade only reads game state and plays sounds.
 
@@ -61,6 +62,23 @@ public static AudioClip LoadWav(string path);
 - Returns `null` for a missing file, a non-WAV file, an unsupported format or a truncated file.
 - **WAV only. `.ogg` (and mp3 and any other format) is not supported and `LoadWav` returns `null` for it.** Convert to WAV first.
 - WAVE_FORMAT_EXTENSIBLE files are accepted when the sub-format is PCM or float. Files larger than 16 MiB are rejected (`null`). Decoded samples are kept as floats, so a 16 MiB 8-bit file uses about 64 MiB of memory while it is decoded.
+
+## Raw PCM clips
+
+```csharp
+public static AudioClip FromPcm(string name, float[] samples, int channels, int rate);
+public static AudioClip FromPcm16(string name, short[] samples, int channels, int rate);
+```
+
+- Builds an `AudioClip` from samples you hold in code, for audio that must stay inside the DLL and cannot ship as a loose file. Nothing is read from disk.
+- `samples` are interleaved frames. For stereo, each frame is a left sample then a right sample. `channels` is 1 to 8. `rate` is 8000 to 192000 Hz. The length of `samples` must be a non-zero multiple of `channels`.
+- The sample array is capped at the 16 MiB budget `LoadWav` uses, counted as the bytes you pass: about 4.2 million `float` values, or about 8.4 million `short` values. A larger array is refused: the call returns `null` and logs once. A WAV load allocates a float per sample as well, so this keeps both paths in the same memory class.
+- `FromPcm` takes float samples. It works on a copy, so your array is not changed. A `NaN` or infinite sample becomes 0, and any other sample is clamped to -1 to 1. `FromPcm16` takes 16-bit samples and divides each by 32768, so -32768 gives -1.
+- A null or empty `name` throws `ArgumentException`. A null `samples` throws `ArgumentNullException`. A bad `channels`, `rate` or length throws `ArgumentException`. Each names its parameter.
+- The clip is returned to the caller, who owns it. The framework keeps no reference. Pass it to `UnityEngine.Object.Destroy` when you no longer need it.
+- Call `FromPcm` and `FromPcm16` on the main thread. Off the main thread the Unity call fails, and both return `null`.
+- Returns `null` when Unity cannot build the clip. The first failure of each member is logged.
+- Play the clip with `PlayClip(clip, group, volume)` for 2D sound, or `PlayClipAt` for a position. `"Effects"` is the game's default group for misc sounds.
 
 ## Volumes
 

@@ -122,7 +122,7 @@ public sealed class DroneNodePassedArgs
 - `Changed` depends on the two patches. If the game renames or inlines `TurnOn` or `TurnOff`, the owner is disabled at startup.
 - `Changed` fires from inside the game's `Update` (path end). Handlers run on the main thread in that frame.
 - `NodePassed` fires from inside the game's `Update` too, for every node a drone reaches. `DroneId` is the drone whose `Update` is running, so it is exact per pass.
-- The `Update` hook runs for every drone every frame whether or not `NodePassed` has a subscriber. It writes one static field before and clears it after. Not measured in game.
+- The `Update` hook runs for every drone every frame whether or not `NodePassed` has a subscriber. It writes one static field before and clears it after.
 - `Id` for a drone without a save GUID is a scene path. Renaming or moving the GameObject changes the id.
 - `NextNodeId` reads `Air_Node.NextNode`, which depends on the node's `activeNodeIndex`. It is the node the game would pick next, not a promise.
 

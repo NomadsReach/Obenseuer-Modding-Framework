@@ -4,7 +4,7 @@ has_children: true
 nav_order: 6
 ---
 
-# Obenseuer Modding Framework API (0.10.0)
+# Obenseuer Modding Framework API (0.11.0)
 
 Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 5.4.23 or later (Mono), or BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended). Extensive testing has not been fully done yet.
 Namespace: `ObenseuerCore`. Plugin GUID: `obenseuer.moddingframework`.
@@ -13,25 +13,29 @@ Everything not listed here is internal, including the framework's save-file clas
 
 The framework's core classes (the plugin, patching, logging, events, time and money, saves, tweaks, the Mods menu and the player look) are on [framework core classes](api-core.md).
 
+## Framework mods
+
+- [Framework mods](api/framework-mods.md): `FrameworkMod`, `ModInfoAttribute`, `ModDependencyAttribute`, `ModConfig`, `ModSetting<T>`, `Loader.Has`. One DLL that runs on BepInEx 5 and 6, with no BepInEx reference.
+
 ## Game APIs (experimental)
 
 Each area is a public facade over one game system. Main thread only. See the [status page](status.md).
 
 - [Story: quests, dialogue and law](api-story.md): `Quests`, `Dialogue`, `Law`.
 - [Quest authoring](api/quest-authoring.md): `QuestAuthoring` (`Create`, `AddObjective`, `SetObjective`, `SetCounter`, `Finish`, `Fail`).
-- [Dialogue authoring](api/dialogue-authoring.md): `DialogueAuthoring` (`Add`, `Remove`, `Clear`, `TitleOf`), `Dialogue.AddResponse` and `RemoveResponse`, session only.
-- [HUD, console, achievements and difficulty](api/hud.md): `Hud`, `ConsoleCommands`, `Achievement`, `GameDifficulty` (`SetFactor`, `Clear`, `DifficultyMultiplier`), `TaskItems`, `TaskItemCount`, `TaskItemChangedArgs`.
-- [Housing and building](api/housing.md): `Housing`, `Building`, `BuildAreaInfo`.
+- [Dialogue authoring](api/dialogue-authoring.md): `DialogueAuthoring` (`Add`, `Remove`, `Clear`, `TitleOf`), `Dialogue.AddResponse`, `RemoveResponse`, `AddBranch`, `RemoveBranch` and `ConversationLine.TextCallback`, session only.
+- [HUD, console, achievements and difficulty](api/hud.md): `Hud` (including `Bar` and `ClearBar`), `ConsoleCommands`, `Achievement`, `GameDifficulty` (`SetFactor`, `Clear`, `DifficultyMultiplier`), `TaskItems`, `TaskItemCount`, `TaskItemChangedArgs`.
+- [Housing and building](api/housing.md): `Housing`, `Building` (`UnlockBlueprint(name, silent)`), `BuildAreaInfo`.
 - [NPCs, animals, relationships and phones](api/npcs.md): `Npcs` (incl. `InScene`, `SceneNpcInfo`), `Animals` (with `Damage`), `Osrats`, `Relationships`, `Phones`.
 - [Characters](api/characters.md): `Characters`, `CharacterInfo`, `StartChoices`, `StartChoiceInfo`, `StartChoiceArgs`.
-- [Custom skills](api/customskills.md): `CustomSkills` (`Register`, `Get`, `Level`, `Set`, `Add`, `Clear`, `LevelChanged`).
-- [Player, skills, effects, subscriptions and travel](api/player.md): `PlayerState` (with `FirstName`, `LastName`, `Wait` with `WaitOptions` and a minutes result, `PickTime`), `Skills`, `Effects`, `Subscriptions`, `Travel`, `WaitStations`, `WaitStationInfo`, `WaitStationDoneArgs`, `DamageArgs`, `BreakdownArgs`, `BreakdownKind`.
+- [Custom skills](api/customskills.md): `CustomSkills` (`Register`, `Get`, `Level`, `Set`, `Add`, `Clear`, `QueueBanner`, `LevelChanged`).
+- [Player, skills, effects, subscriptions and travel](api/player.md): `PlayerState` (with `FirstName`, `LastName`, `Wait` with `WaitOptions` (`IgnoreNeeds`, `NoPassOut`, `Label`) and a minutes result, `PickTime` with its step and `validate` overload), `Skills`, `Effects`, `Subscriptions`, `Travel`, `WaitStations`, `WaitStationInfo`, `WaitStationDoneArgs`, `DamageArgs`, `BreakdownArgs`, `BreakdownKind`.
 - [World: weather, power, water, radiation, location and clock](api/world.md): `WorldWeather`, `WorldPower`, `WorldWater`, `WorldRadiation`, `WorldLocation`, `WorldClock` (incl. `SetDate`), `WorldTime`, `WaterVolumeInfo`, `WorldWeather.SetZone` and `ClearZones`.
 - [Sky](api/world-sky.md): `WorldSky` (`Set`, `Clear`, `Current`, `IsAvailable`), `SkyOverride`, `SkyState`.
 - [Economy: cash, shops, banking, player shops and mail](api/economy.md): `Cash`, `Shops`, `Banking`, `PlayerShops`, `Mail`, `MailInfo`, `LegalServices`, `LegalActionKind`, `LegalActionInfo`, `LegalActionArgs`, `MailSentArgs`.
 - [Items catalogue (read-only)](api/items.md): `Items`.
 - [Recipes, crafting and growing](api/recipes.md): `Recipes`, `Crafting`, `Plants`, `PlantPickArgs`, `RecipeUnlockedArgs`, `PlantFruitInfo`.
-- [Audio](api/audio.md): `Sounds`.
+- [Audio](api/audio.md): `Sounds` (including `FromPcm` and `FromPcm16`).
 - [Interaction and locks](api/interaction.md): `Interactions`, `Locks` (incl. `SetLockpickable`, `Difficulty`, `SetDifficulty`), `Ladders`, `LadderInfo`.
 - [Inventory and containers](api/inventory.md): `PlayerInventory`, `Containers`.
 - [World objects and spawning](api/worldobjects.md): `WorldObjects` (incl. `FindByPath`, `PathOf`), `Spawn`.
@@ -94,7 +98,7 @@ Each area is a public facade over one game system. Main thread only. See the [st
 - [Janitors](api/janitors.md): `Janitors`, `JanitorActedArgs`, `JanitorActionKind`.
 - [UI state](api/ui-state.md): `UiState`.
 - [Global flags](api/global-flags.md): `GlobalFlags`, `GlobalFlagChangedArgs`.
-- [Screen FX](api/screen-fx.md): `ScreenFx`.
+- [Screen FX](api/screen-fx.md): `ScreenFx` (`Vignette`, `ClearVignette`, `Blur`, `ClearBlur`).
 - [Lights](api/lights.md): `Lights`, `LightInfo`, `LightToggledArgs`, `LightStateArgs`.
 - [Landmarks](api/landmarks.md): `Landmarks` (incl. `Create`, `Mark`, `Remove`, `Clear` for new landmarks that survive a save), `LandmarkInfo`, `LandmarkArgs`.
 - [Base shops](api/baseshops.md): `BaseShops`, `BaseShopInfo`, `BaseShopBuyResult`, `BaseShopBoughtArgs`, `BaseShopSellResult`, `BaseShopSoldArgs`.
@@ -119,8 +123,11 @@ Each area is a public facade over one game system. Main thread only. See the [st
 - [Tarp doors](api/tarpdoors.md): `TarpDoors`, `TarpDoorInfo`, `TarpDoorChangedArgs`.
 - [Power devices](api/power-devices.md): `PowerDevices`, `PowerDeviceKind`, `PowerDeviceInfo`, `PoweredChangedArgs`, `FuelRanOutArgs`.
 - [NPC actions](api/npc-actions.md): `NpcActions` (`Teleport`, `Kill`, `Hit`, `StartDialogue`, `ChangeLevel`).
-- [Mod NPCs](api/modnpcs.md): `ModNpcs` (`Spawn`, `SpawnSaved`, `Despawn`, `Clear`, `CharacterIdOf`, `List`).
+- [NPC control](api/npc-control.md): `NpcControl`, `NpcControlFlags`.
+- [NPC animation](api/npc-animation.md): `NpcAnimation` (`Play`, `Stop`, `IsPlaying`, `StopAll`).
+- [Mod NPCs](api/modnpcs.md): `ModNpcs` (`Spawn`, `SpawnSaved`, `SpawnWithLook`, `Despawn`, `Clear`, `CharacterIdOf`, `List`).
 - [NPC appearance](api/npcappearance.md): `NpcAppearance` (`Meshes`, `MaterialNames`, `SetMeshActive`, `SetMaterials`, `Restore`, `Clear`).
+- [Scene looks](api/scenelooks.md): `SceneLooks` (`List`, `FindByName`, `FindByCharacter`, `Load`, `Apply`, `Reskin`, `Remove`, `Release`), `SceneLookInfo`, `SceneLook`. Reads a character look out of a built-in scene at run time. Experimental.
 - [Jobs](api/jobs.md): `Jobs`, `JobInfo`, `WorkedArgs`.
 - [Crafting upgrades](api/crafting-upgrades.md): `CraftingUpgrades`, `CraftingUpgradeInfo`.
 - [Crafting sources](api/craftingsources.md): extra containers for crafting stations.
@@ -129,7 +136,7 @@ Each area is a public facade over one game system. Main thread only. See the [st
 - [Levels](api/levels.md): `Levels`, `LevelDoorInfo`, `LevelChangeArgs`.
 - [Spawners](api/spawners.md): `Spawners`, `SpawnerInfo`, `SpawnerArgs`, `RespawnTime`.
 - [Scene logic](api/scenelogic.md): `SceneLogic`, `RelayInfo`, `RelayArgs`.
-- [Custom furniture](api/furniture.md): `FurnitureRegistry`, `FurnitureDefinition`, `BlueprintDefinition`, `DefineBlueprint`, `GiveBlueprint`, `IsBlueprintKnown`, `GiveFlatpack`, `MailBlueprint`, `AddFlatpackLoot`, blueprint pools.
+- [Custom furniture](api/furniture.md): `FurnitureRegistry` (`Get`, `GiveBlueprint(id, silent)`), `FurnitureDefinition` (`Placement`, `Colliders`, `CategoryName`), `FurniturePlacement`, `BlueprintDefinition`, `DefineBlueprint`, `IsBlueprintKnown`, `GiveFlatpack`, `MailBlueprint`, `AddFlatpackLoot`, blueprint pools.
 
 ### Known API inconsistencies (to change in 1.0)
 

@@ -33,6 +33,15 @@ namespace ObenseuerCore
             return (int)Math.Min(Math.Round(amount * (double)factor), Cash.MaxAmount);
         }
 
+        internal static int ScaleChance(int amount, float factor)
+        {
+            if (amount <= 0 || factor == 1f) return amount;
+            double exact = amount * (double)factor;
+            double whole = Math.Floor(exact);
+            double extra = UnityEngine.Random.value < exact - whole ? 1.0 : 0.0;
+            return (int)Math.Min(whole + extra, Cash.MaxAmount);
+        }
+
         internal float Of(TKey key)
         {
             for (int i = entries.Count - 1; i >= 0; i--)
@@ -42,7 +51,16 @@ namespace ObenseuerCore
             return 1f;
         }
 
-        internal void Set(string modId, TKey key, float factor)
+        internal bool ChanceRounds(TKey key)
+        {
+            for (int i = entries.Count - 1; i >= 0; i--)
+            {
+                if (EqualityComparer<TKey>.Default.Equals(entries[i].Key, key)) return entries[i].Chance;
+            }
+            return false;
+        }
+
+        internal void Set(string modId, TKey key, float factor, bool chance = false)
         {
             foreach (Entry entry in entries)
             {
@@ -52,7 +70,7 @@ namespace ObenseuerCore
                 }
             }
             entries.RemoveAll(e => e.ModId == modId && EqualityComparer<TKey>.Default.Equals(e.Key, key));
-            entries.Add(new Entry { ModId = modId, Key = key, Factor = factor });
+            entries.Add(new Entry { ModId = modId, Key = key, Factor = factor, Chance = chance });
         }
 
         internal bool Clear(string modId)
@@ -70,6 +88,7 @@ namespace ObenseuerCore
             internal string ModId;
             internal TKey Key;
             internal float Factor;
+            internal bool Chance;
         }
     }
 }

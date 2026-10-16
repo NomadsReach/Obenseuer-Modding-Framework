@@ -88,7 +88,7 @@ namespace ObenseuerCore
 
         public static bool Remove(string modId, string id)
         {
-            if (!ValidMod(modId) || !ValidId(id) || SaveGate.Busy) return false;
+            if (!ValidMod(modId) || !ValidId(id) || SaveGate.Busy || LandmarksPatches.Detached) return false;
             try
             {
                 bool removed = RemoveOne(modId, id);
@@ -104,7 +104,7 @@ namespace ObenseuerCore
 
         public static bool Clear(string modId)
         {
-            if (!ValidMod(modId) || SaveGate.Busy) return false;
+            if (!ValidMod(modId) || SaveGate.Busy || LandmarksPatches.Detached) return false;
             try
             {
                 List<string> ids = new List<string>();
@@ -132,7 +132,7 @@ namespace ObenseuerCore
         private static bool CreateCore(string modId, string id, string title, Vector3 position, Sprite sprite, string icon, int priority, int width, int height, bool showNotification)
         {
             if (!ValidMod(modId) || !ValidId(id) || !Finite(position.x) || !Finite(position.y) || !Finite(position.z) || width < 0 || height < 0) return false;
-            if (!IsAvailable || sprite == null) return false;
+            if (!IsAvailable || sprite == null || LandmarksPatches.Detached) return false;
             try
             {
                 Touch(modId);
@@ -290,7 +290,7 @@ namespace ObenseuerCore
             if (used.Contains(modId)) return true;
             try
             {
-                return Loader.Find(modId) != null;
+                return Loader.Installed(modId);
             }
             catch (Exception)
             {

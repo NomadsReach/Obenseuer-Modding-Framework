@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net472</TargetFramework>
+    <AssemblyName>SceneLookHarness</AssemblyName>
+    <RootNamespace>SceneLookHarness</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\src\Api\SceneLookBind.cs" Link="Core\SceneLookBind.cs" />
+    <Compile Include="..\..\src\Api\SceneLookCursor.cs" Link="Core\SceneLookCursor.cs" />
+    <Compile Include="..\..\src\Api\SceneLookData.cs" Link="Core\SceneLookData.cs" />
+    <Compile Include="..\..\src\Api\SceneLookFile.cs" Link="Core\SceneLookFile.cs" />
+    <Compile Include="..\..\src\Api\SceneLookFiles.cs" Link="Core\SceneLookFiles.cs" />
+    <Compile Include="..\..\src\Api\SceneLookIndex.cs" Link="Core\SceneLookIndex.cs" />
+    <Compile Include="..\..\src\Api\SceneLookInfo.cs" Link="Core\SceneLookInfo.cs" />
+    <Compile Include="..\..\src\Api\SceneLookLoad.cs" Link="Core\SceneLookLoad.cs" />
+    <Compile Include="..\..\src\Api\SceneLookMeshPlan.cs" Link="Core\SceneLookMeshPlan.cs" />
+    <Compile Include="..\..\src\Api\SceneLookReader.cs" Link="Core\SceneLookReader.cs" />
+    <Compile Include="..\..\src\Api\SceneLookReaderMesh.cs" Link="Core\SceneLookReaderMesh.cs" />
+    <Compile Include="..\..\src\Api\SceneLookRig.cs" Link="Core\SceneLookRig.cs" />
+    <Compile Include="..\..\src\Api\SceneLookScan.cs" Link="Core\SceneLookScan.cs" />
+  </ItemGroup>
+
+</Project>

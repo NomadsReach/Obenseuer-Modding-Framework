@@ -45,7 +45,9 @@ namespace ObenseuerCore
         {
             get
             {
-                return PlayerLocator.instance == null || RadiationController.instance == null ? 0f : doseRate;
+                if (PlayerLocator.instance == null || RadiationController.instance == null) return 0f;
+                PlayerStats stats = PlayerStats.instance;
+                return stats == null || stats.StatsProgressDisabled ? 0f : doseRate;
             }
         }
 

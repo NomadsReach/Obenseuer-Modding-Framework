@@ -20,6 +20,8 @@ public static bool PatchingAllowed { get; }     // false only when the build is 
 public static bool RawAccessAvailable { get; }  // set by the L0 access probe when Debug.AccessProbe is true; false otherwise
 ```
 
+`Core` derives from `BaseUnityPlugin`, so the base type is loader-specific. Its static members work from framework mods, and [framework mods](api/framework-mods.md) lists the other loader-specific members.
+
 The probe runs only when `[Debug] AccessProbe` is true. It logs `L0 access probe: OK`, or `L0 access probe: <ExceptionType>: <message>`. `RawAccessAvailable` reports that test. The SaveData methods do not depend on it.
 
 Config (`BepInEx\config\obenseuer.moddingframework.cfg`):
@@ -30,7 +32,7 @@ Config (`BepInEx\config\obenseuer.moddingframework.cfg`):
 - `[Debug] AccessProbe = false`. Runs the L0 access probe at start and logs the result.
 - `[Debug] PlayerLookSelfCheck = false`. Runs the PlayerLook clamping and gender-rule self-check at start and logs the result.
 - `[Debug] ModIdsSelfCheck = false`. Runs the mod id and save file name self-check at start and logs `modids self-check ok`, or the first failing case.
-- `[Debug] NetBlobSelfCheck = false` runs the blob chunking, CRC32 and gzip self-check at start (`netblob self-check ok` or the first failing case). `[Debug] SaveDataSelfCheck = false` registers the `core_savedata_check` console command, which logs `SaveData.SelfCheck()`; it changes the live inventory, so use a scratch save (see `docs/api/savedata-game.md`). `[Debug] SaveJsonSelfCheck = false` runs the save JSON round trip self-check at start and logs `save json self-check ok`, or the first failing case. `[Debug] JsonProbeCommand = false` registers the `core_jsonprobe` console command, which logs one probe value as `JsonUtility` and as `SaveData` writes it.
+- `[Debug] NetBlobSelfCheck = false` runs the blob chunking, CRC32 and gzip self-check at start (`netblob self-check ok` or the first failing case). `[Debug] SaveDataSelfCheck = false` registers the `core_savedata_check` console command, which logs `SaveData.SelfCheck()`; it changes the live inventory, so use a scratch save (see `docs/api/savedata-game.md`). `[Debug] SaveJsonSelfCheck = false` runs the save JSON round trip self-check at start and logs `save json self-check ok`, or the first failing case. `[Debug] JsonProbeCommand = false` registers the `core_jsonprobe` console command, which logs one probe value as `JsonUtility` and as `SaveData` writes it. `[Debug] SceneLooksCommand = false` registers the `scenelooks` console command, which prints the scene look index for a scene (`list`, `listall`, `find`, `findchar`, `here`); it reads the installed game files and changes nothing in the game (see `docs/api/scenelooks.md`). The framework's own Settings page in the Mods menu also has a `Scene looks` action, `Run scene looks checks`, which needs no flag and no console: it prints the same index for the loaded scene to the menu status line and the log (see `docs/api/scenelooks.md`).
 - `[UI] ThemeConfigManager = true` gives the ConfigurationManager window a dark theme (see ModMenu).
 
 While the ConfigurationManager window (F1) is open, the framework freezes mouse-look and player movement with the game's own `GameController.ControlsDisabled`, and keeps the cursor visible. It does nothing when ConfigurationManager is not installed. Gameplay is not frozen while a game menu is open, and the freeze is released when the window closes.
@@ -262,10 +264,14 @@ public static partial class Survival
     public static float Get(Stat stat);                    // 0 when PlayerStats.instance is null
     public static bool Set(Stat stat, float value);        // clamped to the stat range; false when PlayerStats.instance is null or a save loads or saves
     public static bool OnCrossed(string modId, Stat stat, float threshold, Action<Stat, float, bool> callback); // false when IsAvailable is false
-    public static void RemoveAll(string modId);            // removes this mod's decay modifiers, intercepts and OnCrossed watches
+    public static bool RemoveCrossed(string modId, Action<Stat, float, bool> callback); // true when that mod's watch was removed
+    public static void RemoveAll(string modId);            // removes this mod's decay modifiers, intercepts, damage handlers and OnCrossed watches
+    public static bool InterceptDamage(string modId, Action<DamageArgs> handler); // false when the damage hook group is not installed
+    public static bool RemoveDamage(string modId, Action<DamageArgs> handler);    // true when that mod's handler was removed
     public static event Action<DamageTypeNames> PlayerDied;
     public static event Action PassedOut;
     public static event Action<float, DamageTypeNames> Damaged;
+    public static event Action<BreakdownArgs> Breakdown;
 
     public static class Decay
     {
@@ -278,6 +284,7 @@ public static partial class Survival
     {
         public static void Intercept(string modId, ConsumeHandler handler);
         public static bool Remove(string modId);           // removes this mod's intercepts; false when it had none
+        public static bool Remove(string modId, ConsumeHandler handler); // removes one handler of that mod; false when it was not registered
         public static event Action<ConsumedArgs> Consumed; // after the game applied a use; not for a cancelled or refused use
     }
 }
@@ -285,6 +292,9 @@ public static partial class Survival
 public delegate void ConsumeHandler(ItemData itemData, ItemConsumable itemConsumable, ConsumeArgs args);
 public class ConsumeArgs { public bool Cancel { get; set; } }
 public sealed class ConsumedArgs { public int ItemId { get; } }
+public sealed class DamageArgs { public DamageTypeNames Reason { get; } public bool Silent { get; } public float Original { get; } public float Amount { get; set; } public bool Cancel { get; set; } }
+public enum BreakdownKind { Suicide, SelfHarm, Mushrooms, Alcohol }
+public sealed class BreakdownArgs { public BreakdownKind Kind { get; } public bool Cancel { get; set; } }
 ```
 
 The enum values are fixed. New stats are appended, and existing values do not change.
@@ -313,21 +323,22 @@ Stats, the game field each one reads and writes, and the range `Set` clamps to:
 
 - `Get` returns the raw game value. `Set` returns `false` when the value is NaN, `PlayerStats.instance` is null, or a save loads or saves.
 - `OnCrossed` fires `callback(stat, value, rising)` when the value moves from below to at-or-above `threshold` (rising), or from at-or-above to below it (falling). The value is sampled once per game second. Stats change only while the player is active, so no crossing fires while frozen. The first sample after a load sets the baseline without firing.
+- `RemoveCrossed(modId, callback)` removes the watch that `OnCrossed` added, and returns `true` when one was removed.
 - `Decay.Set` uses one entry per `(stat, modId)`. The effective rate for a stat is `base × product(multipliers) + sum(offsetPerHour)`, where `base` is the game's rate for that stat. A second `Set` from the same mod replaces the first. Multipliers must be `>= 0`. Otherwise `Set` returns `false`. For `AlcoholNeed`, `MushroomNeed`, `SmokingNeed` and `GamblingNeed` the effective rate is never below 0: a negative result is clamped to 0, so an offset cannot make a need rise. The game lowers these needs with no upper clamp when the player is not addicted.
 - For the other stats a negative total rate is allowed and makes the stat move the other way. Hunger and Thirst rise at a positive base rate, so a negative total lowers them. Hygiene falls at a negative base rate, so a positive total makes it rise. Offsets may be negative, so the total can be negative for those stats.
 - The game scales the patched rate afterwards, so an offset is not an absolute amount per hour. Awake hunger is multiplied by `(1 - High / 100)` and `(1 - AlcoholAddiction / 200)`. Sleeping hunger and thirst are multiplied by 0.33. Sleeping hygiene is multiplied by 0.5.
 - The four addiction need getters drive both the rise and the fall. The rise is `Addiction × 0.01 × rate / 60` (the same form applies to the other needs). The fall is `rate / 60`. A modifier on an addiction need changes both.
 - `Decay.Supports` returns `true` only for: `Hunger`, `Thirst`, `Hygiene`, `AlcoholNeed`, `MushroomNeed`, `SmokingNeed`, `GamblingNeed`. These are the stats with a per-hour rate getter that the game uses to change the stat.
 - `Consumables.Intercept` runs once per consumable use, before the game does anything for that use. The framework dispatches at the use entry point: `ItemInfo.UseItem(int, bool)` for inventory use, including a drink from a liquid container, and `CollectibleItem.InvokeActions()` for world use. If any handler sets `args.Cancel = true`, the whole use is skipped. Nothing else happens for that use: no cooldown, no sound, no consume events, no meta change, no stat change, no liquid change, no outputs, no item removal or ammo change, no `RequiredItems` change and no `ItemsToSpawn`. A use the game would refuse (no use button, cooldown, active trade, `CanUse` false, or an owner permission that denies use) never reaches the handlers. `ItemConsumable.Invoke(ItemData, bool)` is the fallback for other callers. Handlers run once per use. Handlers share one `ConsumeArgs` per use. A handler that throws is logged, and the other handlers still run. The `ItemConsumable` is shared by the game and is never changed by the framework.
-- `Consumables.Remove(modId)` removes that mod's intercepts. `RemoveAll` calls it.
+- `Consumables.Remove(modId)` removes that mod's intercepts, and `Remove(modId, handler)` removes one handler of that mod. `RemoveAll` calls the first.
 - `Consumables.Consumed(ConsumedArgs)` is for observing only. It fires once for each `ItemConsumable.Invoke` the game runs, after the game has applied the effects, removed or used up the item and spawned its `ItemsToSpawn`. `ItemId` is the item's `Item.ID`. It does not fire when an intercept cancels the use, when the game refuses the use before `Invoke` (the list under `Intercept`), or when `Invoke` throws. It does not fire when `Survival.IsAvailable` is false. A use that runs more than one consumable `Invoke` fires once per `Invoke`: `ItemInfo.UseItem` runs the child item's actions and then the item's own action, and `Item.InvokeActions` runs each action of an item. Depression-forced uses fire it too. Handlers are isolated from each other. Unsubscribe with `-=`; `RemoveAll` does not remove them. The payload has no stat deltas.
+- `InterceptDamage(modId, handler)` runs before the game applies health damage, in the order the handlers were registered. The handler gets a `DamageArgs` holding the amount the game asked for (`Original`), the working amount (`Amount`), the `Reason` and `Silent`, and it can change `Amount` or set `Cancel = true`. A `Cancel` from any handler wins, and the later handlers still run and see it. Handlers do not run while a save loads or saves, for an amount of 0 or less, or from inside another damage handler. `RemoveDamage(modId, handler)` removes one handler of that mod, and `RemoveAll` removes them all.
 - `Damaged(lost, reason)` fires when `PlayerStatsHealth.Damage` lowers `currentStatus`. `lost` is the amount actually removed, after the clamp at 0. Bleed damage raises `Bleeding` and not health, so it does not fire. Mushroom and gas protection return before the health change, so they do not fire.
 - `PassedOut` fires when `WaitingController.PassOut(..., Type.Passout)` changes `waitingType` to `Passout`. It does not fire for a refused call, for a call that starts normal sleep (`Sleep`, which sets `Sleeping`), for `Type.Arrest`, or for a call made while the player is already passed out.
+- `Breakdown` fires when the game starts a breakdown step, with a `BreakdownArgs` whose `Kind` is `Suicide`, `SelfHarm`, `Mushrooms` or `Alcohol`. Set `Cancel = true` to stop that step, and a `Cancel` from any handler wins. The later handlers still run and see it. Handlers do not run while a save loads or saves, and the step goes ahead.
 
 Open questions:
 - The cancel path at the entry points (`ItemInfo.UseItem`, `CollectibleItem.InvokeActions`).
-- Mono inlining: a small decay getter could be inlined into its callers, which would bypass the patch. The first in-game check is SlowHunger: `Hunger` should rise at half speed.
-- Private access through the publicized DLL: the `PlayerStats.DeltaSeconds` patch (private member) depends on it. This is pending the AccessProbe result (`Core.RawAccessAvailable`).
 
 Not supported:
 - `DuckNeed` decay. Its base-rate getter only sets the level when the player has enough ducks, so it is not a rate.
@@ -458,6 +469,8 @@ public static class ModMenu
 `ModMenuWidgets` (what `WidgetsFor` returns) is obsolete (`[Obsolete("Use ObenseuerCore.Ui.ModUi")]`). It still works, but new pages should build with `ModUi`. A mod that uses it gets compiler warning CS0618.
 
 The Mods menu opens as a web page by default (`[UI] ModMenuStyle = web`). Each plugin with visible config entries gets one "Settings" page. Classic `AddPage` pages are added under their mod id, or as a new entry named after the page's title when no plugin has that mod id. The classic window opens when `[UI] ModMenuStyle` is `classic`, or when the web page fails to start. If the page does not say hello within 8 s twice in a row, the menu stays classic until the game restarts.
+
+The framework itself gets a Settings page like any plugin, and it is the one page that also carries actions. The framework's page has a `Scene looks` section with a `Run scene looks checks` button: clicking it runs the check for the loaded scene and shows the result on the menu status line. The classic window shows the same button under the framework's group, with the result next to it. The action needs no `[Debug]` flag.
 
 The classic Mods menu is one `ModWindow` in the Full dock. Full is used because the Center dock (640 px) cannot hold the sidebar and the settings rows. The window's `Side` column is a sidebar with one button per page, and `Body` shows the selected page. The sidebar lists "Mod Settings" first (the framework's config editor), then every added page sorted by title. `AddPage` adds a sidebar entry only. It never adds a game tab. The sidebar is read when the window opens, so a page added while the window is open appears the next time it opens.
 

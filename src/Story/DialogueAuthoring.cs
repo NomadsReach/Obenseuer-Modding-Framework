@@ -14,7 +14,8 @@ namespace ObenseuerCore
         AlreadyExists,
         UnknownSpeaker,
         NoPlayerActor,
-        Failed
+        Failed,
+        ReservedKey
     }
 
     public sealed class ConversationLine
@@ -25,6 +26,7 @@ namespace ObenseuerCore
         public string Condition { get; set; }
         public string Script { get; set; }
         public string[] Next { get; set; }
+        public Func<string> TextCallback { get; set; }
     }
 
     public sealed class ConversationDefinition
@@ -48,6 +50,7 @@ namespace ObenseuerCore
         private const int FirstId = 1000000;
         private const int IdRange = 1000000;
         private static readonly Dictionary<string, Added> added = new Dictionary<string, Added>();
+        private static readonly Dictionary<string, TextEntry> texts = new Dictionary<string, TextEntry>();
         private static bool hooked;
 
         public static string TitleOf(string modId, string key)
@@ -56,6 +59,12 @@ namespace ObenseuerCore
         }
 
         public static string Add(string modId, ConversationDefinition definition, out ConversationRefusal refusal)
+        {
+            if (definition != null && definition.Key == Dialogue.NarrationKey) return Refused(ConversationRefusal.ReservedKey, out refusal);
+            return AddWith(modId, definition, -1, out refusal);
+        }
+
+        internal static string AddWith(string modId, ConversationDefinition definition, int speakerOverride, out ConversationRefusal refusal)
         {
             refusal = Check(modId, definition);
             if (refusal != ConversationRefusal.None) return Refused(refusal, out refusal);
@@ -84,13 +93,19 @@ namespace ObenseuerCore
                     refusal = ConversationRefusal.NoPlayerActor;
                     return Refused(refusal, out refusal);
                 }
-                int speakerId = SpeakerId(master, definition.Speaker);
+                int speakerId = speakerOverride >= 0 ? speakerOverride : SpeakerId(master, definition.Speaker);
                 if (speakerId < 0 || speakerId == player.id)
                 {
                     refusal = ConversationRefusal.UnknownSpeaker;
                     return Refused(refusal, out refusal);
                 }
                 PCDS.Conversation conversation = Build(title, FreeId(master, title), player.id, speakerId, definition);
+                Dictionary<string, TextEntry> callbacks = PrepareTexts(modId, title, conversation, definition);
+                if (callbacks == null)
+                {
+                    refusal = ConversationRefusal.Failed;
+                    return Refused(refusal, out refusal);
+                }
                 PCDS.DialogueDatabase database = PCDS.DatabaseUtility.CreateDialogueDatabaseInstance(false);
                 database.name = "ObenseuerCore " + title;
                 database.emphasisSettings = master.emphasisSettings;
@@ -103,6 +118,7 @@ namespace ObenseuerCore
                     return Refused(refusal, out refusal);
                 }
                 added[title] = new Added { ModId = modId, Database = database };
+                foreach (KeyValuePair<string, TextEntry> pair in callbacks) texts[pair.Key] = pair.Value;
                 Hook();
                 return title;
             }
@@ -117,6 +133,13 @@ namespace ObenseuerCore
         public static bool Remove(string modId, string key)
         {
             string title = TitleOf(modId, key);
+            if (title != null && DialogueBranches.Owns(title)) return false;
+            return RemoveCore(modId, key);
+        }
+
+        internal static bool RemoveCore(string modId, string key)
+        {
+            string title = TitleOf(modId, key);
             Added entry;
             if (title == null || SaveGate.Busy || !added.TryGetValue(title, out entry) || entry.ModId != modId) return false;
             if (Dialogue.IsActive && Dialogue.CurrentTitle == title) return false;
@@ -125,6 +148,7 @@ namespace ObenseuerCore
                 PCDS.DialogueManager.RemoveDatabase(entry.Database);
                 UnityEngine.Object.Destroy(entry.Database);
                 added.Remove(title);
+                DropTexts(title);
                 return true;
             }
             catch (Exception e)
@@ -137,7 +161,7 @@ namespace ObenseuerCore
         public static int Clear(string modId)
         {
             if (!ModIds.IsValid(modId)) return 0;
-            int removed = 0;
+            int removed = DialogueBranches.RemoveAll(modId);
             foreach (string title in new List<string>(added.Keys))
             {
                 if (added[title].ModId == modId && Remove(modId, title.Substring(modId.Length + 1))) removed++;
@@ -154,7 +178,7 @@ namespace ObenseuerCore
             List<string> keys = new List<string>();
             foreach (ConversationLine line in lines)
             {
-                if (line == null || !ValidKey(line.Key) || keys.Contains(line.Key) || !ValidText(line.Text, MaxText, true)) return ConversationRefusal.BadInput;
+                if (line == null || !ValidKey(line.Key) || keys.Contains(line.Key) || !ValidText(line.Text, MaxText, line.TextCallback == null)) return ConversationRefusal.BadInput;
                 if (!ValidText(line.Condition, MaxLua, false) || !ValidText(line.Script, MaxLua, false)) return ConversationRefusal.BadInput;
                 keys.Add(line.Key);
             }
@@ -200,6 +224,36 @@ namespace ObenseuerCore
             return conversation;
         }
 
+        internal static string HashedId(string modId, string text)
+        {
+            uint hash = 2166136261u;
+            foreach (char c in text) hash = unchecked((hash ^ c) * 16777619u);
+            return modId + "." + hash.ToString("x8");
+        }
+
+        internal static string LineText(string id)
+        {
+            TextEntry entry;
+            if (id == null || !texts.TryGetValue(id, out entry))
+            {
+                ApiLog.Once(Owner, "LineText unknown", "a line text id is not registered, the line shows nothing");
+                return "";
+            }
+            try
+            {
+                string text = entry.Callback();
+                if (text == null) return entry.Fallback ?? "";
+                if (ValidText(text, MaxText, false)) return text;
+                ApiLog.Once(Owner, "LineText invalid", "a text callback returned text that is too long or has a control character, the fallback text is shown");
+                return entry.Fallback ?? "";
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Owner, "LineText", e);
+                return "";
+            }
+        }
+
         internal static int StableId(string title)
         {
             uint hash = 2166136261u;
@@ -235,6 +289,32 @@ namespace ObenseuerCore
             return Dialogue.IsAvailable && PCDS.DialogueManager.hasInstance ? PCDS.DialogueManager.masterDatabase : null;
         }
 
+        private static Dictionary<string, TextEntry> PrepareTexts(string modId, string title, PCDS.Conversation conversation, ConversationDefinition definition)
+        {
+            Dictionary<string, TextEntry> entries = new Dictionary<string, TextEntry>();
+            for (int i = 0; i < definition.Lines.Count; i++)
+            {
+                ConversationLine line = definition.Lines[i];
+                if (line.TextCallback == null) continue;
+                PCDS.DialogueEntry entry = conversation.GetDialogueEntry(i + 1);
+                string id = HashedId(modId, title + "\n" + line.Key);
+                if (entry == null || texts.ContainsKey(id) || entries.ContainsKey(id)) return null;
+                entries[id] = new TextEntry { Title = title, Callback = line.TextCallback, Fallback = line.Text };
+                entry.DialogueText = string.Format("[lua(Core_LineText(\"{0}\"))]", id);
+            }
+            return entries;
+        }
+
+        private static void DropTexts(string title)
+        {
+            List<string> dropped = new List<string>();
+            foreach (KeyValuePair<string, TextEntry> pair in texts)
+            {
+                if (pair.Value.Title == title) dropped.Add(pair.Key);
+            }
+            foreach (string id in dropped) texts.Remove(id);
+        }
+
         private static string Refused(ConversationRefusal reason, out ConversationRefusal refusal)
         {
             refusal = reason;
@@ -249,7 +329,7 @@ namespace ObenseuerCore
             Events.SceneLoaded += scene => Restore();
         }
 
-        private static void Restore()
+        internal static void Restore()
         {
             try
             {
@@ -286,6 +366,13 @@ namespace ObenseuerCore
         {
             internal string ModId;
             internal PCDS.DialogueDatabase Database;
+        }
+
+        private sealed class TextEntry
+        {
+            internal string Title;
+            internal Func<string> Callback;
+            internal string Fallback;
         }
     }
 }

@@ -52,6 +52,11 @@ namespace ObenseuerCore
         private static readonly FieldInfo walkingField = AccessTools.Field(typeof(OpenSewerCharacterController), "walking");
         private static readonly FieldInfo runSpeedField = AccessTools.Field(typeof(OpenSewerCharacterController), "_runSpeed");
         private static readonly FieldInfo swimmingSpeedField = AccessTools.Field(typeof(OpenSewerCharacterController), "_swimmingSpeed");
+        private static readonly FieldInfo walkSpeedField = AccessTools.Field(typeof(OpenSewerCharacterController), "_walkSpeed");
+        private static readonly FieldInfo crouchSpeedField = AccessTools.Field(typeof(OpenSewerCharacterController), "_crouchSpeed");
+        private static readonly FieldInfo backwardSpeedField = AccessTools.Field(typeof(OpenSewerCharacterController), "_backwardSpeed");
+        private static readonly FieldInfo strafeSpeedField = AccessTools.Field(typeof(OpenSewerCharacterController), "_strafeSpeed");
+        private static readonly FieldInfo baseJumpHeightField = AccessTools.Field(typeof(ECM.Controllers.BaseCharacterController), "_baseJumpHeight");
         private static readonly FieldInfo moveDisabledField = AccessTools.Field(typeof(ThirdPersonCameraController), "moveDisabled");
         private static readonly FieldInfo firstpersonMoveDisabledField = AccessTools.Field(typeof(ThirdPersonCameraController), "firstpersonMoveDisabled");
         private static readonly FieldInfo firstpersonSoftLockField = AccessTools.Field(typeof(ThirdPersonCameraController), "firstpersonSoftLock");
@@ -80,6 +85,7 @@ namespace ObenseuerCore
         private static float baseBackwardSpeed;
         private static float baseStrafeSpeed;
         private static float baseJumpHeight;
+        private static readonly HashSet<string> pendingOwners = new HashSet<string>();
 
         public static bool IsAvailable
         {
@@ -222,9 +228,10 @@ namespace ObenseuerCore
 
         private static bool SetMultiplier(Dictionary<string, float> slot, string key, float multiplier)
         {
-            OpenSewerCharacterController controller = OpenSewerCharacterController.instance;
-            if (!IsAvailable || controller == null || float.IsNaN(multiplier) || float.IsInfinity(multiplier)) return false;
+            if (!IsAvailable || float.IsNaN(multiplier) || float.IsInfinity(multiplier)) return false;
             slot[key] = Clamp(multiplier);
+            OpenSewerCharacterController controller = OpenSewerCharacterController.instance;
+            if (controller == null && key.Length > 0) pendingOwners.Add(key);
             ApplyTo(controller);
             return true;
         }
@@ -238,7 +245,10 @@ namespace ObenseuerCore
         private static void ForgetOwners(Dictionary<string, float> slot)
         {
             float own = Own(slot);
-            slot.Clear();
+            foreach (string key in new List<string>(slot.Keys))
+            {
+                if (key.Length != 0 && !pendingOwners.Contains(key)) slot.Remove(key);
+            }
             slot[string.Empty] = own;
         }
 
@@ -356,13 +366,13 @@ namespace ObenseuerCore
                 if (controller != applied)
                 {
                     applied = controller;
-                    baseWalkSpeed = controller.walkSpeed;
+                    baseWalkSpeed = walkSpeedField != null ? (float)walkSpeedField.GetValue(controller) : controller.walkSpeed;
                     baseRunSpeed = (float)runSpeedField.GetValue(controller);
                     baseSwimmingSpeed = (float)swimmingSpeedField.GetValue(controller);
-                    baseCrouchSpeed = controller.crouchSpeed;
-                    baseBackwardSpeed = controller.backwardSpeed;
-                    baseStrafeSpeed = controller.strafeSpeed;
-                    baseJumpHeight = controller.baseJumpHeight;
+                    baseCrouchSpeed = crouchSpeedField != null ? (float)crouchSpeedField.GetValue(controller) : controller.crouchSpeed;
+                    baseBackwardSpeed = backwardSpeedField != null ? (float)backwardSpeedField.GetValue(controller) : controller.backwardSpeed;
+                    baseStrafeSpeed = strafeSpeedField != null ? (float)strafeSpeedField.GetValue(controller) : controller.strafeSpeed;
+                    baseJumpHeight = baseJumpHeightField != null ? (float)baseJumpHeightField.GetValue(controller) : controller.baseJumpHeight;
                 }
                 float speedMultiplier = Product(speedMultipliers);
                 controller.walkSpeed = baseWalkSpeed * Product(walkMultipliers) * speedMultiplier;
@@ -513,7 +523,9 @@ namespace ObenseuerCore
         {
             if (lockedGame == null || lockedGame != GameController.instance) ReleaseAll();
             Restore();
-            ApplyTo(OpenSewerCharacterController.instance);
+            OpenSewerCharacterController controller = OpenSewerCharacterController.instance;
+            ApplyTo(controller);
+            if (controller != null && IsAvailable) pendingOwners.Clear();
         }
 
         private static void OnLoaded()

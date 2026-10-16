@@ -16,7 +16,7 @@ Everything not listed here is internal.
 
 - **Main thread only.** Call every member from Unity's main thread.
 - **Safe at any time.** Every member can be called on the main menu, during loading, and with no save loaded. Reads return a neutral value (`null`, `0`, an empty array, or `false`). Writes return `false` when the game object they need is missing.
-- **Bad arguments.** A mod id that is not 1 to 64 characters of letters, digits, `.`, `_` or `-`, or a null or empty name, text or title, throws `ArgumentException`, except that `Print` throws only for a null `text`. A null `lines` or `run` throws `ArgumentNullException`. A negative fade time throws `ArgumentException`. Game-data arguments (ids, noteIds) never throw; an unknown id returns `null`, `0` or `false`.
+- **Bad arguments.** A mod id that is not 1 to 64 characters of letters, digits, `.`, `_` or `-`, or a null or empty name, text, title or body, throws `ArgumentException`, except that `Print` throws only for a null `text`. A null `lines` or `run` throws `ArgumentNullException`. A negative fade time throws `ArgumentException`. Game-data arguments (ids, noteIds) never throw; an unknown id returns `null`, `0` or `false`.
 - **Game failures.** When a call into the game throws, the call returns its fallback. The first throw of each member is logged to the hud log. Later throws of that member are not logged again.
 - **Steam writes.** `Achievement.Trigger`, `AddProgress` and `SetProgress` go through the game's own trigger, which unlocks the real Steam achievement and stores its stat. An unlock cannot be undone from a mod. The three writers return `false` while a save loads or saves (`SaveData.Busy`). Everything else here is read only.
 
@@ -26,6 +26,7 @@ Everything not listed here is internal.
 public static class Hud
 {
     public static bool Notify(string text);
+    public static bool Notify(string title, string body);
     public static bool ShowSubtitle(string text, float fadeSeconds);
     public static bool ShowHint(string modId, string title, string[] lines);
     public static bool HideHint(string modId);
@@ -38,14 +39,19 @@ public static class Hud
     public static bool HideTooltip();
     public static bool HideGameUi(string owner);
     public static bool ShowGameUi(string owner);
+    public static bool Bar(string owner, string title, float fill);
+    public static bool Bar(string owner, string title, float fill, Color color);
+    public static bool ClearBar(string owner);
 }
 ```
 
-- `Notify`: shows the game's own notification box with the type line `Notice` and `text` as the body. It plays the game's sound. **No icon:** the game's notification box has no icon slot, so the `Notify(text)` overload has no icon parameter.
-- `ShowSubtitle`: types `text` at 20 characters per second, then fades it out over `fadeSeconds`. Total on screen is the typing time plus `fadeSeconds`. Subtitles stack, sorted by start time. The game keys each line by `DateTime.Now.Ticks`, so two subtitles started in the same clock tick can collide. The collision is not handled by this facade.
+- `Notify(text)`: shows the game's own notification box with the type line `Notice` and `text` as the body. It plays the game's sound.
+- `Notify(title, body)`: the same box, with `title` as the type line and `body` as the body. Use it to name the source of the message. Both must be non-empty.
+- **No icon:** the game's notification box has no icon slot. Neither `Notify` overload has an icon parameter.
+- `ShowSubtitle`: types `text` at 20 characters per second, then fades it out over `fadeSeconds`. Total on screen is the typing time plus `fadeSeconds`. Before showing, the framework strips the Pixel Crushers Dialogue System RPG Maker codes with the game's own `UITools.StripRPGMakerCodes`. It removes `\,` (quarter pause), `\.` (full pause), `\^` (skip to end), `\>` (instant open) and `\<` (instant close). Other backslashes stay. A text that is empty or only whitespace after the strip shows nothing and returns `false`. Subtitles stack, sorted by start time. The game keys each line by `DateTime.Now.Ticks`, so two subtitles started in the same clock tick can collide. The collision is not handled by this facade.
 - `ShowHint` and `HideHint`: one hint per `modId`. The overlay shows one hint at a time: the newest one at the highest priority (this facade always uses priority 0). Each line is a plain paragraph, not a bullet. Use `{key:Action Name}` in a line to show a bound key, as the game does. When the player turns hints off, the hint is hidden, and it comes back when they turn hints on. A hint stays until `HideHint` is called or a Single scene load, which hides every mod hint.
 - `ShowNote`: opens the game's Notes page at a note the player already has. `noteId` must match exactly one collected note or book page by its `NoteInfo.Id` (`id`, else addressable path, else title). Zero or several matches return `false`. **It cannot show arbitrary text.** A note that is not in the player's collection can only be shown by giving it to the player, which saves it with the game. This facade does not give notes.
-- `ShowCrosshair` and `HideCrosshair`: toggle the crosshair object. The game's own code never calls these two methods. Whether the crosshair stays hidden in every scene is not verified.
+- `ShowCrosshair` and `HideCrosshair`: toggle the crosshair object. The game's own code never calls these two methods.
 - `HideCrosshair(owner)` and `ShowCrosshair(owner)`: each owner counts its hides, like `HideGameUi`. The crosshair shows again only when every count is back at zero. `HideCrosshair(owner)` returns `false`, and counts nothing, when `Crosshair` is not in the scene. `ShowCrosshair(owner)` returns `false` for an owner with no hide. `owner` must be a valid mod id. The no-owner `HideCrosshair()` holds one shared entry, and `ShowCrosshair()` releases it and shows the crosshair only when no owner hides it. A Single scene load drops every hide and shows the crosshair.
 
 - `ShowTooltip(title, details)`: shows the game's tooltip box with `title` as its heading and `details` as its body. `title` must be non-empty and is shown as given, so rich text such as `<b>` works. The mod title is not wrapped in bold, unlike the game's item and task tooltips. An empty `details` hides the body. A null `details` throws `ArgumentException`. Returns `false` when the game's `ToolTip` is not in the scene.
@@ -60,6 +66,20 @@ Not exposed, with reasons:
 - `UseText`: the "press to use" prompt is rewritten every frame by the interactable under the player. A mod-set text is overwritten at once.
 - `ToolTip`: `ShowTooltip` and `HideTooltip` wrap `Activate(string, string)` and `Deactivate()`. Item tooltips are filled from item data (`ToolTip.Activate(ItemData, ...)`) and task-item tooltips from `ToolTip.Activate(TaskItem)`. Neither is exposed.
 - `TutorialMessageManager`: a card-game tutorial queue bound to a card table. It has no meaning outside a card game.
+
+## Bars
+
+- `Bar(owner, title, fill)` and `Bar(owner, title, fill, color)` show a bar at the top centre of the screen, or update the bar that this owner already has. Use it for a value such as an opponent's health. It is drawn with the framework's own UI kit, not with a copy of a game control.
+- `title` is a line above the bar. Pass `null` or an empty string for no title line. Unlike `Notify` and `ShowHint`, a null or empty title does not throw.
+- `fill` is clamped to 0 to 1. NaN throws `ArgumentException`. A new bar starts at its fill. Later changes move the visible fill to the new value over 0.15 seconds.
+- `color` sets the fill colour. The overload without it uses `UiTheme.Accent`, the framework's blue.
+- `owner` must be a valid mod id. Each owner has one bar. Bars stack from the top down in the order they were first shown, so the newest is at the bottom. At most four bars show at once. A fifth `Bar` for a new owner returns `false`. An owner that already has a bar is always updated.
+- `ClearBar(owner)` removes that owner's bar and returns `false` when the owner has none. The bars below it move up.
+- The bars are hidden while the game hides its HUD, whether through `HideGameUi` or a game menu such as the shop. They are also hidden while the pause menu is open, while the game's menu is open or the wait clock is up, and while a save loads or saves. They show again when none of these holds. They are not removed.
+- The F12 screenshot without UI hides the bars too, because it hides the game's HUD while it captures.
+- A Single scene load removes every bar, as it removes mod hints. A mod that still needs a bar calls `Bar` again from its own `Events.SceneLoaded` handler.
+- The bars are drawn on their own screen overlay with sort order 400. That is below the framework's computer overlay (500) and mod windows (1000). The game's own HUD order is not recorded, so the bars may draw under a game canvas. The bars take no clicks.
+- The overlay is made the first time a bar is shown. It returns `false` when it cannot be made. `Bar` does not refuse during a save or load. A Single load that follows it removes the bar.
 
 ## ConsoleCommands
 
@@ -79,7 +99,7 @@ public static class ConsoleCommands
 - `Open`: opens the developer console, as F1 does. Returns `false` when the console or the achievement system is not in the scene. While the console is open the game ignores achievement triggers (`Achievements.globalDisable`, set on open and cleared on close). Closing is done by the player with F1, or with the Pause Menu key while the console is open.
 - `IsOpen`: true while the console is open.
 
-The console is not gated by build type in the game's managed code. The F1 toggle is always active, and no `isDebugBuild` or `UNITY_EDITOR` check was found. Whether the console object is present in every release scene is not verified. `Open` and `Print` return `false` when it is missing.
+The console is not gated by build type in the game's managed code. The F1 toggle is always active, and no `isDebugBuild` or `UNITY_EDITOR` check was found. `Open` and `Print` return `false` when it is missing.
 
 ## Achievement
 
@@ -220,6 +240,6 @@ public static class TaskItems
 - `Type` is the name of the game's `TaskItem.Type` member (`Keys`, `Recipes`, `TaskItems` and so on), for information only. `Details` is the item's `itemDetails` text, and it is `""` when the game has none.
 - `Changed` is raised once for each record whose count changes, and once when a record is added or removed. It comes from any source that goes through the game's `AddTaskItem` or `RemoveItem`, including this facade's `Add` and `Remove` and the game's own callers. Recipe records are added at count 0, so they raise `Changed` too, with `Type` set to the recipe's type name.
 - `Held` is `true` when the record is in the list after the change. A new record has `OldAmount` 0. A record whose count reaches 0 but stays in the list has `NewAmount` 0. `Held` is `false` only when the record was removed from the list, and then `NewAmount` is 0.
-- `Changed` is not raised while a save loads. A handler may call `Add` or `Remove`. A nested change raises its own event before the remaining events of the outer change.
+- `Changed` is not raised while a save loads. A handler may call `Add` or `Remove`. A nested change raises its own event before the remaining events of the outer change. Events nest at most eight deep, the same cap as `Cash.MoneyChanged`: an `Add` or `Remove` made while the eighth event runs does not raise a further event, and that refusal is logged once.
 
 `TaskController` is the same system as `Quests`, so nothing here wraps it. `TaskPanel` is the task list UI and has no game state of its own that a mod needs.

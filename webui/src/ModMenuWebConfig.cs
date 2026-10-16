@@ -10,11 +10,18 @@ namespace ObenseuerCore
 {
     internal sealed class ModMenuWebConfig
     {
+        private const string CheckMod = "check.guid";
+        private const string CheckAction = "checks";
+        private const string CheckSection = "Scene looks";
+        private const string CheckTitle = "Run checks";
+        private const string CheckDescription = "Read only.";
         private static int opens;
         private static readonly List<string> none = new List<string>();
         private readonly string prefix;
         private readonly Dictionary<string, ConfigEntryBase> byId = new Dictionary<string, ConfigEntryBase>();
         private readonly Dictionary<ConfigEntryBase, string> idOf = new Dictionary<ConfigEntryBase, string>();
+        private readonly Dictionary<string, ModMenuAction> actionById = new Dictionary<string, ModMenuAction>();
+        private readonly Dictionary<ModMenuAction, string> idOfAction = new Dictionary<ModMenuAction, string>();
         private readonly Dictionary<string, PendingSet> pending = new Dictionary<string, PendingSet>();
         private readonly Dictionary<string, bool> echo = new Dictionary<string, bool>();
         private readonly List<ConfigFile> watched = new List<ConfigFile>();
@@ -29,23 +36,37 @@ namespace ObenseuerCore
 
         internal WebPage ConfigPage(WebPage page)
         {
-            if (closed || page.Config == null) return page;
+            if (closed || page == null || page.Kind != "config") return page;
             page.Sections = new List<WebSection>();
             WebSection section = null;
-            List<ConfigEntryBase> visible = ModMenuConfigList.Visible(page.Config);
-            for (int i = 0; i < visible.Count; i++)
+            if (page.Config != null)
             {
-                ConfigEntryBase entry = visible[i];
-                if (section == null || section.Name != entry.Definition.Section)
+                List<ConfigEntryBase> visible = ModMenuConfigList.Visible(page.Config);
+                for (int i = 0; i < visible.Count; i++)
                 {
-                    section = new WebSection(entry.Definition.Section);
-                    page.Sections.Add(section);
+                    ConfigEntryBase entry = visible[i];
+                    if (section == null || section.Name != entry.Definition.Section)
+                    {
+                        section = new WebSection(entry.Definition.Section);
+                        page.Sections.Add(section);
+                    }
+                    WebRow row = RowFor(entry);
+                    if (row != null) section.Rows.Add(row);
                 }
-                WebRow row = RowFor(entry);
-                if (row != null) section.Rows.Add(row);
+                Watch(page.Config);
             }
-            Watch(page.Config);
+            AddActions(page);
             return page;
+        }
+
+        internal string Run(string id)
+        {
+            if (closed || id == null) return null;
+            ModMenuAction action;
+            if (!actionById.TryGetValue(id, out action)) return null;
+            ModMenuAction current = ModMenuActions.Find(action.ModId, action.Name);
+            if (current == null) return ModMenuActions.NoAction;
+            return ModMenuActions.Run(current);
         }
 
         internal void Set(string id, string value, bool live)
@@ -199,6 +220,44 @@ namespace ObenseuerCore
             }
         }
 
+        private void AddActions(WebPage page)
+        {
+            List<ModMenuAction> found = ModMenuActions.For(page.ModId);
+            if (found.Count == 0) return;
+            WebSection section = null;
+            for (int i = 0; i < found.Count; i++)
+            {
+                ModMenuAction action = found[i];
+                if (section == null || section.Name != action.Section)
+                {
+                    section = new WebSection(action.Section);
+                    page.Sections.Add(section);
+                }
+                section.Rows.Add(ActionRow(action));
+            }
+        }
+
+        private WebRow ActionRow(ModMenuAction action)
+        {
+            WebRow row = new WebRow();
+            row.Id = ActionIdFor(action);
+            row.Kind = "button";
+            row.Label = action.Title;
+            row.Desc = action.Description;
+            row.Value = ModMenuActions.ButtonText;
+            return row;
+        }
+
+        private string ActionIdFor(ModMenuAction action)
+        {
+            string id;
+            if (idOfAction.TryGetValue(action, out id)) return id;
+            id = prefix + "a" + (actionById.Count + 1).ToString(CultureInfo.InvariantCulture);
+            idOfAction.Add(action, id);
+            actionById.Add(id, action);
+            return id;
+        }
+
         private string RowMessage(string id, bool invalid)
         {
             ConfigEntryBase entry = byId[id];
@@ -275,16 +334,23 @@ namespace ObenseuerCore
             string path = Path.GetTempFileName();
             Func<float> clock = ModMenuConfigList.Clock;
             ModMenuConfigList.Clock = () => 0f;
+            ModMenuActions.Register(CheckMod, CheckAction, CheckSection, CheckTitle, CheckDescription, CheckRun);
             try
             {
                 return Check(path);
             }
             finally
             {
+                ModMenuActions.Remove(CheckMod, CheckAction);
                 ModMenuConfigList.FlushSaves(true);
                 ModMenuConfigList.Clock = clock;
                 File.Delete(path);
             }
+        }
+
+        private static string CheckRun()
+        {
+            return "checks ran";
         }
 
         private static string Check(string path)
@@ -314,6 +380,11 @@ namespace ObenseuerCore
             string radiusId = IdOf(page, "Radius");
             string row = "{\"id\":\"" + radiusId + "\",\"kind\":\"slider\",\"label\":\"Radius\",\"desc\":\"Metres\",\"value\":\"6\",\"def\":\"6\",\"dirty\":false,\"min\":0.1,\"max\":50,\"step\":0.01,\"dec\":2}";
             if (pageJson.ToString().IndexOf(row, StringComparison.Ordinal) < 0) return "page json " + pageJson;
+            string runId = IdOf(page, CheckTitle);
+            string button = "{\"id\":\"" + runId + "\",\"kind\":\"button\",\"label\":\"" + CheckTitle + "\",\"desc\":\"" + CheckDescription + "\",\"value\":\"" + ModMenuActions.ButtonText + "\",\"def\":null,\"dirty\":false}";
+            if (runId == null || pageJson.ToString().IndexOf(button, StringComparison.Ordinal) < 0) return "action row " + pageJson;
+            if (web.Run(runId) != "checks ran") return "action run";
+            if (web.Run("c9_9") != null) return "unknown action id";
             web.Set(radiusId, "99", false);
             List<string> echo = web.Flush();
             if (echo.Count != 1 || echo[0] != Echo(radiusId, "50", true, false)) return "clamp echo " + echo.Count;
@@ -339,11 +410,14 @@ namespace ObenseuerCore
             echo = web.Flush();
             if (echo.Count != 1 || echo[0].IndexOf("\"value\":\"3\"", StringComparison.Ordinal) < 0) return "setting changed echo";
             ModMenuWebConfig old = new ModMenuWebConfig();
-            string staleId = IdOf(old.ConfigPage(model.PageFor(cfgId)), "Radius");
+            WebPage oldPage = old.ConfigPage(model.PageFor(cfgId));
+            string staleId = IdOf(oldPage, "Radius");
+            string staleActionId = IdOf(oldPage, CheckTitle);
             old.Close();
             web.Set(staleId, "7", false);
             web.Reset(staleId);
             if (web.Flush().Count != 0 || radius.Value != 3f) return "stale id applied";
+            if (staleActionId == null || web.Run(staleActionId) != null) return "stale action id";
             web.Set(radiusId, "12", true);
             web.Close();
             if (radius.Value != 12f) return "close did not flush the live set";
@@ -352,6 +426,7 @@ namespace ObenseuerCore
             web.Key(pullId, "KeyJ", null);
             ModMenuWebModel second = ModMenuWebModel.Build(plugins, new List<ModMenuPage>());
             if (web.ConfigPage(second.PageFor(second.Mods[0].Pages[0].Id)).Sections != null) return "page after close";
+            if (web.Run(runId) != null) return "action after close";
             if (radius.Value != 12f || !pull.Value.Equals(new KeyboardShortcut(KeyCode.K, KeyCode.LeftControl))) return "work after close";
             radius.Value = 4f;
             if (web.Flush().Count != 0) return "echo after close";

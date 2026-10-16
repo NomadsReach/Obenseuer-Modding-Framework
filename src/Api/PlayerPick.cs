@@ -11,15 +11,21 @@ namespace ObenseuerCore
     {
         public static bool PickTime(string modId, string title, int minMinutes, int maxMinutes, int startMinutes, string confirmLabel, Action<int> onConfirm, Action onCancel)
         {
+            return PickTime(modId, title, minMinutes, maxMinutes, startMinutes, 1, null, confirmLabel, onConfirm, onCancel);
+        }
+
+        public static bool PickTime(string modId, string title, int minMinutes, int maxMinutes, int startMinutes, int stepMinutes, Func<int, string> validate, string confirmLabel, Action<int> onConfirm, Action onCancel)
+        {
             ModIds.Require(modId, "modId");
             if (title == null) throw new ArgumentNullException("title");
             if (confirmLabel == null) throw new ArgumentNullException("confirmLabel");
             if (onConfirm == null) throw new ArgumentNullException("onConfirm");
             if (onCancel == null) throw new ArgumentNullException("onCancel");
             if (!PlayerWaitMath.ValidRange(minMinutes, maxMinutes)) throw new ArgumentException("minMinutes and maxMinutes must satisfy 0 <= minMinutes <= maxMinutes <= 1440", "maxMinutes");
+            if (stepMinutes < 1) throw new ArgumentException("stepMinutes must be at least 1", "stepMinutes");
             try
             {
-                return PlayerPick.Open(modId, title, minMinutes, maxMinutes, PlayerWaitMath.Clamp(startMinutes, minMinutes, maxMinutes), confirmLabel, onConfirm, onCancel);
+                return PlayerPick.Open(modId, title, minMinutes, maxMinutes, PlayerWaitMath.Snap(startMinutes, minMinutes, maxMinutes, stepMinutes), stepMinutes, validate, confirmLabel, onConfirm, onCancel);
             }
             catch (Exception e)
             {
@@ -48,10 +54,14 @@ namespace ObenseuerCore
             internal float SavedValue;
             internal string SavedSleptText;
             internal string SavedConfirmText;
+            internal bool SavedInteractable;
+            internal int Step;
+            internal Func<int, string> Validate;
+            internal UnityEngine.UI.Button ConfirmButton;
 
             internal int Minutes()
             {
-                return PlayerWaitMath.Clamp(PlayerWaitMath.MinutesFromSlider(Slider.value), MinMinutes, MaxMinutes);
+                return PlayerWaitMath.Snap(PlayerWaitMath.MinutesFromSlider(Slider.value), MinMinutes, MaxMinutes, Step);
             }
         }
 
@@ -73,7 +83,7 @@ namespace ObenseuerCore
             get { return session != null; }
         }
 
-        internal static bool Open(string modId, string title, int minMinutes, int maxMinutes, int startMinutes, string confirmLabel, Action<int> onConfirm, Action onCancel)
+        internal static bool Open(string modId, string title, int minMinutes, int maxMinutes, int startMinutes, int stepMinutes, Func<int, string> validate, string confirmLabel, Action<int> onConfirm, Action onCancel)
         {
             if (IsOpen || !Available || SaveGate.Busy) return false;
             if (PlayerState.IsWaiting || PlayerState.IsSleeping || PlayerWait.Active) return false;
@@ -89,11 +99,14 @@ namespace ObenseuerCore
             s.MaxMinutes = maxMinutes;
             s.OnConfirm = onConfirm;
             s.OnCancel = onCancel;
+            s.Step = stepMinutes;
+            s.Validate = validate;
             s.SavedMin = s.Slider.minValue;
             s.SavedMax = s.Slider.maxValue;
             s.SavedValue = s.Slider.value;
             s.SavedSleptText = s.SleptText.text;
             s.SavedConfirmText = s.ConfirmText.text;
+            s.SavedInteractable = s.ConfirmButton.interactable;
             try
             {
                 s.Slider.minValue = minMinutes * 60f;
@@ -119,6 +132,12 @@ namespace ObenseuerCore
             Session s = session;
             if (s == null) return;
             int minutes = s.Minutes();
+            string reason;
+            if (Refused(s, minutes, out reason))
+            {
+                ShowTitle();
+                return;
+            }
             session = null;
             Restore(s);
             WaitingUI ui = WaitingUI.instance;
@@ -147,7 +166,13 @@ namespace ObenseuerCore
             Session s = session;
             if (s == null) return;
             int minutes = s.Minutes();
-            s.SleptText.text = string.Format("{0}: {1:00}:{2:00}", s.Title, minutes / 60, minutes % 60);
+            string reason;
+            bool refused = Refused(s, minutes, out reason);
+            string text = string.Format("{0}: {1:00}:{2:00}", s.Title, minutes / 60, minutes % 60);
+            if (!string.IsNullOrEmpty(reason)) text += "\n<color=#FF4444>" + reason + "</color>";
+            s.SleptText.text = text;
+            s.ConfirmButton.interactable = !refused;
+            if (s.Step > 1 && s.Slider.value != minutes * 60f) s.Slider.value = minutes * 60f;
         }
 
         internal static void Drop()
@@ -184,7 +209,24 @@ namespace ObenseuerCore
             s.SetAlarm = setAlarm;
             s.SleptText = slept;
             s.ConfirmText = label;
+            s.ConfirmButton = sleepButton;
             return s;
+        }
+
+        private static bool Refused(Session s, int minutes, out string reason)
+        {
+            reason = null;
+            if (s.Validate == null) return false;
+            try
+            {
+                reason = s.Validate(minutes);
+                return !string.IsNullOrEmpty(reason);
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(s.ModId, "PickTime validate", e);
+                return true;
+            }
         }
 
         private static void InvokeCancel(Session s)
@@ -205,6 +247,7 @@ namespace ObenseuerCore
             s.Slider.maxValue = s.SavedMax;
             s.Slider.value = s.SavedValue;
             s.ConfirmText.text = s.SavedConfirmText;
+            s.ConfirmButton.interactable = s.SavedInteractable;
             s.SleptText.text = s.SavedSleptText;
         }
     }

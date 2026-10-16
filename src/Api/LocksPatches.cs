@@ -21,6 +21,7 @@ namespace ObenseuerCore
                 ok &= Hook(typeof(Door), "Unlock", Type.EmptyTypes, "DoorPrefix", "DoorPostfix");
                 ok &= Hook(typeof(Door), "ToggleLock", Type.EmptyTypes, "DoorPrefix", "DoorPostfix");
                 ok &= Hook(typeof(Lock), "LockpickSuccessCallback", new[] { typeof(bool) }, "LockpickPrefix", "LockpickPostfix");
+                ok &= Hook(typeof(Lock), "AbortLockpicking", Type.EmptyTypes, null, "AbortPostfix");
                 return ok;
             }
             catch (Exception e)
@@ -99,6 +100,18 @@ namespace ObenseuerCore
             catch (Exception e)
             {
                 CoreLog.For(Interactions.Owner).Error("lockpick postfix failed: " + e.ToString());
+            }
+        }
+
+        private static void AbortPostfix(Lock __instance)
+        {
+            try
+            {
+                Locks.LockpickAborted(__instance);
+            }
+            catch (Exception e)
+            {
+                CoreLog.For(Interactions.Owner).Error("lockpick abort postfix failed: " + e.ToString());
             }
         }
 

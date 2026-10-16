@@ -15,7 +15,7 @@ using ObenseuerCore;
 using UnityEngine;
 
 [BepInPlugin("example.hello", "Example Hello", "0.1.0")]
-[BepInDependency("obenseuer.moddingframework", ">=0.10.0")]
+[BepInDependency("obenseuer.moddingframework", ">=0.11.0")]
 public class ExampleHello : BaseUnityPlugin
 {
     private static readonly CoreLog Log = CoreLog.For("example.hello");
@@ -34,7 +34,7 @@ public class ExampleHello : BaseUnityPlugin
 }
 ```
 
-On BepInEx 5, write `"0.10.0"` instead, because BepInEx 5 cannot parse a version range, and drop `using BepInEx.Unity.Mono;` (`BaseUnityPlugin` then comes from `BepInEx`). See [Supporting BepInEx 5 too](packaging.md#supporting-bepinex-5-too).
+On BepInEx 5, write `"0.11.0"` instead, because BepInEx 5 cannot parse a version range, and drop `using BepInEx.Unity.Mono;` (`BaseUnityPlugin` then comes from `BepInEx`). See [Supporting BepInEx 5 too](packaging.md#supporting-bepinex-5-too).
 
 - `Keybinds.Register(modId, id, displayName, defaultKey)` returns a `ModKeybind`, or `null` if the key cannot be created. Check for `null`.
 - `Down()` is true on the frame the key is pressed. `Held()` is true while it is held.

@@ -71,7 +71,7 @@ public static class Medical
 
 - `HealWounds` asks `BlackCanvas.StartFadeInAndOut` to close the game menu (`closeMenu: true`). When the examination bed is loaded and the player is hurt, the fade runs through the bed's `teleportRelay` and `endRelay`. What those relays do was not traced. The same happens when the game's own button is used.
 - `GetAvailableTreatments` on the physical health selection sets the `HealWounds` price. `Treatments` and `CanTreat` call it, as the game's menu does.
-- The charge comes first. If the sound step or the item step throws after `Money.Buy`, the money is already taken, `Treat` returns `false`, and `Treated` does not fire. Not seen in game.
+- The charge comes first. If the sound step or the item step throws after `Money.Buy`, the money is already taken, `Treat` returns `false`, and `Treated` does not fire.
 - For the item treatments the game calls `Inventory.AddItemDialogue`, which gives nothing when the inventory is full. The money is already taken by then and `BuyTreatment` still returns `true`. The doctor's own buy button does the same. `Treat` does not check for free inventory space.
 
 ## Not wrapped, and where it lives
@@ -98,7 +98,7 @@ using ObenseuerCore;
 using UnityEngine;
 
 [BepInPlugin("example.medical", "Medical Smoke", "0.1.0")]
-[BepInDependency("obenseuer.moddingframework", ">=0.10.0")]
+[BepInDependency("obenseuer.moddingframework", ">=0.11.0")]
 public class MedicalSmoke : BaseUnityPlugin
 {
     private void Start()
@@ -115,7 +115,7 @@ public class MedicalSmoke : BaseUnityPlugin
 }
 ```
 
-On BepInEx 5, write `"0.10.0"` instead, because BepInEx 5 cannot parse a version range, and drop `using BepInEx.Unity.Mono;` (`BaseUnityPlugin` then comes from `BepInEx`). See [Supporting BepInEx 5 too](../guides/getting-started/packaging.md#supporting-bepinex-5-too).
+On BepInEx 5, write `"0.11.0"` instead, because BepInEx 5 cannot parse a version range, and drop `using BepInEx.Unity.Mono;` (`BaseUnityPlugin` then comes from `BepInEx`). See [Supporting BepInEx 5 too](../guides/getting-started/packaging.md#supporting-bepinex-5-too).
 
 Expected: F9 prints one line for each treatment of the loaded doctor. To test a purchase, change the `Update` method to call `Medical.Treat(MedicalTreatment.Bandages)` on a key press, with the player holding enough cash. The `treated` line appears, and the price is taken from the wallet. Check the examination bed behaviour separately with `HealWounds`.
 

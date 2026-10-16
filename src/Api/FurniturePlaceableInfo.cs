@@ -2,7 +2,7 @@ using System;
 
 namespace ObenseuerCore
 {
-    internal static class FurniturePlacement
+    internal static class FurniturePlaceableInfo
     {
         internal static bool Installed;
 
@@ -11,7 +11,7 @@ namespace ObenseuerCore
             bool ok;
             try
             {
-                ok = CorePatcher.PatchCore(typeof(FurniturePlaceable), "SetFurnitureInfo", new[] { typeof(BuildingSystem.FurnitureInfo), typeof(FurnitureManager) }, null, CorePatcher.Handler(typeof(FurniturePlacement), "SetFurnitureInfoPostfix"), null, false, FurnitureRegistry.Owner);
+                ok = CorePatcher.PatchCore(typeof(FurniturePlaceable), "SetFurnitureInfo", new[] { typeof(BuildingSystem.FurnitureInfo), typeof(FurnitureManager) }, null, CorePatcher.Handler(typeof(FurniturePlaceableInfo), "SetFurnitureInfoPostfix"), null, false, FurnitureRegistry.Owner);
             }
             catch (Exception e)
             {

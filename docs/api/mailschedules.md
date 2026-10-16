@@ -53,7 +53,7 @@ foreach (MailSenderInfo sender in MailSchedules.Senders())
 
 ## Ceilings and risks
 
-- A `max` of up to 100 sends up to 100 mails at once.
+- A `max` of up to 100 sends up to 99 mails at once.
 
 ## Save loads
 

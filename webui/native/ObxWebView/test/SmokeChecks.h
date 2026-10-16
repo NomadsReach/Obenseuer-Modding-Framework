@@ -13,7 +13,9 @@ int gPressWant = 0;
 bool gButtonPressed = false;
 int gDeactivations = 0;
 int gReactivations = 0;
+int gStaleActivations = 0;
 int gMark = 0;
+int gStaleMark = 0;
 int gOurDeactivations = 0;
 int gOursMark = 0;
 bool gFieldSeen = false;
@@ -86,13 +88,15 @@ void NoteActivation(UINT msg, WPARAM wp, LPARAM lp) {
     if (!name) return;
     const bool away = msg == WM_ACTIVATE ? LOWORD(wp) == WA_INACTIVE : msg == WM_ACTIVATEAPP && wp == FALSE;
     const bool back = msg == WM_ACTIVATE ? LOWORD(wp) != WA_INACTIVE : msg == WM_ACTIVATEAPP && wp == TRUE;
+    const HWND front = GetForegroundWindow();
     if (away) ++gDeactivations;
-    if (back && GetForegroundWindow() == gPopup) ++gReactivations;
+    if (back && front == gPopup) ++gReactivations;
+    if (back && front != gWnd && front != gPopup) ++gStaleActivations;
     DWORD frontPid = 0;
-    GetWindowThreadProcessId(GetForegroundWindow(), &frontPid);
+    GetWindowThreadProcessId(front, &frontPid);
     if (away && frontPid == GetCurrentProcessId()) ++gOurDeactivations;
     const std::wstring other = msg == WM_ACTIVATE ? L" other=" + Who(reinterpret_cast<HWND>(lp)) : std::wstring();
-    Say(std::wstring(L"ACTIVATION ") + name + L" wp=" + Num(static_cast<long long>(wp)) + L" lp=" + Num(static_cast<long long>(lp)) + other + L" front=" + Who(GetForegroundWindow()) + (away ? L" (would minimize the game)" : L""));
+    Say(std::wstring(L"ACTIVATION ") + name + L" wp=" + Num(static_cast<long long>(wp)) + L" lp=" + Num(static_cast<long long>(lp)) + other + L" front=" + Who(front) + (away ? L" (would minimize the game)" : L""));
 }
 
 void ActivateTaskbar() {
@@ -107,15 +111,15 @@ bool Settled(int no) {
     if (no == 10) return gFieldSeen && GetTickCount64() >= gShownAt + 500;
     if (no == 13) return gDeactivations > gMark;
     if (no == 14) return gReactivations > gMark;
-    if (no == 18) return gDeactivations > gMark;
-    if (no == 19) return true;
+    if (no == 17 || no == 18 || no == 21) return true;
+    if (no == 20) return gDeactivations > gMark;
     if (gPressed < gPressWant) return false;
     if (no == 4 || no == 8 || no == 11 || no == 12 || no == 15) return front == gPopup;
     return no == 0 || front == gWnd;
 }
 
 void FocusStep() {
-    if (!gFocusReady || !gPopup || gStep <= 2 || gFocusNo > 19) return;
+    if (!gFocusReady || !gPopup || gStep <= 2 || gFocusNo > 21) return;
     if (!Settled(gFocusNo) && GetTickCount64() < gFocusAt) return;
     const int no = gFocusNo++;
     gDeadline = GetTickCount64() + 5000;
@@ -202,14 +206,30 @@ void FocusStep() {
         break;
     case 16:
         FocusVerdict(L"STALE FORWARDED DEACTIVATION IS DROPPED, GAME STAYS ACTIVE", gDeactivations == gMark && game);
-        gApi.destroy(gView);
         break;
     case 17:
+        ActivateTaskbar();
+        Sleep(150);
+        TakeForeground(gWnd);
+        Sleep(150);
+        ActivateTaskbar();
+        gStaleMark = gStaleActivations;
+        TakeForeground(gPopup);
+        ActivateTaskbar();
+        Sleep(300);
+        break;
+    case 18:
+        FocusVerdict(L"STALE FORWARDED ACTIVATION IS DROPPED", gStaleActivations == gStaleMark);
+        FocusVerdict(L"GAME STAYS INACTIVE AFTER THE STALE ACTIVATION", !game);
+        TakeForeground(gWnd);
+        gApi.destroy(gView);
+        break;
+    case 19:
         FocusVerdict(L"CLOSE while the popup is active gives focus to the game", game);
         gMark = gDeactivations;
         ActivateTaskbar();
         break;
-    case 18:
+    case 20:
         FocusVerdict(L"ALT-TAB WITH THE GAME ACTIVE REACHES THE GAME", gDeactivations > gMark);
         break;
     default:

@@ -35,6 +35,17 @@ namespace ObenseuerCore
             return guid != null && plugins != null && plugins.TryGetValue(guid, out info) ? info : null;
         }
 
+        public static bool Has(string id)
+        {
+            PluginInfo info = Find(id);
+            return (info != null && info.Instance != null) || FrameworkMods.IsLoaded(id);
+        }
+
+        internal static bool Installed(string id)
+        {
+            return Find(id) != null || FrameworkMods.IsInstalled(id);
+        }
+
         public static List<PluginInfo> All()
         {
             Dictionary<string, PluginInfo> plugins = Table();

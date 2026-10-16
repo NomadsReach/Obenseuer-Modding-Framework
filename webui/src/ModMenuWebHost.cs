@@ -17,6 +17,12 @@ namespace ObenseuerCore
         private const float HelloTimeout = 8f;
         private const int HelloTimeoutLimit = 2;
         private const int EscapeKey = 27;
+        private const string CheckMod = "check.guid";
+        private const string CheckAction = "host-checks";
+        private const string CheckSection = "Scene looks";
+        private const string CheckTitle = "Run host checks";
+        private const string CheckDescription = "Read only.";
+        private const string CheckStatus = "host checks ran";
         private static WebView view;
         private static ModWindow window;
         private static ModMenuWebSession session;
@@ -94,16 +100,23 @@ namespace ObenseuerCore
             string path = Path.GetTempFileName();
             Func<float> clock = ModMenuConfigList.Clock;
             ModMenuConfigList.Clock = () => 0f;
+            ModMenuActions.Register(CheckMod, CheckAction, CheckSection, CheckTitle, CheckDescription, CheckRun);
             try
             {
                 return Check(path);
             }
             finally
             {
+                ModMenuActions.Remove(CheckMod, CheckAction);
                 ModMenuConfigList.FlushSaves(true);
                 ModMenuConfigList.Clock = clock;
                 File.Delete(path);
             }
+        }
+
+        private static string CheckRun()
+        {
+            return CheckStatus;
         }
 
         private static string HelloWithoutSession()
@@ -152,17 +165,23 @@ namespace ObenseuerCore
             session.Dispatch(Msg("key", ",\"id\":\"" + pullId + "\",\"code\":\"KeyK\",\"mods\":[\"ControlLeft\"]"), 1);
             session.Flush();
             if (sent.Count != 5 || !pull.Value.Equals(new KeyboardShortcut(KeyCode.K, KeyCode.LeftControl)) || sent[4].IndexOf("\"invalid\":false", StringComparison.Ordinal) < 0) return "key echo";
+            if (!IsInputType("action") || IsInputType("page")) return "the action message is not an input type";
+            string runId = RowId(page, CheckTitle);
+            session.Dispatch(Msg("action", ",\"id\":\"" + runId + "\""), 1);
+            if (sent.Count != 6 || sent[5] != "{\"v\":1,\"type\":\"status\",\"text\":\"" + CheckStatus + "\"}") return "action status " + (sent.Count > 5 ? sent[5] : "none");
+            session.Dispatch(Msg("action", ",\"id\":\"nope\""), 1);
+            if (sent.Count != 6) return "unknown action sent something";
             session.Dispatch(Msg("busy", ",\"on\":true"), 7);
             if (!session.Busy || session.BusyFrame != 7) return "busy";
             session.Dispatch(Msg("nope", ""), 8);
             session.Flush();
-            if (sent.Count != 5) return "unknown type sent something";
+            if (sent.Count != 6) return "unknown type sent something";
             if (WebMessage.Parse("{\"type\":\"hello\"}") != null || WebMessage.Parse("not json") != null) return "parse accepted a bad message";
             session.Dispatch(Msg("close", ""), 9);
             session.Dispatch(Msg("close", ""), 9);
             session.Dispatch(Msg("set", ",\"id\":\"" + radiusId + "\",\"value\":\"3\",\"live\":false"), 9);
             session.Flush();
-            if (closes != 1 || radius.Value != 6f || sent.Count != 5) return "close count " + closes;
+            if (closes != 1 || radius.Value != 6f || sent.Count != 6) return "close count " + closes;
             session.End();
             return null;
         }
@@ -237,7 +256,7 @@ namespace ObenseuerCore
 
         private static bool IsInputType(string type)
         {
-            return type == "busy" || type == "set" || type == "reset" || type == "key";
+            return type == "busy" || type == "set" || type == "reset" || type == "key" || type == "action";
         }
 
         private static void OnKey(int vk)
@@ -357,6 +376,7 @@ namespace ObenseuerCore
                 case "set": config.Set(m.Id, m.Value, m.Live); break;
                 case "reset": config.Reset(m.Id); break;
                 case "key": config.Key(m.Id, m.Code, m.Mods); break;
+                case "action": Action(m.Id); break;
                 case "busy": Busy = m.On; BusyFrame = frame; break;
                 case "classic": Classic(m.Page); break;
                 case "close": RequestClose(); break;
@@ -382,6 +402,13 @@ namespace ObenseuerCore
             if (closing) return;
             closing = true;
             close();
+        }
+
+        private void Action(string id)
+        {
+            string text = config.Run(id);
+            if (text == null) return;
+            post(new ModMenuJson().Begin('{').Key("v").Num(1.0).Key("type").Str("status").Key("text").Str(text).End().ToString());
         }
 
         internal void End()

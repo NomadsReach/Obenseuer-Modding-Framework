@@ -353,18 +353,58 @@ namespace ObenseuerCore
     {
         internal string ModId;
         internal Action OnUse;
+        internal Func<string> Reason;
         internal int OriginalLayer;
         internal bool Moved;
+        private bool reasonFailed;
+
+        public override void UpdateUseMessage()
+        {
+            try
+            {
+                if (UseText.instance == null) return;
+                string reason = ReasonText();
+                if (string.IsNullOrEmpty(reason)) base.UpdateUseMessage();
+                else UseText.instance.ChangeUseText(title, reason, showUseText: true, redColor: true);
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(ComputerApps.Owner, "ModInteraction.UpdateUseMessage", e);
+            }
+        }
 
         public override void Interact()
         {
             try
             {
+                if (!string.IsNullOrEmpty(ReasonText()))
+                {
+                    if (UseText.instance != null) UseText.instance.WarningUseEffect();
+                    return;
+                }
                 OnUse();
             }
             catch (Exception e)
             {
                 CoreLog.For(ModId).Error("interaction " + title + " failed: " + e.ToString());
+            }
+        }
+
+        private string ReasonText()
+        {
+            if (Reason == null) return null;
+            try
+            {
+                return Reason();
+            }
+            catch (Exception e)
+            {
+                if (!reasonFailed)
+                {
+                    reasonFailed = true;
+                    CoreLog.For(ModId).Error("interaction " + title + " reason failed: " + e.ToString());
+                }
+                return null;
             }
         }
     }

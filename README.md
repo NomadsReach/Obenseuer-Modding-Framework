@@ -2,7 +2,7 @@
 
 The Obenseuer Modding Framework (the framework) is a [BepInEx](docs/glossary.md#bepinex) plugin for the game Obenseuer. It runs on BepInEx 5 (5.4.23 or later) and BepInEx 6 (Unity.Mono). It is a shared base for other mods. It gives them one settings menu, a computer app registry, per-save data, game events, game time and money helpers, and safe patching. It also has a few optional gameplay tweaks, all off by default.
 
-Version: 0.10.0-beta (plugin version 0.10.0, GUID `obenseuer.moddingframework`). License: MIT. This is a beta, see the [status page](docs/status.md).
+Version: 0.11.0-beta (plugin version 0.11.0, GUID `obenseuer.moddingframework`). License: MIT. This is a beta, see the [status page](docs/status.md).
 
 Documentation site: https://nomadsreach.github.io/Obenseuer-Modding-Framework/
 
@@ -42,6 +42,8 @@ Mods add their own features on top. The game API areas and helpers were built fr
 5. Start the game.
 
 The full steps are in [docs/install.md](docs/install.md). The default Steam path is `C:\Program Files (x86)\Steam\steamapps\common\Obenseuer`.
+
+To update, close the game and delete `BepInEx\plugins\ObenseuerCore\`, and `BepInEx\plugins\ObenseuerCore.WebUi\` if you have it, before you extract the new zips. See [updating](docs/install.md#updating).
 
 ### Where things are
 
@@ -83,12 +85,12 @@ To start, read [Your first mod](docs/guides/getting-started/first-mod.md). It bu
 Add the dependency to your plugin:
 
 ```csharp
-[BepInDependency("obenseuer.moddingframework", ">=0.10.0")]
+[BepInDependency("obenseuer.moddingframework", ">=0.11.0")]
 ```
 
-On BepInEx 5, write `"0.10.0"` instead, because BepInEx 5 cannot parse a version range. See [Supporting BepInEx 5 too](docs/guides/getting-started/packaging.md#supporting-bepinex-5-too).
+On BepInEx 5, write `"0.11.0"` instead, because BepInEx 5 cannot parse a version range. See [Supporting BepInEx 5 too](docs/guides/getting-started/packaging.md#supporting-bepinex-5-too).
 
-Reference `ObenseuerCore.dll` (from the zip, or from `bin\` after a build). Public API is in namespace `ObenseuerCore`. The WebUi types are in a second assembly, `ObenseuerCore.WebUi.dll`. A mod that uses WebUi also depends on `obenseuer.moddingframework.webui` with `[BepInDependency("obenseuer.moddingframework.webui", ">=0.10.0")]`.
+Reference `ObenseuerCore.dll` (from the zip, or from `bin\` after a build). Public API is in namespace `ObenseuerCore`. The WebUi types are in a second assembly, `ObenseuerCore.WebUi.dll`. A mod that uses WebUi also depends on `obenseuer.moddingframework.webui` with `[BepInDependency("obenseuer.moddingframework.webui", ">=0.11.0")]`.
 
 - Guides: [docs/guides/](docs/guides/index.md). Cookbook: [docs/guides/cookbook/](docs/guides/cookbook/index.md). The guides walk from a first mod to items, furniture, gameplay hooks and UI.
 - API reference: [docs/API.md](docs/API.md), with one page per area in [docs/api/](docs/api/). The UI kit (`ModUi`) works in any host: a framework window, a computer app, or none. Its theme (`UiTheme`) is public.

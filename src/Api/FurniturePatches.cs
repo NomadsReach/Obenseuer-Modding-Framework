@@ -19,8 +19,9 @@ namespace ObenseuerCore
             {
                 FurniturePools.Install();
                 FurnitureLoot.Install();
-                FurniturePlacement.Install();
+                FurniturePlaceableInfo.Install();
                 FurnitureConsole.Install();
+                FurnitureCategories.Install();
             }
             if (!ok) CoreLog.For(FurnitureRegistry.Owner).Warn("furniture patches not installed, Define returns null");
             try

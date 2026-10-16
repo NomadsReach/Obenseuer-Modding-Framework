@@ -28,7 +28,7 @@ public static class PlantActions
 }
 ```
 
-- `Harvest` takes the plant's crop the way the player does. The items go to the inventory, or to the floor when it is full. `Plants.Harvested` fires. An unripe plant gives a partial crop, and the plant is reset or removed, as the game does. A plant removed this way also empties its growing spot. `Harvest` returns `false` when the harvest gave no items, for example an unripe plant; the plant is still reset or removed.
+- `Harvest` takes the plant's crop the way the player does. The items go to the inventory, or to the floor when it is full. `Plants.Harvested` fires when the call hands out a crop. A plant with a ready fruit takes another path: the game picks the fruit and returns no crop, so `Plants.Picked` fires once per fruit and `Plants.Harvested` does not fire. An unripe plant gives a partial crop, scaled by its age, and the plant is reset or removed, as the game does. A plant removed this way also empties its growing spot. `Harvest` returns `false` when the call gave no items, for example when an unripe plant's age-scaled crop rounds to zero; the plant is still reset or removed.
 - `Reset` sets the age back to 0, as the game does after a pick.
 - `SetAgePercent` takes a percent from 0 to 100 of the full-grown age. Any other value returns `false`. It sets only the plant's age. The plant's visuals catch up on its next growth tick.
 - `Pause` sets the plant's paused flag. The growing station's own pause and unpause change the same flag, so a station can undo it. A rotting plant ignores the flag: the game skips `Paused` while the plant is rotting, so `Pause` has no effect on it.

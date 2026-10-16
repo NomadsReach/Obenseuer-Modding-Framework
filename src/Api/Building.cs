@@ -97,6 +97,8 @@ namespace ObenseuerCore
 
         public static event Action<FurnitureItem> FurnitureRemoved;
 
+        public static event Action<FurnitureItem> FurnitureLoaded;
+
         private static int applyDepth;
 
         public static bool Applying { get { return applyDepth > 0; } }
@@ -154,6 +156,28 @@ namespace ObenseuerCore
                 ApiLog.Once(Housing.Owner, "GetPlacedFurniture", e);
                 return new List<FurnitureItem>();
             }
+        }
+
+        internal static List<FurnitureItem> AllPlacedFurniture()
+        {
+            List<FurnitureItem> items = new List<FurnitureItem>();
+            try
+            {
+                if (BuildingSystem.instance == null) return items;
+                foreach (FurnitureManager manager in BuildingSystem.instance.furnitureManagers)
+                {
+                    if (manager == null || string.IsNullOrEmpty(manager.GUID)) continue;
+                    foreach (BuildingSystem.FurnitureInfo info in manager.placedFurniture)
+                    {
+                        if (info != null && info.gameObject != null) items.Add(Describe(manager.GUID, info.gameObject));
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Housing.Owner, "AllPlacedFurniture", e);
+            }
+            return items;
         }
 
         public static FurnitureItem Find(string guid)
@@ -228,6 +252,11 @@ namespace ObenseuerCore
 
         public static bool UnlockBlueprint(string name)
         {
+            return UnlockBlueprint(name, false);
+        }
+
+        public static bool UnlockBlueprint(string name, bool silent)
+        {
             if (string.IsNullOrEmpty(name))
             {
                 ApiLog.Once(Housing.Owner, "UnlockBlueprint empty name", "name must be a non-empty blueprint name");
@@ -237,7 +266,7 @@ namespace ObenseuerCore
             {
                 TaskItemBlueprint blueprint = FindBlueprint(name);
                 if (SaveGate.Busy || blueprint == null || IsKnown(blueprint)) return false;
-                return blueprint.GiveItemWithResults();
+                return silent ? TaskItemsManager.instance.AddTaskItem(blueprint) : blueprint.GiveItemWithResults();
             }
             catch (Exception e)
             {
@@ -474,6 +503,11 @@ namespace ObenseuerCore
         internal static void RaiseFurnitureRemoved(FurnitureItem item)
         {
             Events.Raise(FurnitureRemoved, "Building.FurnitureRemoved", h => h(item));
+        }
+
+        internal static void RaiseFurnitureLoaded(FurnitureItem item)
+        {
+            Events.Raise(FurnitureLoaded, "Building.FurnitureLoaded", h => h(item));
         }
 
         internal static bool IsFinite(Vector3 vector)

@@ -16,7 +16,7 @@ using BepInEx.Unity.Mono;
 using ObenseuerCore;
 
 [BepInPlugin("example.hello", "Example Hello", "0.1.0")]
-[BepInDependency("obenseuer.moddingframework", ">=0.10.0")]
+[BepInDependency("obenseuer.moddingframework", ">=0.11.0")]
 public class ExampleHello : BaseUnityPlugin
 {
     private static readonly CoreLog Log = CoreLog.For("example.hello");
@@ -40,7 +40,7 @@ public class ExampleHello : BaseUnityPlugin
 }
 ```
 
-On BepInEx 5, write `"0.10.0"` instead, because BepInEx 5 cannot parse a version range, and drop `using BepInEx.Unity.Mono;` (`BaseUnityPlugin` then comes from `BepInEx`). See [Supporting BepInEx 5 too](packaging.md#supporting-bepinex-5-too).
+On BepInEx 5, write `"0.11.0"` instead, because BepInEx 5 cannot parse a version range, and drop `using BepInEx.Unity.Mono;` (`BaseUnityPlugin` then comes from `BepInEx`). See [Supporting BepInEx 5 too](packaging.md#supporting-bepinex-5-too).
 
 - `CorePatcher.Patch` adds a prefix, a postfix or a finalizer to a game method. It returns `true` if the patch was applied.
 - Pass `null` for the parts you do not use. Patch methods are `static`.

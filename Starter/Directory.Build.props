@@ -29,13 +29,5 @@
   <PropertyGroup>
     <ManagedDir>$(GameDir)\Obenseuer_Data\Managed</ManagedDir>
     <BepInExCore>$(GameDir)\BepInEx\core</BepInExCore>
-    <Loader Condition="'$(Loader)' == '' And Exists('$(BepInExCore)\BepInEx.Core.dll')">BepInEx6</Loader>
-    <Loader Condition="'$(Loader)' == '' And Exists('$(BepInExCore)\BepInEx.dll')">BepInEx5</Loader>
-    <Loader Condition="'$(Loader)' == ''">BepInEx6</Loader>
-    <DefineConstants Condition="'$(Loader)' == 'BepInEx5'">$(DefineConstants);BEPINEX5</DefineConstants>
-    <DefineConstants Condition="'$(Loader)' == 'BepInEx6'">$(DefineConstants);BEPINEX6</DefineConstants>
-    <FrameworkFile Condition="'$(Loader)' == 'BepInEx5'">ObenseuerCore.BepInEx5.dll</FrameworkFile>
-    <FrameworkFile Condition="'$(Loader)' == 'BepInEx6'">ObenseuerCore.dll</FrameworkFile>
-    <FrameworkDll>$(GameDir)\BepInEx\plugins\ObenseuerCore\$(FrameworkFile)</FrameworkDll>
   </PropertyGroup>
 </Project>

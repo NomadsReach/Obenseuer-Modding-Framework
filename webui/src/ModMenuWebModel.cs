@@ -25,6 +25,10 @@ namespace ObenseuerCore
             {
                 if (info.Instance != null) plugins.Add(new WebPlugin(info.Metadata.GUID, info.Metadata.Name, info.Metadata.Version.ToString(), ((BaseUnityPlugin)info.Instance).Config));
             }
+            foreach (FrameworkMod mod in FrameworkMods.Loaded())
+            {
+                plugins.Add(new WebPlugin(mod.Info.Id, mod.Info.Name, mod.Info.Version, mod.Config.Existing));
+            }
             return plugins;
         }
 
@@ -37,9 +41,10 @@ namespace ObenseuerCore
             {
                 WebPlugin plugin = plugins[p];
                 WebMod mod = new WebMod(plugin.Guid, plugin.Name, plugin.Version);
-                if (plugin.Config != null && ModMenuConfigList.Visible(plugin.Config).Count > 0)
+                if (plugin.Config != null && (ModMenuConfigList.Visible(plugin.Config).Count > 0 || ModMenuActions.Any(plugin.Guid)))
                 {
                     WebPage page = new WebPage("Settings", "config");
+                    page.ModId = plugin.Guid;
                     page.Config = plugin.Config;
                     mod.Pages.Add(model.Add(prefix, page));
                 }
@@ -56,6 +61,7 @@ namespace ObenseuerCore
                     model.Mods.Add(mod);
                 }
                 WebPage page = new WebPage(source.Title, "classic");
+                page.ModId = source.ModId;
                 page.Classic = source;
                 mod.Pages.Add(model.Add(prefix, page));
             }
@@ -146,6 +152,7 @@ namespace ObenseuerCore
         internal string Id;
         internal readonly string Title;
         internal readonly string Kind;
+        internal string ModId;
         internal List<WebSection> Sections;
         internal ConfigFile Config;
         internal ModMenuPage Classic;

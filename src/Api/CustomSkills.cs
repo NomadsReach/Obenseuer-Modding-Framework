@@ -107,6 +107,26 @@ namespace ObenseuerCore
             return CustomSkillsMath.Accepts(definition != null, SaveGate.Busy) && Change(definition, ValueOf(definition) + amount, true);
         }
 
+        public static bool QueueBanner(string text)
+        {
+            if (string.IsNullOrEmpty(text)) throw new ArgumentException("text must be non-empty", "text");
+            try
+            {
+                if (!IsAvailable || SaveGate.Busy) return false;
+                if (!CustomSkillsPatches.CanShowBanner())
+                {
+                    ApiLog.Once(Owner, "banner", "no skill banner is on screen or PlayerSkillIncreaseUI.ShowNotification was not found, the banner was not queued");
+                    return false;
+                }
+                return banners.EnqueueCustom(text);
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Owner, "CustomSkills.QueueBanner", e);
+                return false;
+            }
+        }
+
         internal static void Init()
         {
             installed = CustomSkillsPatches.Install();
@@ -168,7 +188,7 @@ namespace ObenseuerCore
                 entry.Value = after;
                 int previous = CustomSkillsMath.Level(before);
                 int level = CustomSkillsMath.Level(after);
-                if (announce && level > previous) banners.EnqueueSkill(definition.Key, CustomSkillsMath.LevelUpText(definition.DisplayName, level));
+                if (announce && level > previous) banners.EnqueueSkill(definition.Key, previous == 0 ? CustomSkillsMath.LearnedText(definition.DisplayName) : CustomSkillsMath.LevelUpText(definition.DisplayName, level));
                 if (level != previous) RaiseLevelChanged(new CustomSkillArgs(definition.Mod, definition.Id, after, level, previous));
                 return true;
             }

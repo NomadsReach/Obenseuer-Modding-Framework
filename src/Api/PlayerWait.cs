@@ -9,6 +9,7 @@ namespace ObenseuerCore
             internal string ModId;
             internal bool IgnoreNeeds;
             internal bool NoPassOut;
+            internal string Label;
             internal int Seconds;
             internal Action<int> OnDone;
         }
@@ -41,12 +42,18 @@ namespace ObenseuerCore
             get { return pending != null && pending.NoPassOut; }
         }
 
+        internal static string Label
+        {
+            get { return pending == null ? null : pending.Label; }
+        }
+
         internal static bool Start(string modId, int seconds, WaitKind kind, WaitOptions options, Action<int> onDone, WaitingController waiting)
         {
             pending = new Pending();
             pending.ModId = modId;
             pending.IgnoreNeeds = options.IgnoreNeeds;
             pending.NoPassOut = options.NoPassOut;
+            pending.Label = options.Label;
             pending.OnDone = onDone;
             Starting = true;
             try

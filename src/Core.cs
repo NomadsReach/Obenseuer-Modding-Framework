@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace ObenseuerCore
 {
-    [BepInPlugin("obenseuer.moddingframework", "Obenseuer Modding Framework", "0.10.0")]
+    [BepInPlugin("obenseuer.moddingframework", "Obenseuer Modding Framework", "0.11.0")]
     public class Core : BaseUnityPlugin
     {
         private const string SupportedVersion = "0.5.05";
@@ -89,6 +89,8 @@ namespace ObenseuerCore
             Isolate("floor items", FloorItems.Init);
             Isolate("npc schedules", NpcSchedules.Init);
             Isolate("npc movement", NpcMovement.Init);
+            Isolate("npc control", NpcControl.Init);
+            Isolate("npc animation", NpcAnimation.Init);
             Isolate("mod npcs", ModNpcs.Init);
             Isolate("mod npc orders", ModNpcRoutines.InitOrders);
             Isolate("mod npc routines", ModNpcRoutines.InitRoutines);
@@ -171,6 +173,7 @@ namespace ObenseuerCore
             {
                 Events.Saved += SaveData.OnSaved;
                 Events.Loaded += SaveData.OnLoaded;
+                Events.Loaded += BuildingLoaded.OnLoaded;
                 Events.SceneLoadedWithMode += SaveData.OnSceneLoaded;
             });
             Isolate("survival", Survival.Init);
@@ -372,6 +375,13 @@ namespace ObenseuerCore
                     log.Info(CoreModSelfTest.Run());
                 }
             });
+            Isolate("framework mods check", () =>
+            {
+                if (Config.Bind("Debug", "FrameworkModsSelfCheck", false, "Runs the framework mod scan ordering and skip self-check at start and logs the result.").Value)
+                {
+                    log.Info(FrameworkModScan.SelfCheck());
+                }
+            });
             Isolate("guitar song check", () =>
             {
                 if (Config.Bind("Debug", "GuitarSongSelfCheck", false, "Runs the guitar song note timing self-check at start and logs the result.").Value)
@@ -434,7 +444,23 @@ namespace ObenseuerCore
                     log.Info(CoreDebugSelfTest.Run());
                 }
             });
+            Isolate("scene looks menu action", SceneLooksMenu.Init);
+            Isolate("scene looks command", () =>
+            {
+                if (Config.Bind("Debug", "SceneLooksCommand", false, "Registers the scenelooks console command, which prints the scene look index for a scene: list, listall, find, findchar, here. Read only.").Value)
+                {
+                    if (!SceneLooksConsole.Register())
+                    {
+                        log.Info("scenelooks not registered, the console is not available");
+                    }
+                }
+            });
             Isolate("debug", () => CoreDebug.Init(Config));
+        }
+
+        private void Start()
+        {
+            Isolate("framework mods", () => FrameworkMods.Load(this));
         }
 
         internal static bool OnMain()
@@ -463,10 +489,15 @@ namespace ObenseuerCore
         private static readonly Action tickComputerApps = () => ComputerApps.Tick();
         private static readonly Action tickLegalServices = () => LegalServices.Tick();
         private static readonly Action tickNpcMovement = () => NpcMovement.Tick();
+        private static readonly Action tickNpcControl = () => NpcControl.Tick();
+        private static readonly Action tickNpcAnimation = () => NpcAnimation.Tick();
+        private static readonly Action tickScreenFxVignette = () => ScreenFxVignette.Tick();
+        private static readonly Action tickScreenFxBlur = () => ScreenFxBlur.Tick();
         private static readonly Action tickInstruments = () => Instruments.Tick();
         private static readonly Action tickCustomSkills = () => CustomSkills.Tick();
         private static readonly Action tickModNpcOrders = () => ModNpcRoutines.TickOrders();
         private static readonly Action tickModNpcRoutines = () => ModNpcRoutines.TickRoutines();
+        private static readonly Action tickHudBars = () => HudBars.Tick();
 
         private void Update()
         {
@@ -478,10 +509,15 @@ namespace ObenseuerCore
             Guard("ModMenu.Update", updateModMenu);
             Guard("LegalServices.Tick", tickLegalServices);
             Guard("NpcMovement.Tick", tickNpcMovement);
+            Guard("NpcControl.Tick", tickNpcControl);
+            Guard("NpcAnimation.Tick", tickNpcAnimation);
+            Guard("ScreenFxVignette.Tick", tickScreenFxVignette);
+            Guard("ScreenFxBlur.Tick", tickScreenFxBlur);
             Guard("Instruments.Tick", tickInstruments);
             Guard("CustomSkills.Tick", tickCustomSkills);
             Guard("ModNpcRoutines.TickOrders", tickModNpcOrders);
             Guard("ModNpcRoutines.TickRoutines", tickModNpcRoutines);
+            Guard("HudBars.Tick", tickHudBars);
         }
 
         private void LateUpdate()

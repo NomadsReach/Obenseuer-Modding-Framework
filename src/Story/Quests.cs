@@ -138,6 +138,21 @@ namespace ObenseuerCore
             }
         }
 
+        public static bool Reached(string taskId, string objectiveId)
+        {
+            TaskController controller = Readable();
+            if (controller == null || string.IsNullOrEmpty(taskId) || string.IsNullOrEmpty(objectiveId)) return false;
+            try
+            {
+                return controller.ObjectiveAnyStatus(taskId, objectiveId);
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Owner, "Reached", e);
+                return false;
+            }
+        }
+
         public static bool SetTask(string taskId, TaskState state)
         {
             if (!IsClosing(state) || SaveGate.Busy) return false;

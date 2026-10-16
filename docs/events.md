@@ -62,6 +62,7 @@ Subscribe with `+=` in `Awake`. See [Using events](guides/getting-started/using-
 | --- | --- | --- |
 | `Building.AreaEntered` | `Action<BuildAreaInfo>` |  |
 | `Building.AreaExited` | `Action<BuildAreaInfo>` |  |
+| `Building.FurnitureLoaded` | `Action<FurnitureItem>` |  |
 | `Building.FurniturePlaced` | `Action<FurnitureItem>` |  |
 | `Building.FurnitureRemoved` | `Action<FurnitureItem>` |  |
 
@@ -721,4 +722,5 @@ These belong to an instance of the declaring class, not to the class itself.
 
 | Event | Type | Summary |
 | --- | --- | --- |
+| `ModSetting.Changed` | `Action` |  |
 | `ModWindow.Closed` | `Action` |  |

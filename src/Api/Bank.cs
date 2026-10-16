@@ -166,10 +166,28 @@ namespace ObenseuerCore
             {
                 Money.BankAccountData data = bank.GetPlayerAccount();
                 if (data == null) return false;
-                float owed = bank.LoanCurrency == Money.Currency.RM ? data.CurrentDebt.RM : data.CurrentDebt.OC;
-                if (Math.Min((int)owed, (int)Cash.Read(bank.LoanCurrency)) <= 0) return false;
-                bank.PayLoan(amount);
-                return true;
+                bool rm = bank.LoanCurrency == Money.Currency.RM;
+                float owed = rm ? data.CurrentDebt.RM : data.CurrentDebt.OC;
+                if (Math.Min(owed, Cash.Read(bank.LoanCurrency)) <= 0f) return false;
+                if (!rm)
+                {
+                    bank.PayLoan(amount);
+                    return true;
+                }
+                if (owed >= 1f) bank.PayLoan(amount);
+                int whole = (int)owed - (int)data.CurrentDebt.RM;
+                float rest = data.CurrentDebt.RM;
+                bool paid = whole > 0;
+                if (rest > 0f && rest < 1f && amount > whole)
+                {
+                    float step = Tenths(rest);
+                    if (step > 0f && Cash.Read(Money.Currency.RM) + 0.0001f < step) return paid;
+                    if (step > 0f) Money.instance.RemoveMoney(step, Money.Currency.RM);
+                    data.CurrentDebt.RM = 0f;
+                    BankLedger.Reconcile("Repayment");
+                    paid = true;
+                }
+                return paid;
             }
             catch (Exception e)
             {
@@ -286,6 +304,12 @@ namespace ObenseuerCore
                 return bank.TotalRMSupply < (float)bank.DailyAverageRmSpending ? bank.OS_RM_Ratio * (bank.TotalRMSupply / (float)bank.DailyAverageRmSpending) : bank.OS_RM_Ratio;
             }
             return bank.TotalOCSupply < bank.DailyAverageOcSpending ? bank.RM_OS_Ratio * (float)(bank.TotalOCSupply / bank.DailyAverageOcSpending) : bank.RM_OS_Ratio;
+        }
+
+        private static float Tenths(float debt)
+        {
+            float step = (float)Math.Floor((double)debt * 10.0 + 0.00001) / 10f;
+            return step > debt ? debt : step;
         }
 
         private static bool Finite(float value)

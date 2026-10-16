@@ -60,7 +60,7 @@ namespace ObenseuerCore
             return new Bounds(Vector3.Scale(bounds.center, scale), Vector3.Scale(bounds.size, new Vector3(Mathf.Abs(scale.x), Mathf.Abs(scale.y), Mathf.Abs(scale.z))));
         }
 
-        internal static void ApplyModel(GameObject prefabRoot, ModelHandle model)
+        internal static void ApplyModel(GameObject prefabRoot, ModelHandle model, Bounds[] colliders)
         {
             if (prefabRoot == null || model == null) return;
             GameObject part = null;
@@ -95,6 +95,8 @@ namespace ObenseuerCore
                 List<Transform> owners = new List<Transform>();
                 List<Collider> sources = new List<Collider>();
                 Owners(solids, target, owners, sources);
+                if (colliders != null && owners.Count > 1) ApiLog.Once(FurnitureRegistry.Owner, "colliders " + model.Key, "prefab " + prefabRoot.name + " has " + owners.Count + " solid owners: Colliders go on one of them and the others get no collider");
+                CustomBoxes(colliders, target, owners, sources);
                 part = new GameObject("obx_model");
                 part.layer = layer;
                 part.transform.SetParent(target, false);
@@ -103,7 +105,7 @@ namespace ObenseuerCore
                 part.AddComponent<MeshFilter>().sharedMesh = mesh;
                 part.AddComponent<MeshRenderer>().sharedMaterials = materials;
                 List<Bounds> fits = new List<Bounds>();
-                foreach (Transform owner in owners) fits.Add(BoxIn(part.transform, mesh.bounds, owner));
+                for (int i = 0; i < owners.Count; i++) fits.Add(BoxIn(part.transform, colliders == null ? mesh.bounds : colliders[i], owners[i]));
                 foreach (Renderer renderer in renderers)
                 {
                     hidden.Add(renderer);
@@ -192,6 +194,25 @@ namespace ObenseuerCore
             }
         }
 
+        private static void CustomBoxes(Bounds[] colliders, Transform target, List<Transform> owners, List<Collider> sources)
+        {
+            if (colliders == null) return;
+            int index = -1;
+            for (int i = 0; i < owners.Count && index < 0; i++)
+            {
+                if (owners[i] == target || owners[i].IsChildOf(target)) index = i;
+            }
+            Transform owner = index < 0 ? target : owners[index];
+            Collider source = index < 0 ? null : sources[index];
+            owners.Clear();
+            sources.Clear();
+            for (int i = 0; i < colliders.Length; i++)
+            {
+                owners.Add(owner);
+                sources.Add(source);
+            }
+        }
+
         private static Bounds BoxIn(Transform part, Bounds model, Transform owner)
         {
             Matrix4x4 move = owner.worldToLocalMatrix * part.localToWorldMatrix;
@@ -270,14 +291,17 @@ namespace ObenseuerCore
                 furniture.skins = new Furniture.Skin[0];
                 furniture.alternativePrefabs = new Furniture.AlternativePrefab[0];
                 furniture.hideFlags = HideFlags.HideAndDontSave;
+                furniture.category = FurnitureCategories.CategoryFor(definition.CategoryName, template.category);
                 furniture.prefab = Clone(template.prefab);
                 furniture.previewPrefab = template.previewPrefab == template.prefab ? furniture.prefab : Clone(template.previewPrefab);
                 furniture.customDisplayPrefab = Clone(template.customDisplayPrefab);
+                if (definition.Placement != FurniturePlacement.Template) SetPlacement(furniture.previewPrefab, definition.Placement, entry.Id);
+                if (definition.Placement == FurniturePlacement.Ceiling) furniture.displayStyle = Furniture.DisplayStyle.Ceiling;
                 furniture.prefab.GetComponent<FurniturePlaceable>().furniture = furniture;
                 ModelHandle model = UsableModel(entry);
-                ApplyModel(furniture.prefab, model);
-                if (furniture.previewPrefab != furniture.prefab) ApplyModel(furniture.previewPrefab, model);
-                ApplyModel(furniture.customDisplayPrefab, model);
+                ApplyModel(furniture.prefab, model, definition.Colliders);
+                if (furniture.previewPrefab != furniture.prefab) ApplyModel(furniture.previewPrefab, model, definition.Colliders);
+                ApplyModel(furniture.customDisplayPrefab, model, definition.Colliders);
                 return furniture;
             }
             catch (Exception)
@@ -296,6 +320,29 @@ namespace ObenseuerCore
                 if (clone != null && clone != template.prefab && clone != template.previewPrefab && clone != template.customDisplayPrefab) UnityEngine.Object.DestroyImmediate(clone);
             }
             UnityEngine.Object.DestroyImmediate(furniture);
+        }
+
+        private static void SetPlacement(GameObject preview, FurniturePlacement placement, string id)
+        {
+            ObjectPreview objectPreview = preview == null ? null : preview.GetComponentInChildren<ObjectPreview>(true);
+            if (objectPreview == null)
+            {
+                ApiLog.Once(FurnitureRegistry.Owner, "placement " + id, "the preview prefab has no ObjectPreview, Placement is ignored and the template's orientation is kept");
+                return;
+            }
+            objectPreview.SetOrientationType(PlaceTypeOf(placement));
+        }
+
+        private static PlaceType PlaceTypeOf(FurniturePlacement placement)
+        {
+            switch (placement)
+            {
+                case FurniturePlacement.Floor: return PlaceType.floor;
+                case FurniturePlacement.Wall: return PlaceType.wall;
+                case FurniturePlacement.Ceiling: return PlaceType.ceiling;
+                case FurniturePlacement.FloorAndWall: return PlaceType.floorAndWall;
+                default: return PlaceType.all;
+            }
         }
 
         internal static Furniture Template(FurnitureDefinition definition)

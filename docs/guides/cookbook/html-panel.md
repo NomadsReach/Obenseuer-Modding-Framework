@@ -22,8 +22,8 @@ using ObenseuerCore;
 using UnityEngine;
 
 [BepInPlugin("example.panel", "Panel", "0.1.0")]
-[BepInDependency("obenseuer.moddingframework", ">=0.10.0")]
-[BepInDependency("obenseuer.moddingframework.webui", ">=0.10.0")]
+[BepInDependency("obenseuer.moddingframework", ">=0.11.0")]
+[BepInDependency("obenseuer.moddingframework.webui", ">=0.11.0")]
 public class Panel : BaseUnityPlugin
 {
     private const string ModId = "example.panel";
@@ -50,7 +50,7 @@ public class Panel : BaseUnityPlugin
 }
 ```
 
-On BepInEx 5, write `"0.10.0"` instead, because BepInEx 5 cannot parse a version range, and drop `using BepInEx.Unity.Mono;` (`BaseUnityPlugin` then comes from `BepInEx`). See [Supporting BepInEx 5 too](../getting-started/packaging.md#supporting-bepinex-5-too).
+On BepInEx 5, write `"0.11.0"` instead, because BepInEx 5 cannot parse a version range, and drop `using BepInEx.Unity.Mono;` (`BaseUnityPlugin` then comes from `BepInEx`). See [Supporting BepInEx 5 too](../getting-started/packaging.md#supporting-bepinex-5-too).
 
 Notes:
 

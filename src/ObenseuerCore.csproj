@@ -121,6 +121,10 @@
       <HintPath>$(GameAssemblyCSharp)</HintPath>
       <Private>false</Private>
     </Reference>
+    <Reference Include="Mono.Cecil">
+      <HintPath>$(BepInExCore)/Mono.Cecil.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup Condition="'$(Loader)' == 'BepInEx6'">

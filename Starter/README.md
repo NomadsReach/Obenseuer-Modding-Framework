@@ -1,33 +1,26 @@
 # MyFirstMod
 
-A starter mod for Obenseuer. It logs one line when the plugin loads, and shows a hint once, after the first save loads.
+A starter mod for Obenseuer. It logs one line when it loads, and shows a hint once, after the first save loads. It is one DLL that works on BepInEx 5 and BepInEx 6.
 
 ## Prerequisites
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
 - [BepInEx 5.4.23 or later (Mono, x64)](https://github.com/BepInEx/BepInEx/releases), or [BepInEx 6 Unity.Mono, x64, be.755 or newer](https://builds.bepinex.dev/projects/bepinex_be). Install one in the game folder and start the game once.
-- [Obenseuer Modding Framework 0.10.0 or later](https://github.com/NomadsReach/Obenseuer-Modding-Framework#building-the-framework-itself). Extract the framework zip into the game folder. The build needs `BepInEx\plugins\ObenseuerCore\ObenseuerCore.dll` (BepInEx 6) or `ObenseuerCore.BepInEx5.dll` (BepInEx 5). The 0.9.0-beta zip has only the BepInEx 6 file.
+- [Obenseuer Modding Framework 0.11.0 or later](https://github.com/NomadsReach/Obenseuer-Modding-Framework#install). Extract the framework zip into the game folder. The build needs `BepInEx\plugins\ObenseuerCore\ObenseuerCore.dll`, which the zip has for both loaders. The framework loads this mod, so an older framework ignores it.
 
 ## Quick start
 
 1. Copy this `Starter` folder anywhere, for example `C:\Mods\MyMod`.
-2. Rename the folder and `MyFirstMod.csproj` to your mod's name. Give your mod its own GUID in `Plugin.cs`.
+2. Rename the folder and `MyFirstMod.csproj` to your mod's name. Give your mod its own id in `Plugin.cs`.
 3. Close the game, then run `dotnet build -c Release -p:DeployToGame=true` in the folder.
-4. The build reads the loader from the game's `BepInEx\core` folder. If it has `BepInEx.Core.dll`, the build is for BepInEx 6 and writes `<name>.dll`. If it has `BepInEx.dll`, the build is for BepInEx 5 and also writes `<name>.dll`, to `bin\Release\net472\`. If it has both, BepInEx 6 is used. If it has neither, the build stops with an error. With `-p:DeployToGame=true` and a `BepInEx\plugins` folder in the game, the build also copies the file to `<game>\BepInEx\plugins\<name>\`, as `<name>.dll` for BepInEx 6 or `<name>.BepInEx5.dll` for BepInEx 5. Start the game and load a save: a hint appears.
-5. The log is `<game>\BepInEx\logs\<your GUID>.log`, so `example.myfirstmod.log` until you change the GUID.
-
-## Choose the loader or the BepInEx folder
-
-To change what the build detects, pass properties on the command line:
-
-- `-p:Loader=BepInEx5` or `-p:Loader=BepInEx6` sets the loader.
-- `-p:BepInExCore=<folder>` reads the loader from another BepInEx `core` folder.
-
-The framework DLL is still read from `<game>\BepInEx\plugins\ObenseuerCore\`.
+4. The build writes `bin\Release\net472\<name>.dll`. With `-p:DeployToGame=true` and a `BepInEx\plugins` folder in the game, it also copies the file to `<game>\BepInEx\plugins\<name>\<name>.dll`. Start the game and load a save: a hint appears.
+5. The log is `<game>\BepInEx\logs\<your id>.log`, so `example.myfirstmod.log` until you change the id.
 
 ## Plugin.cs
 
-`Plugin.cs` sets the framework dependency: `"0.10.0"` on BepInEx 5 and `">=0.10.0"` on BepInEx 6. BepInEx 5 cannot parse a version range, so it takes a plain version as the minimum.
+`Plugin.cs` derives from `FrameworkMod`, and has no BepInEx reference. The framework finds the class through `ModInfo` (id, name and version) and calls `OnLoad` once. `ModDependency` names a framework mod or a BepInEx plugin that must load first, with the lowest version to accept. The same DLL works on both loaders, so there is nothing to choose.
+
+If the mod needs a BepInEx API, use a BepInEx plugin instead. The packaging guide shows that form.
 
 ## Game folder
 

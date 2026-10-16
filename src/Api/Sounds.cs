@@ -109,6 +109,22 @@ namespace ObenseuerCore
             return Guard<AudioClip>("LoadWav", () => File.Exists(path) && new FileInfo(path).Length <= MaxWavBytes ? SoundsWav.Parse(File.ReadAllBytes(path), Path.GetFileNameWithoutExtension(path)) : null, null);
         }
 
+        public static AudioClip FromPcm(string name, float[] samples, int channels, int rate)
+        {
+            RequireText(name, "name");
+            RequirePcm(samples, channels, rate);
+            if (!WithinBudget("FromPcm", samples.Length, 4)) return null;
+            return Guard<AudioClip>("FromPcm", () => Build(name, Sanitize(samples), channels, rate), null);
+        }
+
+        public static AudioClip FromPcm16(string name, short[] samples, int channels, int rate)
+        {
+            RequireText(name, "name");
+            RequirePcm(samples, channels, rate);
+            if (!WithinBudget("FromPcm16", samples.Length, 2)) return null;
+            return Guard<AudioClip>("FromPcm16", () => Build(name, Widen(samples), channels, rate), null);
+        }
+
         public static bool SetSoundscape(string id)
         {
             RequireText(id, "id");
@@ -221,6 +237,54 @@ namespace ObenseuerCore
         private static void RequireText(string value, string name)
         {
             if (string.IsNullOrEmpty(value)) throw new ArgumentException(name + " must be non-empty", name);
+        }
+
+        private static void RequirePcm(Array samples, int channels, int rate)
+        {
+            if (samples == null) throw new ArgumentNullException("samples");
+            if (channels < 1 || channels > 8) throw new ArgumentException("channels must be from 1 to 8", "channels");
+            if (rate < 8000 || rate > 192000) throw new ArgumentException("rate must be from 8000 to 192000", "rate");
+            if (samples.Length == 0 || samples.Length % channels != 0) throw new ArgumentException("samples must hold whole frames of channels, and must not be empty", "samples");
+        }
+
+        private static AudioClip Build(string name, float[] samples, int channels, int rate)
+        {
+            AudioClip clip = AudioClip.Create(name, samples.Length / channels, channels, rate, false);
+            try
+            {
+                clip.SetData(samples, 0);
+            }
+            catch (Exception)
+            {
+                UnityEngine.Object.Destroy(clip);
+                throw;
+            }
+            return clip;
+        }
+
+        private static bool WithinBudget(string member, int samples, int width)
+        {
+            if ((long)samples * width <= MaxWavBytes) return true;
+            ApiLog.Once(Owner, member + " samples", "samples must be at most " + MaxWavBytes / width + " values, the 16 MiB budget LoadWav uses");
+            return false;
+        }
+
+        private static float[] Widen(short[] samples)
+        {
+            float[] result = new float[samples.Length];
+            for (int i = 0; i < samples.Length; i++) result[i] = samples[i] / 32768f;
+            return result;
+        }
+
+        private static float[] Sanitize(float[] samples)
+        {
+            float[] result = new float[samples.Length];
+            for (int i = 0; i < samples.Length; i++)
+            {
+                float value = samples[i];
+                result[i] = float.IsNaN(value) || float.IsInfinity(value) ? 0f : Mathf.Clamp(value, -1f, 1f);
+            }
+            return result;
         }
 
         private static T Guard<T>(string member, Func<T> action, T fallback)

@@ -107,7 +107,7 @@ namespace ObenseuerCore
             Validate(values);
             try
             {
-                if (SaveGate.Busy || !IsAvailable) return false;
+                if (!IsAvailable) return false;
                 Remove(modId);
                 SkyOverride copy = values.Copy();
                 if (copy.CloudDensity.HasValue) copy.CloudDensity = Mathf.Clamp01(copy.CloudDensity.Value);
@@ -129,7 +129,6 @@ namespace ObenseuerCore
             ModIds.Require(modId, "modId");
             try
             {
-                if (SaveGate.Busy) return false;
                 bool removed = Remove(modId);
                 if (removed) SkyApply.Run();
                 Sync();

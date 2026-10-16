@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <Compile Include="..\..\src\Loader.cs" Link="Core\Loader.cs" />
+    <Compile Include="..\FrameworkModsStub.cs" Link="Core\FrameworkModsStub.cs" />
     <Compile Include="..\..\src\LoaderNamespaces.cs" Link="Core\LoaderNamespaces.cs" />
     <Compile Include="..\..\src\Api\ModIds.cs" Link="Core\ModIds.cs" />
     <Compile Include="..\..\src\Api\ModNpcsSaved.cs" Link="Core\ModNpcsSaved.cs" />
@@ -16,6 +17,19 @@
     <Compile Include="..\..\src\Api\NpcRoutineTable.cs" Link="Core\NpcRoutineTable.cs" />
     <Compile Include="..\..\src\Api\NpcRoutineSelfTest.cs" Link="Core\NpcRoutineSelfTest.cs" />
     <Compile Include="..\..\src\Api\NpcWalkMath.cs" Link="Core\NpcWalkMath.cs" />
+    <Compile Include="..\..\src\SaveJson.cs" Link="Core\SaveJson.cs" />
+    <Compile Include="..\..\src\Api\SceneLookLivePlan.cs" Link="Core\SceneLookLivePlan.cs" />
+    <Compile Include="..\..\src\Api\SceneLookLiveSelfTest.cs" Link="Core\SceneLookLiveSelfTest.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(ManagedDir)/UnityEngine.CoreModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.JSONSerializeModule">
+      <HintPath>$(ManagedDir)/UnityEngine.JSONSerializeModule.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup Condition="'$(Loader)' == 'BepInEx6'">
@@ -37,9 +51,6 @@
     </Reference>
     <Reference Include="UnityEngine">
       <HintPath>$(ManagedDir)/UnityEngine.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.CoreModule">
-      <HintPath>$(ManagedDir)/UnityEngine.CoreModule.dll</HintPath>
     </Reference>
   </ItemGroup>
 

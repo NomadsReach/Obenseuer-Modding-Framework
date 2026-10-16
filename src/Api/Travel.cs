@@ -61,7 +61,7 @@ namespace ObenseuerCore
 
         private static bool Add(string modId, string name, Transform location)
         {
-            if (SaveGate.Busy || string.IsNullOrEmpty(name) || location == null) return false;
+            if (string.IsNullOrEmpty(name) || location == null) return false;
             try
             {
                 PlayerLevelEntrypoints points = PlayerLevelEntrypoints.instance;
@@ -93,7 +93,7 @@ namespace ObenseuerCore
 
         private static bool Remove(string modId, string name)
         {
-            if (SaveGate.Busy || string.IsNullOrEmpty(name)) return false;
+            if (string.IsNullOrEmpty(name)) return false;
             try
             {
                 PlayerLevelEntrypoints points = PlayerLevelEntrypoints.instance;

@@ -1,414 +1,128 @@
 # Changelog
 
-## 0.10.0-beta (2026-10-13)
+## 0.11.0-beta (2026-10-16)
 
 ### Added
 
-- Housing: `ApartmentInfo.Type` gives the apartment's size as the new `ApartmentType` enum (`Small`, `Medium`, `Large`, `Shop`, or `Unknown` when the game gives the apartment no type), and `ApartmentInfo.ManagerGuid` gives the GUID of the apartment's furniture manager, the id `PlayerShops.Ensure` takes, or null when there is none.
-- Player shops: `PlayerShopInfo.ManagerGuid` gives the GUID of the furniture manager a shop belongs to, so `PlayerShops.Ensure(info.ManagerGuid)` on a shop the game placed returns that shop's id, and a second call returns the same id.
-- Standing spots for doors and level changers: `DoorInfo.StandPosition` and `LevelDoorInfo.StandPosition` give the position of the scene waypoint the game's NPCs use at that door or changer, or null when no waypoint links it.
-- Player shops: `PlayerShops.TakeEarnings` takes an exact amount out of a shop's till in one currency, so a mod can pay a worker's wage from it. It returns `true` only when the till holds that much; otherwise it returns `false` and changes nothing.
-- Positions for doors, level changers and shop registers: `DoorInfo.Position` and `LevelDoorInfo.Position` give the door's world position, `LevelDoorInfo.SpawnPosition` gives where a player who arrives in the level through that changer is placed (null when there is none), and `PlayerShops.Registers(shopId)` lists the world positions of the cash registers linked to a player shop, falling back to the registers under its furniture manager.
-- Player shops: `PlayerShops.Ensure` and `Release` make a furniture manager a player shop and back, saved per save. `SetOpen`, `SetMarkup`, `SetPrice`, `ClearPrice` and `GetPrice` set and read prices by item id, through a patch on the game's price method. `AddEarnings`, `Earnings`, `Sell` (takes the exact stack from one of the shop's `Storages` after checking the expected item id, credits the till, puts the stack back if the till write fails, and raises `PlayerShops.Sold`) and `Storages` are new, and `Containers.TakeStack` takes one exact stack, keeping its owner and meta. Writes refuse while a save or load is busy. Lookups use the active scene only, so a shop in a level the game preloads is not found. `[Debug] PlayerShopProbe` logs tenement apartments and shop managers after a save loads. `ItemStackInfo.Slot` is the storage slot index from `Containers.GetItems` (-1 outside a container), so `PlayerShops.Sell` and `Containers.TakeStack` take straight from a listing.
-- Debug self-checks `[Debug] ModelSelfCheck`, `RegistrySelfCheck` and `FloorItemsSelfCheck` run the model file parser, the registry id and manifest, and the floor item load site checks at start and log the result. All three are off by default.
-- Furniture world spawning: `BlueprintDefinition.Pools` puts a mod blueprint in the game's blueprint pools (world pickups and blueprint magazines), `FurnitureRegistry.MailBlueprint` sends it by mail, and `FurnitureRegistry.AddFlatpackLoot` makes flatpacks of a mod furniture spawn from a loot category (containers, ground spawns and packages). A spawned pickup or a mailed blueprint of a removed mod is kept hidden while the framework is installed. Mod furniture is listed by the developer console's furniture commands. A placeholder placed and taken again keeps its mod id.
-- Mod NPC orders and routines: `ModNpcRoutines.WalkTo`, `Wander`, `Patrol`, `Sit`, `Sleep` and `Stop` order a mod NPC with the game's own path search, one order per NPC. `ModNpcRoutines.Set` gives a mod NPC a weekly routine (`NpcRoutine` steps per day and time, door points per scene) that spawns it in the step's scene, walks it in and out through doors and runs the step. `Remove`, `Clear`, `Current` and the `StepChanged` event manage routines. Routines last for the game session and are not saved.
-- The framework runs on BepInEx 5 (5.4.23 or later, Mono) as well as BepInEx 6 Unity.Mono. The framework and WebUi zips each hold a BepInEx 6 build and a BepInEx 5 build, and BepInEx loads the one that matches. The first line of `BepInEx\logs\ObenseuerCore.log` names the BepInEx version.
-- The packaging guide shows how a mod ships a BepInEx 5 build next to its BepInEx 6 build in one zip.
-- `PlayerState.Wait(modId, seconds, kind, WaitOptions, onDone)` runs a wait and calls `onDone` once with the in-game minutes that really passed, however the wait ended (finished, a need, a pass-out, a talk, a game wait, or a scene load). `WaitOptions.IgnoreNeeds` stops hunger, thirst, bladder, bowel, mental health and hygiene from changing during the wait; `NoPassOut` blocks the tiredness and drunk pass-outs until the wait ends.
-- `PlayerState.PickTime` shows the bed's time panel with a mod's title, range, start value and button label, and calls `onConfirm(minutes)` or `onCancel` without starting the game's sleep. A pass-out or another wait closes it with `onCancel`.
-- Debug master switch: `[Debug] Master` (Mods menu, config, or `core_debug on|off|status`) traces framework API calls, framework game hooks, events, saves and loads to `BepInEx\logs\ObenseuerCore.debug.log`, with nesting, timings, the calling mod, and a per-method rate limit. `[Debug] TraceFilter` narrows it. Off by default; when off, each hook costs one check. Experimental.
-- `WorldObjects.FindByPath` finds a GameObject by `Root/Child` path in a loaded scene, optionally including inactive objects, and tries every same-named sibling. `PathOf` gives the path of an object.
-- `Npcs.InScene` lists every NPC in the loaded scenes, including NPCs the director does not manage, with a `Present` flag that stays true while the game hides the NPC by distance or culling. `Npcs.All` is unchanged.
-- `Locks.SetLockpickable`, `Difficulty` and `SetDifficulty` read and set a lock's pick settings, saved with the game like the game's own values. `Difficulty` returns -1 when there is no lock.
-- `Dialogue.AddResponse` adds a player choice, with an optional NPC reply, Lua condition and pick callback, to a conversation the game already has, anchored on an NPC line. It is re-applied after every scene load and never written to the save. `RemoveResponse` and `RemoveAll` take it out.
-- `CustomSkills` registers mod skills (up to 64 per mod) that show as rows in the character panel's skills list, with values saved per save in the framework's file and level-ups shown with the game's banner. Banners that would overlap are queued, one per skill with its newest level and at most 5 custom ones; otherwise the game's banner runs as before.
-- `PlayerMovement.SetRunMultiplier` scales run and sprint speed per owner. `SetSpeedMultiplier` already covered run.
-- `Weapons.SetHitFactor` scales melee damage per mod by target kind (mining, chopping, other resource nodes, breakables, animals that break into items), newest wins, with `ClearHitFactors`. The `Weapons.Hit` event reports each melee hit with its base and final damage. Damage is a whole number, so small factors on low-damage tools round down.
-- `AnimalActions.SetTame` sets an animal's tame flag. The game saves the flag but never reads it back, so the framework keeps each mod's choices in its own per-save file and applies them again after a load. A choice is dropped when the game changes the animal, for example when it is hurt. Choices of a mod that is not installed are kept and not applied.
-- `ModNpcs.SpawnSaved` spawns a mod NPC that comes back after every load of its scene. Records live in the framework's per-save file, never in the game save, and are kept while the mod is not installed.
-- `Instruments.PlaySong` strums a guitar after each delay in a list, newest mod wins, with `StopSong` and `Clear`. `HoldNote` and `StopHold` play one of the guitar's hold sounds; a held note never starts on a sound already playing and lets go when the player holds the same sound. Strums are skipped while the game is paused, in dialogue, in a menu or while item use is disabled, and this now applies to `PlayNote` too.
-- `Instruments.GuitarCommented` also fires for witnesses that comment with a plain bark and have no `NPCRandomTalk`.
-- `CraftingStations.Pause` and `Resume` freeze and unfreeze a process station's batch timer for the session, as the game does when power is lost. Power coming back on ends a pause, and fuel keeps burning.
-- `WorldClock.SetDate` sets the game date. It throws `ArgumentException` for a bad year or month, or a day below 3 or past the month's end, and returns `false` during a save or load, or while the game has stopped the clock.
-- `Surveillance.IsPlayerWitnessed` tells whether a witness or camera sees the player right now, without the game's side effects.
-- `GameDifficulty.SetFactor` scales a difficulty multiplier per mod, newest wins, with `Clear`. `RenovationSpeed` carries fractions of a second, so slow factors still finish. The factors are cleared on every scene load.
-- `Doors.OpeningTimes` and `SetOpeningTimes` read and change a door's opening hours.
-- `WorldWeather.SetZone` and `ClearZones` add local weather zones per mod.
-- `Tenants.TriggerEvent` starts a tenant event for a tenant, and refuses while a save loads or saves. `Tenants.OpenRentScreen` opens the game's rent screen, and refuses while a save loads or saves, a menu, the pause screen, a dialogue, building mode or the inventory is open, or input is blocked.
-- `CardGames.SetPayoutFactor` scales card game wins per mod and game kind, newest wins, with `Clear`.
-- `ItemConsumables.Set` changes are now saved with the save and applied again when it loads, and `Clear` removes every change a mod made.
-- `ModNpcs.Spawn` places a session-only copy of an existing character with a mod id and name. The copy never writes into the save, so mods spawn it again after each load. `NpcAppearance` reads and sets NPC meshes and materials by name, with `Restore`. `NpcAppearance.ShapeKind` says whether a mod NPC has a slider or blend shape body, and `SetBlendShape` sets one blend shape weight. Experimental.
-- `WorldSky.Set`, `Clear` and `Current` override fog, ambient light, skybox exposure, sun colour and intensity, stars and clouds per mod, newest wins. `Clear` restores what the game last wrote, including fog the game toggles under water.
-- `Landmarks.Create`, `Mark`, `Remove` and `Clear` add new landmarks and map markers that survive a save. They are kept out of the game's save and stored in the framework's own per-save file, so removing the mod leaves the save clean. Only installed mods' landmarks are drawn, and icon paths must sit inside the plugins folder.
-- `QuestAuthoring` creates quests with objectives through the game's own task system, so they save with the game. Mod quests match by id only, so they cannot take over a game quest with the same title.
-- `DialogueAuthoring` adds runtime conversations to the Dialogue System database for the session.
-- `CraftingSpeed.SetSpeedFactor` scales the craft time of manufacturing and process stations per mod and station kind, newest wins, with `Clear`. The factors are cleared on every scene load. See `docs/api/craftingstations.md`.
-- `CraftingQuality.SetQualityFactor` scales the quality of crafted outputs per mod, newest wins, with `Clear`. Recipes with a fixed quality are not scaled.
-- `CraftingStations.Start` starts a manufacturing, process or growing station by id, and `Stop` stops a process station that is making a liquid, which fails the batch as the game's Abort does.
-- `MailInfo` has `IsNote`, `Body` and `Sender`, the text and the email sender of a letter that carries a note, so a mod can read received letters (`Mail.Inbox(MailKind.Letter)`) without the game's `MailController`. See `docs/api/economy.md`.
-- `WorldClock.Now` returns a `WorldTime` with the year, month, day of the month, game day counter, weekday, hour and minute in one read, and `WorldClock.IsAvailable` tells whether the game clock exists. See `docs/api/world.md`.
-- `AnimalActions.SleepPermanently` holds an animal asleep until `Clear` or a scene load. The game can still wake it, for example when it is hurt, and the hold then ends.
-- `PlantActions.SetRotting` and `SetFullGrownAge` set one plant's rot and full-grown age, both saved. Lowering the age also caps the plant's current age.
-- `NpcActions.ChangeLevel` moves an NPC that is not in the loaded scene to another level, within narrow limits; the game's schedule can move it back.
-- `NpcActions.StartDialogue` starts an existing conversation with an NPC in the loaded scene.
-- `Trains.Crashed`, and `TrainActions.Couple` and `Release`, for track trains.
-- `Casino.SetPayoutFactor` and `Contests.SetPayoutFactor` scale slot, coin pusher and rat fight wins per mod, newest wins, with `Clear`. Odds and card game payouts are not covered.
-- `PlayerInventory.EquipHeld` and `UnequipHeld` equip or unequip a held item through the game's own calls.
-- `Sounds.SetMixerVolume` sets a game mixer volume for the session, from -80 to 0 dB. Opening the options or pause menu restores the player's setting.
-- `Landmarks.Place` places an existing landmark on the loaded map and keeps it across saves.
-- `PlantActions.HarvestSpot` picks a collectible plant in a growing spot through the game's pickup.
-- `GrowingStations` lists growing stations and occupied spots, and sets station pause and rot. See `docs/api/growingstations.md`.
-- `Instruments` reads guitars, plays one strum, and raises `GuitarPlayed` and `GuitarCommented`. See `docs/api/instruments.md`.
-- `Traders.Buy` and `Traders.Sell` trade an item with a trader without the trade screen, through the game's money, stock and price path, and undo every step on failure. Liquids and certificate traders are refused. See `docs/api/traders.md`.
-- `CraftingSources` lets mods add containers that crafting stations count and consume after their own slots. Stations with no extra containers behave as before. See `docs/api/craftingsources.md`.
-- `ItemRegistry.SetHeldModel(modGuid, itemId, model)` gives an equipable item a `ModelRegistry` model as its held model, keeping the template's transforms and animation. Custom animation is not supported.
-- `[Debug] WebUiFocusDiag` in the WebUi config (default off, thread mode, needs a game restart) logs the foreground window around popup hides, hand-backs and page clicks, to find focus loss.
-- `Starter/` is a first-mod folder to copy out of the repo. It needs no `ProjectReference` or copied `lib\` files: `dotnet build` finds the game (`-p:GameDir`, `OBENSEUER_DIR`, `GameDir.user.props`, the default Steam path, then other Steam libraries), references BepInEx 5 or BepInEx 6, whichever the game has, and the framework from the game folder, and with `-p:DeployToGame=true` copies the DLL to `BepInEx\plugins\<name>\`. Its `Plugin.cs` logs one line and shows a hint on load. See `Starter/README.md`.
-- `CoreMod.For(plugin)` returns one cached handle per mod GUID, with `Id`, `Log`, `Save<T>(key, save, load)` (saves as `<Id>.<key>.json`), `Key(id, displayName, defaultKey)` and the `Prefix`, `Postfix` and `Finalizer` patch helpers. See `docs/api/core-helpers.md`.
-- `CorePatcher.Prefix`, `Postfix` and `Finalizer` patch one static handler method with the target found by name, or with a `Type[]` for an overloaded target. They return the `bool` that `Patch` returns, and a name without `args` must match exactly one method, otherwise it returns `false` and logs once. See `docs/api/core-helpers.md`.
-- `Events.WhenReady(Action)` runs the action now if a save is loaded or a new game's first level has loaded, and no load is running. Otherwise it runs once on the next of those. Actions queued during a failed load run when that load is aborted, if a save or a new game was ready before it, and a real load started in the intro no longer runs them before that load finishes. An exception from the action is logged. See `docs/api/core-helpers.md`.
-- `SaveData.Bind<T>(modId, key)` returns a `SaveSlot<T>` whose `Value` is never null: a new `T` until a load, saved as `<modId>.<key>.json` through `SaveData.Register`. See `docs/api/savedata-game.md`.
-- `ItemRegistry.CanDefine` is `true` while `Define` is not refused for the load state, the check that makes `Define` return `-1`. See `docs/api/registry.md`.
-- `Cash.Oc` (int, exact for any OC balance) and `Cash.Rm` (float) are read-only balances, the same values as `Wallet.Balance` and `Cash.Balance(MoneyCurrency.RM)`. See `docs/api/economy.md`.
-- `[Debug] CoreModSelfCheck` runs the `CoreMod` handle cache, patch name lookup and `SaveSlot` null-value self-check at start and logs the result.
-- `Building.Find(guid)` returns a placed piece by its GUID, or `null`. `Building.Move(guid or item, position, rotation)` moves a placed piece in place so the next save keeps it, and returns `false` for a piece that sits on or is attached to another piece. `Building.Applying` is `true` while the framework's `Place`, `Remove` or `Move` runs. There is no `Moved` event, because the game has no hookable player-move completion. See `docs/api/housing.md`.
-- `Containers.Opened` and `Containers.Closed` (`Action<ContainerInfo>`) fire once per open and once per close of a game container, including the menu close and a scene change. `Containers.FindByGuid(guid)` returns the container with that save GUID from the game's load registry or, failing that, from a scan of loaded containers, or `null`, and `Containers.GuidOf(container)` returns its GUID. See `docs/api/inventory.md`.
-- `MainMenuButtons.Add(string id, string label, Action onClick)` adds a button to the main menu row under the grid, after MODS, and returns `false` for an empty argument or a repeated id. `MainMenuButtons.SetControlsEnabled(bool)` turns the menu's own controls off (`false`) and on (`true`), counted so each `false` needs one `true`, and `MainMenuButtons.IsOpen` tells whether its buttons exist. MODS now uses the same API as id `Mods`. Buttons other mods place in that row (`Mod:` names) keep their grid columns. See `docs/api/mainmenu.md`.
-- `SaveData.Capture(UnityEngine.Object)` returns a savable object's save entry (`{"GUID":..,"Data":..}`) as the game writes it, from the object's own `OnSavingGame`, or `null`. `SaveData.Apply(target, json)` loads an entry through the object's `OnLoadingGame` and returns `false` on a mismatch or failure. `SaveData.CaptureByGuid` and `SaveData.ApplyByGuid` resolve through the game's GUID registry. `SaveData.SelfCheck()` round-trips the player's Inventory in game, and `[Debug] SaveDataSelfCheck` (default false) registers the `core_savedata_check` console command to run it. See `docs/api/savedata-game.md`.
-- `Lobby.Owner` (the lobby owner's SteamID64, 0 when not in a lobby or Steam is not ready) and `Lobby.IsHost` (in a lobby and the owner is me). See `docs/api/net.md`.
-- `Building.Remove(FurnitureItem item)` removes a placed piece by its item's `Object`, so a piece with no GUID yet can be removed. `FurnitureItem.Object` is the placed root object. See `docs/api/housing.md`.
-- `Building.Place(managerGuid, furnitureId, position, rotation, childRotation, skin, altPrefab)`, and an overload with a trailing `requireKnown` flag, places a furniture piece in an area the way build mode does and returns the new `FurnitureItem`, or `null` when refused. With `requireKnown` true it also returns `null` for a furniture id that `Building.IsKnownFurniture` does not know. `FurnitureItem.ParentObject` and `FurnitureItem.AttachedObject` are the GameObjects of the piece it sits on and the piece it is attached to, so pieces can be linked before the next save. `Building.Remove(guid)` takes a placed piece out without giving it to the player; it refuses a piece with other furniture on or attached to it. Both raise their event with `FurnitureItem.FromApi` set, so a sync mod can skip its own writes. See `docs/api/housing.md`.
-- `Building.Managers(sceneName)` lists the loaded furniture managers in that scene, or all loaded managers for a null or empty name, as `FurnitureManagerInfo` (`Guid`, `SceneName`). See `docs/api/housing.md`.
-- `FurnitureItem` gains `Rotation` (root local rotation under the manager, as the game saves it), `ChildRotation`, `Skin`, `AltPrefab` and `ManagerGuid`. See `docs/api/housing.md`.
-- Missing item placeholders: a save's stack of an item from a mod that is not installed now shows `Missing item` and keeps its ID, instead of turning into coin. Reinstalling the mod brings the item back. See `docs/api/registry.md`.
-- `ItemRegistry.MissingItems()`, `ItemRegistry.RemoveMissingItems(string modId)` and `ItemRegistry.RemoveAllMissingItems()`: list the placeholder stacks, and empty them (one mod, or every mod) along with the carried manifest entries. `RemoveMissingItems` refuses a null or empty mod id, so it cannot clear every mod by accident. The save warning names this call. Refused while a save is loading or saving. See `docs/api/registry.md`.
-- `Net.Dropped` (a `long` count of packets dropped because a sender's receive queue was full). The per-sender receive queue holds 1024 packets, up from 64, and a drop is logged at most once a minute per sender. See `docs/api/net.md`.
-- `Lobby.MemberName(ulong member)` returns a lobby member's name: the `name` member data it sets on join, else `Steam.Name`, else `""`. `Steam.OverlayEnabled` is `SteamUtils.IsOverlayEnabled()`, false when Steam is not ready. See `docs/api/net.md`.
-- `ModelHandle.CreateMesh()` and `ModelHandle.CreateMaterials(Material)`: a plain `Mesh` and materials from a model loaded with `ModelRegistry.LoadObj`, for objects that are not items. The caller destroys them. See `docs/api/registry.md`.
-- `Lobby.OwnerChanged` (previous owner, current owner) is raised when `Lobby.Owner` changes while in a lobby, and `Lobby.IsRefused(ulong member)` is `true` for a member the host refused for a version or game build mismatch. See `docs/api/net.md`.
-- `NetBlob.Send(peer, modId, name, data)` sends a byte array to one lobby peer: gzip, base64 in 960-character chunks on the framework's `blob` channel, CRC32 of the uncompressed data, acks every 8 chunks, at most 120 packets a second per peer, resend after 2 s without progress, failure after 60 s. `NetBlob.Received` gives the blob on the receiver, `NetBlob.Finished` reports the outcome on the sender, and `Progress` and `Cancel` control a transfer. Up to 16 MB uncompressed and about 5.9 MB compressed. See `docs/api/net.md`.
-- `WorldItems.IdOf(GameObject)` and `WorldItems.IdOf(Component)` give a world collectible its id: the game GUID when it has one, else `<scene>/DestructibleList<n>` for a dropped item restored from the save (the index the game saves it under), or `<scene>/path:<transform path>` for any other. `WorldItems.Find(string id)` returns its `GameObject`, and `WorldItems.Remove(string id)` takes it out the way a pickup does (no item to the player, no sound, no relays). `Spawn.Item(itemId, count, position, out GameObject spawned)` also returns the first object it spawned; the three-argument overload is unchanged. See `docs/api/worlditems.md`.
-- `TaskItems.Add(id, amount)` and `TaskItems.Remove(id, amount)` add or remove a count of a task item the game already has (a mod cannot create one). `Add` skips blueprints, and both refuse while a save loads or saves. See `docs/api/hud.md`.
-- `PlayerMovement.Crouch()` and `PlayerMovement.StandUp()` crouch and stand the player through the game's own controller methods. `StandUp` returns `false` and leaves the player crouched when a ceiling blocks it, with no stand left pending. See `docs/api/player-movement.md`.
-- `Characters.Saved()` lists the main-menu save characters as `SavedCharacterInfo` (`Name`, `Folder`, `LastPlayed`), read only. The game has no rename path that moves the save folder, and delete is not exposed. See `docs/api/characters.md`.
-- `Mailboxes.TakeMail(id)` takes the player's receive mail through the game's own `Mailbox.TakeMail`. It does not raise `Mailboxes.Used`. It returns `false` for an unknown id, a send box, an empty inbox, or while a save is busy. See `docs/api/mailboxes.md`.
-- `ParcelLockers.Claim(id)` makes a parcel locker take the packages the player holds, as the locker's own `Interact` does, and returns `true` when a package left the received list. It does not check the player's distance or view. See `docs/api/parcellockers.md`.
-- `Travel.AddEntrypoint(name, location)` and `Travel.RemoveEntrypoint(name)` add and remove a named spawn point on the loaded level, so the game's `SaveController.MovePlayerToEntrypoint` finds it by name. See `docs/api/player.md`.
-- `SaveData.Folder` (the save being played, or `null` on the main menu) and `SaveData.Peek<T>(modId)` read a mod's `SaveData.Register` data from the save folder on disk, before `Events.Loaded`. See `docs/api/savedata-game.md`.
-- `Levels.ChangeTo(scene, entrypoint)` starts a level change to a scene by name through the game's `SaveController.ChangeLevel`. It returns `false` while a save or load runs, or for an unknown scene. See `docs/api/levels.md`.
-- `Building.Catalog()` lists the game's and the framework's furniture as `FurnitureCatalogEntry` (`Id`, `Name`, `Title`, `Category`, `SkinCount`, `AltCount`), and `Building.PrefabOf(furnitureId, alt)` returns the prefab for one entry and alternative, or `null`. See `docs/api/housing.md`.
-- `BaseShops.Buy(id, furnitureId, count)` buys furniture from a furniture shop with the game's own buy price, stock, and wallet charge, and returns `BaseShopBuyResult`. `BaseShops.Bought` fires for each framework buy. Train shops return `Unsupported`, and market stalls have no buy. `BaseShops.Sell(id, furnitureId, count)` sells furniture to a furniture shop at the game's sell price and returns `BaseShopSellResult`. It pays the wallet last, undoes every earlier step if one fails, and returns `Busy` while the shop screen is open or another `Sell` runs. `BaseShops.Sold` fires for each framework sell. See `docs/api/baseshops.md`.
-- `[Debug] SaveJsonSelfCheck = false` runs the save JSON round trip self-check at start and logs `save json self-check ok`, or the first failing case. `[Debug] JsonProbeCommand = false` registers the `core_jsonprobe` console command, which logs one probe value as `JsonUtility` and as `SaveData` writes it. See `docs/API.md`.
-- `[Debug] WebUiMode` (`thread`, `composition` or `windowed`, default `thread`, restart needed) picks how the WebUi shim hosts WebView2. `thread` runs WebView2 on its own thread, with each view in a popup window over the game. `composition` and `windowed` run WebView2 on the game thread. `[Debug] WebUiWindowed` is deprecated: `true` still forces `windowed`. Thread mode falls back to composition for the session, with a log line, when exclusive fullscreen is on at the first `Open` or is switched on later, when the thread does not start (composition is tried at once), and on a fatal shim error, except a per-view `lockdown`, `resource-lockdown` or `map-folder`, which closes only that view. While a thread-mode view is visible, Run In Background is forced on and restored afterwards. A frame gap over 100 ms with a view visible is logged at most every 5 s, and a shim call over 100 ms is logged. `WebUi.SuspendAll` and `ResumeAll` let a mod hide the thread-mode popups while the Steam overlay is open.  See `docs/api/webui.md`.
-- `WorldWater.Volumes` and `WorldWater.SetVolume`: list the scene's water volumes (density, drag, drown damage, swim hygiene) and set those four values.
-- `Spawners.SetRespawnTiming`, the `RespawnTime` enum, and the `SpawnerInfo` timing fields (`SpawnTime`, `UseCustomSpawnTime`, `MinRespawnTime`, `MaxRespawnTime`, `SecondsToSpawn`).
-- `Drones.Nodes` and `AirNodeInfo`: list the scene's air nodes with id, position and linked node ids.
-- `PowerDeviceInfo.StoredCharge` and `MaxCharge`, and battery `FuelLevel` and `MaxFuel` as burn time at the drain rate.
-- `Plants.Picked` (`Action<PlantPickArgs>`) fires when the player picks a ripe fruit from a grow item, and for each fruit a plant hands out in a harvest. `PlantPickArgs` gives the plant GUID, fruit item id and amount. Spoiled fruit and seeds are not reported. See `docs/api/recipes.md`.
-- `FuelTypes.All()` and `FuelTypes.Get(itemId)` list items with fuel data as `FuelTypeInfo` (burn seconds, refuse item and amount). See `docs/api/fuel.md`.
-- `WorldRadiation.DosimeterEquipped` is true while the dosimeter hand item is drawn in either hand. See `docs/api/world.md`.
-- `Recycling.Recycled` (`EventHandler` of `RecycledArgs` with `Id`, `Amount` and `Money`) fires for each bottle return at a recycling machine. See `docs/api/recycling.md`.
-- `WaitStations.All()` lists the wait stations in the loaded scene as `WaitStationInfo` (`Id`, `Type` as `WaitKind?`, `Minutes`). See `docs/api/player.md`.
-- `GameSettings.SetFov(int)` writes the saved field of view through the game's own options save, for 30 to 120. See `docs/api/settings.md`.
-- `MarketShopInfo.Price` and `MarketShopInfo.Currency` report the till total and currency of each market stall. Read only. See `docs/api/marketshops.md`.
-- `Weapons.EquippedLeft()`: the left-hand item as a `WeaponInfo`, or `null` when the hand is empty. See `docs/api/weapons.md`.
-- `PlayerMovement.LockLookAt(modId, target, instantly)`: the `Lock` hold with the first-person camera turned toward `target`, released by `Unlock`. See `docs/api/player-movement.md`.
-- `Animals.All` now fills `AnimalInfo.Hunger`, `MaxHunger`, `Age` and `FullGrownAge`. See `docs/api/npcs.md`.
-- `NpcActions.FollowPlayer(int npcId, bool run, bool untilStopped)` makes a live NPC follow the player, and returns `true` only when the follow is its current activity. Use `untilStopped = false`, because an uninterruptible follow is saved with the NPC. See `docs/api/npc-actions.md`.
-- `NpcActions.StopFollowing(int npcId)` stops a live NPC's current follow, including one a game quest or dialogue started. See `docs/api/npc-actions.md`.
-- `NpcActions.Say(int npcId, string text)` shows `text` as a bark above a live NPC through the Dialogue System. It returns `true` when the bark was requested, not when it was shown. See `docs/api/npc-actions.md`.
-- `NpcActions.Comment(int npcId, string conversationTitle)` asks a live NPC's bark starter to bark a Dialogue System conversation, and overwrites that starter's conversation. It returns `true` when the bark was requested. See `docs/api/npc-actions.md`.
-- `NpcActions.LookAtPlayer(int npcId)` and `NpcActions.LookAtPlayer(int npcId, int seconds)` turn a live NPC's head and eyes to the player, for the given time in the second form. See `docs/api/npc-actions.md`.
-- `NpcActions.LookAt(int npcId, Transform target)` turns a live NPC's head and eyes to a transform, and `NpcActions.StopLooking(int npcId)` restores its look. See `docs/api/npc-actions.md`.
-- `Pursuit.CallPolice(bool severe, bool anyDistance)`, `Law.HasStolenGoods`, `Law.StolenGoodsValue`, `Law.Clear(CrimeKind)` and `Law.Clear(int, CrimeKind)`.
-- `WorldWater.IsPlayerUnderwater` (the game's camera underwater flag), `WorldWater.PlayerSubmerged` and `WorldWater.PlayerSurfaced` (`Action`), which fire as that flag turns on and off. Neither fires during a save load, so resync from `IsPlayerUnderwater` on `Events.SceneLoaded`. See `docs/api/world.md`.
-- `WorldWater.BreathTicks`, `WorldWater.MaxBreathTicks` and `WorldWater.ResetBreath()` read and reset the game's drowning counter, which counts trigger-stay ticks, not seconds. See `docs/api/world.md`.
-- `WorldRadiation.DoseRate` (the player's head radiation rate from the game's last per-minute sample), `WorldRadiation.DosimeterOn()` and `WorldRadiation.DosimeterCharge()` read the held dosimeter. See `docs/api/world.md`.
-- `WorldWeather.SetThunder(bool active)` turns the game's thunder flag on or off until the next `SetWeather`. See `docs/api/world.md`.
-- `GameTime.IsDaytime` is the game's day rule, true from hour 6 through 20. See `docs/api/world.md`.
-- Added `Housing.StartEviction(apartmentId)` and `Housing.StartEviction(apartmentId, hours)`, `Housing.CancelEviction(apartmentId)`, `Housing.DefaultEvictionHours`, the `Housing.EvictionStarted` and `Housing.EvictionCancelled` events, and `ApartmentInfo.EvictionPending`, `EvictionHoursLeft` and `MoveInHoursLeft`. They start and cancel a tenant eviction through the game's own tenement controller, and raise the events only on a real change.
-- Added `Building.CurrentArea`, the `Building.AreaEntered` and `Building.AreaExited` events, and the `BuildAreaInfo` type. They report the building area the player is in, on enter and exit.
-- `Drones.NodePassed` (`DroneNodePassedArgs`: `NodeId`, `DroneId`, `IsRouteEnd`) is raised when a drone passes an air node, before the node's outputs run. `DroneId` is the drone whose update passed it, or `null` when none matched. See `docs/api/drones.md`.
-- `SleepEvents.PlayerInSafeArea` (`bool`) is the sleep controller's safe-area flag, the last value a safe trigger wrote, and `SleepEvents.SafetyFactor` (`float`) is the game's safety factor: 1 in a safe area, 0 when the controller or `info_game_logic` is missing. Both are read only. See `docs/api/sleep-events.md`.
-- `Contests.OpponentTolerance(ContestInfo)` returns the opposing NPC's remaining tolerance, from 0 to 1, for a running drinking or sauna contest, or -1 when there is none. `Contests.GiveUp()` ends the player's running drinking or sauna contest as a loss, the same as holding interact, and returns `false` while a save is loading or saving.
-- `PhoneLines.Ringing` (`Action<PhoneCallArgs>`) fires when the game accepts a ring on a `Phone`, with the phone's id and the ringing digits. It also fires for the rings the framework's own `PhoneLines.Ring` starts, and not while a save is busy. See `docs/api/phone-lines.md`.
-- `PhoneLines.IsRinging(phoneId)` returns `true` while a phone has an incoming ring that is not yet answered or declined. See `docs/api/phone-lines.md`.
-- `PhoneLines.RingingNumber(phoneId)` returns the digits of the ringing number, or `null` when the phone is not ringing. See `docs/api/phone-lines.md`.
-- `PhoneLines.Answer(phoneId)` picks up a ring through the game's own answer path. It returns `false` without changing the phone during a save, an open game menu, a running dialogue, an active call, or a missing ring timer or talk component. See `docs/api/phone-lines.md`.
-- `PhoneLines.Decline(phoneId)` clears a ring without answering, so the `Ring` callback runs with `false` at once. See `docs/api/phone-lines.md`.
-- `StartChoices.Selected()` lists the new-game start picks as `StartChoiceInfo` (`Id`, `Title`, `Description`, `Oc`, `Rm`), `StartChoices.Has(id)` tells whether a pick was made, and `StartChoices.Relationship` gives `Married`, `In a relationship` or `Single` from the picks (`null` before the start manager exists). `StartChoices.Chosen` (`Action<StartChoiceArgs>`) fires once per pick on the new-game start screen, never on load. See `docs/api/start-choices.md`.
-- `WorldItems.ExpiryMinutes` (read only) is the level's default item timer in minutes, or `-1` when there is no level logic object. `WorldItems.SetExpiryOverride(int minutes)` sets a session-only timer for new default-timer items (a random 0.5 to 1.5 times `minutes`; below 1 means they never expire) and returns `false` while a save loads or saves or when its hook is not installed. `WorldItems.ClearExpiryOverride()` restores the game's default and does nothing while a save loads or saves. See `docs/api/worlditems.md`.
-- `Breakables.Smashed` (`Action<SmashedArgs>`) fires when a hit takes a SpawnItemOnBreak object's health to 0 or less. `SmashedArgs` gives the object's save id (or a scene path), its position before the break, an animal flag and the spawned item id (-1 when none). A non-destroyed object fires on each later hit too, as the game re-spawns its loot. See `docs/api/breakables.md`.
-- `TrackTrainInfo.WagonType` (the wagon's `MinitrainWagonData.WagonType` name, `"None"` when the train has no wagon data) and `TrackTrainInfo.CargoGuid` (the wagon's cargo storage GUID, `null` when none or empty) are read only. See `docs/api/trains.md`.
-- `Recycling.All()` returns the scene id of every active recycling machine in the loaded scene, so mods can enumerate machines for `Owed` and `SetOwed`. See `docs/api/recycling.md`.
-- `GameSettings.ToggleSprint()` and `GameSettings.ToggleCrouch()` read the saved Toggle Sprint and Toggle Crouch options (true is toggle mode, false is hold mode). `GameDisplay` gains `Brightness` and `RunInBackground`. See `docs/api/settings.md`.
-- `PowerDevices.FuelRanOut` (`Action<FuelRanOutArgs>`, `FuelRanOutArgs.Id`) fires once when a crafting station's fuel runs out, generators and stoves alike. It does not fire during a save or load. `PowerDeviceInfo` gains `IsBurning` and `BurnTimeFactor` for crafting stations with a fuel power source. `PowerDevices.PoweredChanged` now also fires for batteries when their power flips. See `docs/api/power-devices.md`.
-- `Ladders.All()` lists the active ladders as `LadderInfo` (`Id`, `Blocked`, `PlayerOn`), `Ladders.Get(id)` returns one or `null`, `Ladders.IsPlayerClimbing` is true while the player is on any ladder, and `Ladders.SetBlocked(id, blocked)` sets the game's `blocked` field and returns `false` while a save loads or saves or while the player is on that ladder. It does not start or stop a climb and raises no event. See `docs/api/ladders.md`.
-- `UiState.PauseOpened` (`Action<bool>`, true when the pause screen is the death screen) and `UiState.PauseClosed` fire after the game's pause menu opens and closes (not on quit to menu or desktop). `PauseOpened` can repeat when the player dies with the menu already open. `UiState.PauseEventsAvailable` is `false` when the pause patches could not be installed. See `docs/api/ui-state.md`.
-- `Recipes.Unlocked` (`Action<RecipeUnlockedArgs>`, `RecipeId`, `Learned`) fires when the game's `RecipeController.AddRecipe` adds a recipe: a pickup, book, mail, readable item, task item, Lua `GiveRecipe`, `Recipes.Unlock` (`Learned` false), or the first craft at a manufacturing station (`Learned` true). Nothing fires during save or load. `Recipes.IsAvailable` tells whether the hook is installed. See `docs/api/recipes.md`.
-- `Recipes.CanCraftAt(recipeId, station)` tells whether a station from `Crafting.All` or a craft event, upgrades included, carries the recipe's type and satisfies its required and excluding conditions. `Recipes.MeetsSkill(recipeId)` is the game's soft skill check. `RecipeInfo` gains `RequiredConditions`, `ExcludingConditions`, `BaseFailChance` and `HardMinimumSkill`. See `docs/api/recipes.md`.
-- `CraftingStationInfo` gains `Id`, `Modifiers` and `RecipeTypes` (copies that include upgrades), and `HasNaturalLight` (`bool?`, set only by `Crafting.All`, null when unknown). See `docs/api/recipes.md`.
-- `Plants.Fruits(plantId)` lists a plant's fruit slots as `PlantFruitInfo` (`ItemId`, `Amount`, `Visible`, `Ready`, `Spoiled`, `GrowProgress`, `SpoilProgress`), and `PlantInfo.ReadyFruit` counts fruits ready to pick. See `docs/api/recipes.md`.
-- `Banking.ExchangeQuote(bankId, amount, toRm)` returns the game's exchange value for an amount (-1 when refused), `Banking.ExchangeRate(bankId, toRm)` is the same for one unit, and `Banking.Exchange(bankId, amount, toRm)` exchanges OC to RM (`toRm`) or RM to OC through the game's own `Bank.Exchange`, only while the bank panel is open on that bank and the bank mode allows exchange. It refuses while a save loads or saves, for an empty wallet or source supply, and when the credit would be zero or would not fit. See `docs/api/economy.md`.
-- `Mail.Sent` (`Action<MailSentArgs>`) fires when the game sends a mail to the world side (mailbox drops and scene mail senders), with `Name`, `ReceiverNpcId`, `ItemId` and `Count`. A delayed mail fires when its timer ends. See `docs/api/economy.md`.
-- `LegalServices` is the facade for the game's legal services: `Actions()` lists the menu with price now, `CanTrigger`, queue state and remaining seconds, `Queue(name)` queues an action through the game's `QueueAction` (refused while a save runs, for an unknown, queued or not-triggerable action, or when a paid action has no invoice item), `HasDebt` and `GetDebt` read the debt left by an unpaid legal invoice, and the `Queued` and `Completed` events fire when an action is queued and when it runs (raised on the next frame). See `docs/api/economy.md`.
-- `Casino.Scratched` event with `ScratchcardArgs` (Prize, PrizeInRm, PrizeOc, Cost, Won, CardItemId, CardTitle, ReceiptItemId): fires for every `Scratchcard.Use`.
-- `Casino.Doubled` event with `CasinoDoubledArgs` (Machine, Before, After, Won): fires when a slot double is resolved.
-- `Hud.ShowTooltip(string title, string details)` shows the game's tooltip box with a heading and body, and `Hud.HideTooltip()` hides it. Both return `false` when the game's tooltip is not in the scene, and an empty title or a null `details` throws `ArgumentException`. A game hover replaces the mod text. See `docs/api/hud.md`.
-- `TaskItems.Changed` (`Action<TaskItemChangedArgs>`) is raised once for each task-item record whose count changes or that is added or removed, from the framework's `Add` and `Remove` and from the game's own callers; it is not raised while a save loads. `TaskItemChangedArgs` carries `Id`, `Name`, `Type`, `OldAmount`, `NewAmount` and `Held`. `TaskItems.Has(id)` tells whether a record with that id is held, even at count 0. `TaskItemCount` gains `Type` and `Details`. `TaskItems.Remove` now returns `true` when the record was removed or lost count, including a record at count 0 that the game removes. See `docs/api/hud.md`.
-- `PlayerState.GodMode` and `PlayerState.SetGodMode(bool)`, and `PlayerState.NeedsFrozen` and `PlayerState.SetNeedsFrozen(bool)`, read and write the game's `Godmode` and `StatsProgressDisabled` flags. The setters return `false` with no player and while a save loads or saves. Both flags are saved by the game, so a mod must clear them itself. See `docs/api/player.md`.
-- `WaitStationInfo` gains `IgnoresNeeds`, `CanWait` and `SatisfiesHunger`, `SatisfiesThirst`, `SatisfiesBladder`, `SatisfiesBowel`, `SatisfiesTiredness`, `SatisfiesHygiene`. `WaitStations.CanUse(id)` and `WaitStations.Use(id)` start a station through its own `Interact`. `WaitStations.Finished(WaitStationDoneArgs)` fires when a station's wait ends, with the game seconds waited. See `docs/api/player.md`.
-- `Survival.InterceptDamage(modId, Action<DamageArgs>)` lets a mod scale (`Amount`) or cancel (`Cancel`) the player's damage before the game applies it. `Survival.Breakdown(BreakdownArgs)` lets a mod cancel each action of a mental health breakdown (`BreakdownKind`: Suicide, SelfHarm, Mushrooms, Alcohol). `Survival.RemoveAll(modId)` also removes that mod's damage handlers. See `docs/api/player.md`.
-- `Hud.HideGameUi(owner)` and `Hud.ShowGameUi(owner)` hide and show the game's HUD, counted per owner. See `docs/api/hud.md`.
-- `PlayerMovement.LockLook(modId)` and `UnlockLook(modId)` stop the player's mouse look and leave movement free, counted per mod id. See `docs/api/player-movement.md`.
-- `CameraView.SetFirstPersonBody(owner)` and `ClearFirstPersonBody(owner)` keep the player's body visible in first person, for selfies. See `docs/api/player.md`.
-- `ScreenFx.SetFovOverride(owner, fov)` and `ClearFovOverride(owner)` keep one FOV override per mod, so two mods do not overwrite each other. See `docs/api/screen-fx.md`.
-- `ModKeybind.Up()` returns `true` on the frame the bound key is released, with its modifiers held. See `docs/api/settings.md`.
-- `[Debug] KeyChordSelfCheck` runs the keybind chord self-check at start and logs the result.
-- `ItemDefinition.WieldTemplateId` (optional, -1 for none) gives a mod item another equipable's held model, by copying that item's `wieldPrefab` and `wieldPrefabPath`. See `docs/api/registry.md`.
-- Owner overloads keep one claim per mod: `PlayerState.SetGodMode(owner, on)` and `SetNeedsFrozen(owner, on)`, `PlayerMovement.SetSpeedMultiplier(owner, m)`, `SetWalkMultiplier(owner, m)`, `SetJumpMultiplier(owner, m)` and `ClearMultipliers(owner)`, `ScreenFx.FadeToBlack(owner, speed)` and `FadeIn(owner, speed)`, `Hud.HideCrosshair(owner)` and `ShowCrosshair(owner)`, `CameraView.SetThirdPerson(owner, distance)` and `SetFirstPerson(owner)`, and `GameSettings.SetFov(owner, fov)` and `ClearFov(owner)`. Owner claims clear on a Single scene load. The no-owner movement multipliers are kept. God mode and needs frozen claims also follow the player's console `god` and `StatsProgressDisabled` toggles made during a claim. See `docs/guides/multiple-mods.md`.
-- `WorldItems.SetExpiryOverride(owner, minutes)` and `ClearExpiryOverride(owner)`: the newest owner wins, and a clear falls back to the owner set before it. Overrides clear on a save load and a Single scene load.
-- `Travel.AddEntrypoint(modId, name, location)` and `RemoveEntrypoint(modId, name)`: one mod cannot remove another mod's entrypoint.
-- `Lobby.Leave(gameTag)` leaves only when the current lobby uses that game tag, and a lobby clash logs a warning.
-- `MainMenuButtons.Add(string modId, string id, string label, Action onClick)`.
-- `Survival.RemoveCrossed(modId, callback)`, `Survival.RemoveDamage(modId, handler)` and `Survival.Consumables.Remove(modId, handler)`.
-- `StackActions` gives, drops and pours item stacks with a quality, owner or liquid. See `docs/api/stackactions.md`.
-- `ItemConsumables.Get` and `Set` read and set an item's consumable numbers for the session. See `docs/api/itemconsumables.md`.
-- `PlantActions` harvests, resets, sets the age, pauses and plants ordinary plants by id. See `docs/api/plantactions.md`.
-- `TimeControl.SetTimeScale(modId, scale)` and `ClearTimeScale(modId)` set the clock speed per mod, newest wins. Also `In`, `Cancel`, `MinutePassed`, `SecondsPassed`. See `docs/api/timecontrol.md`.
-- `TrainActions.SetEngine`, `SetTargetSpeed`, `Brake` drive a track train by id. See `docs/api/trainactions.md`.
-- `SceneState` lists and sets branches, counters, states, sequences and timers. See `docs/api/scenestate.md`.
-- `MailSchedules.Senders`, `SendNow`, `SendRandom` list and send random mail senders. See `docs/api/mailschedules.md`.
-- `NpcMovement` holds, moves, patrols and stands live NPCs per mod, released by `Clear` and scene loads. See `docs/api/npc-movement.md`.
-- `AnimalActions` sits, sleeps, hunts and runs live animals per mod. See `docs/api/animal-actions.md`.
-- `LawActions` pays fines, bribes and confiscates on the crime record. See `docs/api/law-actions.md`.
-- `Robbers` reads robbers and adds aggro, rob, negotiate, aloof and `Robbed`. See `docs/api/robbers.md`.
-- `Traders`: trader money (`SetMoney`, `Restock`), per-mod price factors (`SetPriceFactors`) and `Get`.
-- `Tenants`: `Rent` a tenant into an apartment, tenement income, upgrade and clean levels.
-- `ComputerDesk.SetWallpaper`.
-- `FurnitureRegistry.DefineBlueprint`, `GiveBlueprint` and `IsBlueprintKnown` add a crafting blueprint for a mod furniture. `BlueprintDefinition` sets its inputs, time and skill. `GiveFlatpack` gives the furniture packed as the game's Furniture Flatpack item. A blueprint of a removed mod stays hidden in the save.
-- `ItemGivers.All` lists the item givers. `SetEmpty(id, empty)` empties a giver, or gives an empty one a stock of 1 when `empty` is `false`. `Respawn(id)` refills a giver with the game's own random stock. `ItemGivers.Gave` (`Action<ItemGiverArgs>`) is raised when a giver hands out an item. See `docs/api/itemgivers.md`.
-- `Tanks.All`, `Get`, `Set` (liquid item and amount), `Empty` and `SetLocked` read and change a tank. The writers refuse the main water source. `Tanks.Changed` (`Action<TankChangedArgs>`) is raised after `Set`, `Empty` or `SetLocked` changes a tank. See `docs/api/tanks.md`.
-- `Surfaces.All`, `Get`, `SetWallpaper` (item and skin index) and `Remove` read and change a surface's wallpaper. `Surfaces.Changed` (`Action<SurfaceArgs>`) is raised when the stored wallpaper changes, from the API or the game. See `docs/api/surfaces.md`.
-- `BlastSites.All` and `Get` read the blast sites. `BlastSites.Detonated` (`Action<string>`) is raised when a cone is detonated. See `docs/api/blastsites.md`.
-- `SceneLogic.Relays` lists the scene relays. `Fire` fires a relay, and `SetEnabled` enables or disables one, both by id. `SceneLogic.Fired` (`Action<RelayArgs>`) is raised for each fire that passes the relay's own checks, including the game's own. See `docs/api/scenelogic.md`.
-- `Spawners.All`, `Get`, `SetRespawn` (on or off, with a chance) and `TriggerNow` (spawns now) read and set spawners. `Spawners.Spawned` (`Action<SpawnerArgs>`) is raised when a spawner spawns. See `docs/api/spawners.md`.
-- `Levels.All`, `Get`, `SetLocked` and `Use` read level changers, lock one, and use one by id. `Levels.Changing` (`Action<LevelChangeArgs>`) is raised for each level change. See `docs/api/levels.md`.
-- `Landmarks.All`, `Has` and `Unlock` read landmarks and unlock one. `Landmarks.Added` (`Action<LandmarkArgs>`) is raised when a landmark is added. See `docs/api/landmarks.md`.
-- `PhoneLines.All`, `Ring`, `StartCall` and `IsBusy` list phones, ring one, start a call and report whether a phone is busy. `PhoneLines.CallStarted` and `PhoneLines.CallEnded` (`Action<PhoneCallArgs>`) are raised when a call starts and when it ends. See `docs/api/phone-lines.md`.
-- `Locks.KeypadCode(id)` returns a copy of a keypad's code, or `null` when no active keypad has that id. `Locks.SetKeypadCode(id, code)` sets the code. It returns `false` for a null or empty code, a code longer than 4 values, a value outside 0 to 32, during a save or load, or when no active keypad has that id. See `docs/api/interaction.md`.
-- `Weapons.FlashlightOn()` tells whether a held flashlight's beam is lit, `FlashlightCharge()` gives its battery charge from 0 to 1, and `SetFlashlightOn(bool)` switches the beam. They check the primary hand, then the left. `SetFlashlightOn` returns `false` when no flashlight is held or the game refuses the switch. See `docs/api/weapons.md`.
-- `ParcelLockers.TakeParcel(id, index)` takes the parcel out of one locker into the player's mail and returns `true` when that locker is empty afterwards. See `docs/api/parcellockers.md`.
-- `Drones.SetTarget(id, nodeId)` sets a drone's target air node without starting it, and `Drones.SetMaxSpeed(id, maxSpeed)` sets its top speed. Both return `false` when refused. See `docs/api/drones.md`.
-
-### Changed
-
-- Traders: `Sell` is all or nothing, like `Buy`. It takes `count` units from the stacks the trader accepts, one stack at a time, and skips the stacks it does not accept, which stay with the player. It is refused, and changes nothing, when the accepted units are fewer than `count` (`NotAccepted` or `NotEnoughItems`).
-- `WorldClock.SetTimeOfDay` also refuses a time in the current minute that is before the current second, such as 10:30 at 10:30:45. Before, the clock stepped back and the game read it as a midnight wrap, so every timer advanced by a day.
-- Traders: a trade cannot start inside another trade or from a `Shops.PriceQuery` handler (`TradeBusy`). While a trade runs, `Cash` writes, banking writes and mail sends, `PlayerInventory.Give` and `Take`, and `Traders.SetMoney` and `Restock` are refused. A trade's `Cash.MoneyChanged` is held until the trade commits, as `Shops.Bought` and `Shops.Sold` are, and a rolled-back trade raises none.
-- Traders: a rolled-back trade takes back only the money the trade moved, instead of resetting the player's and the trader's balances to their values from before the trade.
-- Traders: a bought unit keeps the shelf unit's owner and item data, such as its skin, instead of a default copy of the item. Its cold state is not kept.
-- Starter: the build no longer copies the DLL into the game folder by default. Add `-p:DeployToGame=true` to copy it into `BepInEx\plugins\<name>\`, as before. See `Starter/README.md`.
-- `WorldClock.SetTimeOfDay` returns `false` for a time earlier than the game's current time, because the game does not move the day back for it. Use a later time, or wait for the next day.
-- `CustomSkills.Register` throws `ArgumentException` for a `maxValue` above 1,000,000, because the character row's XP text would overflow an int above about 2.1 million.
-- `MailSchedules.SendRandom` throws `ArgumentException` for a `max` above 100, since each mail is a separate send on the main thread.
-- The framework's save-file classes (`BankLedgerData`, `FurnitureManifest`, `LandmarkSaveFile`, `SavedNpcFile`, `RegistryManifest`, `ShopStockSave`, `WorldObjectDataFile` and their entry types) are no longer public. Mods never used them. The save keys are unchanged, except that a mod NPC look no longer writes its unused `Male` and `Advanced` keys; older saves with them still load. `BankLedgerEntry` stays public. See `docs/API.md`.
-- `WorldWeather.Set` now throws `ArgumentException` for a negative index or a negative, NaN or infinite transition even when no weather system is ready. An index past the loaded weather list still throws once one is ready. Refusals still return `false`. See `docs/api/world.md`.
-- `BankLedger.IsAvailable`, `FirstDay`, `Entries` and `Added` now need only the accounts hooks, not all five groups. A missing interest, debt, scam or legal hook no longer turns the ledger off; its changes are recorded as `Other` entries, and each accounts or debt call first records any unrecorded balance change as `Other`, so no call's own kind absorbs it. See `docs/api/economy.md`.
-- Traders: a sale no longer commits a theft crime when it takes an owned unit, and a sale of several stacks raises `Shops.Sold` once per stack.
-- WebUi, thread mode: an Escape press while the game has the keyboard now goes only to the visible modal view that was opened last, instead of to every visible view. See `docs/api/webui.md` (Escape).
-- WebUi: a view whose first page cannot start loading (`obx.error` `navigate`) is now closed in composition and windowed modes as well, as thread mode already did. In thread mode a shim call that fails before the view's web core is ready, or for a view the shim no longer has, is no longer reported as an `obx.error`, and a failed popup is reported once (`popup`), not twice. See `docs/api/webui.md`.
-- `Lobby` also checks the game version (`Application.version`, lobby and member tag `gv`) and the Steam build id (`gb`, skipped when either side cannot read it). A joiner on another game version or build is refused with `The host runs game version <hostVersion>, you run <gameVersion>.` or `The host runs game build <hostBuild>, you run <steamBuild>.`.
-- `FurnitureItem.Id` now reads `Furniture.Id`, so a vanilla piece reports its addressable path instead of null. Mod furniture is unchanged. See `docs/api/housing.md`.
-- `Building.FurniturePlaced` now fires for build-mode placements (`BuildingSystem.Place`), which the old hook on `FurnitureManager.PlacedFurniture` missed. It still fires once for scripted spawns, and not on a save load. A build-mode piece placed from an item stack raises `FurniturePlaced` with a null `Id` when its item has a `CollectibleItem`. See `docs/api/housing.md`.
-- `Steam.Name` returns `""` for a name Steam reports as empty or `[unknown]` and asks Steam for it (`RequestUserInformation`), so a late name loads on a later call. `Lobby` sets the `name` member data on host and join. See `docs/api/net.md`.
-- Mods that build against BepInEx 6 use a SemVer range in `BepInDependency`, for example `">=0.10.0"`. BepInEx 5 cannot parse a range, so its mods give a plain version, such as `"0.10.0"`.
-- The preloader (`ObenseuerCore.Preloader.dll`, not in the zips) builds for BepInEx 6 and, with `-p:Loader=BepInEx5`, for BepInEx 5. Copy it to `BepInEx\patchers\ObenseuerCore\` to use it.
-- Breaking: WebUi moved out of the framework into the optional WebUi plugin, `ObenseuerCore.WebUi.dll` (GUID `obenseuer.moddingframework.webui`, version 0.10.0, folder `BepInEx\plugins\ObenseuerCore.WebUi\`). The framework is managed C# only: its zip has no `ObxWebView.dll` and no `web\` folder. Without the module, the Mods menu uses the classic window.
-- Breaking for mods that use WebUi: depend on `obenseuer.moddingframework.webui` (`[BepInDependency("obenseuer.moddingframework.webui", ">=0.10.0")]`) and reference `ObenseuerCore.WebUi.dll`. The public API is unchanged apart from the assembly, except that the module adds one public type, the plugin class `WebUiPlugin`.
-- The `[Appearance] WebTheme` setting moved to the module's config file, `BepInEx\config\obenseuer.moddingframework.webui.cfg`. On the first start the module copies a valid value from `obenseuer.moddingframework.cfg` once, if its own file has none. The framework's file is not changed.
-- The `[Debug] WebMenuSelfCheck` setting moved to the module's config file, `BepInEx\config\obenseuer.moddingframework.webui.cfg`, and is not carried over.
-- `tools\package.cmd` writes two zips: the framework zip, and `ObenseuerModdingFramework-WebUi-<version>-beta.zip`.
-- The framework's item-ID calls (give, spawn, shop stock, containers, mail and others) still refuse an ID that is not in the catalogue. They now read the catalogue directly, because the game's lookup returns a placeholder for such an ID. See `docs/api/registry.md`.
-- WebUi: pages and frames can no longer create a `Worker`, because a dedicated worker has WebSocket, EventSource and WebTransport outside the lockdown. Mod pages that used a worker must do that work on the main thread. `WebSocketStream` is removed with the other socket APIs. See `docs/api/webui.md`.
-- WebUi: a mod id that is not lowercase letters and digits with single dots between them, is over 63 characters, or is `obx.core`, now gets an `h--` host. Its origin changes, so its web storage (`localStorage`) starts empty. Other ids keep their 0.9.0 host, for example `example.webuihello` stays `example-webuihello.obx`. See `docs/api/webui.md`.
-- Build: `tools\package.cmd` takes the zip suffix as its second argument, for example `tools\package.cmd 0.9.0 -beta`. The suffix defaults to `-beta` when the second argument is left out. The framework log line reads its version from the plugin metadata.
-- Net: packets are read for up to 2 ms a frame, and at most 4 per sender reach handlers each frame, so one lobby member cannot use the whole read budget. A packet over that budget is queued for its sender (1024 packets, newest dropped when full) and handed out first on the next frame, so reliable packets are not lost. Before, 16 packets a frame came from any senders. See `docs/api/net.md`.
-- Net: Steam persona names and presence areas have control, zero-width and bidirectional-control characters and `<` and `>` removed, and are capped at 64 characters without splitting a surrogate pair. A presence area that is empty after that shows as `?`. The lobby version text in a join error is cleaned the same way. See `docs/api/net.md`.
-- Save data: a registry manifest keeps at most 4096 unloaded items and 4096 unloaded recipes, and logs a warning for the rest.
-- Hook groups have their own patch owners, so a missing game method disables only its own events: world weather, world blackout and generator, housing tenants and rent, housing furniture, breeding breed and planting, breeding rat trap, single-state and multi-state lights, sleep event intercept and occurred, player sleep, wait and wake-up, npc died, npc relationship changed, weapon reload and melee, and the floor item load patch. `Building.IsAvailable` now follows only the furniture hooks. A facade's `IsAvailable` is still false when any of its hooks is missing, and its other event keeps firing. See `docs/api/world.md`, `docs/api/housing.md`, `docs/api/breeding.md`, `docs/api/lights.md`, `docs/api/sleep-events.md` and `docs/api/player.md`.
-- `Tweaks.Renovations` `BuildTimeMultiplier`: changing it while an order is placed can leave that order's progress wrong. The docs now say so. See `docs/API.md`.
-- Save data (`SaveData.Register` and `SaveData.Peek`) is written and read with Newtonsoft.Json, the game's copy. Lists, arrays and dictionaries are saved, including those of classes, and so are `Vector2`, `Vector3`, `Vector4`, `Quaternion` and `Color`. Floats are written with a decimal point (`1.0`), `NaN` and infinities as quoted strings, and `byte[]` as base64. A file that Newtonsoft.Json cannot read is loaded with `JsonUtility`, and the fallback is logged once per mod. See `docs/API.md`.
-- Hook groups gate their events one by one: Survival, Effects, Hazards, Breakables, Casino, Surveillance, WorldItems, Shops and BankLedger check the groups each event uses, so a missing hook stops only the events it feeds. `IsAvailable` is still false while a required group is missing. Effects (orange mushroom) and Casino (doubling) leave their optional group out of `IsAvailable`, and BankLedger's `IsAvailable` needs only its accounts group, so a missing interest, debt, scam or legal hook leaves the ledger on. Survival `Get` and `Set` need no hook. See the API pages [hazards](docs/api/hazards.md), [breakables](docs/api/breakables.md), [casino](docs/api/casino.md), [surveillance](docs/api/surveillance.md) and [world items](docs/api/worlditems.md), and the [economy page](docs/api/economy.md) for Shops and BankLedger.
-- `Survival.OnCrossed`, `InterceptDamage` and `Consumables.Intercept` ignore a repeat registration of the same handler by the same mod, and in `InterceptDamage` and `Consumables.Intercept` any `Cancel` now wins.
-- `ItemRegistry.RemoveAllMissingItems` logs a warning with the removed stacks per mod.
-- `Dialogue.Intercept`, `Law.Intercept`, `SleepEvents.Intercept` and `Survival.Breakdown` now use the same cancel rule as `Survival.InterceptDamage` and `Survival.Consumables.Intercept`: once any handler sets `Cancel`, a later handler cannot set it back to `false`. See `docs/guides/multiple-mods.md`.
-- The install docs and the Nexus page no longer say BepInEx 5 is not supported. Players install either BepInEx version.
+- `FrameworkMod` is a base class for one DLL that runs on BepInEx 5 and 6, with `OnLoad` called once. Needs 0.11.0. See `docs/api/framework-mods.md`.
+- `ModInfoAttribute` and `ModDependencyAttribute` give a mod its id, name, version and dependencies. `Loader.Has(id)` tells whether it is running.
+- `FrameworkMod.Config` (`ModConfig`) and `ModSetting<T>` save settings to `BepInEx\config\<id>.cfg`, shown in the Mods menu.
+- `Dialogue.AddBranch`, `RemoveBranch` and `RemoveAll` link your lines under a game NPC line. `Dialogue.Narrate` shows a line on the black screen. See `docs/api/dialogue-authoring.md`.
+- `ConversationLine.TextCallback` sets a line's text from a function, read each time the line shows.
+- `Weapons.SetHitFactor` has a `chanceRounding` overload, so fractional damage rounds as a chance.
+- `Effects.Strength` and `Quests.Reached` read effect strength (0 to 1) and whether an objective was reached.
+- `ScreenFx.Vignette`, `ScreenFx.Blur` and their `Clear` calls draw a screen-edge tint or blur, one per mod. See `docs/api/screen-fx.md`.
+- `CustomSkills.QueueBanner` queues any banner text. See `docs/api/customskills.md`.
+- `WaitOptions.Label` sets your own text on the wait clock. `PlayerState.PickTime` takes `stepMinutes` and `validate`.
+- `Hud.Bar`, `Hud.ClearBar` and `Hud.Notify` show a top-centre bar for up to four owners, and a notification with your own title. See `docs/api/hud.md`.
+- `Interactions.Add` takes a `verb`, and `Interactions.SetReason` shows a red reason on the use prompt. See `docs/api/interaction.md`.
+- `FurnitureRegistry.Get`, `GiveBlueprint` and `Building.UnlockBlueprint` (with `silent`) work with mod furniture and teach blueprints without a popup.
+- `FurnitureDefinition.Placement`, `Colliders` and `CategoryName` set a mod piece's surfaces, collision boxes and build group. See `docs/api/furniture.md`.
+- `ModNpcs.Spawn` and `SpawnSaved` take `bodyCharacterId`, reported by `ModNpcInfo.BodyCharacterId`. See `docs/api/modnpcs.md`.
+- `NpcControl.Take`, `Release`, `ReleaseAll`, `IsTaken` and `TakenBy` borrow a live NPC, with `NpcControlFlags` picking what it gives up. See `docs/api/npc-control.md`.
+- `NpcAnimation.Play`, `Stop`, `IsPlaying`, `StopAll`, `PlayOn` and `StopOn` blend a clip over a live NPC or any `Animator`. See `docs/api/npc-animation.md`.
+- `Sounds.FromPcm` and `Sounds.FromPcm16` build an `AudioClip` from samples held in code.
+- `ModNpcs.SpawnExtra`, `DespawnExtra`, `ClearExtras` and `ExtraObject` manage light figures with no NPC behaviour.
+- `Building.FurnitureLoaded` fires after each save load for each mod furniture piece. Make the handler idempotent.
+- `SceneLooks` reads NPC looks from installed scenes at run time, and `ModNpcs.SpawnWithLook` uses one. Experimental. See `docs/api/scenelooks.md`.
 
 ### Fixed
 
-- WebUi thread mode: a deactivation forwarded from a popup that reaches the game after the player has come back to the game is dropped, so a stale copy no longer minimizes the game in borderless fullscreen.
-- Traders: an action queued to run after a trade commits (the buy's "New item" notice, `Cash.MoneyChanged`, a shop's bought or sold event) that throws is logged and no longer turns a completed buy or sale into `Failed`; the other queued actions still run.
-- Housing: an apartment the game gives no type (`TenementApartment.type` null, usually vacant) no longer throws in `Housing.AllApartments`, which had emptied the whole list. Its `ApartmentInfo.Type` is the new `ApartmentType.Unknown`, and `Renovations.Start` refuses an upgrade for it.
-- Player shops: `PlayerShops.Ensure` reads the game's `FurnitureManager.Shop` link first, so a shop the game links to its manager is found even when the shop's own `manager` field is unset.
-- Debug: `[Debug] PlayerShopProbe` prints each apartment's type size (`none` when there is no type) instead of an empty name.
-- Player shops: a shop the game placed on a switched-off furniture manager is found by `PlayerShops.Ensure`, so a second `Ensure` returns it instead of adding a duplicate.
-- WebUi: the WebView2 browser process id is recorded when the view is attached, not on its first show, so a browser activation before the first show counts as the game's own.
-- Player shops: a shop the framework makes on a switched-off furniture manager is complete at once, so `Sell`, `Release` and a second `Ensure` find it, and a converted shop stays valid and open to all in any area after the game's `Awake` runs (a game-placed shop keeps its own flags). `PlayerShops.Sold` now counts toward the nested handler limit, so a `Sold` handler that calls `Sell` too deep is refused, as the docs say.
-- Traders: a bought item's "New item" notice is shown once when the buy commits, with the item and the total count, and no longer when the buy is rolled back.
-- WebUi thread mode: alt-tabbing from an HTML window to another application now reaches the game as a focus loss, and the window coming back to the front reports focus to the game again, as alt-tabbing from the game itself does.
-- Save loads: a failed load is ended when the next load from the menu starts, even while the menu's fade-in is up, so a second failed load no longer restores the first failed save's folder, and a save after two failed loads no longer copies the first one's files. An aborted load puts back the folder of the last load that completed. When the next load from the menu or a level change ends the failed load, the actions wait for that load to finish, or for its own failure to be detected.
-- WebUi thread mode: clicking or typing in an HTML window no longer minimizes the game in borderless fullscreen (our windows never deactivate the game, and the Mods menu uses the same thread-mode path).
-- `Breeding.All` lists breeders in the active scene only, so a preloaded copy of the next level is no longer listed.
-- A failed breeding hook no longer stops `Breeding.TrapSprung`. Each breeding group checks its own owner, and a rat trap hook's postfix logs to the trap owner. See `docs/api/breeding.md`.
-- A pickup of a blueprint whose mod furniture now builds replaces the hidden stand-in at once, with its amount, instead of after the next load.
-- A mod furniture whose build throws releases its clone and template handle instead of leaking them, and the catalogue releases the template handle it reads.
-- A saved mod furniture whose mod is installed but did not build logs that it did not build, not that the mod is missing.
-- A load that fails (an unreadable Globals file, a failed migration, or a save or scene that is not found) no longer stops mod saves until the next door or load. The framework puts back the save folder the session was in, so a save into a new slot no longer copies the failed save's mod files, a new game's ready state comes back, and a door fired while a load is still running no longer writes the previous save's mod data.
-- The new-game reset of mod save data and the new-game ready point are patched under the framework's core owner, so a failure of the world objects store no longer removes them.
-- A mod blueprint whose furniture failed to build now logs that the furniture did not build and points to the earlier build error, instead of saying the mod is not installed.
-- `Robbers.Rob` refuses unless the player holds at least the robber's minimum (1000 OC and 33 RM) in both currencies. Before, the game's robbery could add money to a player below them. `Aggro`, `Rob`, `Negotiate` and `SetAloof` now return `false` while a save loads or saves.
-- `PlayerShops.CollectEarnings` refuses through `Cash.Refused` and no longer pays out while a save loads or saves. `Banking.OpenAccount`, `DepositWithdraw`, `TakeLoan` and `RepayLoan` also refuse when a handler nests too deep, as `Cash.Give` does.
-- `LootPools.Remove` returns `false` while a save loads or saves, as `LootPools.Add` does.
-- Despawning, clearing or removing a mod NPC that sleeps in a bed or sits in a chair no longer leaves that furniture marked Occupied for the rest of the session. The NPC object is now kept inactive for half a second before it is destroyed.
-- `ModNpcs.SpawnSaved` called from `Events.Loaded` keeps the NPC's saved look instead of replacing it with an empty one.
-- A mod NPC that is despawned and spawned again with the same id no longer inherits the look and shape edits of the old copy.
-- A routine NPC no longer walks in from its door right after a save load. It appears at its step point.
-- Error logging keeps the first crash trace. Each mod's log writes at most 20 distinct error lines in each 10 seconds, then one `N error lines suppressed` line, so a flood of different errors no longer rotates the log's `.1` file away within minutes. The same text is still written once per 10 seconds, and debug mode writes every error.
-- Mod keybinds (`ModKeybind.Down`, `Up` and `Held`) and the Tweaks camera toggle key no longer allocate delegates on every call, so a per-frame key check creates no garbage.
-- Quest authoring writers (`Create`, `AddObjective`, `SetObjective`, `SetCounter`, `Finish` and `Fail`) refuse while quest authoring is off after its patch fails, so a game task with the same title can no longer merge into a mod quest.
-- `Tenants.Rent` refuses the player's own apartment (number 1), as the game's rent screen does.
-- `LawActions.CanBribe`, `TryBribe` and `ConfiscateInventory` refuse while the crime record has no crime, stolen goods counted as in the bribe price, as the docs say; a zero-crime bribe used up the one try.
-- `PlantActions.Harvest` returns `true` when the harvest gave grown items.
-- A mod furniture whose build fails is no longer rebuilt on every loot roll or lookup: the failure is kept until the next scene or save load, and the template's Addressables handle is released.
-- A mod blueprint picked up while its furniture cannot be built is added as the built blueprint when the build works at the pickup. If it still fails, the pickup is kept as a hidden entry, logged once, that becomes the blueprint on a later load once it builds.
-- `SaveData.Capture` leaves a built mod blueprint's `result` out of the entry, as the save file does, so a peer's copy of a mod blueprint no longer carries the furniture.
-- WebUi thread mode: a renderer that crashes (`process-failed`, kind 1) closes only its own view. Before, the framework fell back to composition for the whole session and closed every view. A browser-process exit still does that.
-- WebUi thread mode: showing a view brings its popup to the top of the game's windows without taking focus, while the game is in front, so the window on screen matches the view that takes Escape.
-- NetBlob: when one transfer to a peer stalls for lack of progress, the other transfers queued to that peer fail at once. Before, each waited its own 60 s in turn.
-- `Building.Move` refuses a position or rotation that is NaN or Infinity, with one log line, and moves nothing, as `Place` already did.
-- `WorldItems.SetExpiryOverride` refuses a `minutes` above 21,474,836 and keeps the current override. Larger values overflowed the game's timer, so items expired at once.
-- While a mod text field has focus, the game's dialogue status check keeps running, so the dialogue state stays in step with the conversation.
-- `Instruments` songs strum at most four notes per frame, and the rest play on the next frames. A song finds its guitar once, when it starts, not on every strum.
-- Saved tame choices load in linear time and are capped at 16,384 in total, on top of the 1,024 per mod.
-- `Hud.HideGameUi` keeps no count when it returns `false`, so a failed hide needs no matching show.
-- Replacing a mod's held model destroys the old clone at once, and clears the item's held prefab first, so the template is loaded again and the new model is built from it.
-- Scene loads: the framework's per-scene resets (weather zone overrides, mod NPC orders, NPC movement holds, landmarks, animal hunts and sleep holds, and the factor and payout resets) now run only on a `Single` scene load. The game's additive preload of the next level no longer clears them.
-- `SceneIds.Find`, the `SceneState` lists, most framework object lists (for example `Levels.All`, `Doors.All`, `Lights.All`) and `Levels.Use` skip objects outside the active scene, so a preloaded copy of the next level is no longer listed, written or used. `Npcs.InScene` still lists every loaded scene, with `SceneName`.
-- Breeding hooks have one owner per group: `obenseuer.moddingframework.breeding` (breeding), `obenseuer.moddingframework.breeding.planting` (planting) and `obenseuer.moddingframework.breeding.trap` (rat trap). A failed planting hook no longer makes `Breeding.IsAvailable` false, and a failed rat trap hook stops only `Breeding.TrapSprung`, not `Bred` or `IsAvailable`. See `docs/api/breeding.md`.
-- A save made while a load from the menu or the pause menu is running writes no `SaveData.Register` or `Bind` data, so it cannot write the previous save's mod data into the save being loaded. A level change still writes.
-- Values from `SaveData.Bind`, item consumable changes and the furniture manifest now survive a door change. Their saver checked `SaveGate.Busy`, which a door change holds while it saves, so the file kept its old contents and the next load rolled them back.
-- `ModNpcRoutines` ticks run in a new game once its first level after the intro has loaded, instead of waiting for the first door change.
-- `TimeControl` timers (`TimeControl.In`) and time scale overrides survive a door change; a load from the menu or the pause menu, a return to the main menu and the start of a new game clear them, when the new scene loads.
-- A failed save load no longer makes `SaveData.Folder` point at the failed save, so a `Register` made after it no longer loads that save's mod file.
-- Traders: `Buy` and `Sell` take the exact stack they price. A sale keeps each stack's owner and meta in the trader's stock (a stolen unit used to come back clean), and `Buy` takes only clean stock that the game prices as a new unit.
-- Traders: a trade holds its `PlayerInventory.ItemAdded`, `ItemRemoved`, `Shops.Bought` and `Shops.Sold` events until it commits, so their handlers never run in the middle of a trade, and a refused or rolled-back trade raises none of them.
-- Price queries: a changed price is floored at 1 OC for each unit (or the RM equivalent), as the game's own price is, so a factor or a `PriceQuery` handler can no longer round it to 0.
-- `Levels.ChangeTo` and `Levels.Use` (plain level changers) return true only when the level change really started. The game ignores a change silently while loading, while the player waits or sleeps, or when its save controller is inactive.
-- Session-only factor setters (casino, contests, crafting, difficulty, weather zones, traders, time control, world items, screen FOV, player movement, autofarms, computer wallpaper) no longer refuse inside `Events.SceneLoaded`, where the docs say to apply them again.
-- `Wardrobe.Equip` and `Unequip` now follow the game's owned-item rule: an owned worn item is not taken off or swapped out, and an owned item without use permission is not put on.
-- WebUi thread mode: a closed view hands focus back to the game before its popup is destroyed.
-- `AnimalActions.Clear` no longer stops an animal's hunt while another mod still hunts it.
-- `Building.PrefabOf` returns the prefab for a defined mod furniture id on first call instead of null, so a map editor mod can place mod furniture. Building it closes `FurnitureRegistry.Define`, as `Place` does.
-- WebUi views in thread mode no longer take the game window's focus when shown. Keyboard focus moves into a view only while one of its text fields is edited. A click on a view outside a text field gives the focus back to the game as soon as the page reports the click, or after 250 ms for a click inside a frame, and a text field in a second view can take the keyboard too. When the game gets its focus back while a view is visible, its cursor lock and cursor visibility are put back if they changed. See `docs/api/webui.md`.
-- `Building.UnlockBlueprint`, `Building.Place`, `Building.Remove(guid)` and `Building.Move(guid, ...)` return `false` (or `null` for `Place`) and log once for an empty or null id, instead of throwing `ArgumentException`. See `docs/api/housing.md`.
-- `Building.FurniturePlaced` for build-mode placement fires after `BuildingSystem.Place` completes, so `Rotation` and the parent links are final, and `FurnitureItem` gains `ParentGuid` and `AttachedGuid`.
-- `Building.Place` refuses a NaN or Infinity position or rotation, and when a step after the new object throws it destroys the object and removes it from the area's list before returning `null`.
-- `Building.IsKnownFurniture(furnitureId)` tells whether a furniture id is in the game's catalogue or is a registered framework piece, so a peer-driven caller can refuse an unknown id before `Place`.
-- `Building.AreaExited` fires on leaving an area after a save load, because the framework seeds its last area from the saved active area at `Loaded`.
-- A dropped stack of a missing mod's item keeps its id, and `ItemRegistry.RemoveMissingItems` no longer drops manifest entries for items it did not clear.
-- NetBlob: incoming limits. A finished transfer no longer counts toward the 16 running transfers for 60 s, one peer's partial blobs are capped at 16 MB in memory, a chunk over 960 characters fails its transfer, and a transfer times out after 60 s with no progress rather than 60 s from its start, so a blob over about 7200 chunks no longer always fails. See `docs/api/net.md`.
-- Lobby: after a host migration, when the owner changes to you, `Status` becomes `Hosting` and the connect rich presence is set, as `Host` does. See `docs/api/net.md`.
-- NetBlob: a blob queued behind an earlier blob to the same peer no longer fails after 60 s with no progress while it waits for the shared window. Its stall timer runs only while its own chunks are unacknowledged.
-- Lobby: after a host migration the new host reads the lobby's member limit from Steam, so `Host` with that limit is accepted instead of "The hosted lobby has other settings."
-- Net: packet reads no longer stop after about 18 hours of uptime. The 2 ms read budget used a float clock, which rounds 2 ms away at that time.
-- Models: a JPEG icon or texture over the side limit is refused before it is decoded, as a PNG already was. A JPEG with stray bytes before its frame header no longer passes the size check, and a file that is not a PNG or JPEG is refused. An icon or texture file over 16 MB is not read. See `docs/api/registry.md`.
-- WebUi: a page message over 16384 characters is refused by the shim, which reports `message-too-large`, and it is no longer copied into managed memory first. Before, the shim queued up to 256K characters. At most 64 messages are handled per frame.
-- Logging: `CoreLog.For` accepts a null id, and a mod id with a path separator, `..` or `:` no longer writes a log outside `BepInEx\logs\`. Such a mod id, and a Windows device name such as `CON` or `COM1` (with or without an extension) or an id ending in a dot or space, logs to `ObenseuerCore.log` with the id as a prefix. See `docs/API.md`.
-- Audio: a float WAV sample outside -1 to 1 is clamped, and a NaN sample plays as silence.
-- WebUi: a first navigation that fails is reported as `obx.error` `navigate`. Before, it was silent.
-- WebUi: a folder mapping that fails when a view attaches is reported as `obx.error` `map-folder`. Before, it was silent.
-- WebUi: when the message queue overflows, the dropped count is reported as `obx.error` `messages-dropped` and logged with the count, at most once a minute. Before, it was logged once per session, without the count. See `docs/api/webui.md`.
-- WebUi: a view whose resource filter cannot be added is closed, and the error is logged. Before, a later `Navigate` loaded the page without the filter. See `docs/api/webui.md`.
-- Computer apps: a computer whose desk was not found the first time it was used kept that result for the session, which turned off the typing guard for it. A missing desk is now looked up again.
-- Dialogue and UI input: when the game controller was not ready at the first focus of a Mods text field, the input lock was never applied, but the game's `Update` was still skipped, so dialogue checks and screenshot keys stopped. The skip now follows the lock.
-- Main menu: after a failure, the Mods button is no longer re-attached every second. The error is logged once per main menu, and the next main menu tries again.
-- Shop stock: when a scene or save loads, the mod's records keep their entries on a disabled vending machine instead of dropping them.
-- Survival: a watch callback that made `PlayerStats.DeltaSeconds` run again could clear the shared watch buffer under the outer loop, which threw and skipped the remaining watches. A nested tick now returns at once.
-- Events: `HourPassed(0)` fires once at midnight, with the new `GameTime.Day`. It used to fire twice, the first time with the previous day. See `docs/API.md`.
-- `Effects.Changed` is no longer silent after a load or a return to the main menu. The framework re-reads the drunk, mushroom, orange mushroom and wasteland effects after each load and on the main menu, and raises a change that differs from the last value it raised. See `docs/api/player.md`.
-- Logs: a handler that throws logs its first failure per event, and not a full stack trace on every call. `Survival` failures on each tick are logged once per member. Each `BepInEx\logs\<id>.log` moves to `.1` on start, and a log over 4 MB moves to `.1` too, replacing the older `.1`. It reopens after a write error. See `docs/API.md`.
-- WebView modal views and computer apps are no longer closed by an additive scene load, which the game uses to stream in a neighbouring scene when the player walks into a trigger. Only a single scene load closes them. See `docs/api/webui.md` and `docs/API.md`.
-- Surveillance: a trespassing area the player is in when a scene change destroys it now raises `TrespassLeft`, with the id seen at entry. Before, it was dropped with no event. See `docs/api/surveillance.md`.
-- Events: a level change (a save, then a load) no longer fires `HourPassed` again for the hour it lands on, and a load or new game started from the main menu fires it on its first game minute. `Saved` and `Loaded` still fire on every level change. See `docs/API.md`.
-- ScreenFx: `SetFovOverride` now lasts through an additive scene load, such as a streamed neighbouring scene. Only a single scene load clears it. The framework's single-load closes and clears run before mods' `SceneLoaded` handlers, so a view or override a mod sets there is kept. See `docs/api/screen-fx.md` and `docs/api/webui.md`.
-- A hook install that throws, such as a handler name typo, now removes the patches of every owner that install registered, and disables those owners. Before, the hooks installed before the throw stayed on while `IsAvailable` was `false`. Housing, breeding, sleep events, lights and world hooks.
-- Quests: a partial quest-hook install now makes the `Quests` reads and writers refuse, not just the events, because they gate on `Quests.IsAvailable`.
-- Quests: a failed quest hook now makes `Quests.IsAvailable` false and removes the other quest hooks. Before, the failure was only logged and `IsAvailable` stayed true.
-- `CorePatcher.DisableOwner` removes only the patches the framework made under the owner. Before, it removed every patch with the owner's Harmony id, including a mod's own `new Harmony(owner)` patches. The framework's instance now uses the id `core:<owner>`. See `docs/API.md`.
-- A save's stack of an item from a mod that is not installed no longer turns into Open Sewer Coin on load. It keeps its ID, and the load warning names the mod.  See `docs/api/registry.md`.
-- A save data file that cannot be read (for example, locked by a backup or antivirus tool) is retried. If it still cannot be read, the mod starts empty and its saves are skipped until a load reads the file, so the good file is no longer overwritten. A file that cannot be parsed is still copied to `.bad`. See `docs/API.md`, SaveData.
-- `SaveData.Register` refuses a mod id that Windows reserves as a device name (for example `CON` or `lpt1.save`), because its save file could not be written, and a mod id over 64 characters. Mod ids that differ only by letter case are one id in `SaveData`, because Windows file names do not distinguish case. Furniture and model keys are compared exactly, so `Desk` and `desk` are two entries. See `docs/API.md`, SaveData.
-- Save data is flushed to disk before it replaces the previous file, so a power loss during a save should not leave an empty file. See `docs/API.md`, SaveData.
-- A save data file larger than 64 MB is refused on load, without being read. It takes the same path as a file that cannot be read: the mod starts empty, its saves are skipped, and the file is not overwritten or moved. See `docs/API.md`, SaveData.
-- After the credits, a new game no longer uses the previous game's save folder for its first save, so the old `mods` data is not copied into it. The main menu and a new game now clear the loaded save folder, as quitting to the main menu already did, so a load that was aborted from the main menu cannot leak its folder into a new game's first save. See `docs/api/saveslots.md`.
-- `WorldObjects.SetData` no longer refuses on a character-name check that was stale after the first game. A write made in a new game is kept and saved by its first save. A write made on the main menu is dropped when a save loads or a new game starts, although `SetData` returns `true` for it. See `docs/api/worldobjects.md`.
-- A config change made less than 0.25 s before the pause menu's or the main menu's quit to desktop is now saved. That quit ends the process without running `OnApplicationQuit`, so the change was lost. See `docs/API.md`, ModMenu.
-- The warning for a save that uses an item or recipe from a mod that is not loaded is logged once per session. It used to repeat on every load and map change. See `docs/api/registry.md`, Save manifest.
-- `SaveData.Register` called after a save is loaded now runs `onLoad` at once with that save's file. Before, the mod kept its default state until the next load, and its first save wrote that default over its file. See `docs/API.md`, SaveData.
-- A load that stops before it finishes (a damaged save, a missing scene) no longer clears the WorldObjects data, and no longer blocks furniture `Give` and shop stock until a later load. The next save keeps the data. See `docs/api/worldobjects.md` and `docs/api/furniture.md`.
-- Story events that are queued but not yet raised are dropped when a load of another character starts, when the main menu opens, or when a new game starts, so they no longer fire against a save they did not come from. A level change of the same character keeps them, so an arrest before a jail scene change is still raised. See `docs/api-story.md`.
-- `WorldObjects.SetData` refuses while a save loads or saves, like `Cash`. A write made during a load was lost when the load replaced the store. See `docs/api/worldobjects.md`.
-- WebUi: `MapFolder` names use the same host label as mod ids, so `Frames` and `frames`, or `My_Mod` and `my-mod`, no longer share one host in a view, and a name over 63 characters no longer shares the host of its first 63 characters. A name that is not lowercase letters and digits with single dots between them now has an `h--` host, so the URL of that folder changes. See `docs/api/webui.md`.
-- Writes that could change game state during a save load or save now return `false` (`SaveGate.Busy`), as the other writers do: `Wallet.Give` and `Wallet.TrySpend` (a spend during a load used to report success and was then undone), `PlayerState.Damage`, `Heal`, `Sleep` and `Wait`, `Skills.Add`, `Survival.Set`, `Medical.Treat`, `Recipes.Unlock`, `Building.UnlockBlueprint`, the achievement writers, `Drones.SetActive`, the `ScreenFx` writers except the FOV ones and `FadeIn`, `Notes.Give`, `Pursuit.StopAll`, `Surveillance.SetCameraActive`, `Radios.SetEnabled`, `Saunas.SetOn`, `ResourceNodes.SetStock`, `WorldClock.SetTimeOfDay`, `WorldWeather.Set`, `Renovations.Start`, `Seats.Sit` and `Leave`, `LootPools.Add`, `Weapons.Reload`, `Autofarms.SetGrowPercentage` and `Interactions.Add`. See `docs/API.md` and `docs/api/*.md`.
-- A null or empty id in `Radios.SetEnabled`, `Renovations.Start` and `Surveillance.SetCameraActive`, and a null id in `Notes.Has`, `Notes.Give` and `Books.IsRead`, now returns `false` and logs once instead of throwing. `Wallet` and `Locks` log each failure once instead of on every call.
-- `Survival.Decay`: for the four addiction needs the effective rate is clamped to 0, so a negative offset can no longer make a need climb past 100. Other stats keep a negative total. See `docs/API.md`.
-- `Spawn.Item` refuses ids `0` and `1` (coins), like `PlayerInventory.Give`. See `docs/api/worldobjects.md`.
-- `PlayerInventory.Give` and `Take` return `false` when called from an `ItemAdded` or `ItemRemoved` handler nested deeper than 8 levels, which stops endless grants. See `docs/api/inventory.md`.
-- A nested interaction use no longer clears the outer use's target in `Interactions`. See `docs/api/interaction.md`.
-- `Tweaks.NoMinimumSkill` keeps disabled only the recipes whose craft roll always fails, so they do not take their inputs. The below-minimum penalty no longer decides this. See `docs/API.md`.
-- `Tweaks.Renovations` `InstantBuild` no longer completes scripted `TenementUpgradeStart` orders. See `docs/API.md`.
-- `Effects.Changed` is no longer raised while a save loads, and the load no longer stores the effect state, so the first change after a load is compared with the state from before it. See `docs/api/player.md`.
-- `Building.Remove` refuses a placed piece that holds items, liquid, a crafting job or fuel, that has a trash box holding items, that is a collectible item, or that needs an item to take, instead of destroying its contents. See `docs/api/housing.md`.
-- Save data: lists and arrays of classes were dropped on save by `JsonUtility` when the classes sit in a BepInEx plugin assembly. This hit mod save data and the framework's own payloads (bank ledger, shop stock, world object entries, registry manifest, furniture shops). They are saved now. Files in the old `JsonUtility` shape still load (checked with a hand-written file in the harness). Null lists, arrays and `[Serializable]` classes load as empty values, `Rect` and `Matrix4x4` keep their values, `UnityEngine.Object` fields are skipped, and a file that falls back to `JsonUtility` blocks saves for that mod until a load reads it with Newtonsoft.
-- WebUi: a lockdown handler or setting that cannot be installed, or a folder mapping that fails when a view attaches, now closes the view instead of loading the page without it. A blocked-action report is limited to 64 per view per second, so a view keeps reporting after a burst. Each theme change replaces the view's init script instead of adding one more.  See `docs/api/webui.md`.
-- WebUi: a press in a view no longer calls `MoveFocus` when the page already has focus. The old check read the game thread's focus window, which never shows WebView2's focus, so every press moved focus. Focus is now tracked from WebView2's GotFocus and LostFocus events.
-- Banking: `Banking.Exchange` refuses an amount above the wallet or the bank's supply, and refuses when the credit after the game's clamps is below 1, so it no longer spends money for zero OC or RM. Before, the check used the unclamped quote. See `docs/api/economy.md`.
-- BaseShops: `BaseShops.Buy` returns `Busy` while the furniture shop screen is open, as `Sell` does. Before, a mod purchase could leave the screen's selection on a removed entry. See `docs/api/baseshops.md`.
-- BaseShops: when the shop's stock removal fails after `Buy` took payment, the delivered piece is taken back out and both charges are refunded, and the result is `Failed`. If the piece cannot be taken back, the charges are not refunded and an error is logged. Before, the result was `Ok`. The `Sell` undo of the OC payment uses an unguarded path, so a refused write can no longer leave that OC in the wallet. See `docs/api/baseshops.md`.
-- `WorldLocation.VisitedScenes` no longer comes back empty after a load. It now also reads the save folder's level files (`<LevelName>.tnmt`, except `Globals` and `Info`), the active scene and the scenes entered this session, without duplicates. Before, it returned only the game's `SaveSceneManager.visitedScenes`, which no save holds. See `docs/api/world.md`.
-- `WorldItems.Remove`, `Travel.AddEntrypoint`, `Travel.RemoveEntrypoint` and `PlayerLook.Apply` return `false` while a save loads or saves (`SaveGate.Busy`).
-- `LegalServices.Completed` and `Mail.Sent` are not raised while a save loads (`SaveGate.Loading`), and a `Completed` queued before the load is dropped.
-- `BlastSites.Get` and `BlastSites.All` treat a null `linkedCones` as empty instead of throwing, and a throw in the `Detonate` prefix is logged once while vanilla runs.
-- `Crafting.All` no longer raycasts for sunlight per station. `CraftingStationInfo.HasNaturalLight` is computed when it is read.
-- `WorldItems.SetExpiryOverride` is cleared when a save starts loading, so a mod sets it again after the load.
-- `MainMenuButtons.SetControlsEnabled(string modId, bool enabled)` holds per mod id, and the `bool` overload keeps its shared count. A failed main menu navigation patch turns the custom navigation off with one warning.
-- `Landmarks.Find` remembers a miss until the next scene loads or a landmark is added, and `Subscriptions` retries a miss after 5 s. A text field's input lock taken before `GameController` exists applies once it does, and the Mods menu waits until then.
-- `tools\package.cmd` names the WebUi zip with the same suffix as the framework zip and defaults the suffix to `-beta`.
-- Survival, WorldItems, Surveillance, Casino and Shops hooks sit under one owner per group, so a missing hook disables only its group. Their `IsAvailable` is still false while any group is missing. BankLedger has the same owners, but its `IsAvailable` needs only the accounts group.
-- An empty id returns `false` (or `null`, or `0f` for `Relationships.GetDisposition`) and is logged once, instead of throwing, in `Relationships.Has`, `ShopStock.AddTraderStock`, `ShopStock.AddVendingEntry`, `ShopStock.Remove`, `ShopStock.Place`, `ComputerApps.Register`, `ComputerApps.Close`, `ComputerApps.OpenStandalone` and `BuildingCatalog.PrefabOf`.
-- Save data: `SaveData.Apply` refuses an entry over 4,194,304 characters, nested more than 256 levels, closing more brackets than it opens, or holding a `/` outside a string before it parses, so a peer's deeply nested or commented entry can no longer overflow the stack or hang the parser. The refusal is logged once. See `docs/api/savedata-game.md`.
-- Save data: `SaveData.Apply` sets an entry's `$type` to the target's own type, so a peer's root `$type` cannot name another type. It refuses, before anything is built, an entry with a `Type` and `Data` pair at any depth, or a `$type` below `Data` that is not text, is over 1,024 characters, names no type the game can find, or names a Unity type from another assembly, directly, as an array element, or as a generic argument of the type, of a base type, or of an `IEnumerable<T>` or `IDictionary<K,V>` it implements (for example `UnityEngine.GameObject[]`, `List<GameObject>` or a class deriving from `List<GameObject>`), or names a type with more than 64 such parts. Other nested `$type` values are kept, because the game's own saves use them. See `docs/api/savedata-game.md`.
-- Save data: `SaveData.Apply` takes a snapshot, and when the load throws or fails it runs the snapshot back through the load. That is not a true rollback: what the first load changed outside the saved fields, and `Inventory`'s second `StartInit`, are not undone, so a `false` can leave the object half-applied. `SaveData.ApplyByGuid(guid, json, allowedGuids)` applies only to the listed guids, and the two-argument overload is `[Obsolete]`. See `docs/api/savedata-game.md`.
-- Logging: a log over 4 MB moves to `<id>.log.1` (one backup, replaced by `File.Replace`) instead of being truncated in place, so an earlier crash trace is kept until the next rotation. If the move fails (for example `.1` is locked), the log keeps appending to the same file and is never truncated.
-- Logging: `CoreLog.Error(message, exception)` writes once per exception type and first stack frame in each 10 seconds, and `CoreLog.Error(message)` writes the same text at most once per 10 seconds, so a repeated error is written once per window. Each logger writes at most 100 lines a second, then one `N lines suppressed` line, written with that logger's next line or, if none comes, when the game quits.
-- Logging: `CoreLog.For` ids are case-insensitive, so `Foo` and `foo` share one file and one writer.
-- Save data: a mod file that only `JsonUtility` reads no longer blocks that mod's saves. It is copied to `<modId>.json.bad`, replacing the previous copy so at most one is kept, and the next save rewrites it in the Newtonsoft format. A save over 64 MB is refused on write with a logged error, and the previous file is kept. See `docs/api/savedata-game.md`.
-- WebUi: in composition and windowed modes the shim is shut down when the last view closes, releasing the window subclass, the DirectComposition target (composition only) and the WebView2 environment, and the next `WebUi.Open` starts it again. An opened and closed page no longer keeps the game's presentation hooked for the rest of the session. Thread mode keeps the shim up for the session instead.
-- `Building.Place` and `Building.PrefabOf` refuse an addressable path that loads an asset which is not a `Furniture`, and release that asset with `Addressables.Release`, so it is not leaked. See `docs/api/housing.md`.
-- `FurnitureItem.Guid`, `ManagerGuid`, `ParentGuid` and `AttachedGuid` are null, not empty, when no GUID is set yet. `FurnitureItem.ParentObject` and `AttachedObject` give the linked piece's object before the next save. See `docs/api/housing.md`.
-- `ItemRegistry.RemoveMissingItems` and `RemoveAllMissingItems` drop a carried item entry when no scanned stack holds its id, so an entry with no stack anywhere no longer keeps the load warning alive. Recipe entries are unchanged. See `docs/api/registry.md`.
-- A dropped missing-item placeholder whose prefab has no `CollectibleItem` logs once. See `docs/api/registry.md`.
-- `ModKeybind.Down()` and `ModKeybind.Held()` no longer return `false` while another key, such as WASD, is held. The main key is read with `Input.GetKeyDown` or `Input.GetKey`, and every bound modifier must be held. The `Tweaks.Camera` `ToggleKey` has the same fix.
-- `Subscriptions` clears its miss cache on `Events.Loaded`, so a subscription that a load creates is found at once, not after the 5 s retry window.
-- The MODS warning on the main menu says the input is locked or the input patches are not ready.
-- `ShopStock` amount, stock, price and currency errors return `false` with one log line instead of throwing `ArgumentException`. `ComputerApps` returns `false` with one log line for an empty `title` or an `appId` with `/`, as it does for an empty `appId`.
-- God mode and needs frozen set by mods no longer end up in the save.
-- Mod hints are hidden on a Single scene load.
-- Closing a framework window keeps the game's camera hold.
-- Registering a console command, net channel, main menu button, computer app, interaction, loot category or entry, or trader stock that another mod already has now logs a warning naming both mods.
-- Two mods binding the same key now get a warning naming both mods and the key.
+- `SceneLooks` bind poses come from the rest pose, and apply, remove and release handle failed or shared bodies safely.
+- `Mail.Received` and `Mail.PackageReceived` no longer fire again for saved letters and packages after a load or level change.
+- Landmark writes from an `Events.Saved` handler are refused until the save restores the mod's landmarks.
+- Money and world: `Banking.RepayLoan` clears small debts in whole steps, `WorldRadiation.DoseRate` is 0 with stats progress off, and `Locks.StartLockpick` reports a cancel.
+- `FurnitureRegistry` finds a nested `ObjectPreview`, and `PlayerMovement` keeps pending values per owner.
+
+### Changed
+
+- Starter: one framework mod project for BepInEx 5 and 6, with no loader switch. `-p:FrameworkDll=<path>` builds against another framework. See `Starter/README.md`.
+- `ModIds.IsInstalled` and custom landmarks use `Loader.Installed`, so a framework mod's saved data is kept. `Loader.Has` still means running.
+- Framework mod versions count missing parts as 0, so `0.11` is `0.11.0`. Signs, spaces, text and more than four parts are refused.
+- Framework mod ids `ObenseuerCore`, `nomad.obenseuer.core`, `ObenseuerCore.ModKeybinds` and `obenseuer.moddingframework` are reserved, along with ids that start with them.
+- When `OnLoad` throws, the mod's component is destroyed at once. Earlier subscriptions and patches stay, so register last.
+- `DialogueAuthoring.Clear(modId)` also removes the mod's `Dialogue.AddBranch` branches.
+- `PlayerMovement` setters keep a value set before a player exists, and apply it later.
+- `Interactions.Add` throws `ArgumentNullException` for a null `label` or `use`.
+- `ModNpcs.Spawn` with `keepSourceDialogue` applies only with the source's own prefab. A negative `bodyCharacterId` returns 0.
+- `Travel.AddEntrypoint`, `RemoveEntrypoint`, `WorldSky.Set` and `Clear` are no longer refused while a save loads or saves.
+- `TaskItems.Changed` handlers nest at most eight deep, as `Cash.MoneyChanged` does.
+- `Hud.ShowSubtitle` removes dialogue pause codes before it shows the text.
+- New caps, each refusal logged once: 4 `ScreenFx.Vignette` owners, 4 `ScreenFx.Blur` owners, 64 `FurnitureDefinition.Colliders`, and 16 MiB of PCM.
+- `FurnitureCategories` reserves the `Items` category.
+
+### Docs
+
+- New [framework mods](docs/api/framework-mods.md) page. The first-mod and packaging guides lead with it.
+- Install docs say to delete old plugin folders before extracting a new version.
+
+## 0.10.0-beta (2026-10-14)
+
+### Added
+
+- Housing: `ApartmentInfo.Type` (`ApartmentType`), `ApartmentInfo.ManagerGuid`, eviction calls and `Building.CurrentArea`. See `docs/api/housing.md`.
+- Furniture placement: `Building.Place`, `Remove`, `Move`, `Find`, `Managers`, `Catalog` and `PrefabOf`. See `docs/api/housing.md`.
+- Player shops: `PlayerShops.Ensure`, `Release`, `SetOpen`, `SetPrice`, `Sell`, `Storages`, `TakeEarnings`, `Registers` and `Sold`. See `docs/api/housing.md`.
+- Positions: `DoorInfo.Position` and `StandPosition`, and `LevelDoorInfo.Position` and `SpawnPosition`. See `docs/api/doors.md`.
+- Furniture in the world: `BlueprintDefinition.Pools`, `FurnitureRegistry.MailBlueprint` and `AddFlatpackLoot`. See `docs/api/furniture.md`.
+- Mod NPC routines: `ModNpcRoutines.Set` for weekly routines, plus `WalkTo`, `Wander`, `Patrol`, `Sit`, `Sleep` and `Stop`. See `docs/api/modnpc-routines.md`.
+- Mod NPCs: `ModNpcs.Spawn` and `SpawnSaved`, with `NpcAppearance` for meshes and blend shapes. See `docs/api/modnpcs.md`.
+- Waits: `PlayerState.Wait` calls `onDone` with the minutes that really passed. `PlayerState.PickTime` shows the bed's time panel. See `docs/api/player.md`.
+- Clock: `WorldClock.SetDate`, `WorldClock.Now` (`WorldTime`) and `WorldClock.IsAvailable`, and `GameTime.IsDaytime`. See `docs/api/world.md`.
+- Debug: `[Debug] Master` traces framework calls to `ObenseuerCore.debug.log`. See `docs/api/debug.md`.
+- Custom skills: `CustomSkills` registers up to 64 skills per mod, saved per save. See `docs/api/customskills.md`.
+- Dialogue and quests: `Dialogue.AddResponse` adds a player choice to a game conversation, and `QuestAuthoring` creates saved quests. See `docs/api/dialogue-authoring.md` and `docs/api-story.md`.
+- Movement: `PlayerMovement.SetRunMultiplier`, `Crouch`, `StandUp`, `LockLook` and `LockLookAt`. See `docs/api/player-movement.md`.
+- Weapons: `Weapons.SetHitFactor` scales melee damage per target kind, and `Weapons.Hit` reports each hit. See `docs/api/weapons.md`.
+- Survival: `Survival.InterceptDamage` and `Survival.Breakdown` scale or cancel damage. See `docs/api/player.md`.
+- Sky and weather: `WorldSky.Set`, `WorldWeather.SetZone`, and `WorldWater` and `WorldRadiation` reads. See `docs/api/world.md`.
+- NPC actions: `NpcActions.FollowPlayer`, `Say`, `Comment`, `LookAt`, `StartDialogue` and `ChangeLevel`. See `docs/api/npc-actions.md`.
+- Animals, plants, trains and drones: `AnimalActions.SetTame`, `PlantActions.SetRotting`, `TrainActions.SetEngine` and `Drones.SetTarget`. See `docs/api/animal-actions.md`.
+- Phones: `PhoneLines` lists, rings and answers phones, and raises `Ringing`, `CallStarted` and `CallEnded`. See `docs/api/phone-lines.md`.
+- Trade: `Traders.Buy` and `Sell`, and `BaseShops.Buy` and `Sell`, trade without the trade screen. See `docs/api/traders.md`.
+- Factors: `Casino.SetPayoutFactor`, `Contests.SetPayoutFactor`, `CardGames.SetPayoutFactor` and `GameDifficulty.SetFactor`, with `Clear`. See `docs/api/casino.md`.
+- Crafting: `CraftingStations.Start`, `Stop`, `Pause` and `Resume`, and `CraftingSources` containers. See `docs/api/craftingstations.md`.
+- Items: `ItemRegistry.SetHeldModel`, `ItemDefinition.WieldTemplateId` and `ModelHandle.CreateMesh`. See `docs/api/registry.md`.
+- Mail and money: `MailInfo` gives `Body`, `Sender` and `IsNote`, and `Banking.Exchange` and `LegalServices` are new. See `docs/api/economy.md`.
+- Recipes and fuel: `Recipes.Unlocked`, `Recipes.CanCraftAt`, `Plants.Picked`, `FuelTypes` and `PowerDevices.FuelRanOut`. See `docs/api/recipes.md`.
+- Scene and levels: `SceneState`, `SceneLogic.Fire` and `Fired`, and `Levels.ChangeTo`. See `docs/api/scenestate.md`.
+- Landmarks: `Landmarks.Create`, `Mark`, `Remove`, `Clear` and `Place`, kept across saves. See `docs/api/landmarks.md`.
+- Lobby and blobs: `Lobby.Owner`, `IsHost`, `OwnerChanged`, and `NetBlob.Send` for up to 16 MB to one peer. See `docs/api/net.md`.
+- Framework helpers: `CoreMod.For`, `CorePatcher.Prefix`, `Postfix` and `Finalizer`, `Events.WhenReady`, and `SaveData.Bind<T>`. See `docs/api/core-helpers.md`.
+- Menus, HUD and WebUi: `MainMenuButtons.Add`, `Hud.ShowTooltip`, `WebUi.SuspendAll` and `ResumeAll`. See `docs/api/mainmenu.md` and `docs/api/webui.md`.
+- Instruments: `Instruments.PlaySong`, `StopSong`, `HoldNote` and the `GuitarPlayed` event. See `docs/api/instruments.md`.
+- Locks and keypads: `Locks.KeypadCode`, `SetKeypadCode`, `SetLockpickable` and `Difficulty`. See `docs/api/interaction.md`.
+- Start, settings and keybinds: `StartChoices.Selected`, `Characters.Saved`, `GameSettings.SetFov` and `ModKeybind.Up`. See `docs/api/start-choices.md`.
+- World items: `WorldItems.IdOf`, `Find`, `Remove` and `SetExpiryOverride`. See `docs/api/worlditems.md`.
+- Fixtures: `Tanks`, `Surfaces` and `ItemGivers` read and change tanks, wallpaper and givers. See `docs/api/tanks.md`.
+
+### Changed
+
+- Starter: the build no longer copies the DLL into the game folder. Add `-p:DeployToGame=true` to copy it. See `Starter/README.md`.
+- Breaking: WebUi is now the optional `ObenseuerCore.WebUi.dll` plugin, GUID `obenseuer.moddingframework.webui`. WebUi mods must depend on it.
+- Breaking: `[Appearance] WebTheme` and `[Debug] WebMenuSelfCheck` moved to `BepInEx\config\obenseuer.moddingframework.webui.cfg`. The self-check value is not carried over.
+- Breaking: WebUi pages can no longer create a `Worker`, and `WebSocketStream` is removed.
+- Breaking: WebUi mod ids with other characters, over 63 characters or `obx.core` get an `h--` host, so their web storage starts empty.
+- Breaking: save-file classes such as `BankLedgerData` are no longer public. Save data is written with Newtonsoft.Json; save keys are unchanged.
+- BepInEx 6 mods may use a SemVer range in `BepInDependency`, such as `">=0.10.0"`. BepInEx 5 needs a plain version.
+- Traders: `Sell` is all or nothing, like `Buy`. A sale no longer commits a theft crime, and `Shops.Sold` fires once per stack.
+- Scene loads: per-scene resets run only on a `Single` load. `SceneIds.Find` skips objects outside the active scene.
+- New throws: `CustomSkills.Register` for a `maxValue` above 1,000,000, `MailSchedules.SendRandom` for `max` above 100, and `WorldWeather.Set` for a negative index.
+- `WorldClock.SetTimeOfDay` returns `false` for an earlier time. `Lobby` refuses a joiner on another game version or build.
+- Hook groups: a missing game method disables only its own events. `BankLedger.IsAvailable` needs only the accounts hooks.
+- `Dialogue.Intercept`, `Law.Intercept`, `SleepEvents.Intercept` and `Survival.Breakdown`: once a handler sets `Cancel`, a later one cannot clear it.
+- Net packets are read for up to 2 ms a frame, and at most 4 per sender reach handlers each frame. See `docs/api/net.md`.
+
+### Fixed
+
+- WebUi thread mode: focus and fullscreen fixes, and a renderer crash closes only its own view. See `docs/api/webui.md`.
+- Traders: exact stacks are priced and moved, owner data is kept, and events wait for the trade to commit. See `docs/api/traders.md`.
+- Housing and shops: `Housing.AllApartments` no longer empties on an untyped apartment, and `PlayerShops.Ensure` finds more shops. See `docs/api/housing.md`.
+- Saves: failed loads no longer leak save folders or mod data, and save files are flushed before they are replaced. See `docs/API.md`.
+- Hooks: a failed hook removes only its own patches, so breeding, quests and hook groups fail separately. See `docs/API.md`.
+- Net: stalled NetBlob transfers fail on their own, and packet reads no longer stop after about 18 hours. See `docs/api/net.md`.
+- Input and logs: `ModKeybind.Down` and `Held` work while other keys are held, and each log keeps its first crash trace. See `docs/API.md`.
+- Money: `Robbers.Rob` needs the robber's minimum, `Banking.Exchange` refuses zero credits, and `BaseShops.Buy` returns `Busy` on an open shop. See `docs/api/economy.md`.
 
 ## 0.9.0-beta
 
@@ -416,44 +130,13 @@ First public release on GitHub.
 
 ### Included
 
-#### Game API
-
-- More than 70 game API areas, listed in `docs/API.md`, with one page per area in `docs/api/`.
-- Keypads and lockpicking (`Locks`), track switches and wagon loaders (`Trains`), blackout wake-up (`WorldPower.ScheduleWakeUp`, `WorldPower.WakeUp`), `Janitors.All`, and the orange mushroom effect (`Effect.OrangeMushroom`).
-- `PlayerLook`, the player's look and costume API.
-- Banking (`Banking`), and a bank ledger (`BankLedger`) that keeps the balance changes of each bank account, saved with each save.
+- Game API: more than 70 areas, one page each in `docs/api/`, listed in `docs/API.md`.
 - Story API (experimental): Quests, Dialogue and Law. See `docs/api-story.md`.
 - Net (experimental): Steam, lobby and presence helpers. See `docs/api/net.md`.
-
-#### Items, recipes and models
-
-- Registry: mod-defined items and recipes. See `docs/api/registry.md`.
-- OBJ models with `ModelRegistry.LoadObj`, set on an item with `ItemDefinition.Model`. A bad model file does not throw: `ModelHandle.IsReady` is false and `ModelHandle.Error` says why.
-- PNG item icons with `ItemDefinition.IconPath`.
-- A dropped mod model gets a rigidbody with gravity, so it falls to the floor.
-
-#### Furniture
-
-- Custom furniture: `FurnitureRegistry.Define` adds a copy of one vanilla furniture, with its own title, details, price, icon and shop listing.
-- `FurnitureDefinition.Model` sets an OBJ model on a mod furniture.
-- `FurnitureRegistry.Give` adds pieces to the player's stock, and `FurnitureRegistry.Loaded` is raised each time the furniture state is restored.
-
-#### Shops, loot and mail
-
-- `ShopStock`: mod items in traders and vending machines, with fixed stock per shop.
-- `LootPools.DefineCategory` adds a spawn category for a mod.
-- `Mail.SendBundle` sends several item lines as one letter or package, delivered after a delay, and `Mail.Pending` lists the ones still waiting.
-
-#### WebUi, Mods menu and computer apps
-
-- WebUi: mod UIs in HTML and CSS, shown in a WebView2 view (`ObxWebView.dll`), with a shared theme, in light and dark. Views can sit on the in-game computer screen. See `docs/api/webui.md`.
-- The Mods menu web page is styled like the game's own menu, with page tabs, a sidebar of mods, a settings search box and a key hint footer. The classic window stays available with `[UI] ModMenuStyle`.
-- The UI kit (`ModUi`) works in any host, and its theme (`UiTheme`) is public.
-- Computer app registry: mods add icons to the desks, open full-screen app windows, and get `ComputerApps.AppClosed` when a window closes.
-
-#### Framework
-
-- Per-save data with `SaveData`, and `SaveData.Busy`, true while the game loads and in the frame a save starts. A save data file that cannot be read is copied to `.bad`, and the mod starts empty.
-- Safe patching through `CorePatcher`, with a game build check and `[Safety] RefuseUnknownBuild`.
-- Optional gameplay tweaks, all off by default.
-- `[Debug]` flags `ModIdsSelfCheck`, `MailSelfCheck` and `WebMenuSelfCheck` run offline self-checks at start and log the result.
+- Items, recipes and models: mod-defined items and recipes, and OBJ models with `ModelRegistry.LoadObj`. See `docs/api/registry.md`.
+- Furniture: `FurnitureRegistry.Define` adds a copy of a vanilla piece, with `FurnitureDefinition.Model` and `FurnitureRegistry.Give`.
+- Shops, loot and mail: `ShopStock`, `LootPools.DefineCategory` and `Mail.SendBundle`.
+- WebUi: mod UIs in HTML and CSS in a WebView2 view, with a shared theme. See `docs/api/webui.md`.
+- Mods menu: a web page styled like the game's own menu, with the classic window kept behind `[UI] ModMenuStyle`.
+- Computer apps: the `ComputerApps` registry and full-screen app windows. The `ModUi` kit works in any host.
+- Framework: per-save data with `SaveData`, safe patching with `CorePatcher`, optional gameplay tweaks off by default, and `[Debug]` self-check flags.

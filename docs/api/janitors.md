@@ -63,7 +63,7 @@ public sealed class JanitorActedArgs
 
 ## Ceilings and risks
 
-- `Acted` reports the call, not the change. Items added or removed are not listed, because that needs a before and after snapshot of every slot. Not built, to keep the first version lean.
+- `Acted` reports the call, not the change. Items added or removed are not listed, because that needs a before and after snapshot of every slot.
 - `Acted` also fires on load. `JanitorController.LoadDelay` replays saved janitor actions for each scene that has not processed them yet (`JanitorController`). Those replays call the same `TriggerAction`, so `Acted` fires for them too, with `Replay` set to `true`. Mods that react to a real trigger should ignore events where `Replay` is `true`.
 - `Acted` also fires for every janitor in `JanitorController.TriggerJanitorAction(tag)` (`JanitorController`). That method is registered as a Lua function. One tag produces one event per matching janitor component.
 - `Id` is the id of the janitor component. It is the save GUID when the component has one, otherwise the scene path.

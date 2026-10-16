@@ -10,8 +10,11 @@ function send(msg) {
   if (post) post(Object.assign({ v: 1 }, msg));
 }
 
-function setStatus(text) {
+let rowStatus = false;
+
+function setStatus(text, fromRow) {
   els.status.textContent = text;
+  rowStatus = fromRow === true;
 }
 
 function setTheme(mode) {
@@ -99,6 +102,7 @@ function renderTabs(mod) {
     t.dataset.key = "page:" + p.id;
     t.addEventListener("click", () => {
       state.pageId = p.id;
+      setStatus("");
       loadPage(p.id);
       render();
     });
@@ -195,6 +199,7 @@ function selectMod(id) {
   const mod = findMod(id);
   state.modId = mod ? mod.id : null;
   state.pageId = mod && mod.pages.length ? mod.pages[0].id : null;
+  setStatus("");
   loadPage(state.pageId);
   render();
 }
@@ -242,6 +247,7 @@ function syncBusy() {
 function onMenu(m) {
   document.activeElement.blur();
   escHeld = false;
+  setStatus("");
   setTheme(m.theme);
   state.mods = Array.isArray(m.mods) ? m.mods : [];
   state.pages = {};
@@ -276,8 +282,8 @@ function onRow(m) {
   if (Rows.capturingId() === row.id) Rows.cancel();
   const sent = row.value;
   for (const k of ["value", "dirty", "invalid"]) if (k in m) row[k] = m[k];
-  if (m.invalid) setStatus(row.kind === "key" ? "That key cannot be bound. Press another key." : "That value is not valid. The old value is kept.");
-  else if (m.invalid === false) setStatus("");
+  if (m.invalid) setStatus(row.kind === "key" ? "That key cannot be bound. Press another key." : "That value is not valid. The old value is kept.", true);
+  else if (m.invalid === false && rowStatus) setStatus("");
   if (textFocused()) { deferred = true; return; }
   const old = byKey("row:" + row.id);
   if (!old) return;
@@ -303,6 +309,7 @@ function receive(m) {
   if (m.type === "menu") onMenu(m);
   else if (m.type === "page") onPage(m);
   else if (m.type === "row") onRow(m);
+  else if (m.type === "status") setStatus(m.text || "");
   else if (m.type === "theme") setTheme(m.mode);
 }
 

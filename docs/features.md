@@ -42,12 +42,13 @@ This page lists what the framework covers, grouped by what a modder wants to cha
 - Make a live NPC walk to a point, hold still, patrol a route or stand at a spot, and release it when you are done (new in 0.10.0-beta) ([NPC movement](api/npc-movement.md)).
 - Teleport, kill or hit a live NPC, make it follow the player or stop following, make it say a line or bark a conversation, turn its head to the player or a point, and start one of its conversations (the follow, say, bark, look and conversation calls are new in 0.10.0-beta) ([NPC actions](api/npc-actions.md)).
 - Read each NPC's schedule, and get told when its current activity changes ([NPC schedules](api/npc-schedules.md)).
+- Stop an in-scene NPC's schedule from starting new activities, and let it resume later ([NPC movement](api/npc-movement.md)).
 - Spawn a copy of any character with its own name, and keep it after each load or for the session only (new in 0.10.0-beta; experimental) ([Mod NPCs](api/modnpcs.md)).
 - Give a mod NPC a weekly timetable that spawns it in a scene, walks it through doors, and orders it to walk, wander, patrol, sit, sleep or stop (new in 0.10.0-beta; experimental) ([Mod NPC routines](api/modnpc-routines.md)).
 - Change a live NPC's meshes, materials and body shape by name, and restore them. Changes to a game NPC last for the session (new in 0.10.0-beta; experimental) ([NPC appearance](api/npcappearance.md)).
 - Read robbers, make one attack the player, rob, negotiate or stay aloof, and get told when a robbery happens (new in 0.10.0-beta) ([Robbers](api/robbers.md)).
 
-**Not possible yet:** pausing an NPC's schedule. The game's pause flag for off-screen NPCs also skips the schedule's updates and scene moves, but it does not stop an NPC that is in the loaded scene. A scheduled NPC cannot be moved to another level for good, because the game's schedule moves it back.
+**Not possible yet:** a scheduled NPC cannot be moved to another level for good, because the game's schedule moves it back.
 
 ## Animals
 

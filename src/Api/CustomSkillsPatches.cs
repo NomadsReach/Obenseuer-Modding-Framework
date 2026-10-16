@@ -35,6 +35,11 @@ namespace ObenseuerCore
             }
         }
 
+        internal static bool CanShowBanner()
+        {
+            return showNotification != null && PlayerSkillIncreaseUI.instance != null;
+        }
+
         internal static void ShowBanner(string text)
         {
             PlayerSkillIncreaseUI ui = PlayerSkillIncreaseUI.instance;

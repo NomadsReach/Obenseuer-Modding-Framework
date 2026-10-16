@@ -30,7 +30,7 @@ public static class UiState
 
 - All flag members are read-only properties. Each returns `false` when `GameController.instance` or `GameUIController.instance` is missing (main menu, loading, no save).
 - `IsMenuOpen`: `GameUIController.IsMenuVisible`. It is also `true` while the wait or sleep timer is on screen. It does not cover the pause menu, shops or dialogue. Those are separate flags.
-- `IsPaused`: `GameController.GameIsPaused`. The pause menu, the saving screen and the load menu set it. It is not `GameTime.IsPaused`, which is the time scale.
+- `IsPaused`: `GameController.GameIsPaused`. The pause menu, the saving screen and the load menu set it. Do not confuse it with `GameTime.IsPaused`, which reads `Time.timeScale == 0`: the pause menu and the saving screen set the time scale to 0 too, so `GameTime.IsPaused` is also `true` while either is open.
 - `IsInputBlocked`: `GameController.keysDisabled`. It is `true` while a `ControlsDisabled` call with the default `disableKeys` is active (cutscenes, dialogue, sleep and similar). An open game menu does not set it, because `ShowGameMenu` passes `disableKeys: false`. The framework's own input lock also sets it.
 - `CursorVisible`: `GameController.cursorVisible`. This is the game's cursor flag. It does not include the controller-input and computer-screen cases that `UpdateCursorVisibility` adds.
 - `InventoryDisabled`: `GameController.inventoryDisabled`. It stays `true` while any holder from `DisableInventory` has not called `EnableInventory`.

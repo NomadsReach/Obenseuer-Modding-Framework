@@ -156,7 +156,7 @@ namespace ObenseuerCore
             if (string.IsNullOrEmpty(conversationTitle)) return false;
             NPCInfo npc = Live(npcId);
             CharacterBarkStarter starter = npc == null ? null : npc.characterBarkStarter;
-            if (starter == null || !starter.enabled || starter.cacheBarkLines) return false;
+            if (starter == null || !starter.enabled || starter.cacheBarkLines || NpcControl.HoldsBarks(npcId)) return false;
             try
             {
                 PCDS.DialogueDatabase database = PCDS.DialogueManager.masterDatabase;

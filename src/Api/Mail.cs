@@ -86,7 +86,11 @@ namespace ObenseuerCore
     public static class Mail
     {
         private const int MaxDelayMinutes = 525600;
+        private const int ReplayFrames = 3;
         private static bool installed;
+        private static int replayUntilFrame = -1;
+        private static readonly List<string> replayedLetters = new List<string>();
+        private static readonly List<string> replayedPackages = new List<string>();
 
         public static event Action<MailReceivedArgs> Received;
         public static event Action<MailReceivedArgs> PackageReceived;
@@ -239,17 +243,55 @@ namespace ObenseuerCore
             {
                 ApiLog.Once(Cash.Owner, "mail subscribe", e);
             }
+            CorePatcher.PatchCore(typeof(MailController), "OnLoadingGame", Type.EmptyTypes, null, CorePatcher.Handler(typeof(Mail), "LoadedPostfix"), null, false, Cash.Owner);
             CoreLog.For(Cash.Owner).Info(installed ? "mail installed" : "mail not installed");
+        }
+
+        private static void LoadedPostfix(MailController __instance, bool __result)
+        {
+            if (!__result || __instance == null) return;
+            replayUntilFrame = UnityEngine.Time.frameCount + ReplayFrames;
+            replayedLetters.Clear();
+            replayedPackages.Clear();
+            if (__instance.receivedMail != null)
+            {
+                foreach (MailController.Mail letter in __instance.receivedMail)
+                {
+                    if (letter != null) replayedLetters.Add(letter.mailName);
+                }
+            }
+            if (__instance.receivedPackages != null)
+            {
+                foreach (MailController.Mail package in __instance.receivedPackages)
+                {
+                    if (package != null) replayedPackages.Add(package.mailName);
+                }
+            }
+        }
+
+        private static bool DropReplay(List<string> pending, string mailName)
+        {
+            if (UnityEngine.Time.frameCount > replayUntilFrame)
+            {
+                pending.Clear();
+                return false;
+            }
+            int at = pending.IndexOf(mailName);
+            if (at < 0) return false;
+            pending.RemoveAt(at);
+            return true;
         }
 
         private static void OnMailReceived(string mailName)
         {
+            if (DropReplay(replayedLetters, mailName)) return;
             MailReceivedArgs args = new MailReceivedArgs(mailName, MailKind.Letter);
             Cash.RaiseNested(Received, "Mail.Received", h => h(args));
         }
 
         private static void OnPackageReceived(string mailName)
         {
+            if (DropReplay(replayedPackages, mailName)) return;
             MailReceivedArgs args = new MailReceivedArgs(mailName, MailKind.Package);
             Cash.RaiseNested(PackageReceived, "Mail.PackageReceived", h => h(args));
         }

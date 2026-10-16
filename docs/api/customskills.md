@@ -24,6 +24,7 @@ public static class CustomSkills
     public static int Level(string modId, string skillId);
     public static bool Set(string modId, string skillId, float value);
     public static bool Add(string modId, string skillId, float amount);
+    public static bool QueueBanner(string text);
     public static event Action<CustomSkillArgs> LevelChanged;
 }
 
@@ -60,8 +61,9 @@ public sealed class CustomSkillArgs
 
 - The game shows a banner through the private `PlayerSkillIncreaseUI.ShowNotification`. It sets the text, restarts a coroutine that waits 8 seconds in real time and then fades the alpha by 0.1 each frame, about ten frames. A second call replaces the first at once, so banners would overwrite each other.
 - The framework's queue shows one banner every 9 seconds, in the order they were queued. A banner's time is its 8 second hold and the fade. The queue advances once per frame.
-- At most 5 custom banners wait at a time. A new banner for a skill that already has one waiting replaces that banner's text, so the newest level shows. When a sixth custom banner is queued, the oldest waiting custom banner is dropped. Game banners are never dropped.
-- `Add` queues `Name`, `increased to`, `level N!` when the floor of the value rises. That is the game's own text. `Set` does not queue a banner.
+- The queue keeps three kinds of banner apart. Skill banners (from `Add`) have their own budget of 5 (`CustomSkillsMath.BannerQueue.MaxCustom`) and queued text banners (from `QueueBanner`) have their own budget of 5 (`CustomSkillsMath.BannerQueue.MaxQueued`), so one kind can never push the other out. A new banner for a skill that already has one waiting replaces that banner's text, so the newest level shows. When a sixth skill banner is queued, the oldest waiting skill banner is dropped. A queued text banner is never dropped to make room: `QueueBanner` returns `false` and queues nothing when 5 text banners already wait. Game banners are never dropped.
+- `Add` queues a banner when the floor of the value rises. A change that takes the skill from level 0 to any higher level queues the game's new-skill text, `New skill`, `Name`, `learned!`, instead of the level-up banner for that change. Any other rise queues `Name`, `increased to`, `level N!`. `Set` and a save load show no banner.
+- `QueueBanner(text)` queues `text` as a banner. It uses the same queue and timing as the skill banners, but its own budget of 5 waiting text banners. It throws `ArgumentException` when `text` is null or empty. Otherwise it returns `true` when the text was queued. It returns `false`, and queues nothing, when 5 text banners already wait, while a save loads or saves, or when the owner was disabled. It also returns `false` when no banner UI is on screen or `ShowNotification` is missing, and logs that once.
 - The game's own skill banners use the same timing. Prefixes on `PlayerSkillIncreaseUI.ShowSkillIncrease` and `ShowNewSkill` check the queue. When no banner is showing and nothing is queued, the prefix marks 9 seconds busy and the game's own banner runs unchanged, as in vanilla. When a banner is showing or the queue is not empty, the game's text is queued and the game's call is skipped, so it waits behind the banners already queued. Banners only wait when two overlap.
 - Queued banners are dropped when a save loads.
 - `ShowNotification` is found once by reflection and cached. When it is missing, the two game prefixes are not installed, so the game's banners are unchanged, and custom banners are dropped and logged once. When no banner UI is on screen, a banner is dropped and logged once.

@@ -16,7 +16,7 @@ This page lists the game areas the framework lets your mod read and change. Each
 - A bad argument throws `ArgumentException` or `ArgumentNullException`. Most other problems return a fallback value and do not throw.
 - Lists such as `Shops.All()` and `Jobs.All()` show only what is loaded now.
 - The framework builds as C# 5. The samples avoid `?.`, `$""` and `nameof`, and the Starter project uses the latest C# version.
-- Add `[BepInDependency("obenseuer.moddingframework", ">=0.10.0")]` to your plugin. On BepInEx 5, write `"0.10.0"` instead, because BepInEx 5 cannot parse a version range. See [Supporting BepInEx 5 too](getting-started/packaging.md#supporting-bepinex-5-too).
+- Add `[BepInDependency("obenseuer.moddingframework", ">=0.11.0")]` to your plugin. On BepInEx 5, write `"0.11.0"` instead, because BepInEx 5 cannot parse a version range. See [Supporting BepInEx 5 too](getting-started/packaging.md#supporting-bepinex-5-too).
 
 ## The player
 
@@ -57,7 +57,7 @@ Item ids are explained in [Finding item ids](content.md#finding-item-ids).
 
 ## Interactions
 
-- `Interactions.Add(target, modId, label, use)` adds a "Use" prompt to a game object. The target needs a `Collider`.
+- `Interactions.Add(target, modId, label, use)` adds a "Use" prompt to a game object. The target needs a `Collider`. The five-argument `Add` takes a verb in place of "Use", for example `Add(target, modId, "Treadmill", "Run", use)` shows `(Run)`. `Interactions.SetReason(target, modId, reason)` shows a red reason in place of the verb and blocks the use while the reason is set.
 - `Interactions.Remove(target, modId)` removes only a prompt that your mod added.
 - `Interactions.Used` fires after the player uses any interaction.
 - `Interactions.Looking()` returns what the crosshair is on, or `null`.
@@ -100,7 +100,7 @@ Shops:
 - `Shops.All()` lists the shops. `Shops.Open()` returns the trader whose panel is open. `Shops.Stock(shopId)` lists items and prices.
 - `Shops.PriceQuery` lets a handler set `args.Price` for a trade. It is not raised for vending machines, and it runs on every price update, so keep the handler cheap.
 - `Shops.Bought` and `Shops.Sold` fire after a trade.
-- The framework cannot make a trade. The player uses the game's trade panel.
+- The framework can make a trade. `Traders.Buy(modId, traderId, itemId, count, out refusal)` and `Traders.Sell` trade with a trader ([traders](../api/traders.md)). At a furniture shop, `BaseShops.Buy(id, furnitureId, count)` and `BaseShops.Sell(id, furnitureId, count)` do the same ([furniture shops](../api/baseshops.md)). The player uses the game's trade panel.
 
 ## Jobs
 

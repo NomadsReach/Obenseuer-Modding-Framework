@@ -20,11 +20,9 @@ namespace ObenseuerCore
             if (master == null) return Refused("the dialogue database is not ready");
             PCDS.Conversation conversation = master.GetConversation(conversationTitle);
             if (conversation == null) return Refused("conversation " + conversationTitle + " is not in the database");
-            PCDS.DialogueEntry anchor = anchorText != null ? FindAnchor(conversation.dialogueEntries, anchorText) : conversation.GetDialogueEntry(anchorId);
-            if (anchor == null) return Refused("anchor is missing or matches more than one line");
-            if (master.GetCharacterType(anchor.ActorID) != PCDS.CharacterType.NPC) return Refused("anchor is not an NPC line");
-            if (LeadsOnlyToNpc(master, anchor)) return Refused("anchor only leads to NPC lines");
-            if (PlayerActorId(master) < 0) return Refused("the database has no player actor");
+            PCDS.DialogueEntry anchor;
+            string anchorRefusal = AnchorRefusal(master, conversation, anchorText, anchorId, out anchor);
+            if (anchorRefusal != null) return Refused(anchorRefusal);
             string key = KeyFor(modId, conversationTitle, anchor.id, playerText, npcReply, luaCondition);
             Registered response = responses.Find(r => r.Key == key);
             if (response == null)
@@ -105,6 +103,16 @@ namespace ObenseuerCore
             return matches.Count == 1 ? matches[0] : null;
         }
 
+        internal static string AnchorRefusal(PCDS.DialogueDatabase master, PCDS.Conversation conversation, string anchorText, int anchorId, out PCDS.DialogueEntry anchor)
+        {
+            anchor = anchorText != null ? FindAnchor(conversation.dialogueEntries, anchorText) : conversation.GetDialogueEntry(anchorId);
+            if (anchor == null) return "anchor is missing or matches more than one line";
+            if (master.GetCharacterType(anchor.ActorID) != PCDS.CharacterType.NPC) return "anchor is not an NPC line";
+            if (LeadsOnlyToNpc(master, anchor)) return "anchor only leads to NPC lines";
+            if (PlayerActorId(master) < 0) return "the database has no player actor";
+            return null;
+        }
+
         internal static string KeyFor(string modId, string conversationTitle, int anchorId, string playerText, string npcReply, string luaCondition)
         {
             uint hash = 2166136261u;
@@ -156,18 +164,18 @@ namespace ObenseuerCore
             if (response.NpcId >= 0) ForgetSimStatus(conversation.id, response.NpcId);
         }
 
-        private static void ForgetSimStatus(int conversationId, int entryId)
+        internal static void ForgetSimStatus(int conversationId, int entryId)
         {
             PCDS.Lua.Run(string.Format("if Conversation[{0}] ~= nil and Conversation[{0}].Dialog ~= nil then Conversation[{0}].Dialog[{1}] = nil end", conversationId, entryId));
         }
 
-        private static int PlayerActorId(PCDS.DialogueDatabase master)
+        internal static int PlayerActorId(PCDS.DialogueDatabase master)
         {
             PCDS.Actor player = master.actors.Find(a => a.IsPlayer);
             return player == null ? -1 : player.id;
         }
 
-        private static PCDS.ConditionPriority PlayerPriority(PCDS.DialogueDatabase master, PCDS.DialogueEntry anchor)
+        internal static PCDS.ConditionPriority PlayerPriority(PCDS.DialogueDatabase master, PCDS.DialogueEntry anchor)
         {
             foreach (PCDS.Link link in anchor.outgoingLinks)
             {

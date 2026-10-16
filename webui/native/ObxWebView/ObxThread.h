@@ -192,7 +192,8 @@ LRESULT CALLBACK HoldActive(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR,
     if (msg == ForwardActivateMessage() || msg == ForwardActivateAppMessage()) {
         const bool away = msg == ForwardActivateMessage() ? LOWORD(wp) == WA_INACTIVE : wp == FALSE;
         const HWND front = GetForegroundWindow();
-        if (away && (OwnedByGame(front) || GainedByOurs(GetWindowThreadProcessId(front, nullptr)))) return 0;
+        const bool ours = OwnedByGame(front) || GainedByOurs(GetWindowThreadProcessId(front, nullptr));
+        if (away ? ours : !ours) return 0;
         return DefSubclassProc(hwnd, msg == ForwardActivateMessage() ? WM_ACTIVATE : WM_ACTIVATEAPP, wp, lp);
     }
     if (msg == WM_ACTIVATEAPP) return wp == FALSE && GainedByOurs(lp) ? 0 : DefSubclassProc(hwnd, msg, wp, lp);

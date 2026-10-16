@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using ObenseuerCore.Ui;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using PCDS = PixelCrushers.DialogueSystem;
 
 namespace ObenseuerCore
 {
@@ -19,27 +21,26 @@ namespace ObenseuerCore
         public static bool Notify(string text)
         {
             RequireText(text, "text");
-            if (Notifications.instance == null) return false;
-            try
-            {
-                Notifications.instance.CreateNotification(NotifyType, text);
-                return true;
-            }
-            catch (Exception e)
-            {
-                ApiLog.Once(HudReport.Owner, "Notify", e);
-                return false;
-            }
+            return CreateNotification(NotifyType, text);
+        }
+
+        public static bool Notify(string title, string body)
+        {
+            RequireText(title, "title");
+            RequireText(body, "body");
+            return CreateNotification(title, body);
         }
 
         public static bool ShowSubtitle(string text, float fadeSeconds)
         {
             RequireText(text, "text");
             if (fadeSeconds < 0f) throw new ArgumentException("fadeSeconds must not be negative", "fadeSeconds");
+            string line = PCDS.UITools.StripRPGMakerCodes(text);
+            if (string.IsNullOrWhiteSpace(line)) return false;
             if (Subtitles.instance == null) return false;
             try
             {
-                Subtitles.instance.ShowLine(text, fadeSeconds, SubtitleCharactersPerSecond);
+                Subtitles.instance.ShowLine(line, fadeSeconds, SubtitleCharactersPerSecond);
                 return true;
             }
             catch (Exception e)
@@ -175,6 +176,29 @@ namespace ObenseuerCore
             }
         }
 
+        public static bool Bar(string owner, string title, float fill)
+        {
+            return Bar(owner, title, fill, UiTheme.Accent);
+        }
+
+        public static bool Bar(string owner, string title, float fill, Color color)
+        {
+            ModIds.Require(owner, "owner");
+            if (float.IsNaN(fill)) throw new ArgumentException("fill must be a number", "fill");
+            return HudBars.Set(owner, title, Mathf.Clamp01(fill), color);
+        }
+
+        public static bool ClearBar(string owner)
+        {
+            ModIds.Require(owner, "owner");
+            return HudBars.Clear(owner);
+        }
+
+        internal static bool GameUiHidden
+        {
+            get { return gameUiHides.Count > 0; }
+        }
+
         internal static void Init()
         {
             Events.SceneLoadedWithMode += OnSceneLoaded;
@@ -260,6 +284,7 @@ namespace ObenseuerCore
             {
                 if (owner != null) HintOverlay.Hide(owner);
             }
+            HudBars.ClearAll();
         }
 
         private static GameObject GameUiKey()
@@ -297,6 +322,21 @@ namespace ObenseuerCore
                 hintOwners[modId] = owner;
             }
             return owner;
+        }
+
+        private static bool CreateNotification(string title, string body)
+        {
+            if (Notifications.instance == null) return false;
+            try
+            {
+                Notifications.instance.CreateNotification(title, body);
+                return true;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(HudReport.Owner, "Notify", e);
+                return false;
+            }
         }
 
         private static void RequireText(string value, string name)

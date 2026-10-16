@@ -5,12 +5,21 @@ namespace ObenseuerCore
 {
     internal static class TaskItemsPatches
     {
+        internal sealed class DepthState
+        {
+            internal Dictionary<TaskItemsManager.TaskItemInfo, int> Before;
+            internal bool Counted;
+        }
+
+        private static int depth;
+        private static int raiseDepth;
+
         internal static bool Install()
         {
             try
             {
-                return CorePatcher.PatchCore(typeof(TaskItemsManager), "AddTaskItem", new[] { typeof(TaskItem), typeof(int), typeof(bool), typeof(TaskItemsManager.TaskItemInfo), typeof(bool), typeof(string), typeof(bool) }, CorePatcher.Handler(typeof(TaskItemsPatches), "AddPrefix"), CorePatcher.Handler(typeof(TaskItemsPatches), "Postfix"), null, true, TaskItems.Owner)
-                    && CorePatcher.PatchCore(typeof(TaskItemsManager), "RemoveItem", new[] { typeof(TaskItem), typeof(int), typeof(bool) }, CorePatcher.Handler(typeof(TaskItemsPatches), "RemovePrefix"), CorePatcher.Handler(typeof(TaskItemsPatches), "Postfix"), null, true, TaskItems.Owner);
+                return CorePatcher.PatchCore(typeof(TaskItemsManager), "AddTaskItem", new[] { typeof(TaskItem), typeof(int), typeof(bool), typeof(TaskItemsManager.TaskItemInfo), typeof(bool), typeof(string), typeof(bool) }, CorePatcher.Handler(typeof(TaskItemsPatches), "AddPrefix"), CorePatcher.Handler(typeof(TaskItemsPatches), "Postfix"), CorePatcher.Handler(typeof(TaskItemsPatches), "DepthFinalizer"), true, TaskItems.Owner)
+                    && CorePatcher.PatchCore(typeof(TaskItemsManager), "RemoveItem", new[] { typeof(TaskItem), typeof(int), typeof(bool) }, CorePatcher.Handler(typeof(TaskItemsPatches), "RemovePrefix"), CorePatcher.Handler(typeof(TaskItemsPatches), "Postfix"), CorePatcher.Handler(typeof(TaskItemsPatches), "DepthFinalizer"), true, TaskItems.Owner);
             }
             catch (Exception e)
             {
@@ -19,43 +28,79 @@ namespace ObenseuerCore
             }
         }
 
-        private static void AddPrefix(TaskItemsManager __instance, bool updateUiOnly, out Dictionary<TaskItemsManager.TaskItemInfo, int> __state)
+        private static void AddPrefix(TaskItemsManager __instance, bool updateUiOnly, out object __state)
         {
             __state = null;
-            if (updateUiOnly) return;
+            if (updateUiOnly)
+            {
+                DepthState state = new DepthState();
+                depth++;
+                state.Counted = true;
+                __state = state;
+                return;
+            }
             Capture(__instance, out __state);
         }
 
-        private static void RemovePrefix(TaskItemsManager __instance, out Dictionary<TaskItemsManager.TaskItemInfo, int> __state)
+        private static void RemovePrefix(TaskItemsManager __instance, out object __state)
         {
             Capture(__instance, out __state);
         }
 
-        private static void Capture(TaskItemsManager manager, out Dictionary<TaskItemsManager.TaskItemInfo, int> state)
+        private static void DepthFinalizer(object __state)
         {
-            state = null;
-            if (!TaskItems.HasHandlers || SaveGate.Loading) return;
+            DepthState state = __state as DepthState;
+            if (state != null && state.Counted && depth > 0) depth--;
+        }
+
+        private static void Capture(TaskItemsManager manager, out object __state)
+        {
+            DepthState captured = new DepthState();
+            captured.Counted = true;
+            depth++;
+            __state = captured;
+            if (depth > 1 || !TaskItems.HasHandlers || SaveGate.Loading) return;
             try
             {
-                state = new Dictionary<TaskItemsManager.TaskItemInfo, int>();
+                Dictionary<TaskItemsManager.TaskItemInfo, int> before = new Dictionary<TaskItemsManager.TaskItemInfo, int>();
                 foreach (TaskItemsManager.TaskItemInfo entry in manager.taskItems)
                 {
-                    if (entry != null) state[entry] = entry.amount;
+                    if (entry != null) before[entry] = entry.amount;
                 }
+                captured.Before = before;
             }
             catch (Exception e)
             {
-                state = null;
+                captured.Before = null;
                 ApiLog.Once(TaskItems.Owner, "TaskItems.Changed prefix", e);
             }
         }
 
-        private static void Postfix(TaskItemsManager __instance, Dictionary<TaskItemsManager.TaskItemInfo, int> __state)
+        private static void Postfix(TaskItemsManager __instance, object __state)
         {
-            if (__state == null || SaveGate.Loading) return;
+            DepthState state = __state as DepthState;
+            if (state == null || state.Before == null || SaveGate.Loading) return;
+            List<TaskItemChangedArgs> changes;
             try
             {
-                foreach (TaskItemChangedArgs change in Changes(__instance, __state))
+                changes = Changes(__instance, state.Before);
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(TaskItems.Owner, "TaskItems.Changed", e);
+                return;
+            }
+            int saved = depth;
+            depth = 0;
+            raiseDepth++;
+            try
+            {
+                if (raiseDepth > Cash.MaxNestedHandlers)
+                {
+                    ApiLog.Once(TaskItems.Owner, "TaskItems.Changed nested", "refused: Changed handlers nested deeper than " + Cash.MaxNestedHandlers);
+                    return;
+                }
+                foreach (TaskItemChangedArgs change in changes)
                 {
                     TaskItems.RaiseChanged(change);
                 }
@@ -63,6 +108,11 @@ namespace ObenseuerCore
             catch (Exception e)
             {
                 ApiLog.Once(TaskItems.Owner, "TaskItems.Changed", e);
+            }
+            finally
+            {
+                raiseDepth--;
+                depth = saved;
             }
         }
 

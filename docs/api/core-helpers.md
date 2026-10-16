@@ -31,9 +31,10 @@ public sealed class CoreMod
 }
 ```
 
+- `For` is loader-specific: it takes a `BaseUnityPlugin`, so only BepInEx plugins can call it. A framework mod gets its handle from `FrameworkMod.Mod`.
 - `For` keys on `plugin.Info.Metadata.GUID`. The same GUID (any letter case) returns the same handle, and a null plugin throws `ArgumentNullException`.
 - `Id` is the GUID the handle was first made with. It is the owner for the patch helpers and the id for `Key`.
-- `Log` is `CoreLog.For(Id)`, so it writes to the mod's own log file. Its `Error(message, exception)` overload writes an error once per exception type and first stack frame in each 10 seconds, and every logger writes at most 20 errors in each 10 seconds and 100 lines a second, then one `N lines suppressed` line, written with that logger's next line or at quit.
+- `Log` is `CoreLog.For(Id)`, so it writes to the mod's own log file. Its `Error(message, exception)` overload writes an error once per exception type and first stack frame in each 10 seconds, and every logger writes at most 20 errors in each 10 seconds and 100 lines a second, then one summary line, `N error lines suppressed` for the error cap and `N lines suppressed` for the line cap, written with that logger's next line or at quit.
 - `Save` calls `SaveData.Register` with the name `<Id>.<key>.json`. It has the same rules as `Register`: one registration per name, and a second one throws `InvalidOperationException`. `key` uses letters, digits, `.`, `_` and `-`.
 - `Key` calls `Keybinds.Register(Id, id, displayName, defaultKey)` and returns what it returns, `null` included.
 - The patch helpers call the `CorePatcher` short helpers below with `Id` as the owner, so they keep the owner rules of `Patch`.

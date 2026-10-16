@@ -56,6 +56,7 @@ public static class Quests
     public static bool IsAvailable { get; }
     public static List<QuestInfo> All();
     public static QuestInfo Get(string taskId);
+    public static bool Reached(string taskId, string objectiveId);
     public static bool SetTask(string taskId, TaskState state);
     public static bool SetObjective(string taskId, string objectiveId, ObjectiveState state);
     public static bool AddProgress(string taskId, string objectiveId, int amount);
@@ -69,6 +70,7 @@ A task id or objective id must match exactly one entry. Zero or several matches 
 **Reads.**
 - `All()` returns every started task, finished and failed ones included. It never calls the game's `GetTaskAndObjective`, which finishes the objective it looks up.
 - `Get(taskId)` returns `null` for an empty, unknown or ambiguous id, and when the facade is not available.
+- `Reached(taskId, objectiveId)` returns `true` when the game recorded the objective as Active, Failed or Abandoned, or as Finished with its completion requirements met. The record stays after the objective closes. It returns `false` for an empty id, an unknown id, and when the facade is not available. It reads the game's own record and does not check that the ids match one task and one objective. The game stores the pair as `taskId + "_" + objectiveId`, so ids that contain `_` can collide.
 
 **Writes.**
 - `SetTask(taskId, state)` accepts `Failed`, `Finished` and `Abandoned`. The task must be Active. Returns `true` when the task has the new state after the call.
@@ -121,6 +123,7 @@ public static class Dialogue
     public static string RegisterFunction(string modId, string name, object target, MethodInfo method);
     public static bool Start(string title, Transform actor, Transform conversant);   // experimental
     public static void Stop();                                                       // experimental
+    public static bool Narrate(string modId, string text);                           // experimental, see dialogue authoring
     public static void Intercept(string modId, ConversationHandler handler);
     public static string AddResponse(string modId, string conversationTitle, string anchorText, string playerText, string npcReply, string luaCondition, Action onPicked);   // experimental
     public static string AddResponse(string modId, string conversationTitle, int anchorId, string playerText, string npcReply, string luaCondition, Action onPicked);   // experimental
@@ -144,7 +147,7 @@ The game saves dialogue variables in `Globals.dialogue` as Lua text, and a bad n
 **Conversations.**
 - `Start(title, actor, conversant)` (experimental) returns `false` when a conversation is running, `title` is empty, or the game is loading or saving. It starts the conversation through `InteractableTalk.StartDialogue` when the conversant has that component, and through `DialogueManager.StartConversation` otherwise. It returns whether a conversation is running after the call, because the game can refuse to start one, for example when no dialogue UI is present.
 - `Stop()` (experimental) ends all running conversations through the Dialogue System's `StopAllConversations`, also while a save loads or saves (`SaveGate.Busy`), so it is never refused. It may leave the conversant mid-dialogue: the state that `InteractableTalk.CheckStartDialogueInterrupt` set when the talk started (`PlayerStats.Active`, the control locks, the dialogue registration) is cleared only when the game's close callback (`DialogueController.OnDialogueClosed`) runs.
-- `Intercept(modId, handler)` runs before every conversation start, whether the game or this API starts it. `args.Title` redirects the conversation, and `args.Cancel` stops it. A redirect is used only when `Exists(title)` is true. Otherwise the original title is kept and the refusal is logged once. Handlers run in registration order. Any `Cancel` wins: once a handler sets it, the later handlers still run and see `Cancel` as `true`, and setting it back to `false` has no effect. `Title` is last-writer-wins and is ignored once cancelled. Registering the same handler for the same mod again does nothing.
+- `Intercept(modId, handler)` runs before every conversation start, whether the game or this API starts it. The handler runs in a prefix on `DialogueSystemController.StartConversation`, before the conversation starts, so database edits made in the handler are in place when the conversation begins. `args.Title` redirects the conversation, and `args.Cancel` stops it. A redirect is used only when `Exists(title)` is true. Otherwise the original title is kept and the refusal is logged once. Handlers run in registration order. Any `Cancel` wins: once a handler sets it, the later handlers still run and see `Cancel` as `true`, and setting it back to `false` has no effect. `Title` is last-writer-wins and is ignored once cancelled. Registering the same handler for the same mod again does nothing.
 - **Cancel (experimental).** A cancelled start skips the game's `StartConversation`, so the code that asked for the conversation gets none. Known risks: a BehaviorDesigner task that waits for `waitForConversationCompletion` can stall; cutscene starters that wait for a conversation can freeze; `InteractableTalk` changes its own state before it starts a conversation (the game's `InteractableTalk` class), and its `DelayCheck` repairs that state. Cancel only where you know the starter.
 - `Started(title)` and `Ended(title)` come from the game's `OnConversationStart` and `OnConversationEnd` messages. They fire for every conversation, including those the game starts itself. A message can reach the object twice in some setups. `CurrentTitle` is `""` whenever `IsActive` is false.
 

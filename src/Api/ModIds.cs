@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
-using BepInEx;
 
 namespace ObenseuerCore
 {
@@ -53,9 +52,7 @@ namespace ObenseuerCore
 
         internal static bool IsInstalled(string modId, HashSet<string> usedThisSession)
         {
-            if (usedThisSession.Contains(modId)) return true;
-            PluginInfo info = Loader.Find(modId);
-            return info != null && info.Instance != null;
+            return usedThisSession.Contains(modId) || Loader.Installed(modId);
         }
 
         internal static bool IsValid(string text)

@@ -22,7 +22,7 @@ This area wraps the three power objects the game keeps per device:
 
 The framework installs three hooks on `FurnitureStats` (`Awake`, `OutputON`, `OutputOFF`). If any is missing, the owner is disabled and one warning is logged to `BepInEx\logs\obenseuer.moddingframework.powerdevices.log`. The reads and `SetOn` keep working; `PoweredChanged` stops.
 
-Once those three are in, The framework also installs two more hooks, each under its own owner: `Fuel.OnFuelConsumeStopped` (`obenseuer.moddingframework.powerdevices.fuel`, for `FuelRanOut`) and `BatteryPowerSource.PowerON` and `PowerOFF` (`obenseuer.moddingframework.powerdevices.battery`, for the battery part of `PoweredChanged`). A missing method there disables only its own event. `IsAvailable` does not change. If the furniture hooks fail, neither of these is installed.
+Once those three are in, the framework also installs two more hooks, each under its own owner: `Fuel.OnFuelConsumeStopped` (`obenseuer.moddingframework.powerdevices.fuel`, for `FuelRanOut`) and `BatteryPowerSource.PowerON` and `PowerOFF` (`obenseuer.moddingframework.powerdevices.battery`, for the battery part of `PoweredChanged`). A missing method there disables only its own event. `IsAvailable` does not change. If the furniture hooks fail, neither of these is installed.
 
 ## Threading and safety
 

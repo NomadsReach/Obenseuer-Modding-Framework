@@ -63,4 +63,4 @@ public sealed class GlobalFlagChangedArgs
 
 ## Save loads
 
-The framework does not gate this event on a save load. A handler that should ignore events raised while a save loads can check `SaveData.Busy`, which is true while a save is loading or being written.
+The framework gates this event on a save. `Changed` raised while a save is being written is held and fired on `SavingDone`, after the save is written (see above). It is not raised by the load itself. A handler that should ignore events raised while a save loads can check `SaveData.Busy`, which is true while a save is loading or being written.

@@ -12,6 +12,7 @@ namespace ObenseuerCore
         {
             internal const float Seconds = 9f;
             internal const int MaxCustom = 5;
+            internal const int MaxQueued = 5;
             private readonly List<Entry> pending = new List<Entry>();
             private float freeAt;
 
@@ -28,6 +29,13 @@ namespace ObenseuerCore
                 pending.Add(new Entry { Key = null, Text = text });
             }
 
+            internal bool EnqueueCustom(string text)
+            {
+                if (Queued() >= MaxQueued) return false;
+                pending.Add(new Entry { Key = null, Text = text, Queued = true });
+                return true;
+            }
+
             internal void EnqueueSkill(string key, string text)
             {
                 Entry same = pending.Find(e => e.Key == key);
@@ -38,6 +46,16 @@ namespace ObenseuerCore
                 }
                 if (pending.FindAll(e => e.Key != null).Count >= MaxCustom) pending.RemoveAt(pending.FindIndex(e => e.Key != null));
                 pending.Add(new Entry { Key = key, Text = text });
+            }
+
+            private int Queued()
+            {
+                int count = 0;
+                for (int i = 0; i < pending.Count; i++)
+                {
+                    if (pending[i].Queued) count++;
+                }
+                return count;
             }
 
             internal void Clear()
@@ -66,6 +84,7 @@ namespace ObenseuerCore
             {
                 internal string Key;
                 internal string Text;
+                internal bool Queued;
             }
         }
 
@@ -93,6 +112,11 @@ namespace ObenseuerCore
         internal static string LevelUpText(string name, int level)
         {
             return name + "\nincreased to\nlevel " + level + "!";
+        }
+
+        internal static string LearnedText(string name)
+        {
+            return "New skill\n" + name + "\nlearned!";
         }
 
         internal static bool UnderCap(int registered)
@@ -130,6 +154,7 @@ namespace ObenseuerCore
             if (!Accepts(true, false) || Accepts(false, false) || Accepts(true, true)) return "an unregistered skill or a busy save accepts a change";
             if (!UnderCap(MaxPerMod - 1) || UnderCap(MaxPerMod)) return "the cap per mod is not " + MaxPerMod;
             if (LevelUpText("Music", 3) != "Music\nincreased to\nlevel 3!") return "level-up text differs from the game";
+            if (LearnedText("Music") != "New skill\nMusic\nlearned!") return "learned text differs from the game";
             BannerQueue queue = new BannerQueue();
             if (!queue.TryClaim(0f)) return "a free queue does not take a game banner";
             if (queue.TryClaim(BannerQueue.Seconds - 0.5f)) return "a game banner took a queue that is still showing";
@@ -163,6 +188,23 @@ namespace ObenseuerCore
                 at += BannerQueue.Seconds;
             }
             if (order.Count != BannerQueue.MaxCustom + 2 || order[0] != "game first" || order[1] != "skill 2" || order[order.Count - 1] != "game last" || order.Contains("skill 1")) return "the custom cap did not drop the oldest custom banner";
+            BannerQueue queued = new BannerQueue();
+            for (int i = 1; i <= BannerQueue.MaxQueued; i++)
+            {
+                if (!queued.EnqueueCustom("queued " + i)) return "a queued banner was refused below its own cap";
+            }
+            if (queued.EnqueueCustom("queued over")) return "a queued banner was accepted above its own cap";
+            queued.EnqueueSkill("m.one:s", "level 2");
+            queued.Enqueue("game after");
+            if (queued.Count != BannerQueue.MaxQueued + 2) return "a queued banner was added above its cap or dropped a level-up banner";
+            List<string> queueOrder = new List<string>();
+            float queueAt = 0f;
+            while (queued.Next(queueAt, out text))
+            {
+                queueOrder.Add(text);
+                queueAt += BannerQueue.Seconds;
+            }
+            if (queueOrder.Count != BannerQueue.MaxQueued + 2 || queueOrder[0] != "queued 1" || queueOrder[BannerQueue.MaxQueued] != "level 2" || queueOrder[queueOrder.Count - 1] != "game after") return "the queued banners, the level-up banner and the game banner did not keep their order";
             Dictionary<string, CustomSkillSaveEntry> values = new Dictionary<string, CustomSkillSaveEntry>();
             Load(new List<CustomSkillSaveEntry>
             {

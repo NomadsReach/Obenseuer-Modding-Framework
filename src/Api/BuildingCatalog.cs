@@ -110,7 +110,7 @@ namespace ObenseuerCore
                 try
                 {
                     string title = entry.Definition.Title ?? template.title;
-                    return new FurnitureCatalogEntry(entry.Id, title, title, template.category.ToString(), 0, 0);
+                    return new FurnitureCatalogEntry(entry.Id, title, title, FurnitureCategories.DisplayName(template.category), 0, 0);
                 }
                 finally
                 {
@@ -126,7 +126,7 @@ namespace ObenseuerCore
 
         private static FurnitureCatalogEntry CatalogEntry(Furniture furniture)
         {
-            return new FurnitureCatalogEntry(furniture.Id, furniture.name, furniture.title, furniture.category.ToString(), furniture.skins == null ? 0 : furniture.skins.Length, furniture.AlternativePrefabs.Length);
+            return new FurnitureCatalogEntry(furniture.Id, furniture.name, furniture.title, FurnitureCategories.DisplayName(furniture.category), furniture.skins == null ? 0 : furniture.skins.Length, furniture.AlternativePrefabs.Length);
         }
     }
 }

@@ -10,9 +10,9 @@ This guide covers the four UI routes a framework mod can use: an HTML panel on W
 
 You need:
 
-- Obenseuer 0.5.05, BepInEx 5.4.23 or later (Mono) or BepInEx 6 Unity.Mono, and the Obenseuer Modding Framework 0.10.0. Depend on it with `[BepInDependency("obenseuer.moddingframework", ">=0.10.0")]`. This guide uses WebUi, so also depend on the optional WebUi module with `[BepInDependency("obenseuer.moddingframework.webui", ">=0.10.0")]`. On BepInEx 5, write `"0.10.0"` instead, because BepInEx 5 cannot parse a version range, and drop `using BepInEx.Unity.Mono;` (`BaseUnityPlugin` then comes from `BepInEx`). See [Supporting BepInEx 5 too](getting-started/packaging.md#supporting-bepinex-5-too).
+- Obenseuer 0.5.05, BepInEx 5.4.23 or later (Mono) or BepInEx 6 Unity.Mono, and the Obenseuer Modding Framework 0.11.0. Depend on it with `[BepInDependency("obenseuer.moddingframework", ">=0.11.0")]`. This guide uses WebUi, so also depend on the optional WebUi module with `[BepInDependency("obenseuer.moddingframework.webui", ">=0.11.0")]`. On BepInEx 5, write `"0.11.0"` instead, because BepInEx 5 cannot parse a version range, and drop `using BepInEx.Unity.Mono;` (`BaseUnityPlugin` then comes from `BepInEx`). See [Supporting BepInEx 5 too](getting-started/packaging.md#supporting-bepinex-5-too).
 - C# 5 is the version the framework is built with. The Starter project uses the latest C# version.
-- For HTML panels, the WebView2 Runtime. Windows 11 includes it, and most Windows 10 installs have it. If it is missing, `WebUi.Open` returns `null` and `WebUi.IsAvailable` becomes `false`.
+- For HTML panels, the WebView2 Runtime. Windows 10 and 11 have it already. If it is missing, `WebUi.Open` returns `null` and `WebUi.IsAvailable` becomes `false`.
 
 Besides `mscorlib.dll`, `netstandard.dll`, `System.dll`, `System.Core.dll`, `UnityEngine.dll`, `UnityEngine.CoreModule.dll`, `BepInEx.Core.dll`, `BepInEx.Unity.Mono.dll`, `ObenseuerCore.dll` and `ObenseuerCore.WebUi.dll`, these references matter. The names are BepInEx 6 names. For BepInEx 5, see [Supporting BepInEx 5 too](getting-started/packaging.md#supporting-bepinex-5-too):
 
@@ -372,7 +372,7 @@ ScreenFx.FadeToBlack(0.1f);
 ScreenFx.FadeIn(0.1f);
 ```
 
-- `Hud.Notify(text)` shows the game's notice box with the type line `Notice`.
+- `Hud.Notify(text)` shows the game's notice box with the type line `Notice`. `Hud.Notify(title, body)` shows the same box with your own title line.
 - `Hud.ShowSubtitle(text, fadeSeconds)` types the text at 20 characters per second, then fades it out over `fadeSeconds`.
 - `Hud.ShowHint(modId, title, lines)` shows one hint per mod id. Each line is a paragraph. `Hud.HideHint(modId)` removes it.
 - `Hud.ShowNote(noteId)` opens a note the player already has. It cannot show text of your own.
@@ -415,8 +415,8 @@ using ObenseuerCore;
 using UnityEngine;
 
 [BepInPlugin("example.infopanel", "InfoPanel", "0.1.0")]
-[BepInDependency("obenseuer.moddingframework", ">=0.10.0")]
-[BepInDependency("obenseuer.moddingframework.webui", ">=0.10.0")]
+[BepInDependency("obenseuer.moddingframework", ">=0.11.0")]
+[BepInDependency("obenseuer.moddingframework.webui", ">=0.11.0")]
 public class InfoPanel : BaseUnityPlugin
 {
     private const string ModId = "example.infopanel";

@@ -45,7 +45,15 @@ namespace ObenseuerCore
             float[] samples = new float[count];
             for (int i = 0; i < count; i++) samples[i] = Sample(d, dataStart + i * width, width, format);
             AudioClip clip = AudioClip.Create(name, count / channels, channels, rate, false);
-            clip.SetData(samples, 0);
+            try
+            {
+                clip.SetData(samples, 0);
+            }
+            catch (Exception)
+            {
+                UnityEngine.Object.Destroy(clip);
+                throw;
+            }
             return clip;
         }
 

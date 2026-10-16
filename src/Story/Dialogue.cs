@@ -36,6 +36,7 @@ namespace ObenseuerCore
     public static class Dialogue
     {
         internal const string Owner = "obenseuer.moddingframework.dialogue";
+        internal const string NarrationKey = "narration";
         private static readonly string[] gameVariables = { "Actor", "ActorIndex", "Alert", "Conversant", "ConversantIndex", "Conversation", "Converrsant", "Currency", "Day", "PlayerAge", "PlayerFirstName", "PlayerGender", "PlayerLastName", "PoliceIdle", "Price", "SavedLevelName", "Speaker", "WakeUpReason" };
         private static readonly string[] luaKeywords = { "and", "break", "do", "else", "elseif", "end", "false", "for", "function", "if", "in", "local", "nil", "not", "or", "repeat", "return", "then", "true", "until", "while" };
         private static readonly List<Interceptor> interceptors = new List<Interceptor>();
@@ -235,6 +236,35 @@ namespace ObenseuerCore
             }
         }
 
+        public static bool Narrate(string modId, string text)
+        {
+            ModIds.Require(modId, "modId");
+            if (!DialogueAuthoring.ValidText(text, DialogueAuthoring.MaxText, true) || !IsAvailable || IsActive || SaveGate.Busy || BlackCanvas.instance == null || !NarrationClear()) return false;
+            bool called = false;
+            InteractableTalk talk = null;
+            Action previous = null;
+            try
+            {
+                DialogueAuthoring.Remove(modId, NarrationKey);
+                ConversationDefinition definition = new ConversationDefinition { Key = NarrationKey, Lines = new List<ConversationLine> { new ConversationLine { Key = "text", Text = text } } };
+                ConversationRefusal refusal;
+                if (DialogueAuthoring.AddWith(modId, definition, -1, out refusal) == null) return false;
+                talk = BlackCanvas.instance.interactableTalk;
+                previous = talk.onEndTalkCallback;
+                talk.onEndTalkCallback = () => { FadeBack(); if (previous != null) previous(); };
+                called = true;
+                BlackCanvas.instance.StartDialogue(DialogueAuthoring.TitleOf(modId, NarrationKey));
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Owner, "Narrate", e);
+            }
+            if (IsActive) return true;
+            if (talk != null) talk.onEndTalkCallback = previous;
+            if (called) FadeBack();
+            return false;
+        }
+
         public static void Intercept(string modId, ConversationHandler handler)
         {
             ModIds.Require(modId, "modId");
@@ -249,6 +279,7 @@ namespace ObenseuerCore
             interceptors.RemoveAll(i => i.ModId == modId);
             DialogueLuaBridge.RemoveAll(modId);
             DialogueResponses.RemoveAll(modId);
+            DialogueBranches.RemoveAll(modId);
         }
 
         public static string AddResponse(string modId, string conversationTitle, string anchorText, string playerText, string npcReply, string luaCondition, Action onPicked)
@@ -267,6 +298,24 @@ namespace ObenseuerCore
         {
             ModIds.Require(modId, "modId");
             return DialogueResponses.Remove(modId, key);
+        }
+
+        public static string AddBranch(string modId, string conversationTitle, string anchorText, ConversationDefinition branch)
+        {
+            ModIds.Require(modId, "modId");
+            return DialogueBranches.Add(modId, conversationTitle, anchorText, -1, branch);
+        }
+
+        public static string AddBranch(string modId, string conversationTitle, int anchorId, ConversationDefinition branch)
+        {
+            ModIds.Require(modId, "modId");
+            return DialogueBranches.Add(modId, conversationTitle, null, anchorId, branch);
+        }
+
+        public static bool RemoveBranch(string modId, string key)
+        {
+            ModIds.Require(modId, "modId");
+            return DialogueBranches.Remove(modId, key);
         }
 
         internal static void Init()
@@ -368,6 +417,24 @@ namespace ObenseuerCore
                 if (c == '\\' || char.IsControl(c)) return false;
             }
             return true;
+        }
+
+        private static bool NarrationClear()
+        {
+            WaitingController waiting = WaitingController.instance;
+            return waiting == null || (waiting.waitingType == WaitingController.Type.None && string.IsNullOrEmpty(waiting.eventDialogue));
+        }
+
+        private static void FadeBack()
+        {
+            try
+            {
+                BlackCanvas.instance.fadeCanvasGroup.StartFadeOut(0.005f);
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Owner, "Narrate fade back", e);
+            }
         }
 
         private static void OnSceneLoaded(string scene)
