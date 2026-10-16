@@ -7,7 +7,7 @@ nav_order: 65
 # Obenseuer Modding Framework game save data API
 
 Experimental.
-Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Log owner: `ObenseuerCore`. Logs go to `BepInEx\logs\ObenseuerCore.log`.
 
 Five methods on the existing `SaveData` class, next to `SaveData.Register`, and an allowlist overload of `ApplyByGuid`. They copy one savable object's save entry, the `{"GUID":..,"Data":{..}}` item the game writes into its `.tnmt` files, to a string and back. They never write to disk and never touch the save files.

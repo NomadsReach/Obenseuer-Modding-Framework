@@ -15,7 +15,7 @@ namespace ObenseuerCore
         {
             CameraView.Init();
             toggleKey = config.Bind(Section, "ToggleKey", new KeyboardShortcut(KeyCode.F6), "Key that switches first and third person while ThirdPersonToggle is true. Ignored while a menu, dialogue, shop, pause, the console or game controls are active.");
-            Tweaks.Flag(config, Section, "ThirdPersonToggle", "Enables the ToggleKey first and third person switch. Third person is a dormant game mode in 0.5.05, so the player body, animations and clipping may look wrong.", SetToggle);
+            Tweaks.Flag(config, Section, "ThirdPersonToggle", "Enables the ToggleKey first and third person switch. Third person is a dormant game mode in 0.5.08, so the player body, animations and clipping may look wrong.", SetToggle);
             Tweaks.Flag(config, Section, "AllowScrollZoom", "Clears the game's first-person lock so the scroll wheel moves between first and third person. Applies immediately. Restored to the game's values when turned off, unless ThirdPersonToggle still needs it. Not applied while a trigger forces first person.", CameraView.SetScrollUnlock);
         }
 

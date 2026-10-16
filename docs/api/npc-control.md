@@ -7,7 +7,7 @@ nav_order: 95.3
 # Obenseuer Modding Framework NPC control API (npccontrol)
 
 Status: experimental.
-Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Log owner: `obenseuer.moddingframework.npccontrol`. Logs go to `BepInEx\logs\obenseuer.moddingframework.npccontrol.log`.
 
 Ids are the NPC ids from the `Npcs` facade (`NpcInfo.Id`, `Npcs.All()`). For a mod NPC from [Mod NPCs](modnpcs.md), the id is `ModNpcs.CharacterIdOf(modId, npcId)`.

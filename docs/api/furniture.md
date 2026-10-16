@@ -7,7 +7,7 @@ nav_order: 24
 # Obenseuer Modding Framework furniture API (custom furniture)
 
 Experimental.
-Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Log owner: `obenseuer.moddingframework.furniture`. Logs go to `BepInEx\logs\obenseuer.moddingframework.furniture.log`.
 
 Everything not listed here is internal. Main thread only.
@@ -107,7 +107,7 @@ public sealed class BlueprintDefinition
     public Sprite Icon;                                               // null: the furniture's image
     public Dictionary<int, int> Inputs = new Dictionary<int, int>();  // item id -> amount, 1 to 1000
     public List<string> FurnitureInputs = new List<string>();         // furniture ids, one piece each
-    public float ProcessTime = 3600f;                                 // in-game seconds, above 0, at most 10000000
+    public float ProcessTime = 3600f;                                 // base time in seconds, above 0, at most 10000000; the game scales it by skill, mushrooms and difficulty
     public Skill Skill;                                               // Skill.None: no skill gate
     public int MinimumSkill;                                          // 0 to Skills.MaxLevel
     public int Amount = 1;                                            // pieces per craft, 1 to 100

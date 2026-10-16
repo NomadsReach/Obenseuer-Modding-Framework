@@ -7,7 +7,7 @@ nav_order: 93
 # Obenseuer Modding Framework world objects API
 
 Status: experimental.
-Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Log owner: `ObenseuerCore` (`CoreLog`).
 
 Everything not listed here is internal. Main thread only. Reads return a neutral default (`null`, `false`, empty array) when no save or scene is ready. Writes return `bool`. The only exception is `ArgumentException` for invalid arguments.

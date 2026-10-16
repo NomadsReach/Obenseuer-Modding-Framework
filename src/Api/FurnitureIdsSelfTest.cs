@@ -19,6 +19,7 @@ namespace ObenseuerCore
             if (FurnitureIds.TryParse("obx:bad guid/key", out modGuid, out key)) return "space in modGuid parsed";
             if (FurnitureIds.TryParse("obx:nokey", out modGuid, out key)) return "id without a key parsed";
             if (FurnitureIds.IsModId(Template)) return "template path read as a mod id";
+            if (FurnitureIds.Classify("obx:example.spicy-jerky/crate-red") != FurnitureIdKind.Furniture || FurnitureIds.Classify(Template) != FurnitureIdKind.Vanilla) return "saved mod id or template path not kept apart for the saved asset patches";
             if (FurnitureIds.BlueprintIdFor("obx:a.b/table") != "obx:a.b/table/blueprint") return "blueprint id text";
             if (!FurnitureIds.TryParseBlueprint("obx:a.b/table/blueprint", out furniture) || furniture != "obx:a.b/table") return "blueprint id not parsed back";
             if (FurnitureIds.BlueprintIdFor(Template) != null || FurnitureIds.BlueprintIdFor("") != null || FurnitureIds.BlueprintIdFor(null) != null || FurnitureIds.BlueprintIdFor("obx:a.b/table/blueprint") != null) return "blueprint id made from a non-furniture";

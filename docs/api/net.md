@@ -7,7 +7,7 @@ nav_order: 47
 # Obenseuer Modding Framework net API (Steam, Net, Lobby, Presence, Blob)
 
 Status: experimental.
-Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
 Steamworks.NET comes from the game's own DLLs.
 Namespace: `ObenseuerCore`. Log owner: `obenseuer.moddingframework.net`, written to `BepInEx\logs\obenseuer.moddingframework.net.log`.
 

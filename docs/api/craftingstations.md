@@ -7,7 +7,7 @@ nav_order: 105
 # Crafting speed, quality and stations API
 
 Experimental. Every rule below was read from the game's code.
-Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Log owners: `obenseuer.moddingframework.craftingspeed`, `obenseuer.moddingframework.craftingquality` and `obenseuer.moddingframework.craftingstations`.
 Files: `src/Api/CraftingSpeed.cs`, `src/Api/CraftingSpeedPatches.cs`, `src/Api/CraftingQuality.cs`, `src/Api/CraftingQualityPatches.cs`, `src/Api/CraftingStations.cs`.
 

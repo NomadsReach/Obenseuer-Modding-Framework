@@ -5,7 +5,7 @@ nav_order: 11
 
 # Status
 
-**This is a beta.** The latest release is 0.11.0-beta. Its API can change before 1.0. Only Obenseuer 0.5.05 (Steam build 25839246) is supported.
+**This is a beta.** The latest release is 0.11.1-beta. Its API can change before 1.0. Only Obenseuer 0.5.08 (Steam build 25969064) is supported.
 
 Some parts are experimental, including the Story API (quests, dialogue and law), Net (Steam, lobby and presence helpers for co-op), mod NPCs, NPC appearance, the debug trace, the tutorial and computer files.
 

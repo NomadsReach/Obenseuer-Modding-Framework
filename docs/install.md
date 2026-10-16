@@ -7,7 +7,7 @@ nav_order: 2
 
 ## What you need
 
-1. Obenseuer 0.5.05 (Steam build 25839246).
+1. Obenseuer 0.5.08 (Steam build 25969064).
 2. [BepInEx](glossary.md#bepinex) 5.4.23 or later (Mono, x64), or BepInEx 6 Unity.Mono, x64, be.755 or newer, be.788 recommended. Get BepInEx 5 from the [BepInEx releases page](https://github.com/BepInEx/BepInEx/releases). Get BepInEx 6 from [builds.bepinex.dev](https://builds.bepinex.dev/projects/bepinex_be).
 3. The framework zip from the [GitHub releases page](https://github.com/NomadsReach/Obenseuer-Modding-Framework/releases). It holds a BepInEx 6 build and a BepInEx 5 build.
 4. Only if you make mods: the [.NET 10 SDK](https://dotnet.microsoft.com/download). Players do not need it.

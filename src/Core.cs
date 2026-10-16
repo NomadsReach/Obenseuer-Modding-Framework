@@ -12,11 +12,11 @@ using UnityEngine;
 
 namespace ObenseuerCore
 {
-    [BepInPlugin("obenseuer.moddingframework", "Obenseuer Modding Framework", "0.11.0")]
+    [BepInPlugin("obenseuer.moddingframework", "Obenseuer Modding Framework", "0.11.1")]
     public class Core : BaseUnityPlugin
     {
-        private const string SupportedVersion = "0.5.05";
-        private const string SupportedBuildId = "25839246";
+        private const string SupportedVersion = "0.5.08";
+        private const string SupportedBuildId = "25969064";
 
         internal static readonly string SteamBuildId = ReadSteamBuildId();
 
@@ -37,14 +37,14 @@ namespace ObenseuerCore
             mainThread = Thread.CurrentThread.ManagedThreadId;
             // must run before the first Config.Bind, which reads the file
             CarryOverSettings();
-            RefuseUnknownBuild = Config.Bind("Safety", "RefuseUnknownBuild", false, "Refuse all patches on a game build other than 0.5.05 (buildid 25839246). Takes effect on the next start.").Value;
+            RefuseUnknownBuild = Config.Bind("Safety", "RefuseUnknownBuild", false, "Refuse all patches on a game build other than 0.5.08 (buildid 25969064). Takes effect on the next start.").Value;
             Verbose = Config.Bind("Debug", "Verbose", false, "Write Debug(key, message) lines, changes only, to BepInEx\\logs\\<modId>.log.").Value;
             CoreLog log = CoreLog.For("ObenseuerCore");
             log.Info("Obenseuer Modding Framework " + Info.Metadata.Version + " on game " + GameBuild + ", supported " + IsSupportedBuild + ", patching " + PatchingAllowed + ", loader " + Loader.Name);
             if (!IsSupportedBuild)
             {
                 if (RefuseUnknownBuild) log.Warn("unsupported game build " + GameBuild + ", Safety.RefuseUnknownBuild is set, CorePatcher refuses to patch");
-                else log.Warn("unknown game build " + GameBuild + ". Core was verified on 0.5.05 / 25839246; if something breaks, set Safety.RefuseUnknownBuild=true and report it");
+                else log.Warn("unknown game build " + GameBuild + ". Core was verified on 0.5.08 / 25969064; if something breaks, set Safety.RefuseUnknownBuild=true and report it");
             }
             // SaveGate.Init must run before Events.Init: SaveData.OnLoaded relies on SaveGate.Busy being false.
             Isolate("save gate", SaveGate.Init);

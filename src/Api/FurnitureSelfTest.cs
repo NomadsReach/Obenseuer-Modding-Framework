@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using FullSerializer;
 using UnityEngine;
 
 namespace ObenseuerCore
@@ -18,6 +19,8 @@ namespace ObenseuerCore
                 if (!Refused("ok", "")) return "empty key not refused";
                 if (Refused("ok", "crate-red")) return "valid key refused";
                 if (!ForeignModelRefused()) return "model not from ModelRegistry not refused";
+                if (!FurniturePatches.SavedModFurniture(new Dictionary<string, fsData> { { "id", new fsData("obx:example.spicy-jerky/crate-red") } })) return "saved mod furniture not refused by the saved asset patches";
+                if (FurniturePatches.SavedModFurniture(new Dictionary<string, fsData> { { "id", new fsData("Assets/Content/Prefabs/Table.asset") } }) || FurniturePatches.SavedModFurniture(new Dictionary<string, fsData>())) return "vanilla saved furniture refused by the saved asset patches";
                 if (!BlueprintRefused("obx:example.spicy-jerky/crate-red", new BlueprintDefinition(), "furnitureId")) return "blueprint for an undefined furniture not refused";
                 if (!BlueprintRefused("obx:example.spicy-jerky/crate-red", null, "definition")) return "null blueprint definition not refused";
                 if (!BlueprintRefused("obx:example.spicy-jerky/crate-red", new BlueprintDefinition { MinimumSkill = 1 }, "definition")) return "minimum skill without a skill not refused";

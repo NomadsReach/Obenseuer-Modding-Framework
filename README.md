@@ -2,7 +2,7 @@
 
 The Obenseuer Modding Framework (the framework) is a [BepInEx](docs/glossary.md#bepinex) plugin for the game Obenseuer. It runs on BepInEx 5 (5.4.23 or later) and BepInEx 6 (Unity.Mono). It is a shared base for other mods. It gives them one settings menu, a computer app registry, per-save data, game events, game time and money helpers, and safe patching. It also has a few optional gameplay tweaks, all off by default.
 
-Version: 0.11.0-beta (plugin version 0.11.0, GUID `obenseuer.moddingframework`). License: MIT. This is a beta, see the [status page](docs/status.md).
+Version: 0.11.1-beta (plugin version 0.11.1, GUID `obenseuer.moddingframework`). License: MIT. This is a beta, see the [status page](docs/status.md).
 
 Documentation site: https://nomadsreach.github.io/Obenseuer-Modding-Framework/
 
@@ -28,7 +28,7 @@ Mods add their own features on top. The game API areas and helpers were built fr
 
 ### Requirements
 
-- Obenseuer 0.5.05 (Steam build 25839246).
+- Obenseuer 0.5.08 (Steam build 25969064).
 - [BepInEx](docs/glossary.md#bepinex) 5.4.23 or later (Mono, x64), or BepInEx 6 Unity.Mono, x64, bleeding edge build from https://builds.bepinex.dev/projects/bepinex_be: be.755 or newer, be.788 recommended. Install one of them first, then start the game once so it creates its folders.
 - ConfigurationManager and UnityExplorer, if you use them, need the builds for your BepInEx version.
 - Microsoft Edge WebView2 Runtime, only for the optional WebUi module: mods that use WebUi and the web Mods menu. Windows 10 and 11 have it already. Without it, or without the module, the framework still runs, and the Mods menu uses the classic window.
@@ -60,7 +60,7 @@ The framework adds a "Mods" tab to the in-game menu, and a "MODS" button to the 
 
 ### Safety setting
 
-`[Safety] RefuseUnknownBuild` is `false` by default. If the game is not build 0.5.05 (25839246), the framework writes a warning to its log and still runs. Set it to `true` to make the framework refuse to patch on an unknown build.
+`[Safety] RefuseUnknownBuild` is `false` by default. If the game is not build 0.5.08 (25969064), the framework writes a warning to its log and still runs. Set it to `true` to make the framework refuse to patch on an unknown build.
 
 ### Uninstall
 
@@ -72,7 +72,7 @@ Save data written by mods stays in the save folders. Uninstalling the framework 
 
 ### Other game versions
 
-The framework is built for Obenseuer 0.5.05 only. On another version, see the safety setting above. Patches that match changed game code can fail, and the framework disables only the feature that failed.
+The framework is built for Obenseuer 0.5.08 only. On another version, see the safety setting above. Patches that match changed game code can fail, and the framework disables only the feature that failed.
 
 ## For modders
 

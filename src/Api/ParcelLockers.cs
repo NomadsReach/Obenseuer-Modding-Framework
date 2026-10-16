@@ -43,6 +43,8 @@ namespace ObenseuerCore
         internal const string Owner = "obenseuer.moddingframework.parcellockers";
         private static readonly FieldInfo isOpenField = AccessTools.Field(typeof(ParcelLocker.Locker), "isOpen");
         private static readonly FieldInfo parcelField = AccessTools.Field(typeof(ParcelLocker.Locker), "currentParcel");
+        private static bool takingParcel;
+        private static bool silentPatched;
 
         public static List<ParcelLockerInfo> All()
         {
@@ -84,7 +86,16 @@ namespace ObenseuerCore
                 ParcelLocker.Locker slot = locker.lockers[index];
                 if (slot == null || ParcelOf(slot) == null || Cash.Refused("ParcelLockers.TakeParcel")) return false;
                 if (!Mailboxes.MailSingletonsReady()) return false;
-                locker.TakeParcelFromLocker(index);
+                EnsureSilentTake();
+                takingParcel = true;
+                try
+                {
+                    locker.TakeParcelFromLocker(index);
+                }
+                finally
+                {
+                    takingParcel = false;
+                }
                 return ParcelOf(slot) == null;
             }
             catch (Exception e)
@@ -135,6 +146,17 @@ namespace ObenseuerCore
         private static MailController.Mail ParcelOf(ParcelLocker.Locker slot)
         {
             return slot == null || parcelField == null ? null : parcelField.GetValue(slot) as MailController.Mail;
+        }
+
+        private static void EnsureSilentTake()
+        {
+            if (silentPatched) return;
+            silentPatched = CorePatcher.PatchCore(typeof(MailController), "TakeMailitem", new[] { typeof(MailController.Mail), typeof(bool) }, CorePatcher.Handler(typeof(ParcelLockers), "TakeSilentPrefix"), null, null, false, Owner);
+        }
+
+        private static void TakeSilentPrefix(ref bool silent)
+        {
+            if (takingParcel) silent = true;
         }
     }
 }

@@ -6,7 +6,7 @@ nav_order: 44
 
 # MainMenu API
 
-Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Files: `src/Api/MainMenuButtons.cs` (the API), `src/ModMenuMainMenu.cs` (the MODS button, which uses the API).
 
 Everything not listed here is internal.

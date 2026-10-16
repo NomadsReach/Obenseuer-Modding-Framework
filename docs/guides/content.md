@@ -12,7 +12,7 @@ The item, model, furniture and shop stock reference pages are marked experimenta
 
 ## What you need
 
-- Obenseuer 0.5.05, BepInEx 5.4.23 or later (Mono) or BepInEx 6 Unity.Mono, and the Obenseuer Modding Framework 0.11.0 (`obenseuer.moddingframework`). The samples use BepInEx 6 names. For BepInEx 5, see [Supporting BepInEx 5 too](getting-started/packaging.md#supporting-bepinex-5-too).
+- Obenseuer 0.5.08, BepInEx 5.4.23 or later (Mono) or BepInEx 6 Unity.Mono, and the Obenseuer Modding Framework 0.11.0 (`obenseuer.moddingframework`). The samples use BepInEx 6 names. For BepInEx 5, see [Supporting BepInEx 5 too](getting-started/packaging.md#supporting-bepinex-5-too).
 - The .NET 10 SDK, for `dotnet build`. Start from the project in [Your first mod](getting-started/first-mod.md). The samples avoid newer C# syntax: no string interpolation, no `?.`, no `nameof`. The Starter project uses the latest C# version, so you can use it in your own code.
 - Your own PNG icons, OBJ and MTL models and textures.
 - Put the DLL and these asset files in `BepInEx\plugins\<your-mod>\`.

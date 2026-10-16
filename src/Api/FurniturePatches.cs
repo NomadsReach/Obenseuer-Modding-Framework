@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using FullSerializer;
 using HarmonyLib;
 using UnityEngine;
 
@@ -49,6 +50,8 @@ namespace ObenseuerCore
                 ok &= Hook(typeof(Furniture), "CreateTaskItem", new[] { typeof(Furniture), typeof(BuildingSystem.FurnitureInfo.Meta), typeof(TaskItem) }, null, "CreateTaskItemPostfix");
                 ok &= Hook(typeof(TaskItem), "Compare", new[] { typeof(TaskItem) }, "ComparePrefix", null);
                 ok &= Hook(typeof(SaveController), "SaveGame", new[] { typeof(string), typeof(string), typeof(string) }, "SaveGamePrefix", null, "SaveGameFinalizer");
+                ok &= Hook(typeof(SavedAssets), "IsCollapsible", new[] { typeof(Dictionary<string, fsData>), typeof(string).MakeByRefType() }, "SavedCollapsiblePrefix", null);
+                ok &= Hook(typeof(SavedAssets), "GetAssetFor", new[] { typeof(fsData), typeof(Type) }, "SavedAssetForPrefix", null);
                 return ok;
             }
             catch (Exception e)
@@ -140,6 +143,27 @@ namespace ObenseuerCore
             {
                 ApiLog.Once(FurnitureRegistry.Owner, "SaveGame finalizer", e);
             }
+        }
+
+        internal static bool SavedModFurniture(Dictionary<string, fsData> dict)
+        {
+            fsData id;
+            return dict != null && dict.TryGetValue("id", out id) && id.IsString && FurnitureRegistry.IsModId(id.AsString);
+        }
+
+        private static bool SavedCollapsiblePrefix(Dictionary<string, fsData> dict, out string path, ref bool __result)
+        {
+            path = null;
+            if (!SavedModFurniture(dict)) return true;
+            __result = false;
+            return false;
+        }
+
+        private static bool SavedAssetForPrefix(fsData data, ref ScriptableObject __result)
+        {
+            if (data == null || !data.IsDictionary || !SavedModFurniture(data.AsDictionary)) return true;
+            __result = null;
+            return false;
         }
 
         private static void AddFurniturePrefix(ref Furniture furniture)

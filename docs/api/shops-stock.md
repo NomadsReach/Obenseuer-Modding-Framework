@@ -7,7 +7,7 @@ nav_order: 72
 # Obenseuer Modding Framework shop stock API (ShopStock)
 
 Experimental.
-Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Log owner: `obenseuer.moddingframework.shopstock`. Logs go to `BepInEx\logs\obenseuer.moddingframework.shopstock.log`.
 
 Everything not listed here is internal. Main thread only.

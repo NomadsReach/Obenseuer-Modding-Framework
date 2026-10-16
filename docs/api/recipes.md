@@ -6,7 +6,7 @@ nav_order: 59
 
 # Recipes, crafting and growing API
 
-Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Patch owners: `obenseuer.moddingframework.crafting` (craft events), `obenseuer.moddingframework.growing` (harvest event), `obenseuer.moddingframework.recipes` (`Recipes.Unlocked`). Recipe reads and `Unlock` need no patch.
 Files: `src/Api/Recipes.cs`, `src/Api/RecipesPatches.cs`, `src/Api/Crafting.cs`, `src/Api/CraftingPatches.cs`, `src/Api/GrowingPlants.cs`, `src/Api/GrowingPatches.cs`.
 

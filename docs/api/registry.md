@@ -10,7 +10,7 @@ Status: experimental.
 
 Warning: a save that holds items or recipes from a mod that is not installed keeps those stacks as placeholders (see Missing items), and its recipes stop working until the mod returns. Keep the mod installed for that save, or clear its missing stacks with `ItemRegistry.RemoveMissingItems`.
 
-Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Patch owner: `obenseuer.moddingframework.registry`.
 Files: `src/Api/RegistryIds.cs`, `src/Api/RegistryItems.cs`, `src/Api/RegistryRecipes.cs`, `src/Api/RegistryPatches.cs`, `src/Api/RegistryManifest.cs`, `src/Api/RegistryPlaceholders.cs`, `src/Api/RegistryMissing.cs`, `src/Api/RegistrySelfTest.cs`.
 

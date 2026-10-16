@@ -7,7 +7,7 @@ nav_order: 94
 # Story API (Quests, Dialogue, Law)
 
 Experimental.
-Game: Obenseuer 0.5.05 (build 25839246), Unity Mono.
+Game: Obenseuer 0.5.08 (build 25969064), Unity Mono.
 Namespace: `ObenseuerCore`. Log owners: `obenseuer.moddingframework.quests`, `obenseuer.moddingframework.dialogue`, `obenseuer.moddingframework.law`. Logs go to `BepInEx\logs\<owner>.log`.
 
 Everything not listed here is internal. Items marked **experimental** may change.

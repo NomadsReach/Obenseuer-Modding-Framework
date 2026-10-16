@@ -7,7 +7,7 @@ nav_order: 101.1
 # Obenseuer Modding Framework mod NPC API (modnpcs)
 
 Status: experimental.
-Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Log owner: `obenseuer.moddingframework.modnpcs`. Logs go to `BepInEx\logs\obenseuer.moddingframework.modnpcs.log`.
 
 Everything not listed here is internal. Every member is **experimental**.

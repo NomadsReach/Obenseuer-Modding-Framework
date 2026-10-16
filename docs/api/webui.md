@@ -7,7 +7,7 @@ nav_order: 90
 # Obenseuer Modding Framework WebUi API (WebUi, WebView)
 
 Status: experimental.
-Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Log owner: `obenseuer.moddingframework.webui`. Logs go to `BepInEx\logs\obenseuer.moddingframework.webui.log`.
 Native part: `ObxWebView.dll`, a WebView2 shim that the WebUi module ships next to `ObenseuerCore.WebUi.dll`.
 Requirements: the optional WebUi module (`ObenseuerCore.WebUi.dll`, Windows only) and the WebView2 Runtime, preinstalled on Windows 10/11. Needed only by mods that use WebUi and by the web Mods menu.
@@ -16,7 +16,7 @@ Everything not listed here is internal.
 
 ## Install and requirements
 
-WebUi is a separate BepInEx plugin, `ObenseuerCore.WebUi.dll` (GUID `obenseuer.moddingframework.webui`, version 0.11.0). The framework is required, and the module depends on it. Install the module from the WebUi zip, `ObenseuerModdingFramework-WebUi-<version>-beta.zip`. It goes to `BepInEx\plugins\ObenseuerCore.WebUi\` with `ObxWebView.dll` and `web\`.
+WebUi is a separate BepInEx plugin, `ObenseuerCore.WebUi.dll` (GUID `obenseuer.moddingframework.webui`, version 0.11.1). The framework is required, and the module depends on it. Install the module from the WebUi zip, `ObenseuerModdingFramework-WebUi-<version>-beta.zip`. It goes to `BepInEx\plugins\ObenseuerCore.WebUi\` with `ObxWebView.dll` and `web\`.
 
 - A mod that uses WebUi declares `[BepInDependency("obenseuer.moddingframework.webui", ">=0.11.0")]` and references `ObenseuerCore.WebUi.dll`. The WebUi types are not in `ObenseuerCore.dll`. On BepInEx 5, write `"0.11.0"` instead, because BepInEx 5 cannot parse a version range. See [Supporting BepInEx 5 too](../guides/getting-started/packaging.md#supporting-bepinex-5-too).
 - Without the module, the WebUi types are missing and the Mods menu uses the classic window.

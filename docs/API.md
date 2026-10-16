@@ -6,7 +6,7 @@ nav_order: 6
 
 # Obenseuer Modding Framework API (0.11.0)
 
-Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 5.4.23 or later (Mono), or BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended). Extensive testing has not been fully done yet.
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 5.4.23 or later (Mono), or BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended). Extensive testing has not been fully done yet.
 Namespace: `ObenseuerCore`. Plugin GUID: `obenseuer.moddingframework`.
 
 Everything not listed here is internal, including the framework's save-file classes, which are not API and may change. The one save-file type that is public is `BankLedgerEntry`, because the bank ledger's `Entries` and `Added` return it. `WebUiPlugin` is the WebUi plugin class itself; mods never use it.

@@ -6,7 +6,7 @@ nav_order: 97.2
 
 # SceneState API
 
-Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. File: `src/Api/SceneState.cs`.
 
 This area reads and sets the scene variables that the scene's own logic keeps: branches (true or false), counters, state machines, sequences and timers. Ids are the authored GUIDs, or scene paths where a GUID is missing, the same as `SceneLogic`.

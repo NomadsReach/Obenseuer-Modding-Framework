@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using BepInEx.Configuration;
 
 namespace ObenseuerCore
@@ -37,6 +38,7 @@ namespace ObenseuerCore
             if (skillTried || !noMinimumSkill) return;
             skillTried = true;
             bool ok = EnsureProcessTime() && Tweaks.PatchAs(CraftingOwner, true, typeof(RecipeInfoUI), "CheckSkillSoft", new[] { typeof(Recipe), typeof(float) }, typeof(TweaksCrafting), null, "CheckSkillSoftPostfix", null);
+            ok &= Tweaks.PatchAs(CraftingOwner, true, typeof(Recipe), "GetCraftingResult", new[] { typeof(float), typeof(Item[]).MakeByRefType(), typeof(float[]).MakeByRefType(), typeof(List<KeyValuePair<ItemStack, int>>), typeof(bool), typeof(CraftingBase.CraftingInputData), typeof(float) }, typeof(TweaksCrafting), "RollPrefix", null, "RollFinalizer");
             Tweaks.Log(SectionSkill, ok);
         }
 
@@ -53,8 +55,24 @@ namespace ObenseuerCore
         // Harmony binds parameters by name: keep 'multpiler', the game's spelling.
         private static void ProcessTimePostfix(Recipe __instance, float multpiler, float equipmentQuality, ref int __result)
         {
-            if (noMinimumSkill) __result = (int)((float)__instance.ProcessTime * multpiler / equipmentQuality);
+            if (noMinimumSkill)
+            {
+                float time = (float)__instance.ProcessTime * multpiler / equipmentQuality;
+                if (DifficultyController.instance != null && DifficultyController.instance.currentDifficultyInfo != null) time = DifficultyController.instance.currentDifficultyInfo.GetItemCraftingTime(time);
+                __result = (int)time;
+            }
             if (speed != Tweaks.Default && __result > 0) __result = Math.Max(1, (int)Math.Min(__result / (double)speed, 2000000000.0));
+        }
+
+        private static void RollPrefix(Recipe __instance, out int __state)
+        {
+            __state = __instance.MinimumSkill;
+            if (noMinimumSkill) __instance.MinimumSkill = 0;
+        }
+
+        private static void RollFinalizer(Recipe __instance, int __state)
+        {
+            __instance.MinimumSkill = __state;
         }
 
         private static void StartCraftingPostfix(BaseCrafting __instance)

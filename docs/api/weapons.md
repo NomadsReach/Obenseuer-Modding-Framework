@@ -7,7 +7,7 @@ nav_order: 89
 # Obenseuer Modding Framework weapons API (weapons)
 
 Status: experimental.
-Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Log owners: `obenseuer.moddingframework.weapons`, `obenseuer.moddingframework.weapons.reload`, `obenseuer.moddingframework.weapons.melee` and `obenseuer.moddingframework.weapons.hit`. Logs go to `BepInEx\logs\obenseuer.moddingframework.weapons.log`.
 
 Everything not listed here is internal. Items marked **experimental** may change.

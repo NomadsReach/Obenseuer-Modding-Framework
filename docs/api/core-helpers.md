@@ -7,7 +7,7 @@ nav_order: 94
 # Framework helpers API
 
 Experimental.
-Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Log: `CoreMod.Log` writes to `BepInEx\logs\<your guid>.log`.
 
 Three additions that cut the setup code a mod repeats. Each one forwards to an existing API and changes none of them: `CoreMod` wraps `SaveData.Register`, `Keybinds.Register` and `CorePatcher.Patch`, the `CorePatcher` short helpers wrap `CorePatcher.Patch`, and `Events.WhenReady` runs its action at the ready point that follows `Events.Loaded`, or at a new game's first level. `SaveData.Bind` is on the [game save data page](savedata-game.md).

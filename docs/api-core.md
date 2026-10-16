@@ -14,8 +14,8 @@ The samples target BepInEx 6. On BepInEx 5, delete the `using BepInEx.Unity.Mono
 
 ```csharp
 public class Core : BaseUnityPlugin
-public static readonly string GameBuild;        // "0.5.05 (buildid 25839246)", or "0.5.05 (buildid unknown)" when no Steam manifest is found
-public static readonly bool IsSupportedBuild;   // version 0.5.05, and buildid 25839246 when known
+public static readonly string GameBuild;        // "0.5.08 (buildid 25969064)", or "0.5.08 (buildid unknown)" when no Steam manifest is found
+public static readonly bool IsSupportedBuild;   // version 0.5.08, and buildid 25969064 when known
 public static bool PatchingAllowed { get; }     // false only when the build is unsupported and Safety.RefuseUnknownBuild is set
 public static bool RawAccessAvailable { get; }  // set by the L0 access probe when Debug.AccessProbe is true; false otherwise
 ```
@@ -26,7 +26,7 @@ The probe runs only when `[Debug] AccessProbe` is true. It logs `L0 access probe
 
 Config (`BepInEx\config\obenseuer.moddingframework.cfg`):
 
-- `[Safety] RefuseUnknownBuild = false`. When true, every patch is refused on a game build other than 0.5.05 (buildid 25839246). By default an unknown build is patched, and a warning is logged. Takes effect on the next start.
+- `[Safety] RefuseUnknownBuild = false`. When true, every patch is refused on a game build other than 0.5.08 (buildid 25969064). By default an unknown build is patched, and a warning is logged. Takes effect on the next start.
 - `[Debug] Master = false`. The framework's debug trace, written to `BepInEx\logs\ObenseuerCore.debug.log`. Also in the Mods menu and the `core_debug` console command. `[Debug] TraceFilter` limits it to type name prefixes. See [Debug](api/debug.md).
 - `[Debug] Verbose = false`. When true, `CoreLog.Debug` writes.
 - `[Debug] AccessProbe = false`. Runs the L0 access probe at start and logs the result.
@@ -58,7 +58,7 @@ public static class CorePatcher
 - Returns `false` and logs to `BepInEx\logs\<owner>.log` on failure.
 - `core: true` marks the patch as critical. If it fails, every patch the framework made under that owner is removed and `IsDisabled(owner)` becomes true. Your own `new Harmony(owner)` patches are not touched.
 - A disabled owner can't patch again this session. `Patch` returns `false` for it without logging, until the game restarts.
-- Refuses to patch (returns `false`, and logs `patch skipped, unsupported game build`) when `Core.PatchingAllowed` is false. That is only when the build is not 0.5.05 and `[Safety] RefuseUnknownBuild` is set. By default an unknown build is patched.
+- Refuses to patch (returns `false`, and logs `patch skipped, unsupported game build`) when `Core.PatchingAllowed` is false. That is only when the build is not 0.5.08 and `[Safety] RefuseUnknownBuild` is set. By default an unknown build is patched.
 
 ```csharp
 using System;
@@ -385,7 +385,7 @@ public static bool Toggle();                     // third person when first, fir
 public static event Action<bool> ModeChanged;    // true = first person. Forwarded from ThirdPersonCameraCollision.CameraModeChange
 ```
 
-- Vanilla 0.5.05 is first person only. Third person is a dormant game mode, so the player body, animations and clipping may look rough.
+- Vanilla 0.5.08 is first person only. Third person is a dormant game mode, so the player body, animations and clipping may look rough.
 - `SetThirdPerson` clears `disableThirdPerson` and `firstpersonOnly` and keeps the vanilla values, so `Tweaks.Camera` can put them back. The game's `FixedUpdate` then calls `ThirdPerson()` on the next physics step. `ModeChanged` fires then, not inside the call.
 - A wall closer than about 0.6 m keeps first person, because the game's collision sets `distance` below 0.5.
 - `SetFirstPerson` does not change the camera rotation. The controller's `rotX`/`rotY` stay as they are, so the view direction does not jump.

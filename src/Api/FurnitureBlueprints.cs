@@ -147,7 +147,7 @@ namespace ObenseuerCore
             blueprint.addressableAssetPath = "";
             blueprint.result = result;
             blueprint.Amount = definition.Amount;
-            blueprint.processTime = definition.ProcessTime;
+            blueprint.processTime = definition.ProcessTime / 60.0;
             blueprint.skill = (PlayerStats.PlayerSkillType)(int)definition.Skill;
             blueprint.minimumSkill = definition.MinimumSkill;
             blueprint.resourceItems = resources;

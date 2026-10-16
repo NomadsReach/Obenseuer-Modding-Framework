@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.11.1-beta (2026-10-16)
+
+### Fixed
+
+- The framework runs on Obenseuer 0.5.08 (Steam build 25969064), now the supported build.
+- Built against Obenseuer 0.5.08: mod code that adds items to containers no longer fails (the game changed `Storage.AddItem`).
+- Mod furniture blueprints build with the right crafting time, because the game now stores minutes.
+- Placed mod furniture keeps its own type when a new game save loads, instead of turning into the vanilla piece.
+- The rat fight payout hook (`Contests` payout) works.
+- The NoMinimumSkill tweak applies the difficulty crafting speed and the 0.5.05 roll.
+- `ParcelLockers.TakeParcel` is silent again.
+
+### Known gaps
+
+- On 0.5.08: auto-consume skips item use hooks; for instant crafts, `CraftingStations.StartCraft` reports the wrong result and `CraftDelayed` hooks do not fire; grow quality skips the `ApplyQuality` postfix; difficulty crafting speeds are not exposed.
+
 ## 0.11.0-beta (2026-10-16)
 
 ### Added

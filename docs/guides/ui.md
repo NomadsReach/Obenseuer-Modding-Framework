@@ -10,7 +10,7 @@ This guide covers the four UI routes a framework mod can use: an HTML panel on W
 
 You need:
 
-- Obenseuer 0.5.05, BepInEx 5.4.23 or later (Mono) or BepInEx 6 Unity.Mono, and the Obenseuer Modding Framework 0.11.0. Depend on it with `[BepInDependency("obenseuer.moddingframework", ">=0.11.0")]`. This guide uses WebUi, so also depend on the optional WebUi module with `[BepInDependency("obenseuer.moddingframework.webui", ">=0.11.0")]`. On BepInEx 5, write `"0.11.0"` instead, because BepInEx 5 cannot parse a version range, and drop `using BepInEx.Unity.Mono;` (`BaseUnityPlugin` then comes from `BepInEx`). See [Supporting BepInEx 5 too](getting-started/packaging.md#supporting-bepinex-5-too).
+- Obenseuer 0.5.08, BepInEx 5.4.23 or later (Mono) or BepInEx 6 Unity.Mono, and the Obenseuer Modding Framework 0.11.0. Depend on it with `[BepInDependency("obenseuer.moddingframework", ">=0.11.0")]`. This guide uses WebUi, so also depend on the optional WebUi module with `[BepInDependency("obenseuer.moddingframework.webui", ">=0.11.0")]`. On BepInEx 5, write `"0.11.0"` instead, because BepInEx 5 cannot parse a version range, and drop `using BepInEx.Unity.Mono;` (`BaseUnityPlugin` then comes from `BepInEx`). See [Supporting BepInEx 5 too](getting-started/packaging.md#supporting-bepinex-5-too).
 - C# 5 is the version the framework is built with. The Starter project uses the latest C# version.
 - For HTML panels, the WebView2 Runtime. Windows 10 and 11 have it already. If it is missing, `WebUi.Open` returns `null` and `WebUi.IsAvailable` becomes `false`.
 

@@ -7,7 +7,7 @@ nav_order: 100
 # Framework mods API
 
 Experimental.
-Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later). Needs framework 0.11.0 or later.
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later). Needs framework 0.11.0 or later.
 Namespace: `ObenseuerCore`.
 
 A framework mod is one DLL that runs on BepInEx 5 and BepInEx 6. The DLL does not reference BepInEx. The framework finds it in `BepInEx\plugins\` when the game starts, and loads it, so one build serves both loaders. Use this form for a new mod. A [BepInEx plugin](../guides/getting-started/packaging.md#bepinex-plugins-advanced) is still needed for a BepInEx API, such as `KeyboardShortcut`.

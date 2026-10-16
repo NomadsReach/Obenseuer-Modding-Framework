@@ -7,7 +7,7 @@ nav_order: 55
 # Obenseuer Modding Framework player API (PlayerState, Skills, Effects, Subscriptions, Travel)
 
 Status: experimental.
-Target: Obenseuer 0.5.05 (buildid 25839246), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Log owners: `obenseuer.moddingframework.player`, `obenseuer.moddingframework.player.wait`, `obenseuer.moddingframework.player.wakeup`, `obenseuer.moddingframework.player.waitresult`, `obenseuer.moddingframework.player.pick`, `obenseuer.moddingframework.skills`, `obenseuer.moddingframework.effects`. Logs go to `BepInEx\logs\<owner>.log`.
 
 Everything not listed here is internal.
