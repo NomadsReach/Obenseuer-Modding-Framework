@@ -7,10 +7,12 @@ nav_order: 55
 # Obenseuer Modding Framework player API (PlayerState, Skills, Effects, Subscriptions, Travel)
 
 Status: experimental.
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Log owners: `obenseuer.moddingframework.player`, `obenseuer.moddingframework.player.wait`, `obenseuer.moddingframework.player.wakeup`, `obenseuer.moddingframework.player.waitresult`, `obenseuer.moddingframework.player.pick`, `obenseuer.moddingframework.skills`, `obenseuer.moddingframework.effects`. Logs go to `BepInEx\logs\<owner>.log`.
 
 Everything not listed here is internal.
+
+This page covers the player character: health, needs, sleeping and waiting, skills, status effects, subscriptions, fast travel and the camera. Most calls read or change the live game, so they are refused while a save is loading or saving.
 
 ## Rules
 
@@ -204,7 +206,7 @@ public sealed class SkillValue
 public static class Skills
 {
     public static bool IsAvailable { get; }
-    public static int MaxLevel { get; }               // PlayerStats.maxLevel, 10 in 0.5.05
+    public static int MaxLevel { get; }               // PlayerStats.maxLevel, 10 in 0.5.08
     public static float Get(Skill skill);
     public static int Level(Skill skill);
     public static bool Add(Skill skill, float amount);
@@ -332,9 +334,9 @@ CameraView.ClearFirstPersonBody("com.example.selfie");
 - Damage intercepts and breakdowns: `Survival.InterceptDamage` and `Survival.Breakdown`, in the section above.
 - Fall airtime: `FallDamage.NegateFallDamage` is not wrapped. It only clears the airtime building up before landing, and no game code calls it. Fall damage can be cancelled with `Survival.InterceptDamage` on `DamageTypeNames.Fall`.
 - Setting health, bleeding and other stats: `Survival.Get` and `Survival.Set`. `PlayerState.Health` reads the same field.
-- Appearance: `PlayerLook`. Camera mode and the first-person body: `CameraView`, see Camera above. Field of view and zoom: `ScreenFx.SetFovOverride`, see `docs/api/screen-fx.md`. Look lock: `PlayerMovement.LockLook`, see `docs/api/player-movement.md`. Money: `Wallet`.
+- Appearance: `PlayerLook`. Camera mode and the first-person body: `CameraView`, see Camera above. Field of view and zoom: `ScreenFx.SetFovOverride`, see [screen-fx page](screen-fx.md). Look lock: `PlayerMovement.LockLook`, see [player-movement page](player-movement.md). Money: `Wallet`.
 - Medical: `DoctorController` only opens the doctor's menu for a `Doctor` object the game owns, and it has no state to read. Not wrapped.
-- Map markers: `MapController.AddLandMark` needs a game `Landmark` asset, and the saved landmark keeps that asset reference, so a mod cannot make one safely. Mods add markers with `Landmarks.Create` and `Landmarks.Mark`, see `docs/api/landmarks.md`. `PlayerMarker` and `Map` are UI-only.
+- Map markers: `MapController.AddLandMark` needs a game `Landmark` asset, and the saved landmark keeps that asset reference, so a mod cannot make one safely. Mods add markers with `Landmarks.Create` and `Landmarks.Mark`, see [landmarks page](landmarks.md). `PlayerMarker` and `Map` are UI-only.
 - Player level: `PlayerStats` has no overall level. Use `Skills`.
 
 ## Failed patches
@@ -343,18 +345,30 @@ A failed event patch disables that owner's events, logs one error, and leaves th
 
 ## Example
 
-Run with the BepInEx console open and a save loaded.
+Run with a save loaded. The output goes to the mod's log, `BepInEx\logs\example.playersmoke.log`.
 
 ```csharp
-public class PlayerSmoke : BaseUnityPlugin
+using ObenseuerCore;
+using UnityEngine;
+
+[ModInfo("example.playersmoke", "Player Smoke", "0.1.0")]
+[ModDependency("obenseuer.moddingframework", "0.11.0")]
+public class PlayerSmoke : FrameworkMod
 {
+    private ModKeybind smokeKey;
+
+    protected override void OnLoad()
+    {
+        smokeKey = Mod.Key("Smoke", "Run the player check", KeyCode.F9);
+    }
+
     private void Update()
     {
-        if (!UnityEngine.Input.GetKeyDown(KeyCode.F9)) return;
-        Logger.LogInfo("pos " + PlayerState.Position + " alive " + PlayerState.IsAlive + " health " + PlayerState.Health);
-        Logger.LogInfo("lockpicking " + Skills.Get(Skill.Lockpicking) + " level " + Skills.Level(Skill.Lockpicking));
-        Logger.LogInfo("add lockpicking " + Skills.Add(Skill.Lockpicking, 0.5f));
-        Logger.LogInfo("active effects " + Effects.Active().Count + ", entrypoints " + Travel.Entrypoints().Count);
+        if (smokeKey == null || !smokeKey.Down()) return;
+        Log.Info("pos " + PlayerState.Position + " alive " + PlayerState.IsAlive + " health " + PlayerState.Health);
+        Log.Info("lockpicking " + Skills.Get(Skill.Lockpicking) + " level " + Skills.Level(Skill.Lockpicking));
+        Log.Info("add lockpicking " + Skills.Add(Skill.Lockpicking, 0.5f));
+        Log.Info("active effects " + Effects.Active().Count + ", entrypoints " + Travel.Entrypoints().Count);
     }
 }
 ```

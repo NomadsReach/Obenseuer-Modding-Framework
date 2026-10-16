@@ -13,7 +13,7 @@
 
 ### Known gaps
 
-- On 0.5.08: auto-consume skips item use hooks; for instant crafts, `CraftingStations.StartCraft` reports the wrong result and `CraftDelayed` hooks do not fire; grow quality skips the `ApplyQuality` postfix; difficulty crafting speeds are not exposed.
+- On 0.5.08: auto-consume skips item use hooks; for instant crafts, `CraftingStations.StartCraft` reports the wrong result and `CraftDelayed` hooks do not fire; grow quality skips the `ApplyQuality` postfix. Will be fixed soon. 
 
 ## 0.11.0-beta (2026-10-16)
 

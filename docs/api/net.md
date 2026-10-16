@@ -7,11 +7,13 @@ nav_order: 47
 # Obenseuer Modding Framework net API (Steam, Net, Lobby, Presence, Blob)
 
 Status: experimental.
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Steamworks.NET comes from the game's own DLLs.
 Namespace: `ObenseuerCore`. Log owner: `obenseuer.moddingframework.net`, written to `BepInEx\logs\obenseuer.moddingframework.net.log`.
 
 Everything not listed here is internal.
+
+Use this page to build online features on top of Steam. `Steam` gives you the local Steam identity, `Lobby` hosts or joins a lobby of players, `Net` sends short messages between lobby members on a channel you name, `Presence` shares each player's position and area, and `NetBlob` sends larger data to one player. Nothing runs until a mod uses it. Every player needs Steam and the same mods.
 
 ## Rules
 

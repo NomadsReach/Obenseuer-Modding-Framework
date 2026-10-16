@@ -5,7 +5,7 @@ nav_order: 1.5
 
 # Features
 
-This page lists what the framework covers, grouped by what a modder wants to change. Each part says what a mod can do, links to the API page with the details, and says what is not possible yet. Parts marked "new in 0.10.0-beta" were added in that release. Extensive testing has not been fully done yet. The framework targets Obenseuer 0.5.05.
+This page lists what the framework covers, grouped by what a modder wants to change. Each part says what a mod can do, links to the API page with the details, and says what is not possible yet. Parts marked "new in 0.10.0-beta" were added in that release. Extensive testing has not been fully done yet. The framework targets Obenseuer 0.5.08.
 
 ## Player
 
@@ -54,8 +54,8 @@ This page lists what the framework covers, grouped by what a modder wants to cha
 
 **You can**
 
-- Read animals with their health, tame flag and whether they follow or run, and read their hunger and age (the hunger and age reads are new in 0.10.0-beta) ([Animals](api/npcs.md#animals-and-osrats)).
-- Damage an animal, and set it tame. The tame choice is kept in a file the framework writes for each save, and is dropped when the game changes the animal (the tame call and its save file are new in 0.10.0-beta) ([Animals](api/npcs.md#animals-and-osrats), [Animal actions](api/animal-actions.md)).
+- Read animals with their health, tame flag and whether they follow or run, and read their hunger and age (the hunger and age reads are new in 0.10.0-beta) ([Animals](api/npcs.md#animals)).
+- Damage an animal, and set it tame. The tame choice is kept in a file the framework writes for each save, and is dropped when the game changes the animal (the tame call and its save file are new in 0.10.0-beta) ([Animals](api/npcs.md#animals), [Animal actions](api/animal-actions.md)).
 - Make a live animal sit, sleep, hunt or run, and hold it asleep until you clear the hold or a scene load that is not additive (new in 0.10.0-beta; best effort, because the game can wake a hurt animal and its own sleep and sit timers can end the hold) ([Animal actions](api/animal-actions.md)).
 
 **Not possible yet:** an animal cannot follow the player across a level change, because the game respawns followers when the level changes.
@@ -162,8 +162,8 @@ This page lists what the framework covers, grouped by what a modder wants to cha
 - Place, move and remove furniture in an area the way build mode does, and get told when the player enters or leaves a building area (new in 0.10.0-beta) ([Housing and building](api/housing.md)).
 - Read apartments and their tenants, and get told when a tenant moves in or out ([Housing and building](api/housing.md)).
 - Start or cancel an eviction through the game's own tenement controller (new in 0.10.0-beta) ([Housing and building](api/housing.md#evictions)).
-- Rent an apartment, read a tenant's income and upgrade levels, trigger a tenant event, or open the rent screen (new in 0.10.0-beta) ([Tenants](api/tenants.md)).
-- Rent a hotel room at the game's own price, and get told when a room is rented or its stay expires ([Hotels](api/hotels.md)).
+- Move an NPC tenant into one of your tenement apartments, read a tenant's income and upgrade levels, trigger a tenant event, or open the rent screen (new in 0.10.0-beta) ([Tenants](api/tenants.md)).
+- Rent a hotel room for the player at the game's own price, and get told when a room is rented or its stay expires ([Hotels](api/hotels.md)).
 - Start a renovation, and read its progress and cost ([Renovations](api/renovations.md)).
 - Set a surface's wallpaper or remove it, and get told when it changes (new in 0.10.0-beta) ([Surfaces](api/surfaces.md)).
 
@@ -174,7 +174,7 @@ This page lists what the framework covers, grouped by what a modder wants to cha
 - Read the cleaning timers and the trash piles in each apartment ([Cleaning](api/cleaning.md)).
 - Read dishwashers, their contents and progress, and get told when a cycle finishes ([Dishwashers](api/dishwashers.md)).
 - Read recycling machines and the money each one owes, set what is owed, and get told when a bottle return pays out (new in 0.10.0-beta) ([Recycling](api/recycling.md)).
-- Get told when a janitor acts, and read the item and container it works on ([Janitors](api/janitors.md)).
+- Get told when a janitor acts, and read the item and container it works on. Janitors are invisible level scripts that restock storage or fire relays, not cleaning NPCs ([Janitors](api/janitors.md)).
 
 ## Scenes, doors and levels
 
@@ -211,6 +211,7 @@ This page lists what the framework covers, grouped by what a modder wants to cha
 
 - Scale melee damage by target kind for each mod, and get told of each melee hit with its base and final damage (new in 0.10.0-beta) ([Weapons](api/weapons.md)).
 - Read the weapon in your hand, reload, and switch the flashlight on or off (the flashlight calls are new in 0.10.0-beta) ([Weapons](api/weapons.md)).
+- Read the osrat, the hand-held signal detector: its strength, whether it beeps, and whether the signal is disturbed ([Osrat](api/weapons.md#osrat-signal-detector)).
 - Break or repair breakables, and get told when one is smashed (the smash event is new in 0.10.0-beta) ([Breakables](api/breakables.md)).
 - Damage an extractable object, and get told when it gives up its items ([Extractables](api/extractables.md)).
 - Read blast sites, and get told when dynamite is detonated (new in 0.10.0-beta) ([Blast sites](api/blastsites.md)).
@@ -251,7 +252,7 @@ This page lists what the framework covers, grouped by what a modder wants to cha
 
 **You can**
 
-- Show a notification, a subtitle, a hint, a note, or a tooltip with a title and body (the tooltip is new in 0.10.0-beta) ([HUD](api/hud.md)).
+- Show a notification, a subtitle, a hint in the card game's rules box, a note, or a tooltip with a title and body (the tooltip is new in 0.10.0-beta) ([HUD](api/hud.md)).
 - Hide or show the game's HUD and crosshair for each mod (the HUD calls and the per-mod crosshair calls are new in 0.10.0-beta) ([HUD](api/hud.md)).
 - Build windows from text, buttons, sliders, toggles, text fields, key bindings, tabs and model previews, using the framework's theme ([UI](api/ui.md)).
 - Open HTML pages in a window from a folder of your own, and send messages between the page and your mod. The WebUi module is optional, and the window needs the WebView2 runtime ([WebUi](api/webui.md)).
@@ -320,7 +321,7 @@ This page lists what the framework covers, grouped by what a modder wants to cha
 
 - Read the casino machines, and get told when a round is played, a win is credited, or the player cashes out (the scratchcard and double events are new in 0.10.0-beta) ([Casino](api/casino.md)).
 - Scale the payouts of slot machine, coin pusher and rat fight wins for each mod (new in 0.10.0-beta) ([Casino](api/casino.md), [Contests](api/contests.md)).
-- Read card tables, get told when a card game starts or ends, and scale card game payouts for each game (scaling card game payouts for each game is new in 0.10.0-beta) ([Card games](api/cardgames.md)).
+- Read card tables, get told when a card game starts or ends, and scale card game payouts for each game, Crosseven (`Ristiseiska`) or Shittypants (`ChinaHand`) (scaling card game payouts for each game is new in 0.10.0-beta) ([Card games](api/cardgames.md)).
 - Read contests, their participants and the opponent's tolerance, and make the player give up a drinking or sauna contest (the opponent's tolerance and giving up are new in 0.10.0-beta) ([Contests](api/contests.md)).
 
 **Not possible yet:** the odds are fixed in the game's code. A mod can change the payouts, but not the odds.

@@ -7,7 +7,7 @@ nav_order: 66
 # Obenseuer Modding Framework save slots API
 
 Experimental.
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Log owner: `obenseuer.moddingframework.saveslots`. Logs go to `BepInEx\logs\obenseuer.moddingframework.saveslots.log`.
 
 Everything not listed here is internal. Main thread only. Do not poll `All()` or `CanSaveNow` every frame: `All()` reads the save headers.
@@ -49,7 +49,7 @@ public enum SaveAutosaveMode { Default, EveryDay, EveryHour }
 - `CurrentName` is null when the saved folder belongs to a different character than the one in play. The game does not clear its save folder when the credits end, so the framework clears it when the main menu loads (`SaveData`) and when a new game starts (`WorldObjects`). `CurrentName` is then null until a save is loaded.
 - `CurrentName` does not change when the game saves into another slot. The game sets its save folder on load and clears it on quit to the main menu, and it does not update it on save.
 - `All()` lists the characters the Load menu lists. For each, it returns the autosave pair and the ten manual slots that have an Info file. A character whose headers all fail to parse is left out. Duplicate character names get the game's " 2" suffix.
-- `AutosaveMode` is read-only. The game stores this setting in the difficulty and saves it with the game; no gameplay code reads it in 0.5.05.
+- `AutosaveMode` is read-only. The game stores this setting in the difficulty and saves it with the game; no gameplay code reads it in 0.5.08.
 
 ## SaveNow and CanSaveNow
 

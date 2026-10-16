@@ -7,7 +7,7 @@ nav_order: 65
 # Obenseuer Modding Framework game save data API
 
 Experimental.
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Log owner: `ObenseuerCore`. Logs go to `BepInEx\logs\ObenseuerCore.log`.
 
 Five methods on the existing `SaveData` class, next to `SaveData.Register`, and an allowlist overload of `ApplyByGuid`. They copy one savable object's save entry, the `{"GUID":..,"Data":{..}}` item the game writes into its `.tnmt` files, to a string and back. They never write to disk and never touch the save files.
@@ -27,7 +27,7 @@ Main thread only.
 - **By GUID means loaded objects.** `CaptureByGuid` and `ApplyByGuid` resolve through `SaveController.GetObjectByGUID`, which knows only the objects a load registered. An object created after the load is not found.
 - **Peer-supplied guids must be allowlisted.** `ApplyByGuid(guid, json)` can reach any savable the game registered on load, including `Inventory`. A peer that sends the guid `Inventory` could replace the host's inventory, because the inventory's load hook rebuilds its live slots. When a peer chooses the guid, call `ApplyByGuid(guid, json, allowedGuids)` with only the guids that peer may target. The two-argument form is obsolete (`[Obsolete]`, a compiler warning, not an error) and is for trusted code only.
 - **Apply registers the object** under its GUID, as a load does, so `CaptureByGuid` finds it afterwards.
-- **Mod ids are case-insensitive.** `SaveData.Register` keys its savers, loaders and the save file name without regard to case, so `Register("MyMod", ...)` and `Register("mymod", ...)` are the same mod. The second call throws `InvalidOperationException`. Item and recipe ids from `RegistryIds` are case-sensitive, so the two rules differ. See `docs/api/registry.md`.
+- **Mod ids are case-insensitive.** `SaveData.Register` keys its savers, loaders and the save file name without regard to case, so `Register("MyMod", ...)` and `Register("mymod", ...)` are the same mod. The second call throws `InvalidOperationException`. Item and recipe ids from `RegistryIds` are case-sensitive, so the two rules differ. See [Registry API](registry.md).
 
 ## API
 

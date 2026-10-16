@@ -10,22 +10,19 @@ Replace the icon of an existing item with a PNG that ships in your mod folder.
 
 1. Make a square PNG with alpha, 128 or 256 pixels on each side. Name it `bottle.png`.
 2. Put it in an `icons` folder next to your DLL, so the path is `BepInEx\plugins\ExampleIcon\icons\bottle.png`.
-3. Build and copy the DLL, as in [Your first mod](../getting-started/first-mod.md).
 
 ```csharp
 using System.IO;
 using System.Reflection;
-using BepInEx;
-using BepInEx.Unity.Mono;
 using ObenseuerCore;
 
-[BepInPlugin("example.icon", "Example Icon", "0.1.0")]
-[BepInDependency("obenseuer.moddingframework", ">=0.11.0")]
-public class ExampleIcon : BaseUnityPlugin
+[ModInfo("example.icon", "Example Icon", "0.1.0")]
+[ModDependency("obenseuer.moddingframework", "0.11.0")]
+public class ExampleIcon : FrameworkMod
 {
     private const string ItemTitle = "Empty Glass Bottle";
 
-    private void Awake()
+    protected override void OnLoad()
     {
         Events.WhenReady(ApplyIcon);
     }
@@ -40,7 +37,7 @@ public class ExampleIcon : BaseUnityPlugin
 }
 ```
 
-On BepInEx 5, write `"0.11.0"` instead, because BepInEx 5 cannot parse a version range, and drop `using BepInEx.Unity.Mono;` (`BaseUnityPlugin` then comes from `BepInEx`). See [Supporting BepInEx 5 too](../getting-started/packaging.md#supporting-bepinex-5-too).
+Replace the code in `Plugin.cs` of your project from [Your first mod](../getting-started/first-mod.md) with the code above. Then run `dotnet build -c Release -p:DeployToGame=true` and start the game.
 
 Notes:
 

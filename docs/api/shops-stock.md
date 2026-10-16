@@ -7,7 +7,7 @@ nav_order: 72
 # Obenseuer Modding Framework shop stock API (ShopStock)
 
 Experimental.
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Log owner: `obenseuer.moddingframework.shopstock`. Logs go to `BepInEx\logs\obenseuer.moddingframework.shopstock.log`.
 
 Everything not listed here is internal. Main thread only.
@@ -38,7 +38,7 @@ public static class ShopStock
 }
 ```
 
-- `IsAvailable` is `installed && !CorePatcher.IsDisabled(owner)`. The other three methods return `false` when it is false.
+- `IsAvailable` is `true` when the framework installed its hooks and the owner `obenseuer.moddingframework.shopstock` is not disabled. The other three methods return `false` when it is false.
 - `AddTraderStock` keeps `amount` of the item in the trader's storage. It is kept for each load and each respawn: the trader gets back the missing count into empty slots. It returns true when the entry is kept, even if the shop is not loaded yet. A call for the same mod, shop and item replaces the amount. When another mod already keeps the same item under the same shop key, both are kept, each tops up to its own amount so the larger wins, and one warning names both mods. Two different keys that match one shop are not detected.
 - `AddVendingEntry` appends one entry to the machine's list. It returns true when the entry is kept. A call for the same mod, shop and item replaces the stock, price and currency. `price` above 0 is an absolute price in `currency`. `price` 0 or below uses the game's formula, which is the item's sale price times 1.2 for a machine.
 - `Remove` drops that mod's trader stock and vending entry for the shop and item, and removes the vending entry from loaded machines. It returns true when either was found. It does not take back items that a trader already holds.

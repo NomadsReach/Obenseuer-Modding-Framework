@@ -6,11 +6,13 @@ nav_order: 54
 
 # Player movement API
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Patch owner: `obenseuer.moddingframework.playermovement`.
 Files: `src/Api/PlayerMovement.cs`, `src/Api/PlayerMovementPatches.cs`.
 
 Everything not listed here is internal.
+
+Use `PlayerMovement` to read how the player is moving (grounded, sprinting, crouching, velocity), to change walk, run and jump speed, to make the player crouch or stand, and to lock the player in place or lock where they look. Each change is tied to your mod id, so two mods do not undo each other.
 
 ## Threading and safety
 

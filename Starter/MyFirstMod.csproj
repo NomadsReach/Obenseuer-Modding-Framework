@@ -40,7 +40,7 @@
 
   <Target Name="CheckObenseuerSetup" BeforeTargets="PrepareForBuild">
     <Error Condition="!Exists('$(ManagedDir)\Assembly-CSharp.dll')" Text="Obenseuer was not found in GameDir '$(GameDir)'. Expected Obenseuer_Data\Managed\Assembly-CSharp.dll. Set the game folder with -p:GameDir=&lt;folder&gt;, the OBENSEUER_DIR environment variable, or GameDir.user.props. See https://github.com/NomadsReach/Obenseuer-Modding-Framework#install" />
-    <Error Condition="!Exists('$(BepInExCore)\0Harmony.dll')" Text="BepInEx was not found in '$(BepInExCore)'. Install BepInEx 6 (Unity.Mono, x64, be.755 or newer) or BepInEx 5.4.23 or newer (Mono, x64) in the game folder, start the game once, then build again. For a BepInEx copy elsewhere, pass -p:BepInExCore=&lt;its BepInEx\core folder&gt;. See https://github.com/NomadsReach/Obenseuer-Modding-Framework#install" />
+    <Error Condition="!Exists('$(BepInExCore)\0Harmony.dll')" Text="BepInEx was not found in '$(BepInExCore)'. Install BepInEx 6 (Unity.Mono, x64, be.788, the tested build) or BepInEx 5.4.23 or newer (Mono, x64) in the game folder, start the game once, then build again. For a BepInEx copy elsewhere, pass -p:BepInExCore=&lt;its BepInEx\core folder&gt;. See https://github.com/NomadsReach/Obenseuer-Modding-Framework#install" />
     <Error Condition="!Exists('$(FrameworkDll)')" Text="Obenseuer Modding Framework was not found at '$(FrameworkDll)'. Extract the framework zip from https://github.com/NomadsReach/Obenseuer-Modding-Framework/releases into the game folder, then build again. See https://github.com/NomadsReach/Obenseuer-Modding-Framework#install" />
   </Target>
 

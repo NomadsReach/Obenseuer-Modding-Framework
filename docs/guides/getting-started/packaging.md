@@ -20,7 +20,7 @@ ExampleHello-0.1.0.zip
 2. Add any other files your mod needs to the same folder.
 3. Do not put the framework DLL in your zip. Players get it from its own download.
 4. Check the zip. Extract it into an empty folder and confirm the DLL is at `BepInEx\plugins\ExampleHello\ExampleHello.dll`.
-5. On the mod page, list the requirements: BepInEx 5.4.23 or later (Mono, x64) or BepInEx 6 Unity.Mono (x64, be.755 or newer), and the Obenseuer Modding Framework 0.11.0 or later for a framework mod, or 0.10.0-beta or later for a BepInEx plugin.
+5. On the mod page, list the requirements: BepInEx 5.4.23 or later (Mono, x64) or BepInEx 6 Unity.Mono (x64, [be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build), and the Obenseuer Modding Framework 0.11.0 or later for a framework mod, or 0.10.0-beta or later for a BepInEx plugin.
 
 To uninstall a mod, delete its folder under `BepInEx\plugins\`. Its save data stays in the save folders.
 

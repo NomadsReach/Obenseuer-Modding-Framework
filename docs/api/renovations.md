@@ -6,11 +6,11 @@ nav_order: 62
 
 # Renovations API
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Patch owner: `obenseuer.moddingframework.renovations`.
 Files: `src/Api/Renovations.cs`, `src/Api/RenovationsPatches.cs`.
 
-Everything not listed here is internal. Renovation cost and build-time tweaks stay in `TweaksRenovations`. Housing's tenement rules are in `docs/api/housing.md`.
+Everything not listed here is internal. Renovation cost and build-time tweaks stay in `TweaksRenovations`. Housing's tenement rules are in [housing page](housing.md).
 
 ## If a hook cannot be installed
 
@@ -83,7 +83,7 @@ public sealed class RenovationInfo
 - The final RM payment and the act of finishing an upgrade by hand. That is the player's action in the upgrade panel (`UpgradeUI.OnPressed`). No public call is exposed.
 - Requested build-time overrides and silent orders (`TenementUpgradeStart.Upgrade`). Only the game's default order is made.
 - Marking an upgrade with the star (`TenementController.MarkUpgrade`).
-- Apartment condition and cleaning: see `docs/api/cleaning.md`.
+- Apartment condition and cleaning: see [cleaning page](cleaning.md).
 
 ## Save loads
 

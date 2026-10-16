@@ -7,7 +7,7 @@ nav_order: 93
 # Obenseuer Modding Framework world objects API
 
 Status: experimental.
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Log owner: `ObenseuerCore` (`CoreLog`).
 
 Everything not listed here is internal. Main thread only. Reads return a neutral default (`null`, `false`, empty array) when no save or scene is ready. Writes return `bool`. The only exception is `ArgumentException` for invalid arguments.
@@ -84,7 +84,7 @@ public static class Spawn
 ```
 
 - `Item` places `count` items at `position`. It builds each one the way the game's drop does (`ItemOperations.InstantiateItem` and `SetCollectibleItemValues`, the steps of `SpawnItemToPosition`). The game creates the collectible, its expiry timer, and its registration in `DestructibleList`, so it is saved and can be picked up. Ids `0` and `1` (coins) are refused; use `Wallet`.
-- The overload with `out GameObject spawned` also returns the first object it creates (`null` when none). Its id comes from `WorldItems.IdOf` (see `docs/api/worlditems.md`).
+- The overload with `out GameObject spawned` also returns the first object it creates (`null` when none). Its id comes from `WorldItems.IdOf` (see [worlditems.md](worlditems.md)).
 - `count` is 1 to 100 per call. The cap applies to each call only: there is no limit on how many calls a mod makes, and every call places its items at the same `position`. It is split into stacks of at most `Item.Stackable`. Values outside the range throw `ArgumentException`.
 - Returns `false` when there is no item database or `DestructibleList` (main menu), while a save or load is running, when the item id is unknown, or when the game call fails (logged).
 - The position is used as given. No ground snap or raycast, so pass a point on the floor.
@@ -101,10 +101,10 @@ public static class Spawn
 | Mod data (`SetData`) | yes, per save | yes, at load | Keyed by mod, scene and GUID. Emptied when a load or a new game starts. |
 | Scene object that is inactive at save | no | no | The game's save pass skips inactive objects. |
 
-Unverified: whether a spawned item survives leaving its room. `DestructibleList` keeps entries by object reference and is not keyed by scene, so the behaviour across a scene change was not traced.
+Not known: whether a spawned item survives when the player leaves its room. `DestructibleList` keeps entries by object reference and is not keyed by scene, and this has not been tested across a scene change.
 
 ## Risks
 
 - A load that fails after it started keeps the store as it was. The next save writes that store into the slot it names, as any save does.
-- `Spawn.Item` uses the game's own expiry, so items disappear unless the player picks them up. `WorldItems.SetExpiryOverride` changes the time for later default spawns (`docs/api/worlditems.md`, Expiry default). The game's no-timer option (`noExpirationTimer`) is not exposed here.
+- `Spawn.Item` uses the game's own expiry, so items disappear unless the player picks them up. `WorldItems.SetExpiryOverride` changes the time for later default spawns ([worlditems.md](worlditems.md), Expiry default). The game's no-timer option (`noExpirationTimer`) is not exposed here.
 - `Near` and `Find` see only active objects. Objects that the game hides with `GameObjectStateSave` are missed.

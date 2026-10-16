@@ -6,9 +6,11 @@ nav_order: 18
 
 # Drones API
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Patch owner: `obenseuer.moddingframework.drones`.
 Files: `src/Api/Drones.cs`, `src/Api/DronesPatches.cs`.
+
+Use this to read the drones in the scene, switch one on or off, send it to an air node, change its top speed, and react when it changes state or passes a node.
 
 Everything not listed here is internal.
 

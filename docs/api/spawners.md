@@ -6,7 +6,7 @@ nav_order: 76
 
 # Spawners API
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Patch owner: `obenseuer.moddingframework.spawners`.
 Files: `src/Api/Spawners.cs`, `src/Api/SpawnersPatches.cs`.
 
@@ -25,7 +25,7 @@ The framework installs one hook, a postfix on `Spawner.TrySpawn(bool)`. If it fa
 
 ## API
 
-```text
+```csharp
 public static class Spawners
 {
     public static List<SpawnerInfo> All();
@@ -99,14 +99,14 @@ public static class SpawnersExample
 
 ## Save and state
 
-- `respawnEnabled`, `spawnChance`, `spawnTime`, `useCustomSpawnTime`, `minRespawnTime` and `maxRespawnTime` are marked `fsIgnore` (`SpawnSettings`), so the save does not store them. Reading the code, a changed value lasts for the scene session and a fresh scene load restores the authored value.
+- `respawnEnabled`, `spawnChance`, `spawnTime`, `useCustomSpawnTime`, `minRespawnTime` and `maxRespawnTime` are marked `fsIgnore` (`SpawnSettings`), so the save does not store them. A changed value lasts for the scene session, and a fresh scene load restores the authored value.
 - `timetospawn` is not `fsIgnore`, so the save keeps the timer.
 
 ## Not exposed
 
 - The game's difficulty scaling of the respawn timer (`currentDifficultyInfo.GetRespawningTime`, called from `SpawnSettings.SetSpawnTime`, `SpawnSettings`). The timing fields are set, but the countdown is only read.
 - The spawn contents: which items, furniture or characters appear. `LootPools` and `Spawn` cover item lists.
-- `Spawn()` with no chance roll. It is not wrapped, because the game calls it from its own code and it has no single entry point to hook here.
+- `Spawn()` with no chance roll. It is not wrapped, because the game calls it from its own code and there is no single place to hook it.
 
 ## Ceilings and risks
 

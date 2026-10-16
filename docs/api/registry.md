@@ -6,11 +6,13 @@ nav_order: 61
 
 # Registry API: new items and recipes
 
+Use the registry to add your own items and recipes to the game. You give each one a mod id and a key, and the framework turns that pair into a stable item or recipe ID, copies the look and behaviour of an existing item or recipe (the template), and adds the result to the game's lists when they load. This page also covers custom icons, custom 3D models, and what happens to a save when a mod that added items is removed.
+
 Status: experimental.
 
 Warning: a save that holds items or recipes from a mod that is not installed keeps those stacks as placeholders (see Missing items), and its recipes stop working until the mod returns. Keep the mod installed for that save, or clear its missing stacks with `ItemRegistry.RemoveMissingItems`.
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Patch owner: `obenseuer.moddingframework.registry`.
 Files: `src/Api/RegistryIds.cs`, `src/Api/RegistryItems.cs`, `src/Api/RegistryRecipes.cs`, `src/Api/RegistryPatches.cs`, `src/Api/RegistryManifest.cs`, `src/Api/RegistryPlaceholders.cs`, `src/Api/RegistryMissing.cs`, `src/Api/RegistrySelfTest.cs`.
 
@@ -168,9 +170,9 @@ public static class ModelRegistry
 - Limits: a 64 MB OBJ, 2,000,000 vertices, 6,000,000 indices (2,000,000 triangles), 8 sub-meshes (extra `usemtl` groups merge into the last), and a `.mtl` over 1 MB is ignored with a warning. A texture over 2048 px a side is refused, and its material keeps its colour. A file is refused from its header before it is decoded when its first bytes are not a PNG or JPEG signature, when a PNG or JPEG is over the side limit, or when a JPEG has no frame header (SOF) before its end. The JPEG scan skips bytes between segments, as libjpeg does, so stray bytes cannot hide a large frame header. A texture or icon file over 16 MB is not read. A face with more than 4 corners is fan-triangulated, with a warning.
 - `ItemDefinition.Model` (`null` keeps the template's model) takes a handle from `LoadObj`. Any other handle throws `ArgumentException`. A handle that is not ready logs an error, and the template look is kept.
 - `FitToTemplate` (default true) scales the model so its largest edge matches the template's largest edge, measured on the template's primary mesh through the transforms below its root, so a 27 cm model on a 10 cm template is shrunk to 10 cm. The root's own scale is not part of the fit. It stays on the item, so the model is drawn at the template's full size. Set it to false to keep the model's own size. `Scale` multiplies after it. A model whose scaled size is not a finite number is refused.
-- Orientation comes from `EulerOffset` alone. The template's root rotation is reset when the model is built (`ModelBuild.Swap`), so a template that lies on its side does not spawn lying down. `Kd` in the `.mtl` is converted from linear to sRGB for the material colour (`ModelBuild.Channel`) in every project. Unverified: this assumes `Material` colours take sRGB values in both colour spaces, and the encoding of `Kd` depends on the exporter (Blender writes linear).
+- Orientation comes from `EulerOffset` alone. The template's root rotation is reset when the model is built (`ModelBuild.Swap`), so a template that lies on its side does not spawn lying down. `Kd` in the `.mtl` is converted from linear to sRGB for the material colour (`ModelBuild.Channel`) in every project. This assumes `Material` colours take sRGB values in both colour spaces. The encoding of `Kd` depends on the exporter (Blender writes linear), so check the colours of your own model in the game.
 - `OverrideVanilla(itemId, world, null)` replaces the world model (dropped, shelved, stored) of any item, vanilla or mod. It returns `false` when the models are not installed, the handle is not ready, the catalogue is built and has no item with that ID and an appearance. A call with a different handle for the same item logs a warning and replaces the first. Nothing is saved, so removing the mod restores the template look.
-- `OverrideVanilla` with a non-null `held` throws `ArgumentException`. Held (wield) models are set with `ItemRegistry.SetHeldModel`, see `items.md`.
+- `OverrideVanilla` with a non-null `held` throws `ArgumentException`. Held (wield) models are set with `ItemRegistry.SetHeldModel`, see [items page](items.md).
 - Saves: a mod item's world drop saves the template's vanilla prefab path, so a save never holds `ERROR` or an unresolvable path. With the mod, the model is applied again on load. Without it, the code path gives the template prop holding the coin item (catalogue ID 0, "Open Sewer Coin").
 - Other modded drops: the framework's spawn postfix writes the item's own `PrefabPathMany` (a stack over 1) or `PrefabPath` when that path loads, and leaves the path alone otherwise. A save can hold `Prefabs/Items/ERROR` for such an item. On load, `FloorItems.Resolve` gives such an item its catalogue model, so it does not turn into the coin. Without the framework, a save holding `ERROR` loads as the coin.
 - Icons are separate: `ItemDefinition.IconPath` and `ItemIcons.OverrideVanilla` (see Item icons).
@@ -246,7 +248,7 @@ Carry-forward: the entries of the last loaded save that are not registered now a
 
 ## Missing items
 
-A save can hold a stack of an item from a mod that is not installed. The item's ID is at or above `RegistryIds.FirstId` (1000000) and is not in the catalogue. The game would turn that stack into coin on load. The framework answers the lookup with a placeholder instead, so the stack keeps its ID:
+A save can hold a stack of an item from a mod that is not installed. The item's ID is at or above 1000000 (the lowest ID the registry hands out) and is not in the catalogue. The game would turn that stack into coin on load. The framework answers the lookup with a placeholder instead, so the stack keeps its ID:
 
 - Title `Missing item`, or `Missing item (mod: title)` when the save's manifest names the item. The description says the mod is not installed, or, when the mod is installed, that it could not add the item (see the framework log). When the mod is installed and loads, the stack shows the real item again.
 - Icon `Sprites/Items/Paper Bag_spr` and prefab `Prefabs/Items/ERROR`, both paths in `Items.json`. No categories, actions or attachments. Value 0. Stack size 100000000, far above any real stack, and still below `int.MaxValue` after the difficulty multiplier (at most 4x).
@@ -314,7 +316,7 @@ The inputs are Rat Meat (26030), Bell Pepper (12820) and Tablesalt (14780), one 
 ## Limits
 
 - `Define` works only before load. Defined items and recipes live in memory. The JSON files are not changed.
-- A new recipe appears at a station the next time the station runs `UpdateRecipes`. When those calls run is still open.
+- A new recipe appears at a station the next time the station runs `UpdateRecipes`. The framework does not control when those calls run.
 - A save that holds a removed mod's item shows a placeholder for that stack (see Missing items). The load warns once per saved entry.
 - A save written while a mod is missing keeps that mod's manifest entries (carry-forward), and each stack keeps its ID through that save. The load paths get the placeholder from `FetchItemByID` (`ItemStack.Meta` through `SetItemReference`, and `Inventory.OnLoadingGame`), so the reference holds the stack's own ID. The package and start-selection saves copy `itemReference.ID` into `itemId` for each stack whose reference is set, so they write the same ID without any rebuild. A move copies the reference's ID as well (`ItemStack.ChangeItemReference`, `Storage`).
 - A saved recipe copy of a removed mod's recipe keeps its item IDs. `SetItems` resolves them to placeholders, so the copy is complete, but it is not listed or crafted until the mod returns. Saved copies are not validated.

@@ -6,7 +6,7 @@ nav_order: 103
 
 # Custom skills API
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Patch owner: `obenseuer.moddingframework.customskills`.
 Files: `src/Api/CustomSkills.cs`, `src/Api/CustomSkillsPatches.cs`, `src/Api/CustomSkillsMath.cs`.
 
@@ -40,7 +40,7 @@ public sealed class CustomSkillArgs
 
 - `Register` declares a skill for the session. Call it at start. Calling it again for the same id replaces the name and the maximum. `modId` is your plugin GUID. `skillId` is 1 to 64 characters of letters, digits, `.`, `_` or `-`. `displayName` must not be empty. `maxValue` must be a finite number above zero and at most 1,000,000. Use `10f` to match the game's `PlayerStats.maxLevel`.
 - `Register` returns `false` when the mod already has 64 registered skills (`CustomSkillsMath.MaxPerMod`) and this skill id is new. Replacing an existing id does not count against the cap. Otherwise it returns `true`.
-- Bad arguments throw `ArgumentException`: a `modId` or `skillId` that is not valid (see above), an empty `displayName`, a `maxValue` that is not a finite number above zero or is above 1,000,000 (the XP text is the value times 1000, and must fit an int), and a `value` or `amount` that is not finite.
+- Bad arguments throw `ArgumentException`: a `modId` or `skillId` that is not valid (the rules are under `Register` above), an empty `displayName`, a `maxValue` that is not a finite number above zero or is above 1,000,000 (the XP text is the value times 1000, and must fit an int), and a `value` or `amount` that is not finite.
 - A skill that is not registered, including one removed by `Clear`, is not an error. `Get` and `Level` return `0`, and `Set` and `Add` return `false`.
 - The level is the floor of the value, as the game's `PlayerSkill.Level` is. The value is kept between 0 and `maxValue`, as `IncreaseSkill` keeps the game's skills between 0 and `maxLevel`.
 - `Set` and `Add` return `false` while a save loads or saves (`SaveData.Busy`), or when the skill is not registered. Otherwise they return `true` when the stored value changed. `Add` takes a negative amount to lower the skill.

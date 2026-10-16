@@ -9,24 +9,21 @@ nav_order: 1
 Press F7 to give the player one item. The item is found by its title.
 
 1. Set `ItemTitle` to the exact title. The title must match the game's list.
-2. Build and copy the DLL, as in [Your first mod](../getting-started/first-mod.md).
 
 ```csharp
-using BepInEx;
-using BepInEx.Unity.Mono;
 using ObenseuerCore;
 using UnityEngine;
 
-[BepInPlugin("example.giveitem", "Give Item", "0.1.0")]
-[BepInDependency("obenseuer.moddingframework", ">=0.11.0")]
-public class GiveItem : BaseUnityPlugin
+[ModInfo("example.giveitem", "Give Item", "0.1.0")]
+[ModDependency("obenseuer.moddingframework", "0.11.0")]
+public class GiveItem : FrameworkMod
 {
     private const string ItemTitle = "Empty Glass Bottle";
     private ModKeybind giveKey;
 
-    private void Awake()
+    protected override void OnLoad()
     {
-        giveKey = CoreMod.For(this).Key("Give", "Give the item", KeyCode.F7);
+        giveKey = Mod.Key("Give", "Give the item", KeyCode.F7);
     }
 
     private void Update()
@@ -34,12 +31,12 @@ public class GiveItem : BaseUnityPlugin
         if (giveKey == null || UiState.IsMenuOpen || UiState.IsPaused || UiState.IsInputBlocked) return;
         if (!giveKey.Down()) return;
         ItemDef item = Items.Find(ItemTitle);
-        if (item == null || !PlayerInventory.Give(item.Id, 1)) Logger.LogWarning("could not give " + ItemTitle);
+        if (item == null || !PlayerInventory.Give(item.Id, 1)) Log.Warn("could not give " + ItemTitle);
     }
 }
 ```
 
-On BepInEx 5, write `"0.11.0"` instead, because BepInEx 5 cannot parse a version range, and drop `using BepInEx.Unity.Mono;` (`BaseUnityPlugin` then comes from `BepInEx`). See [Supporting BepInEx 5 too](../getting-started/packaging.md#supporting-bepinex-5-too).
+Replace the code in `Plugin.cs` of your project from [Your first mod](../getting-started/first-mod.md) with the code above. Then run `dotnet build -c Release -p:DeployToGame=true` and start the game.
 
 Notes:
 

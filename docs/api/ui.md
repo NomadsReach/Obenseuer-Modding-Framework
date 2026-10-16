@@ -6,7 +6,10 @@ nav_order: 87
 
 # Obenseuer Modding Framework Ui API (ModUi, UiTheme, UiSprites)
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+
+This page covers the framework's small UI kit: windows (`ModWindow`), ready-made controls (`ModUi`) and the shared colours and sprites (`UiTheme`, `UiSprites`). Use it to build mod screens that match the framework's Mods menu.
+
 ## Setup
 
 Reference `Unity.TextMeshPro.dll` and `UnityEngine.UI.dll` from `Obenseuer_Data\Managed`. `ModUi.Title` and `ModUi.Text` return `TextMeshProUGUI`, and `ModUi.Button` returns `UnityEngine.UI.Button`. Without both references the compiler reports CS0012 (the type is defined in an assembly that is not referenced).
@@ -141,7 +144,7 @@ A preview draws the target's renderers on layer 31 while its window is open. The
 
 ## UiTheme and UiSprites
 
-A read-only facade over the kit's palette and sprites. The names and types are fixed. The palette members are get-only properties. A mod that uses `UiTheme.Card` and `UiTheme.Font` directly breaks at build time if any member is renamed.
+A read-only facade over the kit's palette and sprites. The names and types are fixed. The palette members are get-only properties. A mod that uses `UiTheme.Card` or `UiTheme.Font` directly would stop compiling if a member were renamed, so these names are kept stable.
 
 ```csharp
 public static class UiTheme
@@ -168,11 +171,11 @@ public static class UiSprites
 
 The same palette drives the ConfigurationManager dark theme.
 
-Open questions:
+Not yet checked in a running game:
 
 - Text field and key binding rows: focus, typing, Esc and Enter inside a real window, and the field lock released on blur.
 - A throwing callback under a window (Fault) and outside one (log only), in game.
-- The head, hands and body in the preview. The cause and the fix come from the game code, not from a run.
+- The head, hands and body in the model preview.
 - Clicks, wheel and drag on tab pages in a Full window.
 - Lighting, framing and the backdrop look, including a 330 px tall preview in a Right dock.
 - The release fallback when `ControlsEnabled` throws (keys, cursor and camera).

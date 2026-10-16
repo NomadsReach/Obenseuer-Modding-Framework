@@ -6,7 +6,7 @@ nav_order: 3
 
 # Base shops API
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Log owner: `obenseuer.moddingframework.baseshops`.
 Files: `src/Api/BaseShops.cs`.
 
@@ -98,7 +98,7 @@ public sealed class BaseShopSoldArgs
   - `NoMoney`: the wallet does not hold the OC or RM price. Nothing is taken.
   - `Unavailable`: the wallet or the building system is not ready.
   - `Failed`: a charge was refused, delivery failed, or an exception was caught before delivery. Any money taken is refunded.
-- **Closed.** A furniture shop has no opening hours in the game, so `Buy` has no closed refusal. Hours belong to `Trade` (`ShopHours`, `docs/api/shophours.md`).
+- **Closed.** A furniture shop has no opening hours in the game, so `Buy` has no closed refusal. Hours belong to `Trade` (`ShopHours`, [shophours](shophours.md)).
 - **Inventory full.** The game sets no limit on the building stock: `AddFurniture` returns `true` every time. `Buy` has no full refusal to mirror.
 - **Crime, stolen and save.** The game's buy sets no crime or stolen flag, and `Buy` sets none. The game marks nothing dirty; the shop's money and stock are written at the next game save (`BaseShop.OnSavingGame`, `BaseShop`).
 
@@ -142,7 +142,7 @@ public sealed class BaseShopSoldArgs
 - Buying from or selling to a train shop. See `Unsupported` above.
 - The stock list. Each subclass owns it (for example `FurnitureShop.availableFurnitures`). Furniture stock is covered by the furniture area.
 - The price percentages (`sellPercent`, `buyPercent`) and the amount ranges.
-- Market stalls. See `docs/api/marketshops.md`.
+- Market stalls. See [marketshops](marketshops.md).
 
 ## Ceilings and risks
 

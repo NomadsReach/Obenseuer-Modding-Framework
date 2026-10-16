@@ -7,7 +7,7 @@ nav_order: 77
 # Obenseuer Modding Framework start choices API (new-game picks)
 
 Experimental.
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Log owner: `obenseuer.moddingframework.startchoices`. Logs go to `BepInEx\logs\obenseuer.moddingframework.startchoices.log`.
 
 Everything not listed here is internal. Main thread only.
@@ -50,7 +50,7 @@ public sealed class StartChoiceArgs
 
 - `Selected()` returns an empty list before the start manager exists, when no pick was made, and it skips empty entries.
 - `Relationship` is `Married` when a pick has the id `Family`, `In a relationship` when a pick has the id `Girlfriend` or `Boyfriend`, and `Single` otherwise. The first matching pick in list order decides, as the game does. It is computed from the current list, so it is right straight after a pick. The game's own `StartManager.relationship` field is only set at start and on load, so it can be stale.
-- `IsAvailable` is `installed && !CorePatcher.IsDisabled(owner)`. `Selected`, `Has` and `Relationship` do not depend on it.
+- `IsAvailable` is `true` when the framework installed its hook and the owner `obenseuer.moddingframework.startchoices` is not disabled. `Selected`, `Has` and `Relationship` do not depend on it.
 - `Chosen` fires once per pick, after the game applies the pick (money, addictions, items, relationships) and records it. The game raises it only from the new-game start selection screen. If the screen is missing, the pick is recorded but `Chosen` does not fire for it.
 - A failing `Chosen` handler is logged once and the other handlers still run.
 

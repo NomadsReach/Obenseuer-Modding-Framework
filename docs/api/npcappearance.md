@@ -7,10 +7,12 @@ nav_order: 102.2
 # Obenseuer Modding Framework NPC appearance API (npcappearance)
 
 Status: experimental.
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Log owner: `obenseuer.moddingframework.npcappearance`. Logs go to `BepInEx\logs\obenseuer.moddingframework.npcappearance.log`.
 
 Everything not listed here is internal. Every member is **experimental**.
+
+Use `NpcAppearance` to change how a live NPC looks: switch a mesh on or off, swap materials, set the slider look of a slider NPC, or set the blend shapes of a blend shape NPC. Every change is tied to your mod id, and `Restore` or `Clear` puts the NPC back.
 
 ## Rules
 

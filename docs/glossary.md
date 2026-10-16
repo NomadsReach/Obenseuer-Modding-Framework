@@ -19,7 +19,7 @@ A library that changes methods while the game runs, called patching. BepInEx shi
 
 ## Plugin
 
-A BepInEx mod. It is a class that derives from `BaseUnityPlugin` and has a `[BepInPlugin]` attribute. Each plugin has its own folder under `BepInEx\plugins\`.
+A BepInEx mod. It is a class that derives from `BaseUnityPlugin` and has a `[BepInPlugin]` attribute. Each plugin has its own folder under `BepInEx\plugins\`. The framework also has [framework mods](api/framework-mods.md), a simpler form for new mods: one DLL with no BepInEx reference, which runs on BepInEx 5 and 6.
 
 ## GUID
 
@@ -52,3 +52,11 @@ The mod id a mod passes to a call that holds a change for it, such as a speed fa
 ## Player shop
 
 A furniture manager that the player runs as a shop, with its own prices, till and sales. See [Player shops](api/economy.md#player-shops).
+
+## OC
+
+Open Sewer Coins, the game's everyday currency (`MoneyCurrency.OC`). It is a whole number. See [Money](api/economy.md#money-cash).
+
+## RM
+
+Real Money, the game's second currency (`MoneyCurrency.RM`). It is counted in tenths. See [Money](api/economy.md#money-cash).

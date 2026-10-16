@@ -6,11 +6,11 @@ nav_order: 58
 
 # Radios API
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. No patches, so no owner and no events.
 Files: `src/Api/Radios.cs`.
 
-Everything not listed here is internal. There is no global radio. Each `Radio` is one prop with its own sound, so the API is per radio, addressed by its `GUID`. See `docs/api/audio.md` (Music tracks, under "Not wrapped"): the game has no music or radio player class, and nothing global can play or stop a station.
+Everything not listed here is internal. There is no global radio. Each `Radio` is one prop with its own sound, so the API is per radio, addressed by its `GUID`. See [audio page](audio.md) (Music tracks, under "Not wrapped"): the game has no music or radio player class, and nothing global can play or stop a station.
 
 ## Threading and safety
 
@@ -50,4 +50,4 @@ public sealed class RadioInfo
 
 - Channel changes (`Radio.Use`, `Radio.SetState`). The player changes channels with the use key, and `SetState` plays the channel sound. These are not exposed; `State` reads the current channel only.
 - Turning a radio off with its sound effect (`Radio.TurnOff`). Only the enable toggle is exposed.
-- Soundscape and music. See `docs/api/audio.md`.
+- Soundscape and music. See [audio page](audio.md).

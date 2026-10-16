@@ -6,11 +6,13 @@ nav_order: 68
 
 # ScreenFx API
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Patch owners: `obenseuer.moddingframework.screenfx` for the FOV override, and `obenseuer.moddingframework.screenfx.blur` for the blur.
 Files: `src/Api/ScreenFx.cs`, `src/Api/ScreenFxPatches.cs`, `src/Api/ScreenFxVignette.cs`, `src/Api/ScreenFxBlur.cs`.
 
 Everything not listed here is internal.
+
+Use `ScreenFx` for screen effects: camera shake, fade to black and back, the death message, a field of view override (for a zoom), a screen edge vignette and a blur. Effects that take an `owner` are tied to your mod id and are cleared with the matching `Clear` call.
 
 ## If a hook cannot be installed
 
@@ -62,7 +64,7 @@ public static class ScreenFx
 ## FadeToBlack and FadeIn
 
 - `FadeToBlack(speed)` calls the game's `BlackCanvas.FadeIn`. It fades the black canvas up to full black and leaves it there until `FadeIn` runs. It does not change player controls. The fade's alpha is on the `CanvasGroup` inside `BlackCanvas.fadeCanvasGroup` (its private `canvasGroup` field). A mod that wants to know whether the screen is black should not read `BlackCanvas.canvasGroup`, which is the instant overlay.
-- `FadeIn(speed)` calls `fadeCanvasGroup.StartFadeOut(speed)` on the same canvas, the `fadeCanvasGroup` that `FadeToBlack` drives. That is what the game's `BlackCanvas.FadeOut` does, minus the `ControlsEnabled` call on line 41.
+- `FadeIn(speed)` calls `fadeCanvasGroup.StartFadeOut(speed)` on the same canvas, the `fadeCanvasGroup` that `FadeToBlack` drives. That is what the game's `BlackCanvas.FadeOut` does, minus the call that switches player controls back on.
 - Why the facade skips `BlackCanvas.FadeOut`: `ControlsEnabled` removes only its own holder. It also resets the two camera look flags unconditionally (`ControlsEnabledMove`, which calls `ThirdPersonCameraController.EnableMovement` and `EnableFirstPersonMovement`). A fade from a mod during dialogue or a cutscene would free the camera that the cutscene locked. The facade does the same fade without that call. Do not call `BlackCanvas.ShowBlackCanvas` either: it disables movement and keys.
 - `speed` is the game's fade step per tick. The game's `StartFadeInAndOut` uses `0.1f` by default, and that is the default here. The game also uses `0.5f` for tenement fades. Smaller values are slower. Steps are paced by `WaitForSecondsRealtime`, and the canvas's `realTime` flag changes the step size.
 - A new fade on the same canvas stops the one in progress (`FadeCanvasGroup`). The game uses the same canvas for its own blackouts (`BlackoutTrigger`), treatment, dialogue and tenement fades. A mod's `FadeIn` can lift a black screen the game is holding, and a mod's `FadeToBlack` can cut off a game fade in progress.
@@ -88,7 +90,7 @@ public static class ScreenFx
 - The override applies to every camera that has a `SetCameraFOV` component. If the hook throws, the error is logged once and the game's own code runs for that frame.
 - Owners: `SetFovOverride(owner, fov)` and `ClearFovOverride(owner)` keep one value per mod id, so two mods do not overwrite each other silently. The last owner to set a value is the one applied. When that owner clears, the value of the owner set before it applies again. `SetFovOverride(fov)` and `ClearFovOverride()` with no owner use one shared entry of their own, so they never remove an owner's value. A `Single` scene load clears every entry.
 - Per-frame reset, checked in the game code: `SetCameraFOV.Update` writes `fieldOfView` only when it differs from `DisplaySave.fov`, and `SetFOV` always writes it. The framework's FOV prefix returns `false` while an override is set, so the game's write does not run and the override holds through the reset.
-- Zoom: this facade is the zoom API. A zoom key calls `SetFovOverride(owner, fov)` on press and `ClearFovOverride(owner)` on release. See `docs/api/player.md` for the camera.
+- Zoom: this facade is the zoom API. A zoom key calls `SetFovOverride(owner, fov)` on press and `ClearFovOverride(owner)` on release. See [player page](player.md) for the camera.
 
 Zoom example, from a mod's `Update`. The owner is the mod id. Clearing it restores the saved FOV on the next frame:
 

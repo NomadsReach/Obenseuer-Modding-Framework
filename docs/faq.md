@@ -11,17 +11,17 @@ No. The framework does not ship a `build.cmd`. Build your mod with `dotnet build
 
 ## BepInEx 5 or 6?
 
-Either works. Use BepInEx 5.4.23 or later (Mono, x64), or BepInEx 6 Unity.Mono, x64, be.755 or newer. The framework zip holds both builds, and BepInEx loads the one that matches. See [Install](install.md).
+Either works. Use BepInEx 5.4.23 or later (Mono, x64), or BepInEx 6 Unity.Mono, x64, [be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build. The framework zip holds both builds, and BepInEx loads the one that matches. See [Install](install.md).
 
 If your log shows an error about the other copy, delete the file for the loader you do not use. The BepInEx 6 file is `ObenseuerCore.dll`, and the BepInEx 5 file is `ObenseuerCore.BepInEx5.dll`. The same goes for the WebUi files, `ObenseuerCore.WebUi.dll` and `ObenseuerCore.WebUi.BepInEx5.dll`.
 
-A mod that references `ObenseuerCore.dll` must have a hard `BepInDependency` on `obenseuer.moddingframework`, so the right framework copy is loaded first.
+A mod that is a BepInEx plugin and references `ObenseuerCore.dll` must have a hard `BepInDependency` on `obenseuer.moddingframework`, so the right framework copy is loaded first.
 
 ## My mod does not load
 
-1. Open `BepInEx\LogOutput.log` and search for your mod's name. BepInEx writes a line for each plugin it loads or skips.
+1. Open `BepInEx\LogOutput.log` and search for your mod's name. BepInEx writes a line for each plugin it loads or skips. A [framework mod](api/framework-mods.md) is not a BepInEx plugin, so look for it in `BepInEx\logs\ObenseuerCore.log` instead, on the line that says "framework mods:".
 2. Check that the framework is in `BepInEx\plugins\ObenseuerCore\`. BepInEx skips a mod whose dependency is missing.
-3. Check that your plugin has `[BepInDependency("obenseuer.moddingframework", ">=0.11.0")]`. On BepInEx 5, write `"0.11.0"` instead, because BepInEx 5 cannot parse a version range. See [Supporting BepInEx 5 too](guides/getting-started/packaging.md#supporting-bepinex-5-too).
+3. If your mod is a BepInEx plugin, check that it has `[BepInDependency("obenseuer.moddingframework", ">=0.11.0")]`. A framework mod uses `[ModDependency("obenseuer.moddingframework", "0.11.0")]` instead. On BepInEx 5, write `"0.11.0"` instead, because BepInEx 5 cannot parse a version range. See [Supporting BepInEx 5 too](guides/getting-started/packaging.md#supporting-bepinex-5-too).
 4. Check that your DLL is directly in `BepInEx\plugins\<your mod>\`, not one folder deeper.
 5. Open `BepInEx\logs\ObenseuerCore.log` and check the game build on the first line. The framework is built for 0.5.08.
 6. Check that your mod id does not start with `obenseuer.moddingframework` or `nomad.obenseuer.core`. Both prefixes are reserved for the framework.
@@ -30,7 +30,7 @@ A mod that references `ObenseuerCore.dll` must have a hard `BepInDependency` on 
 
 All of them are in the game folder.
 
-- `BepInEx\LogOutput.log`: BepInEx's log, including `Logger.LogInfo`.
+- `BepInEx\LogOutput.log`: BepInEx's log, including what a BepInEx plugin writes with `Logger.LogInfo`.
 - `BepInEx\logs\ObenseuerCore.log`: the framework's log, including errors from event handlers.
 - `BepInEx\logs\ObenseuerCore.debug.log`: the debug trace, when `[Debug] Master` is on.
 - `BepInEx\logs\<mod id>.log`: a log from `CoreLog.For`.

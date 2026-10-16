@@ -6,7 +6,7 @@ nav_order: 9
 
 # Casino API
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Patch owner: `obenseuer.moddingframework.casino`.
 Files: `src/Api/Casino.cs`, `src/Api/CasinoPatches.cs`.
 
@@ -99,7 +99,7 @@ Amounts are in OC. Both machines take and pay OC (`SlotMachineGameplay` cashes o
 - `Won(CasinoWonArgs)`: a win was credited inside the machine. It is not a transfer to the player.
   - Slot machine: the round's win, before any doubling. `Payout` is the round's reward (`SlotMachineGameplay.HandleWinning`). The player may double it, lose it, or keep it, and the money reaches the wallet only at the cash-out. Doubling results are reported by `Doubled`, not as another `Won`.
   - Coin pusher: a gate hit paid `Payout` coins into the win pile (`PajatsoGameplay.CoinGateHit`). The pile reaches the wallet when the player collects it. A gate hit with an empty gutter does not fire.
-- `CashedOut(CasinoCashedOutArgs)`: real money reached the wallet. Use this event for what the player actually received.
+- `CashedOut(CasinoCashedOutArgs)`: the winnings reached the wallet. Use this event for what the player actually received.
   - Slot machine: the player pressed cash out (`SlotMachineGameplay.HandleQuittingProcedure`). `Amount` is the whole machine balance, which includes inserted money and any doubled winnings.
   - Coin pusher: the player collected the win pile (`PajatsoGameplay.OnCollectWins`). `Amount` is the pile. An empty pile does not fire.
 - `Doubled(CasinoDoubledArgs)`: the player's double on a slot round was resolved (`SlotMachineGameplay.HandleDoublingResult`). `Before` is the round's winnings before the double and `After` is the winnings after it. The round's winnings are still in the machine, so the wallet does not change here.
@@ -117,7 +117,7 @@ Amounts are in OC. Both machines take and pay OC (`SlotMachineGameplay` cashes o
 ## Machines
 
 - `Machines` lists both kinds.
-- `Id` is the machine's save GUID when one of its components has one. The slot machine and the coin pusher have none in build 25839246, so the id is the scene id: the scene name, a colon, then each node from the root down with its sibling index (for example `Bar:Room[2]/SlotMachine[0]`). It is stable between calls and between sessions for a machine that stays in the scene hierarchy, and it is the same value the events report.
+- `Id` is the machine's save GUID when one of its components has one. The slot machine and the coin pusher have none in the game's scenes as far as the framework knows, so the id is the scene id: the scene name, a colon, then each node from the root down with its sibling index (for example `Bar:Room[2]/SlotMachine[0]`). It is stable between calls and between sessions for a machine that stays in the scene hierarchy, and it is the same value the events report.
 - `Stake` for a slot machine is read at call time. It changes when the player raises the stake, so an old `CasinoMachineInfo` is a snapshot.
 
 ## Payout factors

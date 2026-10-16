@@ -6,7 +6,7 @@ nav_order: 56
 
 # Power devices API
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Patch owner: `obenseuer.moddingframework.powerdevices`.
 Files: `src/Api/PowerDevices.cs`, `src/Api/PowerDevicesPatches.cs`.
 
@@ -16,7 +16,7 @@ This area wraps the three power objects the game keeps per device:
 - crafting stations with a power source (`CraftingBase._Power`, a `PowerSource`, including generators and fuel-burning stoves);
 - batteries (`BatteryPowerSource`, which burns stored fuel items over time).
 
-`WorldPower` (`docs/api/world.md`) still reports blackouts and generator switches. It is not repeated here. `FuelStations` (`docs/api/fuel.md`) covers the gas pumps, not these devices.
+`WorldPower` ([world page](world.md)) still reports blackouts and generator switches. It is not repeated here. `FuelStations` ([fuel page](fuel.md)) covers the gas pumps, not these devices.
 
 ## If a hook cannot be installed
 

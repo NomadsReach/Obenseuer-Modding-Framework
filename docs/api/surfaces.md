@@ -6,7 +6,7 @@ nav_order: 78
 
 # Surfaces API
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Patch owner: `obenseuer.moddingframework.surfaces`.
 Files: `src/Api/Surfaces.cs`, `src/Api/SurfacesPatches.cs`.
 
@@ -62,7 +62,7 @@ public sealed class SurfaceArgs
 ## Ceilings and risks
 
 - `Remove` does not run the player's scraping flow (`TryRemoveWallpaper`). That flow costs a scraper's integrity and can destroy the scraper. It is not repeated here.
-- The wallpaper item's `LoadVariants` is called before `SetWallpaper`, as `TrySetWallpaper` and `OnLoadingGame` do. `LoadVariants` loads the skin textures from `Resources`. Nothing was run to check it.
+- The wallpaper item's `LoadVariants` is called before `SetWallpaper`, as `TrySetWallpaper` and `OnLoadingGame` do. `LoadVariants` loads the skin textures from `Resources`. This has not been tested in a running game.
 - `SetWallpaper` refuses a `skinIndex` below 0 or past the wallpaper's last skin. The game would save such an index: a negative one throws when the surface is updated, and again on every load. A too-large one shows no material, and the surface keeps its previous material.
 
 ## Save loads

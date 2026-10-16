@@ -7,7 +7,10 @@ nav_order: 70
 # Obenseuer Modding Framework Settings API (GameSettings, Keybinds, Localization)
 
 Status: experimental.
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+
+This API reads the player's game options (display, graphics quality, mouse, sprint and crouch mode), reads the game's key bindings, lets a mod register its own keys, and reads the game language. The only game option a mod can change is the field of view.
+
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Log owner: `obenseuer.moddingframework.settings`. Logs go to `BepInEx\logs\obenseuer.moddingframework.settings.log`.
 
 Everything not listed here is internal.
@@ -70,20 +73,20 @@ public sealed class GameQuality
 }
 ```
 
-- `Display()`: the saved display options (`DisplaySave.instance.displaySave`). `null` when the save object does not exist. Width, Height, RefreshRate, VSync and Fov are the values the game last saved, and Width, Height and RefreshRate are 0 until the game has saved them once. `ScreenMode` maps the saved text: `Full Screen` to `FullScreen`, `Borderless` to `Borderless`, anything else to `Windowed`. `Brightness` is the saved slider value, game default 100. The game applies it as `Brightness / 100f`. The slider bounds are not in the game code available here, so the range is unchecked. `RunInBackground` is the saved `Run In Background` option, default false. Both come from `Display()` and have no fallback of their own, so they exist only when `Display()` does. `SetBrightness` and `SetRunInBackground` (`OptionsMenu`) do not call `applyDisplaySettings`, so `Changed` does not fire for them. Callers must poll.
+- `Display()`: the saved display options (`DisplaySave.instance.displaySave`). `null` when the save object does not exist. Width, Height, RefreshRate, VSync and Fov are the values the game last saved, and Width, Height and RefreshRate are 0 until the game has saved them once. `ScreenMode` maps the saved text: `Full Screen` to `FullScreen`, `Borderless` to `Borderless`, anything else to `Windowed`. `Brightness` is the saved slider value, game default 100. The game applies it as `Brightness / 100f`. The framework does not check the range. `RunInBackground` is the saved `Run In Background` option, default false. Both come from `Display()` and have no fallback of their own, so they exist only when `Display()` does. `SetBrightness` and `SetRunInBackground` (`OptionsMenu`) do not call `applyDisplaySettings`, so `Changed` does not fire for them. Callers must poll.
 - `Quality()`: the saved graphics options. The integers are the game's own indexes, not named levels. `Level` is the preset index. `Custom` is true when the player picked the `Custom` preset. `null` when the save object does not exist.
 - `MouseSensitivity()`: the raw saved value (default 900). It is not a multiplier. The game's own camera setting is this value divided by 100 with integer division (`SetControls.SetSensitivity`), so 900 gives 9, and any value under 100 gives 0.
 - `InvertX()` and `InvertY()`: true when the saved invert mode includes that axis. The saved modes are `X`, `Y`, `X + Y`, and empty for none.
-- `HintsEnabled()`: the hint overlay toggle (`HintOverlay.HintsEnabled`, a PlayerPrefs value, default true).
-- `Changed`: fires after the game runs `OptionsMenu.applyDisplaySettings()` or `OptionsMenu.applyQualitySettings()`. The game also calls `applyQualitySettings()` once when the options screen starts, so `Changed` can fire when the menu opens. It does not fire when the player changes only the field of view, the mouse sensitivity, the mouse inversion or the hint toggle, so read those when you need them. Handlers should compare values before they act. A handler that throws is logged and does not stop the others.
+- `HintsEnabled()`: whether the game's hint overlay is switched on (`HintOverlay.HintsEnabled`, a PlayerPrefs value, default true). The hint overlay is the card game's rules box. The game has no hints option in its Options screen: the player turns it on and off with the Hints key (K by default).
+- `Changed`: fires after the game runs `OptionsMenu.applyDisplaySettings()` or `OptionsMenu.applyQualitySettings()`. The game also calls `applyQualitySettings()` once when the options screen starts, so `Changed` can fire when the menu opens. It does not fire when the player changes only the field of view, the mouse sensitivity, the mouse inversion or the hint overlay, so read those when you need them. Handlers should compare values before they act. A handler that throws is logged and does not stop the others.
 - `ToggleSprint()` and `ToggleCrouch()`: the saved `Toggle Sprint` and `Toggle Crouch` options. `true` is toggle mode (press once to start, press again to stop), and `false` is hold mode (the action lasts while the key is held). The game checks `!toggleSprint` and `!toggleCrouch` for hold mode (`OpenSewerCharacterController`), so `false` means hold, the opposite of what a reader might assume from the name. With no controls save, or when the read throws, both return `true`, the game default. This is the one exception to the neutral-value rule above. `SetToggleSprint` and `SetToggleCrouch` (`OptionsMenu`) do not call `applyDisplaySettings` or `applyQualitySettings`, so `Changed` does not fire for them. Callers must poll.
 - **Warning: `SetFov(fov)` overwrites the player's own setting.** It writes `Display.json` on disk at once, so the player's chosen field of view is lost and stays lost after a restart, and a second mod that calls it simply replaces the first. Do not use it for zoom or for a temporary change. Use `SetFov(owner, fov)` or `ScreenFx.SetFovOverride(owner, fov)` instead, which never touch the file.
 - `SetFov(owner, fov)` and `ClearFov(owner)`: the same as `ScreenFx.SetFovOverride(owner, fov)` and `ScreenFx.ClearFovOverride(owner)`. The value is kept in memory per owner, the newest owner wins, clearing falls back to the owner set before it, and a Single scene load clears every owner. The saved setting is never written. `SetFov(owner, fov)` returns `false` for a value outside 30 to 120, or when `ScreenFx.IsAvailable` is `false`. `owner` must be a valid mod id, or the call throws `ArgumentException`.
-- `SetFov(fov)`: writes the saved field of view by calling the game's own `DisplaySave.SaveDisplay("Fov", ...)`, the same call the options slider makes. The value is written to `Display.json` at once. The options screen reads `displaySave.fov` when it opens, so a screen that is already open keeps its old slider position. The camera follows on the next frame through `SetCameraFOV.Update`, unless a `ScreenFx.SetFovOverride` is set, which keeps the camera where the override put it. It returns `false` for a value outside 30 to 120, when no save object exists, and while `SaveData.Busy` is true. The 30 to 120 range is the `ScreenFx` clamp, not the game's slider range, which is not in the game code available here. It does not raise `Changed`, as the player's field of view change does not. For a zoom or field-of-view change that the saved option does not change, use `ScreenFx.SetFovOverride`, see `docs/api/screen-fx.md`.
+- `SetFov(fov)`: writes the saved field of view by calling the game's own `DisplaySave.SaveDisplay("Fov", ...)`, the same call the options slider makes. The value is written to `Display.json` at once. The options screen reads `displaySave.fov` when it opens, so a screen that is already open keeps its old slider position. The camera follows on the next frame through `SetCameraFOV.Update`, unless a `ScreenFx.SetFovOverride` is set, which keeps the camera where the override put it. It returns `false` for a value outside 30 to 120, when no save object exists, and while `SaveData.Busy` is true. The 30 to 120 range is the `ScreenFx` clamp, not necessarily the range of the game's slider. It does not raise `Changed`, as the player's field of view change does not. For a zoom or field-of-view change that the saved option does not change, use `ScreenFx.SetFovOverride`, see [screen-fx.md](screen-fx.md).
 
 Not exposed, with reasons:
-- **Subtitles toggle:** no subtitle option appears in the game's options code.
-- **Display number:** saved by the game, but not on the requested list. It can be added the same way.
+- **Subtitles toggle:** the game's Options screen has no subtitle setting.
+- **Display number:** the game saves it, but this API does not expose it yet.
 - **Other writes:** the other options (size, refresh rate, screen mode, VSync, quality, mouse, invert, hints) are changed by the Options screen and its apply methods (`applyDisplaySettings`, `applyQualitySettings`). A write here would bypass those. The field of view has its own save call (`SetFov`), so it is the only one.
 
 ## Keybinds
@@ -121,7 +124,7 @@ Game actions use the game's own names, exactly as the game spells them:
 - `ModKeybind.Down()`, `Up()` and `Held()`: the main key is read with `Input.GetKeyDown`, `Input.GetKeyUp` or `Input.GetKey`, and every bound modifier must be held. Other keys held at the same time, such as WASD, do not block the key.
 - Self-check: `[Debug] KeyChordSelfCheck` in the framework config runs the chord rule at start and logs `keychord self-check ok`.
 
-Where the mod key is shown: the Mods menu, not the game's Key Bindings screen. The game's Key Bindings screen was not used.
+Mod keys are shown in the Mods menu, not on the game's Key Bindings screen.
 
 Reads of `Key`, `Button`, `Label`, `Down` and `Held` on a held bound key or button can switch the game's input device indicator (`InputManager.inputType`), as the game's own reads do.
 
@@ -140,7 +143,7 @@ public static class Localization
 - `Localize(key)`: the string `key` in the game's `Menu` table, in the selected locale. `Localize(table, key)` reads any other table, for any other Unity Localization string table. The game itself only reads `Menu`.
 - When the key has no translation, `Localize` returns `key` itself, which matches how the game's own `MenuLocalization` falls back.
 
-The Unity Localization assembly is not referenced at build time, so this class reaches it by reflection. The reflected members were checked against the game's `Unity.Localization.dll`.
+The Unity Localization assembly is not referenced at build time, so this class reaches it by reflection.
 
 ## Not exposed, with reasons
 
@@ -150,4 +153,4 @@ The Unity Localization assembly is not referenced at build time, so this class r
 
 ## Save loads
 
-The framework does not gate this event on a save load. A handler that should ignore events raised while a save loads can check `SaveData.Busy`, which is true while a save is loading or being written.
+The framework does not gate `Changed` on a save load. A handler that should ignore events raised while a save loads can check `SaveData.Busy`, which is true while a save is loading or being written.

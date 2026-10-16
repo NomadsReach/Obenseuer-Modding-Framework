@@ -8,21 +8,16 @@ nav_order: 3
 
 Log each new day, and set the clock to 07:00 on Mondays.
 
-1. Build and copy the DLL, as in [Your first mod](../getting-started/first-mod.md).
 
 ```csharp
 using System;
-using BepInEx;
-using BepInEx.Unity.Mono;
 using ObenseuerCore;
 
-[BepInPlugin("example.newday", "New Day", "0.1.0")]
-[BepInDependency("obenseuer.moddingframework", ">=0.11.0")]
-public class NewDay : BaseUnityPlugin
+[ModInfo("example.newday", "New Day", "0.1.0")]
+[ModDependency("obenseuer.moddingframework", "0.11.0")]
+public class NewDay : FrameworkMod
 {
-    private static readonly CoreLog Log = CoreLog.For("example.newday");
-
-    private void Awake()
+    protected override void OnLoad()
     {
         Events.DayPassed += OnDayPassed;
     }
@@ -36,7 +31,7 @@ public class NewDay : BaseUnityPlugin
 }
 ```
 
-On BepInEx 5, write `"0.11.0"` instead, because BepInEx 5 cannot parse a version range, and drop `using BepInEx.Unity.Mono;` (`BaseUnityPlugin` then comes from `BepInEx`). See [Supporting BepInEx 5 too](../getting-started/packaging.md#supporting-bepinex-5-too).
+Replace the code in `Plugin.cs` of your project from [Your first mod](../getting-started/first-mod.md) with the code above. Then run `dotnet build -c Release -p:DeployToGame=true` and start the game.
 
 Notes:
 

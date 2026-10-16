@@ -9,6 +9,8 @@ nav_order: 11
 
 Some parts are experimental, including the Story API (quests, dialogue and law), Net (Steam, lobby and presence helpers for co-op), mod NPCs, NPC appearance, the debug trace, the tutorial and computer files.
 
+What changed in 0.11.0-beta and 0.11.1-beta is in the [changelog](https://github.com/NomadsReach/Obenseuer-Modding-Framework/blob/main/CHANGELOG.md).
+
 ## What is new in 0.10.0-beta
 
 Version 0.10.0-beta adds the calls below on top of 0.9.0-beta. Each line names the main calls and links to its API page. The [changelog](https://github.com/NomadsReach/Obenseuer-Modding-Framework/blob/main/CHANGELOG.md) has the full details.
@@ -36,7 +38,7 @@ Version 0.10.0-beta adds the calls below on top of 0.9.0-beta. Each line names t
 - NPC appearance: `NpcAppearance` reads and sets meshes and materials by name, with `Restore`, `ShapeKind` and `SetBlendShape`. See [NPC appearance](api/npcappearance.md).
 - Characters: `Characters.Saved()` lists the save characters on the main menu. See [Characters](api/characters.md).
 - Robbers: `Robbers` adds aggro, rob, negotiate and aloof, and the `Robbed` event. See [Robbers](api/robbers.md).
-- Animal stats and tame: `Animals.All` fills hunger, max hunger, age and full-grown age. `AnimalActions.SetTame` sets an animal tame, and the choice is kept across a load. See [Animals](api/npcs.md#animals-and-osrats) and [Animal actions](api/animal-actions.md).
+- Animal stats and tame: `Animals.All` fills hunger, max hunger, age and full-grown age. `AnimalActions.SetTame` sets an animal tame, and the choice is kept across a load. See [Animals](api/npcs.md#animals) and [Animal actions](api/animal-actions.md).
 - Animal orders: `AnimalActions` sits, sleeps, hunts and runs live animals per mod, and `SleepPermanently` holds one asleep. See [Animal actions](api/animal-actions.md).
 
 **Items, inventory and containers**
@@ -192,7 +194,7 @@ Fixes are listed in the [changelog](https://github.com/NomadsReach/Obenseuer-Mod
 
 ## BepInEx 5 and BepInEx 6
 
-The framework runs on BepInEx 5.4.23 or later (Mono, x64) and on BepInEx 6 Unity.Mono (x64, be.755 or newer). The framework zip and the WebUi zip each hold two builds, one for BepInEx 6 and one for BepInEx 5, and BepInEx loads the one that matches.
+The framework runs on BepInEx 5.4.23 or later (Mono, x64) and on BepInEx 6 Unity.Mono (x64, [be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build). The framework zip and the WebUi zip each hold two builds, one for BepInEx 6 and one for BepInEx 5, and BepInEx loads the one that matches.
 
 ## Testing
 

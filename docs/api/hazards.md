@@ -6,7 +6,7 @@ nav_order: 26
 
 # Hazards API
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Patch owner: `obenseuer.moddingframework.hazards`.
 Files: `src/Api/Hazards.cs`, `src/Api/HazardsPatches.cs`.
 
@@ -60,6 +60,7 @@ public sealed class HazardEnteredArgs
 - `Id` appends the kind to the component's id, so the components on one GameObject get different ids. A `TriggerHurt` and its `TriggerRadiation` component have the same GameObject.
 - `SetEnabled` calls the game's public methods: `TriggerRadiation.Enable`, `TriggerHurt.Enable` and `point_radiation.Toggle`. It returns `true` when the flag equals `enabled` after the call.
 - A `TriggerHurt` with radiation damage type gets its own `TriggerRadiation` component at `Start`. `SetEnabled` on that hurt zone also sets the component, so the dose stops with the hurt zone. The component is also listed in `All` as its own `Radiation` entry.
+- **`Detector` is a scene radiation detector.** It is the level's `point_radiation_detector`, which fires its outputs when the radiation reaches a threshold. It is not the player's hand-held dosimeter.
 - **point_radiation_detector cannot be set.** It has no public method, only the public field `on`, and no game C# code writes it. `SetEnabled` returns `false` for a detector id. The flag is still read in `All`.
 - `Entered` fires once when the player enters a zone that is enabled. It is raised from the game's `OnTriggerEnter`, and only when the game itself registers the player as inside: the game's `playerIn` flag for a radiation zone, and the player's `Stats` added to the zone for a hurt zone. A second collider of the same player does not raise it again. The zone's own flag decides it. A radiation-damage `TriggerHurt` raises one `Hurt` event, not a second `Radiation` event from its component.
 - `Entered` does not fire for `point_radiation` or the detector, which have no trigger.

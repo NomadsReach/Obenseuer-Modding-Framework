@@ -16,7 +16,7 @@ This page lists the game areas the framework lets your mod read and change. Each
 - A bad argument throws `ArgumentException` or `ArgumentNullException`. Most other problems return a fallback value and do not throw.
 - Lists such as `Shops.All()` and `Jobs.All()` show only what is loaded now.
 - The framework builds as C# 5. The samples avoid `?.`, `$""` and `nameof`, and the Starter project uses the latest C# version.
-- Add `[BepInDependency("obenseuer.moddingframework", ">=0.11.0")]` to your plugin. On BepInEx 5, write `"0.11.0"` instead, because BepInEx 5 cannot parse a version range. See [Supporting BepInEx 5 too](getting-started/packaging.md#supporting-bepinex-5-too).
+- Add `[ModDependency("obenseuer.moddingframework", "0.11.0")]` to your framework mod, as in [Your first mod](getting-started/first-mod.md). A BepInEx plugin adds `[BepInDependency("obenseuer.moddingframework", ">=0.11.0")]` instead. On BepInEx 5, write `"0.11.0"` instead of a range, because BepInEx 5 cannot parse a version range. See [Supporting BepInEx 5 too](getting-started/packaging.md#supporting-bepinex-5-too).
 
 ## The player
 

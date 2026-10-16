@@ -7,7 +7,7 @@ nav_order: 13
 # Obenseuer Modding Framework conditions API (Conditions)
 
 Status: experimental.
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Log owner: `obenseuer.moddingframework.conditions`. Logs go to `BepInEx\logs\<owner>.log`.
 
 Everything not listed here is internal.
@@ -70,27 +70,36 @@ A failed patch on `ApplyCondition` or `RemoveCondition` disables that owner's ev
 
 ## Example
 
-Run with the BepInEx console open and a save loaded.
+Run with a save loaded. The output goes to the mod's log, `BepInEx\logs\example.conditionssmoke.log`.
 
 ```csharp
-public class ConditionsSmoke : BaseUnityPlugin
+using System.Collections.Generic;
+using ObenseuerCore;
+using UnityEngine;
+
+[ModInfo("example.conditionssmoke", "Conditions Smoke", "0.1.0")]
+[ModDependency("obenseuer.moddingframework", "0.11.0")]
+public class ConditionsSmoke : FrameworkMod
 {
-    private void Start()
+    private ModKeybind smokeKey;
+
+    protected override void OnLoad()
     {
-        Conditions.Changed += args => Logger.LogInfo("changed " + args.Name + " active=" + args.Active + " severity=" + args.Severity);
+        Conditions.Changed += args => Log.Info("changed " + args.Name + " active=" + args.Active + " severity=" + args.Severity);
+        smokeKey = Mod.Key("Smoke", "Run the conditions check", KeyCode.F9);
     }
 
     private void Update()
     {
-        if (!Input.GetKeyDown(KeyCode.F9)) return;
-        Logger.LogInfo("available " + Conditions.IsAvailable);
+        if (smokeKey == null || !smokeKey.Down()) return;
+        Log.Info("available " + Conditions.IsAvailable);
         List<ConditionInfo> all = Conditions.All();
-        foreach (ConditionInfo c in all) Logger.LogInfo(c.Name + " active=" + c.Active + " severity=" + c.Severity);
+        foreach (ConditionInfo c in all) Log.Info(c.Name + " active=" + c.Active + " severity=" + c.Severity);
         if (all.Count == 0) return;
         string name = all[0].Name;
-        Logger.LogInfo("add " + name + " -> " + Conditions.Add(name));
-        Logger.LogInfo("has " + Conditions.Has(name));
-        Logger.LogInfo("remove " + name + " -> " + Conditions.Remove(name));
+        Log.Info("add " + name + " -> " + Conditions.Add(name));
+        Log.Info("has " + Conditions.Has(name));
+        Log.Info("remove " + name + " -> " + Conditions.Remove(name));
     }
 }
 ```

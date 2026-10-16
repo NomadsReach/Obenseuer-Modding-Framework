@@ -6,11 +6,11 @@ nav_order: 111
 
 # Dishwashers API
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Patch owner: `obenseuer.moddingframework.dishwashers`.
 Files: `src/Api/Dishwashers.cs`, `src/Api/DishwashersPatches.cs`.
 
-Everything not listed here is internal. Dishwasher speed stays in `TweaksDishwasher`. The general station list is `Crafting.All` (`docs/api/recipes.md`), which also includes dishwashers. This area adds the dishwasher-specific reads and the cycle event.
+Everything not listed here is internal. Dishwasher speed stays in `TweaksDishwasher`. The general station list is `Crafting.All` ([recipes](recipes.md)), which also includes dishwashers. This area adds the dishwasher-specific reads and the cycle event.
 
 ## If a hook cannot be installed
 
@@ -56,11 +56,11 @@ public sealed class DishwasherInfo
 
 ## Overlap with Crafting
 
-`Crafting.Crafted` (`docs/api/recipes.md`) also fires when a dishwasher creates its output, because a dishwasher is a `manufacturing` station, so one wash raises both events: `Crafting.Crafted` first (from `CreateItems`, with the recipe and the results), then `Dishwashers.Finished` (from the end of `CraftDelayed`, with the dishwasher's id and state). Use `Crafting.Crafted` for the washed items and recipe, and `Dishwashers.Finished` when you only want dishwashers and their id. `Dishwashers.Finished` is not raised for any other crafting station.
+`Crafting.Crafted` ([recipes](recipes.md)) also fires when a dishwasher creates its output, because a dishwasher is a `manufacturing` station, so one wash raises both events: `Crafting.Crafted` first (from `CreateItems`, with the recipe and the results), then `Dishwashers.Finished` (from the end of `CraftDelayed`, with the dishwasher's id and state). Use `Crafting.Crafted` for the washed items and recipe, and `Dishwashers.Finished` when you only want dishwashers and their id. `Dishwashers.Finished` is not raised for any other crafting station.
 
 ## Not wrapped
 
-- Starting a wash. `manufacturing.Craft()` is driven by the manufacturing panel and reads its selection, so a mod cannot call it safely. This matches the decision in `docs/api/recipes.md`.
+- Starting a wash. `manufacturing.Craft()` is driven by the manufacturing panel and reads its selection, so a mod cannot call it safely. This matches the decision in [recipes](recipes.md).
 - The dishwasher's washing powder, categories and blacklist. They are set in the game's data and are not exposed.
 - The recipe for a dishwasher item (`Dishwasher.GenerateRecipe`). It is built from the item, not from a stored recipe, and the speed tweak is in `TweaksDishwasher`.
 

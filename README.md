@@ -29,13 +29,13 @@ Mods add their own features on top. The game API areas and helpers were built fr
 ### Requirements
 
 - Obenseuer 0.5.08 (Steam build 25969064).
-- [BepInEx](docs/glossary.md#bepinex) 5.4.23 or later (Mono, x64), or BepInEx 6 Unity.Mono, x64, bleeding edge build from https://builds.bepinex.dev/projects/bepinex_be: be.755 or newer, be.788 recommended. Install one of them first, then start the game once so it creates its folders.
+- [BepInEx](docs/glossary.md#bepinex) 5.4.23 or later (Mono, x64), or BepInEx 6 Unity.Mono, x64, bleeding edge build from https://builds.bepinex.dev/projects/bepinex_be: [be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build. Newer BepInEx 6 builds usually work, but BepInEx 6 is a pre-release and a new build can break mods. If something breaks, use be.788. Install one of them first, then start the game once so it creates its folders.
 - ConfigurationManager and UnityExplorer, if you use them, need the builds for your BepInEx version.
 - Microsoft Edge WebView2 Runtime, only for the optional WebUi module: mods that use WebUi and the web Mods menu. Windows 10 and 11 have it already. Without it, or without the module, the framework still runs, and the Mods menu uses the classic window.
 
 ### Install
 
-1. Close the game. In the game folder (the folder that holds `Obenseuer.exe`), extract a BepInEx zip: BepInEx 5.4.23 or later (Mono, win-x64), or the BepInEx 6 Unity.Mono win-x64 zip, `BepInEx-Unity.Mono-win-x64-6.0.0-be.<build>+<hash>.zip` (be.755 or newer, be.788 recommended).
+1. Close the game. In the game folder (the folder that holds `Obenseuer.exe`), extract a BepInEx zip: BepInEx 5.4.23 or later (Mono, win-x64), or the BepInEx 6 Unity.Mono win-x64 zip, `BepInEx-Unity.Mono-win-x64-6.0.0-be.<build>+<hash>.zip` ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build). Newer BepInEx 6 builds usually work, but BepInEx 6 is a pre-release and a new build can break mods. If something breaks, use be.788.
 2. Start the game once, then close it.
 3. Download the framework zip from https://github.com/NomadsReach/Obenseuer-Modding-Framework/releases and extract it into the game folder. The zip contains a `BepInEx` folder, so its files land in `BepInEx\plugins\ObenseuerCore\`. The zip holds a build for each loader: `ObenseuerCore.dll` for BepInEx 6 and `ObenseuerCore.BepInEx5.dll` for BepInEx 5. BepInEx loads the one that matches. If your log shows an error about the other file, see [BepInEx 5 or 6?](docs/faq.md#bepinex-5-or-6).
 4. Optional: for WebUi, extract the WebUi zip from the same releases page into the game folder too. Its files land in `BepInEx\plugins\ObenseuerCore.WebUi\`.
@@ -76,13 +76,13 @@ The framework is built for Obenseuer 0.5.08 only. On another version, see the sa
 
 ## For modders
 
-Mods are BepInEx plugins, for BepInEx 5 or BepInEx 6. A BepInEx 6 mod derives from `BepInEx.Unity.Mono.BaseUnityPlugin`. A BepInEx 5 mod derives from `BepInEx.BaseUnityPlugin`. To support both, see [Supporting BepInEx 5 too](docs/guides/getting-started/packaging.md#supporting-bepinex-5-too). The site has the guides, the cookbook, the API reference and the FAQ:
+A mod is either a [framework mod](docs/api/framework-mods.md), which is one DLL that runs on BepInEx 5 and BepInEx 6 and is the form to use for a new mod, or a BepInEx plugin. A BepInEx 6 plugin derives from `BepInEx.Unity.Mono.BaseUnityPlugin`. A BepInEx 5 plugin derives from `BepInEx.BaseUnityPlugin`. To support both, see [Supporting BepInEx 5 too](docs/guides/getting-started/packaging.md#supporting-bepinex-5-too). The site has the guides, the cookbook, the API reference and the FAQ:
 
 https://nomadsreach.github.io/Obenseuer-Modding-Framework/
 
 To start, read [Your first mod](docs/guides/getting-started/first-mod.md). It builds a mod that writes one log line.
 
-Add the dependency to your plugin:
+A BepInEx plugin adds the dependency like this. A framework mod uses `[ModDependency("obenseuer.moddingframework", "0.11.0")]`.
 
 ```csharp
 [BepInDependency("obenseuer.moddingframework", ">=0.11.0")]
@@ -107,7 +107,7 @@ The docs are in the source repo on GitHub, https://github.com/NomadsReach/Obense
 
 ## Compatibility
 
-The framework depends on BepInEx 5.4.23 or later (Mono, x64) or BepInEx 6 Unity.Mono (x64, be.755 or newer), and HarmonyX, which BepInEx ships. The BepInEx 6 build is built against `BepInEx.Core.dll`, `BepInEx.Unity.Mono.dll` and `SemanticVersioning.dll` from the BepInEx 6 core folder. The BepInEx 5 build is built against BepInEx packages from NuGet. The optional WebUi module depends on the framework and also needs the WebView2 Runtime (see Requirements). The framework has no native code and no other dependencies.
+The framework depends on BepInEx 5.4.23 or later (Mono, x64) or BepInEx 6 Unity.Mono (x64, [be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build), and HarmonyX, which BepInEx ships. The BepInEx 6 build is built against `BepInEx.Core.dll`, `BepInEx.Unity.Mono.dll` and `SemanticVersioning.dll` from the BepInEx 6 core folder. The BepInEx 5 build is built against BepInEx packages from NuGet. The optional WebUi module depends on the framework and also needs the WebView2 Runtime (see Requirements). The framework has no native code and no other dependencies.
 
 ## License
 

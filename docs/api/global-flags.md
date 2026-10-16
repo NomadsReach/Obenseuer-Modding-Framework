@@ -6,7 +6,7 @@ nav_order: 25
 
 # GlobalFlags API
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Patch owner: `obenseuer.moddingframework.globalflags`.
 Files: `src/Api/GlobalFlags.cs`, `src/Api/GlobalFlagsPatches.cs`.
 
@@ -56,7 +56,7 @@ public sealed class GlobalFlagChangedArgs
 
 ## Ceilings and risks
 
-- Nested `Changed` events deeper than 4 levels are dropped. Compare `Args.Active` with the value you want before calling `Set` from a handler.
+- Nested `Changed` events deeper than 4 levels are dropped. Compare the handler's `GlobalFlagChangedArgs.Active` with the value you want before calling `Set` from a handler.
 - `All()` copies the key list each call. Fine for occasional calls, not for per-frame use.
 - Keys are case-sensitive, as in the game's dictionary.
 - The hooks are on `SetState` only. A direct write to `GlobalState.state` by another mod is not reported.

@@ -6,11 +6,11 @@ nav_order: 8
 
 # Card games API
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Patch owner: `obenseuer.moddingframework.cardgames`.
 Files: `src/Api/CardGames.cs`, `src/Api/CardGamesPatches.cs`. Table ids use the save GUID, or the scene path.
 
-The facade covers the card tables and their two games, China Hand and Ristiseiska. It reads, reports events, and has one write: per-mod payout factors (see Payout factors). Mods cannot start a game, deal, play a card or set a stake.
+The facade covers the card tables and their two games: Shittypants (`ChinaHand`) and Crosseven (`Ristiseiska`), the names players see in the game. It reads, reports events, and has one write: per-mod payout factors (see Payout factors). Mods cannot start a game, deal, play a card or set a stake.
 
 ## If a hook cannot be installed
 
@@ -64,7 +64,7 @@ public static class CardGames
 
 ## Tables
 
-`Id` is the table's save GUID when one of its components has one. `CardGameTable` has none in build 25839246, so the id is the scene id: the scene name, a colon, then each node from the root down with its sibling index (for example `Bar:Room[2]/CardTable[0]`). It is stable between calls and sessions for a table that stays in the scene hierarchy, and it is the value `Started` and `Ended` report. The event hooks build nothing when the event has no subscriber.
+`Id` is the table's save GUID when one of its components has one. `CardGameTable` has none in the game's scenes as far as the framework knows, so the id is the scene id: the scene name, a colon, then each node from the root down with its sibling index (for example `Bar:Room[2]/CardTable[0]`). It is stable between calls and sessions for a table that stays in the scene hierarchy, and it is the value `Started` and `Ended` report. The event hooks build nothing when the event has no subscriber.
 
 ## States
 
@@ -87,7 +87,7 @@ public static class CardGames
 - **Item bets.** For an item bet the amount is a count of items, so it is scaled and rounded as a count.
 - **No factor set.** With no factor set the game's code path computes the same numbers as the game: the hook returns its input.
 - **Reset.** The factors are cleared on every Single scene load, so a mod that wants one in force sets it again after the scene loads.
-- **Unknown games.** A `CardGame` subclass that is neither China Hand nor Ristiseiska has kind `Unknown` and is never scaled.
+- **Unknown games.** A `CardGame` subclass that is neither Shittypants (`ChinaHand`) nor Crosseven (`Ristiseiska`) has kind `Unknown` and is never scaled.
 
 ## Not in this area
 

@@ -6,11 +6,13 @@ nav_order: 59
 
 # Recipes, crafting and growing API
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Patch owners: `obenseuer.moddingframework.crafting` (craft events), `obenseuer.moddingframework.growing` (harvest event), `obenseuer.moddingframework.recipes` (`Recipes.Unlocked`). Recipe reads and `Unlock` need no patch.
 Files: `src/Api/Recipes.cs`, `src/Api/RecipesPatches.cs`, `src/Api/Crafting.cs`, `src/Api/CraftingPatches.cs`, `src/Api/GrowingPlants.cs`, `src/Api/GrowingPatches.cs`.
 
 Everything not listed here is internal.
+
+This page covers the game's recipes, the crafting stations that run them, and the growing plants. You can look up recipes and check whether the player can craft one, unlock a recipe, and get told when something is crafted, a plant is harvested or a recipe is unlocked. To add a new recipe, see [Registry API](registry.md).
 
 ## If a hook cannot be installed
 
@@ -199,5 +201,5 @@ public sealed class PlantPickArgs
 ## Not covered
 
 - Growing panel (`GrowingPanel`) state. Its only plain data is `ActiveManu`, a live `Growing` reference, and the rest is UI. `Crafting.All` already lists the growing stations.
-- Input and output of a `PutItemSelection` machine. Its only subclass is `InvoicePaymentMachine` (see `docs/api/invoices.md`), which builds its options from invoices, not from its option list. A `Dishwasher` is a `manufacturing` subclass, not a `PutItemSelection`.
+- Input and output of a `PutItemSelection` machine. Its only subclass is `InvoicePaymentMachine` (see [invoices page](invoices.md)), which builds its options from invoices, not from its option list. A `Dishwasher` is a `manufacturing` subclass, not a `PutItemSelection`.
 - Liquid volumes: `Count` is the recipe amount, which can be fractional (for example 0.4 for a liquid).

@@ -374,7 +374,7 @@ ScreenFx.FadeIn(0.1f);
 
 - `Hud.Notify(text)` shows the game's notice box with the type line `Notice`. `Hud.Notify(title, body)` shows the same box with your own title line.
 - `Hud.ShowSubtitle(text, fadeSeconds)` types the text at 20 characters per second, then fades it out over `fadeSeconds`.
-- `Hud.ShowHint(modId, title, lines)` shows one hint per mod id. Each line is a paragraph. `Hud.HideHint(modId)` removes it.
+- `Hud.ShowHint(modId, title, lines)` shows one hint per mod id. Each line is a paragraph. The hint appears in the game's hint box, the one the card game rules use, so the player can toggle it with the Hints key (K by default). `Hud.HideHint(modId)` removes it.
 - `Hud.ShowNote(noteId)` opens a note the player already has. It cannot show text of your own.
 - `ScreenFx.Shake(duration, amount)` shakes the camera. A new shake replaces the one in progress.
 - `ScreenFx.FadeToBlack(speed)` leaves the screen black until `ScreenFx.FadeIn` runs. Call both.

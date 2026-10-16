@@ -6,11 +6,11 @@ nav_order: 95.1
 
 # Stack actions API
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Log owner: `obenseuer.moddingframework.stacks`.
 Files: `src/Api/StackActions.cs`.
 
-Gives, drops and pours item stacks in the player's inventory with a quality, an owner or a liquid. `PlayerInventory.Give` (`docs/api/inventory.md`) only adds plain items.
+Gives, drops and pours item stacks in the player's inventory with a quality, an owner or a liquid. `PlayerInventory.Give` ([inventory.md](inventory.md)) only adds plain items.
 
 ## API
 
@@ -51,7 +51,7 @@ public static class StackActions
 ## Not included
 
 - Equip and unequip: the game's `PlayerHandItems.PrimaryEquip` and `PrimaryUnequip` act on the item already in the right hand, with no item id. The hand is filled by `DropR` and `DropL`, whose names do not match what they do.
-- Remove liquid: the game's `ItemOperations.RemoveLiquid` is a TODO. It logs an error and returns `false`.
+- Remove liquid: the game's `ItemOperations.RemoveLiquid` is not implemented. It logs an error and returns `false`.
 - Sell: the game's `Inventory.SellItems(int, ...)` sells one unit whatever the count, and the stack overload needs a game `ItemStack`.
 
 ## Example

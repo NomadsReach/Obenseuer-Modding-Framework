@@ -6,7 +6,7 @@ nav_order: 75
 
 # Sleep events API
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Patch owners: `obenseuer.moddingframework.sleepevents` (`ExecuteEvent`) and `obenseuer.moddingframework.sleepevents.intercept` (`CalculateEvent`).
 Files: `src/Api/SleepEvents.cs`, `src/Api/SleepEventsPatches.cs`.
 
@@ -14,7 +14,7 @@ Everything not listed here is internal.
 
 ## If a hook cannot be installed
 
-The framework installs two hooks, each under its own owner: a prefix on `SleepEventController.CalculateEvent` (the intercept owner) and a postfix on `SleepEventController.ExecuteEvent` (the sleep events owner). A missing hook removes only its own owner's patches and logs one warning. If an install throws, such as a handler name typo, both owners are removed. `InProgress` keeps working because it reads game state directly.
+The framework installs two hooks, each under its own owner: a prefix on `SleepEventController.CalculateEvent` (the intercept owner) and a postfix on `SleepEventController.ExecuteEvent` (the sleep events owner). A missing hook removes only its own owner's patches and logs one warning. If an install throws, both owners are removed. `InProgress` keeps working because it reads game state directly.
 
 ## Threading and safety
 
@@ -56,6 +56,8 @@ public enum SleepEventKind
 ```
 
 The values follow the game's `SleepEventController.SleepEvents` in order. The framework casts between the two by value.
+
+`StealOS` takes a random 1 to 33 percent of the player's OC (Open Sewer Coins), `StealRM` the same share of their RM (Real Money), and `StealMoney` takes from both.
 
 ## Occurred
 

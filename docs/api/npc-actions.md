@@ -6,11 +6,13 @@ nav_order: 49
 
 # NPC actions API
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Log owner: `obenseuer.moddingframework.npcactions`.
 Files: `src/Api/NpcActions.cs`.
 
 Everything not listed here is internal. Items marked **experimental** may change.
+
+Use `NpcActions` to make a live NPC do something right now: teleport, die, get hit, follow the player, say a line, start a conversation, look at something, or change scene. It only works on NPCs that are currently loaded in the scene. To choose an NPC and read its state, use [NPCs](npcs.md).
 
 ## If a hook cannot be installed
 
@@ -106,6 +108,6 @@ public static class NpcActions
 ## Ceilings and risks
 
 - Teleport moves the agent but does not stop its activity. The scheduler may pull the NPC back to its target on the next tick.
-- Kill leaves the body in the scene and the game keeps no death flag for an off-screen NPC (`docs/api/npcs.md`). A killed NPC stays dead and unusable until its scene reloads, when it comes back alive, because `NPCInfo.state` is `[fsIgnore]`. The game's Default branch does not re-enable the controller, FOV, talk or bark, and nothing clears the Animator `Dead` bool, so a `WakeUp`-style restore would not bring the NPC back. None is exposed.
+- Kill leaves the body in the scene and the game keeps no death flag for an off-screen NPC ([npcs page](npcs.md)). A killed NPC stays dead and unusable until its scene reloads, when it comes back alive, because `NPCInfo.state` is `[fsIgnore]`. The game's Default branch does not re-enable the controller, FOV, talk or bark, and nothing clears the Animator `Dead` bool, so a `WakeUp`-style restore would not bring the NPC back. None is exposed.
 - Say and Comment go through the game's bark rules (priority, conditions, conversation state), so they return `true` when requested, not when shown.
 - Follow with `untilStopped = true` is saved with the NPC and can outlive the mod that started it. Use `false` unless the mod must hold the NPC.

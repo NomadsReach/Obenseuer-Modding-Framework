@@ -6,7 +6,7 @@ nav_order: 92
 
 # World item events API
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Patch owner: `obenseuer.moddingframework.worlditems`.
 Files: `src/Api/WorldItems.cs`, `src/Api/WorldItemsPatches.cs`.
 
@@ -31,7 +31,7 @@ Events are postfixes. They fire after the game method has finished, and a throwi
 
 - `PickedUp`: the player takes a world collectible into the inventory. `Amount` is the number of units taken. `Position` is the collectible's position. It fires once per full pickup, through `CollectibleItem.PerformPickup`, which the game calls from the player's Interact and StopInteract (tap). Placed-furniture pickups and rat-trap pickups also pass through `PerformPickup`, so they fire too. A partial pickup (not everything fit) does not fire.
 - `Dropped`: the player puts an inventory item on the ground. This covers the inventory drop (drag to the Remove Area, right-click drop, the amount slider) and the game's own wieldable drops (primary use and unequip). `Position` is the spawn point the game chose. It is not the player's position. There is no `thrown` flag, because the game has no throw action.
-- `Used`: the player presses the Use or secondary Use button on a held inventory item. It fires once per use, not once per action. A held item runs one action, so it fires once with the held item's id. A liquid container runs all actions of its liquid in one use, so it fires once with the liquid's id. A liquid with no actions fires nothing. A world item used directly does not fire. An active trade does not fire. The postfix runs after a skipped original, so when another mod's prefix on `Item.InvokeAction` returns false and skips the game's action, `Used` can still fire for a use the game did not apply. The facade's prefix sets the state the postfix reads, so the event fires only if that prefix ran. The prefix order was not checked.
+- `Used`: the player presses the Use or secondary Use button on a held inventory item. It fires once per use, not once per action. A held item runs one action, so it fires once with the held item's id. A liquid container runs all actions of its liquid in one use, so it fires once with the liquid's id. A liquid with no actions fires nothing. A world item used directly does not fire. An active trade does not fire. The postfix runs after a skipped original, so when another mod's prefix on `Item.InvokeAction` returns false and skips the game's action, `Used` can still fire for a use the game did not apply. The facade's prefix sets the state the postfix reads, so the event fires only if that prefix ran. It is not known in which order the two prefixes run.
 
 `Used` versus `Survival.Consumables.Consumed`: for food and drink use `Consumed`. It fires only after the game applied the effects, not when an intercept cancelled the use, and it also covers eating from the world and depression-forced uses. `Used` fires for every held item use (equip, read, tools too) before any outcome is known, and not for world use.
 

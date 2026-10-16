@@ -6,7 +6,7 @@ nav_order: 4
 
 # Cookbook
 
-Each recipe does one job and fits on a screen. Start from [Your first mod](../getting-started/first-mod.md), and paste the code into the plugin file.
+Each recipe does one job and fits on a screen. Each recipe is a framework mod, the same form as [Your first mod](../getting-started/first-mod.md). Start from that project and paste the recipe's code into `Plugin.cs`. A recipe that needs an extra reference says so on its page.
 
 - [Give an item](give-an-item.md)
 - [Pay the player](pay-the-player.md)

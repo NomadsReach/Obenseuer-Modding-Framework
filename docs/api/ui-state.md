@@ -6,7 +6,7 @@ nav_order: 86
 
 # UiState API
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Log owner: `obenseuer.moddingframework.uistate`, used by the pause events only. The flag properties only read game state and have no patches.
 Files: `src/Api/UiState.cs`, `src/Api/UiStatePatches.cs`.
 
@@ -34,14 +34,14 @@ public static class UiState
 - `IsInputBlocked`: `GameController.keysDisabled`. It is `true` while a `ControlsDisabled` call with the default `disableKeys` is active (cutscenes, dialogue, sleep and similar). An open game menu does not set it, because `ShowGameMenu` passes `disableKeys: false`. The framework's own input lock also sets it.
 - `CursorVisible`: `GameController.cursorVisible`. This is the game's cursor flag. It does not include the controller-input and computer-screen cases that `UpdateCursorVisibility` adds.
 - `InventoryDisabled`: `GameController.inventoryDisabled`. It stays `true` while any holder from `DisableInventory` has not called `EnableInventory`.
-- `PauseEventsAvailable` is `installed && !CorePatcher.IsDisabled(owner)`. It is `false` when the pause patches could not be installed, and then the two events never fire.
+- `PauseEventsAvailable` is `true` when the pause patches were installed and their owner is not disabled. It is `false` when the pause patches could not be installed, and then the two events never fire.
 
 ## Pause events
 
 - `PauseOpened(bool isDeathScreen)` fires after the game's `PauseMenu.PauseMenuOpen` returns. The argument is `Death.instance.dead`, so it is `true` for the death screen. `PauseMenu.PausemenuDeath` calls the same open path after `dead` is set.
 - `PauseOpened` can repeat. If the pause menu is already open when the player dies, `PausemenuDeath` runs the open path again with no close in between, so the handler gets a second `PauseOpened(true)`. The framework does not deduplicate it. A handler that must act once should keep its own flag.
 - `PauseOpened` does not fire when `PauseMenuOpen` throws. On a scene with no `GameController` (the main menu), `PauseMenuOpen` throws at `PauseMenu` (`GameController.instance.ChangeCursorStatus`), before the postfix runs. The exception is the game's own; the framework does not catch it.
-- `PauseClosed()` fires after `PauseMenu.PauseMenuClose` returns, and only when the menu was open before the close (`PauseIsActive`, `PauseMenu`, read in the prefix). In code, `PauseMenuClose` is called only from `PauseMenu.Resume`, and `CardGameUI` calls `Resume` only while the menu is open. A button bound to `Resume` in a scene is not visible in code.
+- `PauseClosed()` fires after `PauseMenu.PauseMenuClose` returns, and only when the menu was open before the close (`PauseIsActive`, `PauseMenu`, read in the prefix). In code, `PauseMenuClose` is called only from `PauseMenu.Resume`, and `CardGameUI` calls `Resume` only while the menu is open. A button in a scene that is wired to `Resume` would not show up in the game code.
 - `PauseClosed` does not fire on quit to the main menu (`PauseMenu.QuitMainMenu`, `PauseMenu`) or quit to desktop (`PauseMenu.QuitDesktop`, `PauseMenu`), because neither calls `PauseMenuClose`. The scene load raises `Events.SceneLoaded` instead. Quit to desktop ends the process.
 - Handlers run one at a time, so a handler that throws is logged once and the other handlers still run. The events are raised on the main thread from the game's pause code.
 - The framework does not gate these events on `SaveData.Busy`, so a handler that should ignore a save or load can check `SaveData.Busy`.

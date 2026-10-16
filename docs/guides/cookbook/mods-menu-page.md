@@ -9,20 +9,17 @@ nav_order: 4
 Add a page to the Mods menu with a title, a line of text and a button.
 
 1. Add references to `Unity.TextMeshPro.dll` and `UnityEngine.UI.dll` from the game's `Obenseuer_Data\Managed` folder, with `Private` set to `false`. `ModUi` needs them.
-2. Build and copy the DLL, as in [Your first mod](../getting-started/first-mod.md).
 
 ```csharp
-using BepInEx;
-using BepInEx.Unity.Mono;
 using ObenseuerCore;
 using ObenseuerCore.Ui;
 using UnityEngine;
 
-[BepInPlugin("example.menupage", "Menu Page", "0.1.0")]
-[BepInDependency("obenseuer.moddingframework", ">=0.11.0")]
-public class MenuPage : BaseUnityPlugin
+[ModInfo("example.menupage", "Menu Page", "0.1.0")]
+[ModDependency("obenseuer.moddingframework", "0.11.0")]
+public class MenuPage : FrameworkMod
 {
-    private void Awake()
+    protected override void OnLoad()
     {
         ModMenu.AddPage("example.menupage", "Example Page", BuildPage);
     }
@@ -31,12 +28,12 @@ public class MenuPage : BaseUnityPlugin
     {
         ModUi.Title(parent, "Example Page");
         ModUi.Text(parent, "This page belongs to the example mod.", false);
-        ModUi.Button(parent, "Log a click", ButtonStyle.Primary, () => Logger.LogInfo("menu page button clicked"));
+        ModUi.Button(parent, "Log a click", ButtonStyle.Primary, () => Log.Info("menu page button clicked"));
     }
 }
 ```
 
-On BepInEx 5, write `"0.11.0"` instead, because BepInEx 5 cannot parse a version range, and drop `using BepInEx.Unity.Mono;` (`BaseUnityPlugin` then comes from `BepInEx`). See [Supporting BepInEx 5 too](../getting-started/packaging.md#supporting-bepinex-5-too).
+Replace the code in `Plugin.cs` of your project from [Your first mod](../getting-started/first-mod.md) with the code above. Then run `dotnet build -c Release -p:DeployToGame=true` and start the game.
 
 Notes:
 

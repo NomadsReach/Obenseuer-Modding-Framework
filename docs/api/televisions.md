@@ -6,7 +6,7 @@ nav_order: 82
 
 # Televisions API
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Patch owner: `obenseuer.moddingframework.televisions`.
 Files: `src/Api/Televisions.cs`, `src/Api/TelevisionsPatches.cs`.
 
@@ -68,7 +68,7 @@ Loading a save does not fire `Changed`. The game's `OnLoadingGame` restores `isO
 - `On` is the switch state. A set that has lost power reports `On` true when it was on before the power cut, and no `Changed` fires for the cut.
 - `SetOn` plays the switch sound. A mod that switches many sets at once will play that many sounds.
 - `All` and `Get` list only the active scene. They use `FindObjectsByType`, which skips inactive GameObjects.
-- Reads and writes go through reflection on the private field `isOn`, `locked` and `powerOn`. Mono allows this, but only the game code confirms the field names.
+- Reads and writes go through reflection on the private field `isOn`, `locked` and `powerOn`. A game update that renames these fields would break the reads and writes.
 - `Id` for a set without a save GUID is a scene path. Moving or renaming the GameObject changes the id.
 
 ## Save loads

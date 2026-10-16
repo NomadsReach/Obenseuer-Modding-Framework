@@ -7,7 +7,7 @@ nav_order: 19
 # Obenseuer Modding Framework economy API (Cash, Shops, Banking, PlayerShops, Mail, LegalServices)
 
 Experimental.
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Log owner: `obenseuer.moddingframework.economy`. Logs go to `BepInEx\logs\obenseuer.moddingframework.economy.log`.
 
 Everything not listed here is internal. Main thread only.
@@ -25,7 +25,7 @@ Everything not listed here is internal. Main thread only.
 ## Money (Cash)
 
 ```csharp
-public enum MoneyCurrency { OC = 0, RM = 1 }
+public enum MoneyCurrency { OC = 0, RM = 1 }   // OC: Open Sewer Coins, the everyday coins. RM: Real Money
 
 public sealed class MoneyChangedArgs
 {
@@ -141,7 +141,7 @@ public static class Shops
 **Vending.** Stock is each sellable entry with its count and `GetPrice()`. `PriceOf` returns a price only for `playerBuys = true`.
 
 **Events.**
-- `Bought` and `Sold` fire after a successful game `Trade.Buy`/`Trade.Sell` (and `TradeSpecial`'s overrides), or a successful `VendingMachine.Buy` (vending raises `Bought` only). `Price` is the money that moved, read from the balance before and after, so it matches what the player actually paid or received (any other money change made by a handler or game script during the trade call would be included). `Count` is the requested count; vending is always 1. Inside a `Traders.Buy` or `Traders.Sell` trade they are raised when the trade commits, and are dropped if the trade is refused or rolled back (see `docs/api/traders.md`).
+- `Bought` and `Sold` fire after a successful game `Trade.Buy`/`Trade.Sell` (and `TradeSpecial`'s overrides), or a successful `VendingMachine.Buy` (vending raises `Bought` only). `Price` is the money that moved, read from the balance before and after, so it matches what the player actually paid or received (any other money change made by a handler or game script during the trade call would be included). `Count` is the requested count; vending is always 1. Inside a `Traders.Buy` or `Traders.Sell` trade they are raised when the trade commits, and are dropped if the trade is refused or rolled back (see [traders](traders.md)).
 - The framework does write shop trades: `Traders.Buy` and `Traders.Sell` buy from or sell to a trader by id and item id, and return a reason when they refuse (see [traders.md](traders.md)). A trade needs the game's `ItemData` slot objects, which those calls handle for you.
 
 **PriceQuery.** Raised from the game's `Trade.GetItemStackPrice` (postfix), which every trader price check, label and trade uses. It is not raised for vending prices. It also runs during a trader trade's own price checks, where a handler can read and set the price but cannot start a trader trade (see [traders.md](traders.md)). Inside a trader trade the framework's money and item writes are refused as well.
@@ -460,9 +460,9 @@ public static class LegalServices
 
 ## Not exposed
 
-- **Bottle recycling** (`BottleRecyclingPanel`): pays money per bottle through a coroutine (`StartGiveMoney`) with no single payout method to hook. The owed amount per machine is in `Recycling` (`docs/api/recycling.md`), but the payout itself is not exposed.
-- **Furniture and train shops** (`ShopController`, `BaseShop`, `ShopBaseUI`): buying a piece from a furniture shop is `BaseShops.Buy` (`docs/api/baseshops.md`), which follows `ShopBaseUI.Buy` through public calls. Selling a piece to a furniture shop is `BaseShops.Sell` (`docs/api/baseshops.md`), which repeats the game's sell steps because `ShopBaseUI.Sell` is private. Not exposed: buying from a train shop (its delivery needs the train screen's preview), and the shop's money and restock, which are in `BaseShops`.
-- **Market shops** (`MarketShop`, `Market`): no buy call. The stall's lock, the till payment and the read-only price and currency are in `MarketShops` (`docs/api/marketshops.md`). The stall's stock is not exposed: the items on the conveyor are the player's goods. `Market` is not exposed (its `checkInventory` throws `NotImplementedException`).
+- **Bottle recycling** (`BottleRecyclingPanel`): pays money per bottle through a coroutine (`StartGiveMoney`) with no single payout method to hook. The owed amount per machine is in `Recycling` ([recycling](recycling.md)), but the payout itself is not exposed.
+- **Furniture and train shops** (`ShopController`, `BaseShop`, `ShopBaseUI`): buying a piece from a furniture shop is `BaseShops.Buy` ([baseshops](baseshops.md)), which follows `ShopBaseUI.Buy` through public calls. Selling a piece to a furniture shop is `BaseShops.Sell` ([baseshops](baseshops.md)), which repeats the game's sell steps because `ShopBaseUI.Sell` is private. Not exposed: buying from a train shop (its delivery needs the train screen's preview), and the shop's money and restock, which are in `BaseShops`.
+- **Market shops** (`MarketShop`, `Market`): no buy call. The stall's lock, the till payment and the read-only price and currency are in `MarketShops` ([marketshops](marketshops.md)). The stall's stock is not exposed: the items on the conveyor are the player's goods. `Market` is not exposed (its `checkInventory` throws `NotImplementedException`).
 
 ## Save loads
 

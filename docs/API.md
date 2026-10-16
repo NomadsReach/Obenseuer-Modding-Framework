@@ -4,9 +4,9 @@ has_children: true
 nav_order: 6
 ---
 
-# Obenseuer Modding Framework API (0.11.0)
+# Obenseuer Modding Framework API (0.11.1)
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 5.4.23 or later (Mono), or BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended). Extensive testing has not been fully done yet.
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 5.4.23 or later (Mono), or BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build). Extensive testing has not been fully done yet.
 Namespace: `ObenseuerCore`. Plugin GUID: `obenseuer.moddingframework`.
 
 Everything not listed here is internal, including the framework's save-file classes, which are not API and may change. The one save-file type that is public is `BankLedgerEntry`, because the bank ledger's `Entries` and `Added` return it. `WebUiPlugin` is the WebUi plugin class itself; mods never use it.
@@ -26,8 +26,8 @@ Each area is a public facade over one game system. Main thread only. See the [st
 - [Dialogue authoring](api/dialogue-authoring.md): `DialogueAuthoring` (`Add`, `Remove`, `Clear`, `TitleOf`), `Dialogue.AddResponse`, `RemoveResponse`, `AddBranch`, `RemoveBranch` and `ConversationLine.TextCallback`, session only.
 - [HUD, console, achievements and difficulty](api/hud.md): `Hud` (including `Bar` and `ClearBar`), `ConsoleCommands`, `Achievement`, `GameDifficulty` (`SetFactor`, `Clear`, `DifficultyMultiplier`), `TaskItems`, `TaskItemCount`, `TaskItemChangedArgs`.
 - [Housing and building](api/housing.md): `Housing`, `Building` (`UnlockBlueprint(name, silent)`), `BuildAreaInfo`.
-- [NPCs, animals, relationships and phones](api/npcs.md): `Npcs` (incl. `InScene`, `SceneNpcInfo`), `Animals` (with `Damage`), `Osrats`, `Relationships`, `Phones`.
-- [Characters](api/characters.md): `Characters`, `CharacterInfo`, `StartChoices`, `StartChoiceInfo`, `StartChoiceArgs`.
+- [NPCs, animals, relationships and phones](api/npcs.md): `Npcs` (incl. `InScene`, `SceneNpcInfo`), `Animals` (with `Damage`), `Relationships`, `Phones`.
+- [Characters](api/characters.md): `Characters`, `CharacterInfo`.
 - [Custom skills](api/customskills.md): `CustomSkills` (`Register`, `Get`, `Level`, `Set`, `Add`, `Clear`, `QueueBanner`, `LevelChanged`).
 - [Player, skills, effects, subscriptions and travel](api/player.md): `PlayerState` (with `FirstName`, `LastName`, `Wait` with `WaitOptions` (`IgnoreNeeds`, `NoPassOut`, `Label`) and a minutes result, `PickTime` with its step and `validate` overload), `Skills`, `Effects`, `Subscriptions`, `Travel`, `WaitStations`, `WaitStationInfo`, `WaitStationDoneArgs`, `DamageArgs`, `BreakdownArgs`, `BreakdownKind`.
 - [World: weather, power, water, radiation, location and clock](api/world.md): `WorldWeather`, `WorldPower`, `WorldWater`, `WorldRadiation`, `WorldLocation`, `WorldClock` (incl. `SetDate`), `WorldTime`, `WaterVolumeInfo`, `WorldWeather.SetZone` and `ClearZones`.
@@ -36,7 +36,7 @@ Each area is a public facade over one game system. Main thread only. See the [st
 - [Items catalogue (read-only)](api/items.md): `Items`.
 - [Recipes, crafting and growing](api/recipes.md): `Recipes`, `Crafting`, `Plants`, `PlantPickArgs`, `RecipeUnlockedArgs`, `PlantFruitInfo`.
 - [Audio](api/audio.md): `Sounds` (including `FromPcm` and `FromPcm16`).
-- [Interaction and locks](api/interaction.md): `Interactions`, `Locks` (incl. `SetLockpickable`, `Difficulty`, `SetDifficulty`), `Ladders`, `LadderInfo`.
+- [Interaction and locks](api/interaction.md): `Interactions`, `Locks` (incl. `SetLockpickable`, `Difficulty`, `SetDifficulty`).
 - [Inventory and containers](api/inventory.md): `PlayerInventory`, `Containers`.
 - [World objects and spawning](api/worldobjects.md): `WorldObjects` (incl. `FindByPath`, `PathOf`), `Spawn`.
 - [Net: Steam, channels, lobby, presence and blobs](api/net.md): `Steam`, `Net`, `Lobby`, `Presence`, `NetBlob`.
@@ -47,7 +47,10 @@ Each area is a public facade over one game system. Main thread only. See the [st
 - [Trains](api/trains.md): `Trains`, `TrackTrainInfo`, `MinitrainInfo`, `TrainArgs`, `TrainCrashArgs`.
 - [Conditions](api/conditions.md): `Conditions`, `ConditionInfo`, `ConditionChangedArgs`.
 - [Medical](api/medical.md): `Medical`, `MedicalTreatment`, `MedicalTreatmentInfo`, `MedicalTreatedArgs`.
-- [Weapons](api/weapons.md): `Weapons` (incl. `SetHitFactor`, `ClearHitFactors`, `Hit`), `WeaponKind`, `WeaponInfo`, `WeaponFiredArgs`, `HitTarget`, `HitArgs`, `BlastSites`, `BlastSiteInfo`.
+- [Weapons](api/weapons.md): `Weapons` (incl. `SetHitFactor`, `ClearHitFactors`, `Hit`), `WeaponKind`, `WeaponInfo`, `WeaponFiredArgs`, `HitTarget`, `HitArgs`, `Osrats` (the hand-held signal detector).
+- [Blast sites](api/blastsites.md): `BlastSites`, `BlastSiteInfo`.
+- [Ladders](api/ladders.md): `Ladders`, `LadderInfo`.
+- [Start choices (new-game picks)](api/start-choices.md): `StartChoices`, `StartChoiceInfo`, `StartChoiceArgs`.
 - [Pursuit](api/pursuit.md): `Pursuit`.
 - [Casino](api/casino.md): `Casino`, `CasinoMachineKind`, `CasinoMachineInfo`, `CasinoPlayedArgs`, `CasinoWonArgs`, `CasinoCashedOutArgs`, `CasinoDoubledArgs`, `ScratchcardArgs`.
 - [Card games](api/cardgames.md): `CardGames`, `CardGameKind`, `CardTableInfo`, `CardGameEndedArgs`, `CardGames.SetPayoutFactor`, `CardGames.Clear`.
@@ -99,6 +102,10 @@ Each area is a public facade over one game system. Main thread only. See the [st
 - [UI state](api/ui-state.md): `UiState`.
 - [Global flags](api/global-flags.md): `GlobalFlags`, `GlobalFlagChangedArgs`.
 - [Screen FX](api/screen-fx.md): `ScreenFx` (`Vignette`, `ClearVignette`, `Blur`, `ClearBlur`).
+- [Main menu buttons](api/mainmenu.md): `MainMenuButtons`.
+- [UI kit](api/ui.md): `ModWindow`, `ModUi`, `UiTheme`, `UiSprites`.
+- [Framework helpers](api/core-helpers.md): `CoreMod`, `CorePatcher` short helpers, `Events.WhenReady`.
+- [Debug trace](api/debug.md): the framework's debug trace and its log file.
 - [Lights](api/lights.md): `Lights`, `LightInfo`, `LightToggledArgs`, `LightStateArgs`.
 - [Landmarks](api/landmarks.md): `Landmarks` (incl. `Create`, `Mark`, `Remove`, `Clear` for new landmarks that survive a save), `LandmarkInfo`, `LandmarkArgs`.
 - [Base shops](api/baseshops.md): `BaseShops`, `BaseShopInfo`, `BaseShopBuyResult`, `BaseShopBoughtArgs`, `BaseShopSellResult`, `BaseShopSoldArgs`.
@@ -126,6 +133,7 @@ Each area is a public facade over one game system. Main thread only. See the [st
 - [NPC control](api/npc-control.md): `NpcControl`, `NpcControlFlags`.
 - [NPC animation](api/npc-animation.md): `NpcAnimation` (`Play`, `Stop`, `IsPlaying`, `StopAll`).
 - [Mod NPCs](api/modnpcs.md): `ModNpcs` (`Spawn`, `SpawnSaved`, `SpawnWithLook`, `Despawn`, `Clear`, `CharacterIdOf`, `List`).
+- [Mod NPC routines](api/modnpc-routines.md): `ModNpcRoutines`, `NpcRoutine`, `NpcDays`, `NpcStepKind`, `NpcStepArgs`.
 - [NPC appearance](api/npcappearance.md): `NpcAppearance` (`Meshes`, `MaterialNames`, `SetMeshActive`, `SetMaterials`, `Restore`, `Clear`).
 - [Scene looks](api/scenelooks.md): `SceneLooks` (`List`, `FindByName`, `FindByCharacter`, `Load`, `Apply`, `Reskin`, `Remove`, `Release`), `SceneLookInfo`, `SceneLook`. Reads a character look out of a built-in scene at run time. Experimental.
 - [Jobs](api/jobs.md): `Jobs`, `JobInfo`, `WorkedArgs`.
@@ -140,7 +148,7 @@ Each area is a public facade over one game system. Main thread only. See the [st
 
 ### Known API inconsistencies (to change in 1.0)
 
-These stay in 0.10.0 so that mods built against it keep compiling. They are planned to change in 1.0.
+These stay in the 0.x releases so that mods built against them keep compiling. They are planned to change in 1.0.
 
 - **Event payloads.** Some events pass a bare `int`, `ulong`, `bool` or `string`, or several of them, instead of a named args class. Example: `Events.HourPassed` is `Action<int>`, so the hour is a bare number with no name.
 - **Sentinels instead of nullables.** Some lookups return a sentinel for "not found" where a nullable would be expected. Example: `WorldWeather.IndexOf` returns `-1` for an unknown name.

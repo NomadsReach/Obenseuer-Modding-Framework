@@ -8,12 +8,9 @@ nav_order: 2
 
 Pay 50 OC once per game day. The paid day is saved, so a reload does not pay twice.
 
-1. Build and copy the DLL, as in [Your first mod](../getting-started/first-mod.md).
 
 ```csharp
 using System;
-using BepInEx;
-using BepInEx.Unity.Mono;
 using ObenseuerCore;
 
 [Serializable]
@@ -22,14 +19,14 @@ public class PayState
     public int lastPaidDay = -1;
 }
 
-[BepInPlugin("example.payplayer", "Pay Player", "0.1.0")]
-[BepInDependency("obenseuer.moddingframework", ">=0.11.0")]
-public class PayPlayer : BaseUnityPlugin
+[ModInfo("example.payplayer", "Pay Player", "0.1.0")]
+[ModDependency("obenseuer.moddingframework", "0.11.0")]
+public class PayPlayer : FrameworkMod
 {
     private const int DailyOc = 50;
     private SaveSlot<PayState> slot;
 
-    private void Awake()
+    protected override void OnLoad()
     {
         slot = SaveData.Bind<PayState>("example.payplayer", "pay");
         Events.HourPassed += OnHour;
@@ -43,7 +40,7 @@ public class PayPlayer : BaseUnityPlugin
 }
 ```
 
-On BepInEx 5, write `"0.11.0"` instead, because BepInEx 5 cannot parse a version range, and drop `using BepInEx.Unity.Mono;` (`BaseUnityPlugin` then comes from `BepInEx`). See [Supporting BepInEx 5 too](../getting-started/packaging.md#supporting-bepinex-5-too).
+Replace the code in `Plugin.cs` of your project from [Your first mod](../getting-started/first-mod.md) with the code above. Then run `dotnet build -c Release -p:DeployToGame=true` and start the game.
 
 Notes:
 

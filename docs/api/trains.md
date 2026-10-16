@@ -6,11 +6,11 @@ nav_order: 83
 
 # Trains API
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono (be.755 or newer, be.788 recommended) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Patch owner: `obenseuer.moddingframework.trains`.
 Files: `src/Api/Trains.cs`, `src/Api/TrainsPatches.cs`.
 
-Everything not listed here is internal. The player's "is driving the minitrain" check is already `Travel.UsingMinitrain` (`docs/api/player.md`), and this area does not repeat it.
+Everything not listed here is internal. The player's "is driving the minitrain" check is already `Travel.UsingMinitrain` ([player.md](player.md)), and this area does not repeat it.
 
 ## Threading and safety
 
@@ -65,7 +65,7 @@ public sealed class TrackTrainInfo
 - A coupler's partner is `TrainCoupler.coupledTo`, and its train is that coupler's `parent` (`TrackTrain`). A train with no partner on that side gets `null`.
 - `WagonType` is the name of `MinitrainWagonData.WagonType`: `None`, `Orewagon`, `Flatbed`, `Tanker` or `Passanger`. The game spells the last one `Passanger`, and the framework passes the name through unchanged, so match that spelling.
 - The wagon data is found with `GetComponentInChildren` on the train, inactive objects included. `MinitrainWagonData.Awake` finds its train with `GetComponentInParent<TrackTrain>`, so the data sits on the train or under it. A train with no such component gets `"None"`.
-- `CargoGuid` is `connectedStorage.GUID`. The game does not serialize that field. It is set at run time only where the game assigns it (for example `InstantiatedPrefabRef`, as `guid + "storage"`), so it can be empty. An empty GUID is reported as `null`, the same as a missing link. Pass a non-null value to `Containers.FindByGuid` (`docs/api/inventory.md`) to get the cargo container. `connectedStorage` is filled in `MinitrainWagonData.Awake` from `GetComponentInChildren<Storage>`, so a wagon with no storage gets `null`.
+- `CargoGuid` is `connectedStorage.GUID`. The game does not serialize that field. It is set at run time only where the game assigns it (for example `InstantiatedPrefabRef`, as `guid + "storage"`), so it can be empty. An empty GUID is reported as `null`, the same as a missing link. Pass a non-null value to `Containers.FindByGuid` ([inventory.md](inventory.md)) to get the cargo container. `connectedStorage` is filled in `MinitrainWagonData.Awake` from `GetComponentInChildren<Storage>`, so a wagon with no storage gets `null`.
 
 ## Switches and loaders
 

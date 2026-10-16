@@ -1,11 +1,11 @@
 # MyFirstMod
 
-A starter mod for Obenseuer. It logs one line when it loads, and shows a hint once, after the first save loads. It is one DLL that works on BepInEx 5 and BepInEx 6.
+A starter mod for Obenseuer. It logs one line when it loads, and shows a hint once, after the first save loads. The hint appears in the game's hint box, the card game rules box. If it does not show, press the Hints key (K by default). It is one DLL that works on BepInEx 5 and BepInEx 6.
 
 ## Prerequisites
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
-- [BepInEx 5.4.23 or later (Mono, x64)](https://github.com/BepInEx/BepInEx/releases), or [BepInEx 6 Unity.Mono, x64, be.755 or newer](https://builds.bepinex.dev/projects/bepinex_be). Install one in the game folder and start the game once.
+- [BepInEx 5.4.23 or later (Mono, x64)](https://github.com/BepInEx/BepInEx/releases), or [BepInEx 6 Unity.Mono, x64, be.788, the tested build](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip). Install one in the game folder and start the game once.
 - [Obenseuer Modding Framework 0.11.0 or later](https://github.com/NomadsReach/Obenseuer-Modding-Framework#install). Extract the framework zip into the game folder. The build needs `BepInEx\plugins\ObenseuerCore\ObenseuerCore.dll`, which the zip has for both loaders. The framework loads this mod, so an older framework ignores it.
 
 ## Quick start
@@ -13,7 +13,7 @@ A starter mod for Obenseuer. It logs one line when it loads, and shows a hint on
 1. Copy this `Starter` folder anywhere, for example `C:\Mods\MyMod`.
 2. Rename the folder and `MyFirstMod.csproj` to your mod's name. Give your mod its own id in `Plugin.cs`.
 3. Close the game, then run `dotnet build -c Release -p:DeployToGame=true` in the folder.
-4. The build writes `bin\Release\net472\<name>.dll`. With `-p:DeployToGame=true` and a `BepInEx\plugins` folder in the game, it also copies the file to `<game>\BepInEx\plugins\<name>\<name>.dll`. Start the game and load a save: a hint appears.
+4. The build writes `bin\Release\net472\<name>.dll`. With `-p:DeployToGame=true` and a `BepInEx\plugins` folder in the game, it also copies the file to `<game>\BepInEx\plugins\<name>\<name>.dll`. Start the game and load a save: a hint appears. It is the game's card game rules box, so press the Hints key (K by default) if you do not see it.
 5. The log is `<game>\BepInEx\logs\<your id>.log`, so `example.myfirstmod.log` until you change the id.
 
 ## Plugin.cs
