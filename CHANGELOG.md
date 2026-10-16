@@ -5,7 +5,6 @@
 ### Fixed
 
 - The framework runs on Obenseuer 0.5.08 (Steam build 25969064), now the supported build.
-- Built against Obenseuer 0.5.08: mod code that adds items to containers no longer fails (the game changed `Storage.AddItem`).
 - Mod furniture blueprints build with the right crafting time, because the game now stores minutes.
 - Placed mod furniture keeps its own type when a new game save loads, instead of turning into the vanilla piece.
 - The rat fight payout hook (`Contests` payout) works.
