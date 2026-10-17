@@ -7,10 +7,16 @@ nav_order: 2
 
 # Lookup
 
+This page uses `Sprite` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 `Items` is the static class you call to find items. Each item comes back as an `ItemDef`, a snapshot of what the catalogue says about it (see [ItemDef](itemdef.md)).
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Items</code> <span>find items in the catalogue</span></p>
+
+Call `Get(id)` when you know the id, and `Find(name)` when you only know the title.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -29,18 +35,21 @@ public static class Items
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<ItemDef>` | Every item in the catalogue. |
-| `Get(int id)` | `ItemDef` | The item with this id. `null` when no item has it. |
-| `Find(string name)` | `ItemDef` | The first item with this exact title, ignoring capital letters. `null` when none matches. |
-| `Search(string text)` | `List<ItemDef>` | Every item whose title contains this text, ignoring capital letters. `""` gives an empty list. |
-| `InCategory(string category)` | `List<ItemDef>` | Every item in this category. The name must match exactly, capitals included. |
-| `Icon(int id)` | `Sprite` | The item's icon. `null` when there is no such item or no icon. |
-| `QualityOf(float quality)` | `ItemQuality` | Turns a quality number into a named tier. |
+| `Get(id)` | `ItemDef` | The item with this id. `null` when no item has it. |
+| `Find(name)` | `ItemDef` | The first item with this exact title, ignoring capital letters. `null` when none matches. |
+| `Search(text)` | `List<ItemDef>` | Every item whose title contains this text, ignoring capital letters. `""` gives an empty list. |
+| `InCategory(category)` | `List<ItemDef>` | Every item in this category. The name must match exactly, capitals included. |
+| `Icon(id)` | `Sprite` | The item's icon. `null` when there is no such item or no icon. |
+| `QualityOf(quality)` | `ItemQuality` | Turns a quality number into a named tier. |
 
 </div>
 </div>
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ItemQuality</code> <span>named quality tiers</span></p>
+
+Pass an item's `Quality` number to `Items.QualityOf` to get one of these tiers. <span class="tech">(The framework casts the game's `ItemQualityData.Quality` result to this enum.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp

@@ -11,6 +11,8 @@ The minitrain is the small train the player can drive. It has a fuel tank and a 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Trains</code> <span>the minitrain the player uses</span></p>
+Use `Minitrain` to read the minitrain the player uses.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -29,6 +31,8 @@ public static class Trains
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>MinitrainInfo</code> <span>a snapshot of the minitrain</span></p>
+`Trains.Minitrain` gives you one of these, or `null` when there is no minitrain in the loaded scene. It is the minitrain the player is using if there is one, otherwise the first one found. <span class="tech">(It reads the game's `Minitrain`.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp

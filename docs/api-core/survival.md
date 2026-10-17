@@ -10,7 +10,59 @@ nav_order: 9
 `Survival` is how your mod reaches the player's needs and health. Each need is a number: hunger, thirst, bowel, bladder, tiredness, hygiene, mood, health, bleeding, alcohol, high, radiation and more. You can read each one, set it, slow down or speed up how fast it changes, get told when one crosses a line, change or cancel damage, and react when the player eats, drinks or uses an item. You never touch the game's objects yourself.
 
 <div class="api-type" markdown="1">
+<p class="api-type-head"><code>Survival</code> <span>read, set and watch the needs, and handle damage</span></p>
+
+Use `Get` and `Set` to read and change a need, `OnCrossed` to hear when one crosses a line, and `InterceptDamage` to change or cancel health damage.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static partial class Survival
+{
+    public static bool IsAvailable { get; }
+    public static float Get(Stat stat);
+    public static bool Set(Stat stat, float value);
+    public static bool OnCrossed(string modId, Stat stat, float threshold, Action<Stat, float, bool> callback);
+    public static bool RemoveCrossed(string modId, Action<Stat, float, bool> callback);
+    public static void RemoveAll(string modId);
+    public static bool InterceptDamage(string modId, Action<DamageArgs> handler);
+    public static bool RemoveDamage(string modId, Action<DamageArgs> handler);
+    public static event Action<DamageTypeNames> PlayerDied;
+    public static event Action PassedOut;
+    public static event Action<float, DamageTypeNames> Damaged;
+    public static event Action<BreakdownArgs> Breakdown;
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `Get(stat)` | `float` | The stat's value as the game keeps it. `0` when there is no player yet, for example on the main menu. |
+| `Set(stat, value)` | `bool` | Sets the value, kept inside the stat's range. Returns `false` when it could not be set. |
+| `OnCrossed(modId, stat, threshold, callback)` | `bool` | Calls you when the value crosses a line. Returns `false` when not available. |
+| `RemoveCrossed(modId, callback)` | `bool` | Stops a watch that `OnCrossed` started. Returns `true` when one was removed. |
+| `RemoveAll(modId)` | `void` | Removes everything your mod set up here: decay changes, item and damage handlers, and watches. |
+| `InterceptDamage(modId, handler)` | `bool` | Runs your code before health damage is applied. Returns `false` when not available. |
+| `RemoveDamage(modId, handler)` | `bool` | Stops one damage handler. Returns `true` when it was removed. |
+
+| Property | Type | What it means |
+|---|---|---|
+| `IsAvailable` | `bool` | `true` when all the changes the Survival feature needs are in place. See Details. |
+
+| Event | Gives you | When it fires |
+|---|---|---|
+| `PlayerDied` | `DamageTypeNames`, the cause | The player died. |
+| `PassedOut` | Nothing | The player fainted. |
+| `Damaged` | `float`, how much, and `DamageTypeNames`, the cause | The player lost health. |
+| `Breakdown` | `BreakdownArgs` | The game is about to start a mental breakdown step. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
 <p class="api-type-head"><code>Stat</code> <span>one number about the player</span></p>
+
+Every call that reads or changes a need takes one of these, such as `Survival.Get(Stat.Hunger)`. Each value is one of the game's player stats, and the table below gives the game field it reads and writes.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -94,155 +146,10 @@ The stats live in the game's `PlayerStats.instance`. This table shows the game v
 </div>
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>Survival</code> <span>read, set and watch the needs, and handle damage</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static partial class Survival
-{
-    public static bool IsAvailable { get; }
-    public static float Get(Stat stat);
-    public static bool Set(Stat stat, float value);
-    public static bool OnCrossed(string modId, Stat stat, float threshold, Action<Stat, float, bool> callback);
-    public static bool RemoveCrossed(string modId, Action<Stat, float, bool> callback);
-    public static void RemoveAll(string modId);
-    public static bool InterceptDamage(string modId, Action<DamageArgs> handler);
-    public static bool RemoveDamage(string modId, Action<DamageArgs> handler);
-    public static event Action<DamageTypeNames> PlayerDied;
-    public static event Action PassedOut;
-    public static event Action<float, DamageTypeNames> Damaged;
-    public static event Action<BreakdownArgs> Breakdown;
-}
-```
-
-| Method | Returns | What it does |
-|---|---|---|
-| `Get(Stat stat)` | `float` | The stat's value as the game keeps it. `0` when there is no player yet, for example on the main menu. |
-| `Set(Stat stat, float value)` | `bool` | Sets the value, kept inside the stat's range. Returns `false` when it could not be set. |
-| `OnCrossed(string modId, Stat stat, float threshold, Action<Stat, float, bool> callback)` | `bool` | Calls you when the value crosses a line. Returns `false` when not available. |
-| `RemoveCrossed(string modId, Action<Stat, float, bool> callback)` | `bool` | Stops a watch that `OnCrossed` started. Returns `true` when one was removed. |
-| `RemoveAll(string modId)` | `void` | Removes everything your mod set up here: decay changes, item and damage handlers, and watches. |
-| `InterceptDamage(string modId, Action<DamageArgs> handler)` | `bool` | Runs your code before health damage is applied. Returns `false` when not available. |
-| `RemoveDamage(string modId, Action<DamageArgs> handler)` | `bool` | Stops one damage handler. Returns `true` when it was removed. |
-
-| Property | Type | What it means |
-|---|---|---|
-| `IsAvailable` | `bool` | `true` when all the changes the Survival feature needs are in place. See Details. |
-
-| Event | Gives you | When it fires |
-|---|---|---|
-| `PlayerDied` | `DamageTypeNames`, the cause | The player died. |
-| `PassedOut` | Nothing | The player fainted. |
-| `Damaged` | `float`, how much, and `DamageTypeNames`, the cause | The player lost health. |
-| `Breakdown` | `BreakdownArgs` | The game is about to start a mental breakdown step. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>Survival.Decay</code> <span>change how fast a need changes</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static class Decay
-{
-    public static bool Supports(Stat stat);
-    public static bool Set(Stat stat, string modId, float multiplier, float offsetPerHour);
-    public static bool Remove(Stat stat, string modId);
-}
-```
-
-| Method | Returns | What it does |
-|---|---|---|
-| `Supports(Stat stat)` | `bool` | `true` when this stat's speed can be changed. |
-| `Set(Stat stat, string modId, float multiplier, float offsetPerHour)` | `bool` | Sets your mod's speed change for a stat. |
-| `Remove(Stat stat, string modId)` | `bool` | Removes it again. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>Survival.Consumables</code> <span>run your code when the player uses an item</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static class Consumables
-{
-    public static void Intercept(string modId, ConsumeHandler handler);
-    public static bool Remove(string modId);
-    public static bool Remove(string modId, ConsumeHandler handler);
-    public static event Action<ConsumedArgs> Consumed;
-}
-```
-
-| Method | Returns | What it does |
-|---|---|---|
-| `Intercept(string modId, ConsumeHandler handler)` | `void` | Runs before the item is used. You may cancel the use. |
-| `Remove(string modId)` | `bool` | Removes all of your mod's handlers. Returns `false` when it had none. |
-| `Remove(string modId, ConsumeHandler handler)` | `bool` | Removes one handler. Returns `false` when it was not registered. |
-
-| Event | Gives you | When it fires |
-|---|---|---|
-| `Consumed` | `ConsumedArgs` | After the game applied a use. It does not fire for a cancelled or refused use. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>ConsumeHandler</code> <span>your code for an item use</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public delegate void ConsumeHandler(ItemData itemData, ItemConsumable itemConsumable, ConsumeArgs args);
-```
-
-| Parameter | Type | What it means |
-|---|---|---|
-| `itemData` | `ItemData` | The item data of the item being used. |
-| `itemConsumable` | `ItemConsumable` | The consumable action the game is about to run for that item. |
-| `args` | `ConsumeArgs` | Set `Cancel` to `true` to stop the use. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>ConsumeArgs</code> <span>set Cancel to stop an item use</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public class ConsumeArgs
-{
-    public bool Cancel { get; set; }
-}
-```
-
-| Property | Type | What it means |
-|---|---|---|
-| `Cancel` | `bool` | Set to `true` to stop the item use. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>ConsumedArgs</code> <span>what Consumed tells you</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public sealed class ConsumedArgs
-{
-    public int ItemId { get; }
-}
-```
-
-| Property | Type | What it means |
-|---|---|---|
-| `ItemId` | `int` | The id of the item that was used. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
 <p class="api-type-head"><code>DamageArgs</code> <span>one health damage step</span></p>
+
+`InterceptDamage` hands you one of these before health is lost. Change `Amount` or set `Cancel` to change or stop that damage.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -268,7 +175,33 @@ public sealed class DamageArgs
 </div>
 
 <div class="api-type" markdown="1">
+<p class="api-type-head"><code>BreakdownArgs</code> <span>one breakdown step</span></p>
+
+`Breakdown` hands you this before the game starts a step of a mental breakdown. `Kind` says which step it is, and `Cancel` stops that step.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class BreakdownArgs
+{
+    public BreakdownKind Kind { get; }
+    public bool Cancel { get; set; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Kind` | `BreakdownKind` | Which breakdown step is starting. |
+| `Cancel` | `bool` | Set to `true` to stop that step. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
 <p class="api-type-head"><code>BreakdownKind</code> <span>which breakdown step it is</span></p>
+
+This is the `Kind` of a `BreakdownArgs`. The game has four breakdown steps, and each value names one of them.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -292,21 +225,118 @@ public enum BreakdownKind
 </div>
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>BreakdownArgs</code> <span>one breakdown step</span></p>
+<p class="api-type-head"><code>Survival.Decay</code> <span>change how fast a need changes</span></p>
+
+Call `Decay.Set` to make one need change faster or slower, and `Decay.Remove` to undo it. `Decay.Supports` tells you which stats can be changed.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
-public sealed class BreakdownArgs
+public static class Decay
 {
-    public BreakdownKind Kind { get; }
+    public static bool Supports(Stat stat);
+    public static bool Set(Stat stat, string modId, float multiplier, float offsetPerHour);
+    public static bool Remove(Stat stat, string modId);
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `Supports(stat)` | `bool` | `true` when this stat's speed can be changed. |
+| `Set(stat, modId, multiplier, offsetPerHour)` | `bool` | Sets your mod's speed change for a stat. |
+| `Remove(stat, modId)` | `bool` | Removes it again. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>Survival.Consumables</code> <span>run your code when the player uses an item</span></p>
+
+Call `Intercept` to run your code before an item is used, and set `Cancel` to stop that use. `Consumed` tells you after a use has been applied.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class Consumables
+{
+    public static void Intercept(string modId, ConsumeHandler handler);
+    public static bool Remove(string modId);
+    public static bool Remove(string modId, ConsumeHandler handler);
+    public static event Action<ConsumedArgs> Consumed;
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `Intercept(modId, handler)` | `void` | Runs before the item is used. You may cancel the use. |
+| `Remove(modId)` | `bool` | Removes all of your mod's handlers. Returns `false` when it had none. |
+| `Remove(modId, handler)` | `bool` | Removes one handler. Returns `false` when it was not registered. |
+
+| Event | Gives you | When it fires |
+|---|---|---|
+| `Consumed` | `ConsumedArgs` | After the game applied a use. It does not fire for a cancelled or refused use. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>ConsumeHandler</code> <span>your code for an item use</span></p>
+
+This is the delegate you pass to `Consumables.Intercept`. The framework calls it before the game applies an item use, and `args` is where you cancel it.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public delegate void ConsumeHandler(ItemData itemData, ItemConsumable itemConsumable, ConsumeArgs args);
+```
+
+| Parameter | Type | What it means |
+|---|---|---|
+| `itemData` | `ItemData` | The item data of the item being used. |
+| `itemConsumable` | `ItemConsumable` | The consumable action the game is about to run for that item. |
+| `args` | `ConsumeArgs` | Set `Cancel` to `true` to stop the use. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>ConsumeArgs</code> <span>set Cancel to stop an item use</span></p>
+
+Each `ConsumeHandler` gets one of these for the use. Set `Cancel` to `true` to stop the item use.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public class ConsumeArgs
+{
     public bool Cancel { get; set; }
 }
 ```
 
 | Property | Type | What it means |
 |---|---|---|
-| `Kind` | `BreakdownKind` | Which breakdown step is starting. |
-| `Cancel` | `bool` | Set to `true` to stop that step. |
+| `Cancel` | `bool` | Set to `true` to stop the item use. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>ConsumedArgs</code> <span>what Consumed tells you</span></p>
+
+`Consumed` hands you this after a use has been applied. `ItemId` tells you which item was used.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class ConsumedArgs
+{
+    public int ItemId { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `ItemId` | `int` | The id of the item that was used. |
 
 </div>
 </div>

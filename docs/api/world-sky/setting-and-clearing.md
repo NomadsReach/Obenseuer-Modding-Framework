@@ -13,6 +13,8 @@ This is the full list of what the API gives you.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WorldSky</code> <span>set and clear your sky values</span></p>
+Use `Set` to change the sky to your values, `Clear` to take your values back off, and `Current` to read the sky as it looks now.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -27,8 +29,8 @@ public static class WorldSky
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Set(string modId, SkyOverride values)` | `bool` | Applies your values. `true` when they were applied. |
-| `Clear(string modId)` | `bool` | Removes your values. `true` when you had some. |
+| `Set(modId, values)` | `bool` | Applies your values. `true` when they were applied. |
+| `Clear(modId)` | `bool` | Removes your values. `true` when you had some. |
 
 | Property | Type | What it means |
 |---|---|---|

@@ -7,10 +7,57 @@ nav_order: 5
 
 # Containers
 
+This page uses `Vector3` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 A container is a chest, locker, shelf or any other storage the player can open. `Containers` finds them, looks inside, moves items in and out, and tells you when the player opens or closes one. Each container is a `ContainerInfo`, a snapshot taken when you asked.
 
 <div class="api-type" markdown="1">
+<p class="api-type-head"><code>Containers</code> <span>finding, reading and changing containers</span></p>
+
+This is the class you start from. `All()` and `FindByGuid` find containers, `GetItems` lists what is inside, `Give` and `Take` move items, and `Opened` and `Closed` tell you when the player opens or closes one.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class Containers
+{
+    public static List<ContainerInfo> All();
+    public static ContainerInfo FindByGuid(string guid);
+    public static string GuidOf(ContainerInfo container);
+    public static List<ItemStackInfo> GetItems(ContainerInfo container);
+    public static bool Give(ContainerInfo container, int itemId, int count);
+    public static bool Take(ContainerInfo container, int itemId, int count);
+    public static ItemStackInfo TakeStack(ContainerInfo container, int slot, int count);
+
+    public static event Action<ContainerInfo> Opened;
+    public static event Action<ContainerInfo> Closed;
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `All()` | `List<ContainerInfo>` | Every container in the scene you are in. |
+| `FindByGuid(guid)` | `ContainerInfo` | The container with this save id. It is `null` when none has it. |
+| `GuidOf(container)` | `string` | The container's save id. It is `null` for a `null` container. |
+| `GetItems(container)` | `List<ItemStackInfo>` | The stacks in the container, without the empty slots. |
+| `Give(container, itemId, count)` | `bool` | Puts items into the container. It is `true` when all of them went in. |
+| `Take(container, itemId, count)` | `bool` | Takes items out and destroys them. It is `true` when all were taken. |
+| `TakeStack(container, slot, count)` | `ItemStackInfo` | Takes items from one slot and destroys them. It is `null` when it could not. |
+
+| Event | Gives you | When it fires |
+|---|---|---|
+| `Opened` | `ContainerInfo` | The player opened a container. |
+| `Closed` | `ContainerInfo` | The player closed a container. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
 <p class="api-type-head"><code>ContainerInfo</code> <span>a snapshot of one container</span></p>
+
+`All()`, `FindByGuid` and the `Opened` and `Closed` events give you this. It is a snapshot taken when you asked, and `Give` and `Take` check the lock again each time. <span class="tech">(It is built from the game's `Storage` object.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -37,44 +84,6 @@ public sealed class ContainerInfo
 | `OwnerId` | `int` | The id of the NPC who owns it. It is `-1` when nobody does. |
 | `NpcOwned` | `bool` | `true` when an NPC owns it, so taking from it counts as stealing. |
 | `Locked` | `bool` | `true` when it is locked. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>Containers</code> <span>finding, reading and changing containers</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static class Containers
-{
-    public static List<ContainerInfo> All();
-    public static ContainerInfo FindByGuid(string guid);
-    public static string GuidOf(ContainerInfo container);
-    public static List<ItemStackInfo> GetItems(ContainerInfo container);
-    public static bool Give(ContainerInfo container, int itemId, int count);
-    public static bool Take(ContainerInfo container, int itemId, int count);
-    public static ItemStackInfo TakeStack(ContainerInfo container, int slot, int count);
-
-    public static event Action<ContainerInfo> Opened;
-    public static event Action<ContainerInfo> Closed;
-}
-```
-
-| Method | Returns | What it does |
-|---|---|---|
-| `All()` | `List<ContainerInfo>` | Every container in the scene you are in. |
-| `FindByGuid(string guid)` | `ContainerInfo` | The container with this save id. It is `null` when none has it. |
-| `GuidOf(ContainerInfo container)` | `string` | The container's save id. It is `null` for a `null` container. |
-| `GetItems(ContainerInfo container)` | `List<ItemStackInfo>` | The stacks in the container, without the empty slots. |
-| `Give(ContainerInfo container, int itemId, int count)` | `bool` | Puts items into the container. It is `true` when all of them went in. |
-| `Take(ContainerInfo container, int itemId, int count)` | `bool` | Takes items out and destroys them. It is `true` when all were taken. |
-| `TakeStack(ContainerInfo container, int slot, int count)` | `ItemStackInfo` | Takes items from one slot and destroys them. It is `null` when it could not. |
-
-| Event | Gives you | When it fires |
-|---|---|---|
-| `Opened` | `ContainerInfo` | The player opened a container. |
-| `Closed` | `ContainerInfo` | The player closed a container. |
 
 </div>
 </div>

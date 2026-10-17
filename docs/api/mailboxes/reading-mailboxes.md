@@ -13,6 +13,9 @@ Each mailbox is a `MailboxInfo`, a snapshot taken when you asked. The snapshot d
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Mailboxes</code> <span>read mailboxes, take mail, and the Used event</span></p>
+
+Call `All()` or `Get(id)` to find mailboxes, and `TakeMail(id)` to give the player their waiting mail. Subscribe to `Used` to hear when a box is used.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -29,8 +32,8 @@ public static class Mailboxes
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<MailboxInfo>` | Every mailbox in the scene the player is in. |
-| `Get(string id)` | `MailboxInfo` | The mailbox with this id. `null` when none has it. |
-| `TakeMail(string id)` | `bool` | Gives the player their waiting mail. Returns `true` when the inbox is empty afterwards. |
+| `Get(id)` | `MailboxInfo` | The mailbox with this id. `null` when none has it. |
+| `TakeMail(id)` | `bool` | Gives the player their waiting mail. Returns `true` when the inbox is empty afterwards. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -45,6 +48,9 @@ public static class Mailboxes
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>MailboxMode</code> <span>receive or send</span></p>
+
+`MailboxInfo.Mode` and `MailboxUsedArgs.Mode` give you this. It says whether the box receives mail or sends it.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -65,6 +71,9 @@ public enum MailboxMode
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>MailboxInfo</code> <span>a snapshot of one mailbox</span></p>
+
+`All()` and `Get(id)` give you one of these. `Count` is the number the game shows for that kind of box, and it belongs to the player, not the box.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -87,6 +96,9 @@ public sealed class MailboxInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>MailboxUsedArgs</code> <span>what Used tells you</span></p>
+
+`Used` gives you one of these when the player uses a box that has something to do. `Id` says which box it was.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

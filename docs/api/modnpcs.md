@@ -8,6 +8,9 @@ nav_order: 4
 
 # Mod NPCs
 
+This page uses `Vector3` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 Status: experimental. Every member on this page is experimental and may change.
 
 ## What it is

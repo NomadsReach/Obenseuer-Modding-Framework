@@ -11,6 +11,9 @@ An attribute is a label you put above your class in square brackets. `ModInfo` g
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ModInfoAttribute</code> <span>goes on your class, once</span></p>
+
+Put it on your class, once. The framework reads it to find your mod's id and name, and `FrameworkMod.Info` gives it back to you.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -25,7 +28,7 @@ public sealed class ModInfoAttribute : Attribute
 
 | Method | Returns | What it does |
 |---|---|---|
-| `ModInfoAttribute(string id, string name, string version)` | `ModInfoAttribute` | Sets the id, name and version of your mod. |
+| `ModInfoAttribute(id, name, version)` | `ModInfoAttribute` | Sets the id, name and version of your mod. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -38,6 +41,9 @@ public sealed class ModInfoAttribute : Attribute
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ModDependencyAttribute</code> <span>goes on your class, as many times as you need</span></p>
+
+Put one on your class for each mod it needs. The framework reads them to plan the load order, and skips your mod when one is missing or too old.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -52,8 +58,8 @@ public sealed class ModDependencyAttribute : Attribute
 
 | Method | Returns | What it does |
 |---|---|---|
-| `ModDependencyAttribute(string id)` | `ModDependencyAttribute` | The mod must be there. |
-| `ModDependencyAttribute(string id, string minVersion)` | `ModDependencyAttribute` | The mod must be there and at least this version. |
+| `ModDependencyAttribute(id)` | `ModDependencyAttribute` | The mod must be there. |
+| `ModDependencyAttribute(id, minVersion)` | `ModDependencyAttribute` | The mod must be there and at least this version. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -65,6 +71,9 @@ public sealed class ModDependencyAttribute : Attribute
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>FrameworkMod</code> <span>the class your mod inherits from</span></p>
+
+Your class inherits this to get the `Log`, `Config` and `Mod` properties. The framework calls `OnLoad` once.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

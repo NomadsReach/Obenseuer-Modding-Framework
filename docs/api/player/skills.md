@@ -9,8 +9,52 @@ nav_order: 5
 
 Skills are the things the player gets better at, such as Cooking or Lockpicking. Each has a level from 0 up to the maximum.
 
+
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>Skills</code> <span>read, raise and watch skills</span></p>
+
+Use it to read a skill's level, raise a skill with `Add`, and listen to `SkillIncreased`.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class Skills
+{
+    public static bool IsAvailable { get; }
+    public static int MaxLevel { get; }
+    public static float Get(Skill skill);
+    public static int Level(Skill skill);
+    public static bool Add(Skill skill, float amount);
+    public static List<SkillValue> All();
+    public static event Action<SkillIncreasedArgs> SkillIncreased;
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `IsAvailable` | `bool` | `false` when the skill increased event could not be set up. |
+| `MaxLevel` | `int` | The highest level a skill can reach (10 in this game version). |
+
+| Method | Returns | What it does |
+|---|---|---|
+| `Get(skill)` | `float` | The skill's value, with its progress as a fraction. |
+| `Level(skill)` | `int` | The skill's whole-number level. |
+| `Add(skill, amount)` | `bool` | Raises a skill. Returns `false` when the game refuses. |
+| `All()` | `List<SkillValue>` | Every skill except `None`. An empty list without a player. |
+
+| Event | Gives you | When it fires |
+|---|---|---|
+| `SkillIncreased` | `SkillIncreasedArgs` | A skill went up. `args.Skill` is the skill, and `args.Amount` is what was actually gained (above 0). |
+
+</div>
+</div>
+
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Skill</code> <span>the player's skills</span></p>
+
+Pass one of these to the `Skills` calls. `None` is not a skill, and `All()` leaves it out.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -77,6 +121,9 @@ public enum Skill
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SkillValue</code> <span>one skill and how far along it is</span></p>
+
+`Skills.All()` gives you one of these for each skill. `Value` includes the progress toward the next level, and `Level` is the whole-number part of it.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -93,42 +140,6 @@ public sealed class SkillValue
 | `Skill` | `Skill` | The skill this is about. |
 | `Value` | `float` | The skill from 0 up to `MaxLevel`. The fraction is the progress to the next level. |
 | `Level` | `int` | The whole-number level (`Value` rounded down). |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>Skills</code> <span>read, raise and watch skills</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static class Skills
-{
-    public static bool IsAvailable { get; }
-    public static int MaxLevel { get; }
-    public static float Get(Skill skill);
-    public static int Level(Skill skill);
-    public static bool Add(Skill skill, float amount);
-    public static List<SkillValue> All();
-    public static event Action<SkillIncreasedArgs> SkillIncreased;
-}
-```
-
-| Property | Type | What it means |
-|---|---|---|
-| `IsAvailable` | `bool` | `false` when the skill increased event could not be set up. |
-| `MaxLevel` | `int` | The highest level a skill can reach (10 in this game version). |
-
-| Method | Returns | What it does |
-|---|---|---|
-| `Get(Skill skill)` | `float` | The skill's value, with its progress as a fraction. |
-| `Level(Skill skill)` | `int` | The skill's whole-number level. |
-| `Add(Skill skill, float amount)` | `bool` | Raises a skill. Returns `false` when the game refuses. |
-| `All()` | `List<SkillValue>` | Every skill except `None`. An empty list without a player. |
-
-| Event | Gives you | When it fires |
-|---|---|---|
-| `SkillIncreased` | `SkillIncreasedArgs` | A skill went up. `args.Skill` is the skill, and `args.Amount` is what was actually gained (above 0). |
 
 </div>
 </div>

@@ -11,6 +11,8 @@ nav_order: 6
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WorldLocation</code> <span>the current scene and the scenes you know</span></p>
+Use `CurrentScene` for the scene the player is in, `KnownScenes()` for the scenes the game knows about, and `VisitedScenes()` for the ones the player has been to.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

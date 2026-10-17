@@ -7,6 +7,9 @@ nav_order: 1
 
 # Common tasks
 
+This page uses `Vector3` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 Move an NPC to a spot. The NPC may walk back toward what it was doing, because its routine keeps running.
 
 ```csharp

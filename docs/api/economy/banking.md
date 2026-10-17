@@ -10,7 +10,47 @@ nav_order: 5
 `Banking` works with the bank accounts the player has at the game's banks. You can read accounts, open one, deposit and withdraw, take and repay loans, and exchange between OC and RM. Each bank account is a `BankAccount`, a snapshot taken when you asked.
 
 <div class="api-type" markdown="1">
+<p class="api-type-head"><code>Banking</code> <span>the bank accounts at the bank you are standing at</span></p>
+
+Use `All()` or `Get(bankId)` to read accounts. `DepositWithdraw` and `Exchange` only work while that bank's screen is open.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class Banking
+{
+    public static List<BankAccount> All();
+    public static BankAccount Get(string bankId);
+    public static bool OpenAccount(string bankId);
+    public static bool DepositWithdraw(string bankId, int oc, float rm);
+    public static bool TakeLoan(string bankId, MoneyCurrency currency, int amount);
+    public static bool RepayLoan(string bankId, int amount);
+    public static float ExchangeQuote(string bankId, float amount, bool toRm);
+    public static float ExchangeRate(string bankId, bool toRm);
+    public static bool Exchange(string bankId, int amount, bool toRm);
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `All()` | `List<BankAccount>` | Every bank in the scene you are in. |
+| `Get(bankId)` | `BankAccount` | One bank's account. |
+| `OpenAccount(bankId)` | `bool` | Opens an account. `true` when it worked. |
+| `DepositWithdraw(bankId, oc, rm)` | `bool` | Deposits money. A negative number withdraws. |
+| `TakeLoan(bankId, currency, amount)` | `bool` | Takes a loan. |
+| `RepayLoan(bankId, amount)` | `bool` | Repays a loan. |
+| `ExchangeQuote(bankId, amount, toRm)` | `float` | The game's rate for an amount. `-1` when refused. |
+| `ExchangeRate(bankId, toRm)` | `float` | The quote for one unit. |
+| `Exchange(bankId, amount, toRm)` | `bool` | Exchanges money. `toRm` true changes OC to RM. Otherwise it changes RM to OC. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
 <p class="api-type-head"><code>BankAccount</code> <span>the player's account at one bank</span></p>
+
+`Banking.All()` and `Banking.Get(bankId)` give you these. `Exists` is `false` when the player has no account at that bank.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -47,40 +87,6 @@ public sealed class BankAccount
 </div>
 </div>
 
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>Banking</code> <span>the bank accounts at the bank you are standing at</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static class Banking
-{
-    public static List<BankAccount> All();
-    public static BankAccount Get(string bankId);
-    public static bool OpenAccount(string bankId);
-    public static bool DepositWithdraw(string bankId, int oc, float rm);
-    public static bool TakeLoan(string bankId, MoneyCurrency currency, int amount);
-    public static bool RepayLoan(string bankId, int amount);
-    public static float ExchangeQuote(string bankId, float amount, bool toRm);
-    public static float ExchangeRate(string bankId, bool toRm);
-    public static bool Exchange(string bankId, int amount, bool toRm);
-}
-```
-
-| Method | Returns | What it does |
-|---|---|---|
-| `All()` | `List<BankAccount>` | Every bank in the scene you are in. |
-| `Get(string bankId)` | `BankAccount` | One bank's account. |
-| `OpenAccount(string bankId)` | `bool` | Opens an account. `true` when it worked. |
-| `DepositWithdraw(string bankId, int oc, float rm)` | `bool` | Deposits money. A negative number withdraws. |
-| `TakeLoan(string bankId, MoneyCurrency currency, int amount)` | `bool` | Takes a loan. |
-| `RepayLoan(string bankId, int amount)` | `bool` | Repays a loan. |
-| `ExchangeQuote(string bankId, float amount, bool toRm)` | `float` | The game's rate for an amount. `-1` when refused. |
-| `ExchangeRate(string bankId, bool toRm)` | `float` | The quote for one unit. |
-| `Exchange(string bankId, int amount, bool toRm)` | `bool` | Exchanges money. `toRm` true changes OC to RM. Otherwise it changes RM to OC. |
-
-</div>
-</div>
-
 ### Things to know
 
 - `bankId` is the `GUID` of the bank object in the scene.
@@ -113,7 +119,45 @@ public static class Banking
 These work from any scene and need no bank object. They are for things like paying from the account without standing at a bank. Every one that changes something gives back a `BankResult`, which says what happened.
 
 <div class="api-type" markdown="1">
+<p class="api-type-head"><code>Banking</code> <span>the helpers, usable from any scene</span></p>
+
+`Accounts()` lists the accounts, and `Charge`, `Refund`, `PayInvoiceFromAccount`, `RepayLoanFromAccount` and `WithdrawByPost` move money through them. `HasDebitCard()` tells you whether the player has the debit card.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class Banking
+{
+    public static List<AccountSummary> Accounts();
+    public static BankAccount GetByName(string bankName);
+    public static bool HasDebitCard();
+    public static BankResult Charge(string bankName, MoneyCurrency currency, float amount);
+    public static BankResult Refund(string bankName, MoneyCurrency currency, float amount);
+    public static BankResult PayInvoiceFromAccount(string bankName, int invoiceId);
+    public static BankResult RepayLoanFromAccount(string bankName, MoneyCurrency currency, int amount);
+    public static BankResult WithdrawByPost(string bankName, MoneyCurrency currency, float amount, float fee);
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `Accounts()` | `List<AccountSummary>` | Every bank account the game lists. |
+| `GetByName(bankName)` | `BankAccount` | The account at that bank. `null` when there is none. |
+| `HasDebitCard()` | `bool` | `true` when the player has the debit card. |
+| `Charge(bankName, currency, amount)` | `BankResult` | Takes money from the account only. |
+| `Refund(bankName, currency, amount)` | `BankResult` | Puts money into the account only. |
+| `PayInvoiceFromAccount(bankName, invoiceId)` | `BankResult` | Pays an invoice from the account. |
+| `RepayLoanFromAccount(bankName, currency, amount)` | `BankResult` | Repays a loan from the account. |
+| `WithdrawByPost(bankName, currency, amount, fee)` | `BankResult` | Sends cash by post. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
 <p class="api-type-head"><code>BankResult</code> <span>what a helper call returned</span></p>
+
+Each helper that changes money returns one of these. `Ok` means it worked, and every other value says why it did not.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -134,20 +178,23 @@ public enum BankResult
 | Value | Meaning |
 |---|---|
 | `Ok` | It worked. |
-| `NoAccount` | The player has no account at that bank. |
-| `Frozen` | The account is frozen. |
-| `Insufficient` | The balance does not cover it. |
-| `Busy` | A save is loading or being written, or handlers are nested too deep. |
-| `Unavailable` | The game was not ready, or an error happened and the change was undone. |
-| `Refused` | The request itself was not valid. |
-| `NotFound` | The invoice does not exist. |
-| `Failed` | Something went wrong, such as a balance that is not a number. |
+| `NoAccount` | <details>{::nomarkdown}<summary>{:/nomarkdown}The player has no account at that bank.{::nomarkdown}</summary>{:/nomarkdown}Open one first with OpenAccount, or pick a bank where the player already banks. Nothing changed.</details> |
+| `Frozen` | <details>{::nomarkdown}<summary>{:/nomarkdown}The account is frozen.{::nomarkdown}</summary>{:/nomarkdown}A frozen account refuses deposits and withdrawals, and the game skips its credit interest while debt interest still runs. The player clears a freeze through the legal services unfreeze action.</details> |
+| `Insufficient` | <details>{::nomarkdown}<summary>{:/nomarkdown}The balance does not cover it.{::nomarkdown}</summary>{:/nomarkdown}Read the balance first and ask for less. No money moved.</details> |
+| `Busy` | <details>{::nomarkdown}<summary>{:/nomarkdown}Not now.{::nomarkdown}</summary>{:/nomarkdown}A save is loading or being written, or money handlers are nested too deep. Try again after the save finishes, and do not bank from inside another money handler. Nothing changed.</details> |
+| `Unavailable` | <details>{::nomarkdown}<summary>{:/nomarkdown}The bank or the money system was not ready.{::nomarkdown}</summary>{:/nomarkdown}Call once a save has loaded. If an error happened part way, the change was undone and the framework logged it once.</details> |
+| `Refused` | <details>{::nomarkdown}<summary>{:/nomarkdown}The request itself was not valid.{::nomarkdown}</summary>{:/nomarkdown}Check the amount and the currency against the rules on this page. Nothing changed.</details> |
+| `NotFound` | <details>{::nomarkdown}<summary>{:/nomarkdown}The invoice does not exist.{::nomarkdown}</summary>{:/nomarkdown}List the invoices first and use an id from that list.</details> |
+| `Failed` | <details>{::nomarkdown}<summary>{:/nomarkdown}Something went wrong.{::nomarkdown}</summary>{:/nomarkdown}For example the stored balance is not a number. The framework logs it once and leaves the account alone.</details> |
 
 </div>
 </div>
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>AccountSummary</code> <span>a short view of one account</span></p>
+
+`Banking.Accounts()` gives you one of these for each account. For the loan fields, use `GetByName`, which returns a full `BankAccount`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -166,38 +213,6 @@ public sealed class AccountSummary
 | `Oc` | `int` | The OC in the account. |
 | `Rm` | `float` | The RM in the account. |
 | `Frozen` | `bool` | `true` when the account is frozen. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>Banking</code> <span>the helpers, usable from any scene</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static class Banking
-{
-    public static List<AccountSummary> Accounts();
-    public static BankAccount GetByName(string bankName);
-    public static bool HasDebitCard();
-    public static BankResult Charge(string bankName, MoneyCurrency currency, float amount);
-    public static BankResult Refund(string bankName, MoneyCurrency currency, float amount);
-    public static BankResult PayInvoiceFromAccount(string bankName, int invoiceId);
-    public static BankResult RepayLoanFromAccount(string bankName, MoneyCurrency currency, int amount);
-    public static BankResult WithdrawByPost(string bankName, MoneyCurrency currency, float amount, float fee);
-}
-```
-
-| Method | Returns | What it does |
-|---|---|---|
-| `Accounts()` | `List<AccountSummary>` | Every bank account the game lists. |
-| `GetByName(string bankName)` | `BankAccount` | The account at that bank. `null` when there is none. |
-| `HasDebitCard()` | `bool` | `true` when the player has the debit card. |
-| `Charge(string bankName, MoneyCurrency currency, float amount)` | `BankResult` | Takes money from the account only. |
-| `Refund(string bankName, MoneyCurrency currency, float amount)` | `BankResult` | Puts money into the account only. |
-| `PayInvoiceFromAccount(string bankName, int invoiceId)` | `BankResult` | Pays an invoice from the account. |
-| `RepayLoanFromAccount(string bankName, MoneyCurrency currency, int amount)` | `BankResult` | Repays a loan from the account. |
-| `WithdrawByPost(string bankName, MoneyCurrency currency, float amount, float fee)` | `BankResult` | Sends cash by post. |
 
 </div>
 </div>

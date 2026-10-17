@@ -7,56 +7,86 @@ nav_order: 5
 
 # Models
 
+This page uses `Vector3`, `GameObject`, `Mesh` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 Status: experimental.
 
 A model is a 3D shape for an item, loaded from an OBJ file (a common 3D model file) with an optional MTL file next to it (the file that holds its colours and texture names). You load a model once, and then use the handle you get back for items. You can give a new item a model, replace the model an item shows in the world, or build meshes yourself.
 
+
+
+
+
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>ModelPivot</code> <span>where the model's centre point is placed</span></p>
+<p class="api-type-head"><code>ModelRegistry</code> <span>loads, finds and swaps models</span></p>
+
+Use `LoadObj` once to load a model, `Get` to find one you loaded earlier, and `OverrideVanilla` to swap the model an item shows in the world.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
-public enum ModelPivot
+public static class ModelRegistry
 {
-    Keep,
-    BottomCenter,
-    Center
+    public static bool IsAvailable { get; }
+    public static ModelHandle LoadObj(string modGuid, string key, string objPath, string texturePath, ModelOptions options);
+    public static ModelHandle Get(string modGuid, string key);
+    public static bool OverrideVanilla(int itemId, ModelHandle world, ModelHandle held);
 }
 ```
 
-| Value | Meaning |
-|---|---|
-| `Keep` | Keeps the pivot of the OBJ file. |
-| `BottomCenter` | The middle of the bottom of the model. |
-| `Center` | The middle of the model. |
+| Method | Returns | What it does |
+|---|---|---|
+| `LoadObj(modGuid, key, objPath, texturePath, options)` | `ModelHandle` | Loads an OBJ model. |
+| `Get(modGuid, key)` | `ModelHandle` | Finds a model you loaded earlier. |
+| `OverrideVanilla(itemId, world, held)` | `bool` | Replaces an item's model in the world. |
+
+| Property | Type | What it means |
+|---|---|---|
+| `IsAvailable` | `bool` | `false` when the model changes could not be set up. |
 
 </div>
 </div>
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>ModelCollider</code> <span>the shape the game uses to find out what you touch or pick up</span></p>
+<p class="api-type-head"><code>ModelHandle</code> <span>a model you have loaded</span></p>
+
+`LoadObj` gives you one of these, and `ItemDefinition.Model` takes it. Check `IsReady` before you use it, because a bad file gives a handle that is not ready.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
-public enum ModelCollider
+public sealed class ModelHandle
 {
-    Box,
-    ConvexMesh,
-    Template
+    public string Key { get; }
+    public bool IsReady { get; }
+    public string Error { get; }
+    public Bounds Bounds { get; }
+    public Mesh CreateMesh();
+    public Material[] CreateMaterials(Material source);
 }
 ```
 
-| Value | Meaning |
-|---|---|
-| `Box` | A simple box around the model. |
-| `ConvexMesh` | A convex shape that follows the model. |
-| `Template` | The template item's own shape. |
+| Method | Returns | What it does |
+|---|---|---|
+| `CreateMesh()` | `Mesh` | Builds a new mesh from the model. |
+| `CreateMaterials(source)` | `Material[]` | Builds the materials for the model. |
+
+| Property | Type | What it means |
+|---|---|---|
+| `Key` | `string` | The key you loaded it with. |
+| `IsReady` | `bool` | `true` when the model loaded without a problem. |
+| `Error` | `string` | What went wrong. `null` when nothing did. |
+| `Bounds` | `Bounds` | The size of the model. |
 
 </div>
 </div>
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ModelOptions</code> <span>how to size and place the model</span></p>
+
+Pass one of these to `LoadObj` to size, turn, place and collide the model. Every field has a default, so set only the ones you need.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -86,59 +116,51 @@ public sealed class ModelOptions
 </div>
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>ModelHandle</code> <span>a model you have loaded</span></p>
+<p class="api-type-head"><code>ModelPivot</code> <span>where the model's centre point is placed</span></p>
+
+This is the value of `ModelOptions.Pivot`, and it sets where the model's centre point is placed.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
-public sealed class ModelHandle
+public enum ModelPivot
 {
-    public string Key { get; }
-    public bool IsReady { get; }
-    public string Error { get; }
-    public Bounds Bounds { get; }
-    public Mesh CreateMesh();
-    public Material[] CreateMaterials(Material source);
+    Keep,
+    BottomCenter,
+    Center
 }
 ```
 
-| Method | Returns | What it does |
-|---|---|---|
-| `CreateMesh()` | `Mesh` | Builds a new mesh from the model. |
-| `CreateMaterials(Material source)` | `Material[]` | Builds the materials for the model. |
-
-| Property | Type | What it means |
-|---|---|---|
-| `Key` | `string` | The key you loaded it with. |
-| `IsReady` | `bool` | `true` when the model loaded without a problem. |
-| `Error` | `string` | What went wrong. `null` when nothing did. |
-| `Bounds` | `Bounds` | The size of the model. |
+| Value | Meaning |
+|---|---|
+| `Keep` | Keeps the pivot of the OBJ file. |
+| `BottomCenter` | The middle of the bottom of the model. |
+| `Center` | The middle of the model. |
 
 </div>
 </div>
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>ModelRegistry</code> <span>loads, finds and swaps models</span></p>
+<p class="api-type-head"><code>ModelCollider</code> <span>the shape the game uses to find out what you touch or pick up</span></p>
+
+This is the value of `ModelOptions.Collider`, and it chooses the touch shape of the item.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
-public static class ModelRegistry
+public enum ModelCollider
 {
-    public static bool IsAvailable { get; }
-    public static ModelHandle LoadObj(string modGuid, string key, string objPath, string texturePath, ModelOptions options);
-    public static ModelHandle Get(string modGuid, string key);
-    public static bool OverrideVanilla(int itemId, ModelHandle world, ModelHandle held);
+    Box,
+    ConvexMesh,
+    Template
 }
 ```
 
-| Method | Returns | What it does |
-|---|---|---|
-| `LoadObj(string modGuid, string key, string objPath, string texturePath, ModelOptions options)` | `ModelHandle` | Loads an OBJ model. |
-| `Get(string modGuid, string key)` | `ModelHandle` | Finds a model you loaded earlier. |
-| `OverrideVanilla(int itemId, ModelHandle world, ModelHandle held)` | `bool` | Replaces an item's model in the world. |
-
-| Property | Type | What it means |
-|---|---|---|
-| `IsAvailable` | `bool` | `false` when the model changes could not be set up. |
+| Value | Meaning |
+|---|---|
+| `Box` | A simple box around the model. |
+| `ConvexMesh` | A convex shape that follows the model. |
+| `Template` | The template item's own shape. |
 
 </div>
 </div>

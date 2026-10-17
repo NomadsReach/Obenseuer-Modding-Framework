@@ -11,6 +11,9 @@ nav_order: 4
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Localization</code> <span>reads the language and text</span></p>
+
+This is the class to start from. `Language()` gives the language the game is set to, and `Localize` finds the game's text for a key in that language.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -25,8 +28,8 @@ public static class Localization
 | Method | Returns | What it does |
 |---|---|---|
 | `Language()` | `string` | The name of the language the game is set to, such as English. |
-| `Localize(string key)` | `string` | The game's text for a key, in that language. |
-| `Localize(string table, string key)` | `string` | The same, from any other table of text. |
+| `Localize(key)` | `string` | The game's text for a key, in that language. |
+| `Localize(table, key)` | `string` | The same, from any other table of text. |
 
 </div>
 </div>

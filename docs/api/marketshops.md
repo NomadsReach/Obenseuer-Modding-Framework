@@ -80,6 +80,9 @@ Each stall is a `MarketShopInfo`, a snapshot taken when you asked. The snapshot 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>MarketShops</code> <span>lists stalls, locks them and reports payments</span></p>
+
+Call `All()` to list the stalls and `SetLocked` to lock one. `Paid` fires when the player pays at a till.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -95,7 +98,7 @@ public static class MarketShops
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<MarketShopInfo>` | Every market stall in the scene the player is in. |
-| `SetLocked(string id, bool locked)` | `bool` | Locks or unlocks a stall. Returns `true` when it is now as you asked. |
+| `SetLocked(id, locked)` | `bool` | Locks or unlocks a stall. Returns `true` when it is now as you asked. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -110,6 +113,9 @@ public static class MarketShops
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>MarketShopInfo</code> <span>a snapshot of one stall</span></p>
+
+`All()` gives you one of these for each stall. `Price` is the total on the conveyor now, in `Currency`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -136,6 +142,9 @@ public sealed class MarketShopInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>MarketPayArgs</code> <span>what Paid tells you</span></p>
+
+`Paid` gives you one of these after the game has taken the money. `Price` and `Currency` are what was charged.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

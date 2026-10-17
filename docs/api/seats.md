@@ -7,6 +7,9 @@ nav_order: 13
 
 # Seats
 
+This page uses `Vector3`, `GameObject` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 ## What it is
 
 A seat is any chair in the game, toilets included. This API lets your mod list the seats in the scene you are in, see which are taken and by whom, make the player sit down in one or stand up again, and get told when the player or an NPC sits down or stands up. It does not control NPCs: the game's schedules decide when NPCs sit.
@@ -71,6 +74,9 @@ This is the full list of what the API gives you. Text in brackets at the end of 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Seats</code> <span>list, sit, stand and hear about seats</span></p>
+
+This is the class to start from. `All()` and `Get(id)` find seats, `Sit` and `Leave` seat the player or stand them up, and `Sat` and `Left` tell you when someone sits down or stands up.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -90,8 +96,8 @@ public static class Seats
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<SeatInfo>` | Every seat in the scene you are in, toilets included. |
-| `Get(string id)` | `SeatInfo` | The seat with this id. `null` when there is none. |
-| `Sit(string id)` | `bool` | Makes the player sit in this seat. `true` when they are seated in it afterwards. |
+| `Get(id)` | `SeatInfo` | The seat with this id. `null` when there is none. |
+| `Sit(id)` | `bool` | Makes the player sit in this seat. `true` when they are seated in it afterwards. |
 | `Leave()` | `bool` | Makes the player stand up. `true` once they have started to stand. |
 
 | Property | Type | What it means |
@@ -108,6 +114,9 @@ public static class Seats
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SeatInfo</code> <span>a snapshot of one seat</span></p>
+
+`All()` and `Get(id)` give you one of these. Use `IsOccupied` and `OccupiedByPlayer` to find a free seat or the player's own seat, and pass `Id` to `Sit`. <span class="tech">(It is built from the game's `InteractableChair`, and `IsToilet` is `true` for a `Toilet`.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -134,6 +143,9 @@ public sealed class SeatInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SeatArgs</code> <span>what <code>Sat</code> and <code>Left</code> tell you</span></p>
+
+The `Sat` and `Left` events give you one of these. `ByPlayer` tells you whether the player or an NPC did it.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

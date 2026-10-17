@@ -7,10 +7,16 @@ nav_order: 2
 
 # Finding NPCs
 
+This page uses `Vector3` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 Each `NpcInfo` is a snapshot; see [Characters](../characters.md).
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Npcs</code> <span>NPC list and events</span></p>
+
+Use it to list the NPCs the game knows about, look one up by `Id` or by name, and react when one spawns, despawns or dies.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -29,8 +35,8 @@ public static class Npcs
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<NpcInfo>` | Every NPC the game knows about. |
-| `Get(int id)` | `NpcInfo` | The NPC with this id, or `null` if there is none. |
-| `Find(string name)` | `NpcInfo` | The first NPC whose first or full name matches, or `null` if none. Throws if the name is empty. |
+| `Get(id)` | `NpcInfo` | The NPC with this id, or `null` if there is none. |
+| `Find(name)` | `NpcInfo` | The first NPC whose first or full name matches, or `null` if none. Throws if the name is empty. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -47,6 +53,9 @@ public static class Npcs
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>NpcInfo</code> <span>one NPC snapshot</span></p>
+
+`Npcs.All()`, `Npcs.Get` and `Npcs.Find` give you these, and each of the three events hands you one. It is a copy taken when it is made, so call `Get` or `Find` again to see a change. <span class="tech">(It is built from the game's `NPCData` and its `Character`.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp

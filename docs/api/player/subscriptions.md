@@ -13,6 +13,9 @@ A subscription is a regular service the player signs up for and pays for, for ex
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Subscriptions</code> <span>sign up, cancel and check</span></p>
+
+Use `Subscribe` and `Unsubscribe` to sign the player up or cancel, and `IsActive` or `ActiveIds` to check what they have.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -27,10 +30,10 @@ public static class Subscriptions
 
 | Method | Returns | What it does |
 |---|---|---|
-| `IsActive(string id)` | `bool` | `true` when the player has this subscription. |
+| `IsActive(id)` | `bool` | `true` when the player has this subscription. |
 | `ActiveIds()` | `List<string>` | The ids of the subscriptions the player has now. |
-| `Subscribe(string id)` | `bool` | Signs the player up. Returns `true` when this call did it. |
-| `Unsubscribe(string id)` | `bool` | Cancels the subscription. Returns `true` when the player no longer has it. |
+| `Subscribe(id)` | `bool` | Signs the player up. Returns `true` when this call did it. |
+| `Unsubscribe(id)` | `bool` | Cancels the subscription. Returns `true` when the player no longer has it. |
 
 </div>
 </div>

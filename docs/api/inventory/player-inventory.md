@@ -11,6 +11,9 @@ nav_order: 3
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>PlayerInventory</code> <span>the player's items</span></p>
+
+This is the class you start from. It counts, gives and takes items, shows what the player holds in each hand, and raises `ItemAdded` and `ItemRemoved`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -34,14 +37,14 @@ public static class PlayerInventory
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Count(int itemId)` | `int` | How many of this item the player has. |
-| `Has(int itemId, int count)` | `bool` | `true` when the player has at least this many. |
-| `Give(int itemId, int count)` | `bool` | Gives items. It is `true` when all of them were added. |
-| `Take(int itemId, int count)` | `bool` | Takes items. It is `true` when all of them were taken. |
+| `Count(itemId)` | `int` | How many of this item the player has. |
+| `Has(itemId, count)` | `bool` | `true` when the player has at least this many. |
+| `Give(itemId, count)` | `bool` | Gives items. It is `true` when all of them were added. |
+| `Take(itemId, count)` | `bool` | Takes items. It is `true` when all of them were taken. |
 | `Items()` | `List<ItemStackInfo>` | Every stack the player carries. |
-| `GetHeldItemId(bool leftHand)` | `int` | The item in a hand. It is `-1` when the hand is empty. |
-| `EquipHeld(string modId, int itemId)` | `bool` | Puts one item from the main grid into a hand. |
-| `UnequipHeld(string modId, bool leftHand)` | `bool` | Moves the item in a hand back into the main grid. |
+| `GetHeldItemId(leftHand)` | `int` | The item in a hand. It is `-1` when the hand is empty. |
+| `EquipHeld(modId, itemId)` | `bool` | Puts one item from the main grid into a hand. |
+| `UnequipHeld(modId, leftHand)` | `bool` | Moves the item in a hand back into the main grid. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -59,6 +62,9 @@ public static class PlayerInventory
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ItemChangedArgs</code> <span>what you get when items are added or removed</span></p>
+
+`ItemAdded` and `ItemRemoved` give you this. `Count` is how many went in or out for that one event, so add the counts up for a total.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

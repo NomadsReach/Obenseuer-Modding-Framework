@@ -13,6 +13,8 @@ This is the full list of what the API gives you. Text in brackets at the end of 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Traders</code> <span>reads and checks traders</span></p>
+Use `Get` to read one trader by its shop id.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -26,7 +28,7 @@ public static class Traders
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Get(string shopId)` | `TraderInfo` | The trader with this shop id. `null` when not found. |
+| `Get(shopId)` | `TraderInfo` | The trader with this shop id. `null` when not found. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -38,6 +40,8 @@ public static class Traders
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TraderInfo</code> <span>a snapshot of one trader</span></p>
+`Traders.Get(shopId)` gives you one of these, or `null` when there is no such trader. It is a snapshot, so ask again for fresh values. <span class="tech">(It reads the game's `Trade` for the shop.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp

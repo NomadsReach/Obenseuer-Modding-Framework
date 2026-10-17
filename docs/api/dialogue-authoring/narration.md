@@ -11,6 +11,9 @@ nav_order: 6
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Dialogue</code> <span>shows narration on a black screen</span></p>
+
+You call `Narrate` with your mod id and the text, and check the `bool` it returns, because `false` means the narration did not start.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -22,7 +25,7 @@ public static class Dialogue
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Narrate(string modId, string text)` | `bool` | Shows narration on a black screen. `true` when a conversation is running after the call. |
+| `Narrate(modId, text)` | `bool` | Shows narration on a black screen. `true` when a conversation is running after the call. |
 
 </div>
 </div>

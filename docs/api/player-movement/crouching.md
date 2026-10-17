@@ -11,6 +11,9 @@ These two calls make the player crouch and stand up.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>PlayerMovement</code> <span>crouch and stand up</span></p>
+
+Call `Crouch()` to crouch the player and `StandUp()` to bring them back up.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

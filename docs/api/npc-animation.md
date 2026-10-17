@@ -8,6 +8,9 @@ nav_order: 6
 
 # NPC animation
 
+This page uses `KeyCode`, `Vector3` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 Status: experimental.
 
 ## What it is

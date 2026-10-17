@@ -8,6 +8,9 @@ nav_order: 7
 
 # Landmarks
 
+This page uses `Vector3` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 ## What it is
 
 The map in the game shows landmarks: places the player has discovered, each with an icon and a name. This API lets your mod read the game's landmarks, see which ones the player has, unlock one, and place one at a spot you choose. It can also create new landmarks of your own, and simple map markers, that stay on the map after the player saves and loads.

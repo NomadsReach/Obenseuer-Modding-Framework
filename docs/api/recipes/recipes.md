@@ -11,50 +11,81 @@ This is the full list of what the API gives you, one section for each part. Text
 
 `Recipes` looks up the game's recipes, checks whether the player could make one, and unlocks one. Each recipe is a `RecipeInfo`, a snapshot of the recipe at the moment you asked. The snapshot does not update by itself, so ask again for fresh values.
 
+
+
+
+
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>ItemCount</code> <span>an amount of one item</span></p>
+<p class="api-type-head"><code>Recipes</code> <span>look up, check and unlock recipes</span></p>
+
+Use it to look up recipes, check whether the player can make one, and give the player a recipe with `Unlock`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
-public sealed class ItemCount
+public static class Recipes
 {
-    public int ItemId { get; }
-    public float Count { get; }
+    public static event Action<RecipeUnlockedArgs> Unlocked;
+    public static List<RecipeInfo> All();
+    public static RecipeInfo Get(int recipeId);
+    public static List<RecipeInfo> Find(int itemId);
+    public static bool CanCraft(int recipeId);
+    public static bool CanCraftAt(int recipeId, CraftingStationInfo station);
+    public static bool MeetsSkill(int recipeId);
+    public static bool Unlock(int recipeId, bool notify = true);
+    public static bool IsAvailable { get; }
 }
 ```
 
+| Method | Returns | What it does |
+|---|---|---|
+| `All()` | `List<RecipeInfo>` | Every recipe in the game. |
+| `Get(recipeId)` | `RecipeInfo` | One recipe. It is `null` when there is none. |
+| `Find(itemId)` | `List<RecipeInfo>` | Every recipe that makes this item. |
+| `CanCraft(recipeId)` | `bool` | `true` when the player has every ingredient. |
+| `CanCraftAt(recipeId, station)` | `bool` | `true` when this station can make the recipe. |
+| `MeetsSkill(recipeId)` | `bool` | `true` when the player's skill is enough for the recipe. |
+| `Unlock(recipeId, notify)` | `bool` | Gives the player the recipe. Returns `true` when it was new. |
+
 | Property | Type | What it means |
 |---|---|---|
-| `ItemId` | `int` | The item's number in the game. |
-| `Count` | `float` | How many. It can be fractional, for example 0.4 for a liquid. |
+| `IsAvailable` | `bool` | `false` when the Unlocked event could not be set up. |
+
+| Event | Gives you | When it fires |
+|---|---|---|
+| `Unlocked` | `RecipeUnlockedArgs` | The player just got a recipe. |
 
 </div>
 </div>
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>RecipeIngredient</code> <span>one thing a recipe uses up</span></p>
+<p class="api-type-head"><code>RecipeUnlockedArgs</code> <span>what Unlocked gives you</span></p>
+
+`Recipes.Unlocked` hands you one of these when the player gets a recipe. `Learned` tells you whether they learned it by crafting it.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
-public sealed class RecipeIngredient
+public sealed class RecipeUnlockedArgs
 {
-    public int ItemId { get; }
-    public float Count { get; }
-    public bool Consumed { get; }
+    public int RecipeId { get; }
+    public bool Learned { get; }
 }
 ```
 
 | Property | Type | What it means |
 |---|---|---|
-| `ItemId` | `int` | The item's number in the game. |
-| `Count` | `float` | How many it needs. |
-| `Consumed` | `bool` | Always `true`. The ingredient is used up. |
+| `RecipeId` | `int` | The recipe that was unlocked. |
+| `Learned` | `bool` | `false` when the recipe was collected. `true` when the player learned it by crafting it for the first time. |
 
 </div>
 </div>
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>RecipeInfo</code> <span>a snapshot of one recipe</span></p>
+
+`Recipes.All()`, `Recipes.Get` and `Recipes.Find` give you these. Use `Ingredients` and `RequiredConditions` to see what a recipe needs.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -100,61 +131,49 @@ public sealed class RecipeInfo
 </div>
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>RecipeUnlockedArgs</code> <span>what Unlocked gives you</span></p>
+<p class="api-type-head"><code>RecipeIngredient</code> <span>one thing a recipe uses up</span></p>
+
+Each entry in `RecipeInfo.Ingredients` is one of these. `Count` is how many the recipe needs, and `Consumed` is always `true`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
-public sealed class RecipeUnlockedArgs
+public sealed class RecipeIngredient
 {
-    public int RecipeId { get; }
-    public bool Learned { get; }
+    public int ItemId { get; }
+    public float Count { get; }
+    public bool Consumed { get; }
 }
 ```
 
 | Property | Type | What it means |
 |---|---|---|
-| `RecipeId` | `int` | The recipe that was unlocked. |
-| `Learned` | `bool` | `false` when the recipe was collected. `true` when the player learned it by crafting it for the first time. |
+| `ItemId` | `int` | The item's number in the game. |
+| `Count` | `float` | How many it needs. |
+| `Consumed` | `bool` | Always `true`. The ingredient is used up. |
 
 </div>
 </div>
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>Recipes</code> <span>look up, check and unlock recipes</span></p>
+<p class="api-type-head"><code>ItemCount</code> <span>an amount of one item</span></p>
+
+`RecipeInfo.Results`, `RecipeInfo.FailResults`, `CraftedArgs.Results` and `PlantHarvestArgs.Items` hold these. `Count` can be fractional, as it is for a liquid.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
-public static class Recipes
+public sealed class ItemCount
 {
-    public static event Action<RecipeUnlockedArgs> Unlocked;
-    public static List<RecipeInfo> All();
-    public static RecipeInfo Get(int recipeId);
-    public static List<RecipeInfo> Find(int itemId);
-    public static bool CanCraft(int recipeId);
-    public static bool CanCraftAt(int recipeId, CraftingStationInfo station);
-    public static bool MeetsSkill(int recipeId);
-    public static bool Unlock(int recipeId, bool notify = true);
-    public static bool IsAvailable { get; }
+    public int ItemId { get; }
+    public float Count { get; }
 }
 ```
 
-| Method | Returns | What it does |
-|---|---|---|
-| `All()` | `List<RecipeInfo>` | Every recipe in the game. |
-| `Get(int recipeId)` | `RecipeInfo` | One recipe. It is `null` when there is none. |
-| `Find(int itemId)` | `List<RecipeInfo>` | Every recipe that makes this item. |
-| `CanCraft(int recipeId)` | `bool` | `true` when the player has every ingredient. |
-| `CanCraftAt(int recipeId, CraftingStationInfo station)` | `bool` | `true` when this station can make the recipe. |
-| `MeetsSkill(int recipeId)` | `bool` | `true` when the player's skill is enough for the recipe. |
-| `Unlock(int recipeId, bool notify = true)` | `bool` | Gives the player the recipe. Returns `true` when it was new. |
-
 | Property | Type | What it means |
 |---|---|---|
-| `IsAvailable` | `bool` | `false` when the Unlocked event could not be set up. |
-
-| Event | Gives you | When it fires |
-|---|---|---|
-| `Unlocked` | `RecipeUnlockedArgs` | The player just got a recipe. |
+| `ItemId` | `int` | The item's number in the game. |
+| `Count` | `float` | How many. It can be fractional, for example 0.4 for a liquid. |
 
 </div>
 </div>

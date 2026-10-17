@@ -61,6 +61,9 @@ This is the full list of what the API gives you. Text in brackets at the end of 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Signs</code> <span>finds, reads and writes signs</span></p>
+
+This is the class to start from. `All()` and `Get(id)` read signs, `SetText` writes on one, and `TextChanged` tells you when a sign's text changes.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -77,8 +80,8 @@ public static class Signs
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<SignInfo>` | Every sign in the scene you are in. |
-| `Get(string id)` | `SignInfo` | The sign with this id. `null` when there is none. |
-| `SetText(string id, string text)` | `bool` | Writes the text on the sign. `true` when it did. |
+| `Get(id)` | `SignInfo` | The sign with this id. `null` when there is none. |
+| `SetText(id, text)` | `bool` | Writes the text on the sign. `true` when it did. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -93,6 +96,9 @@ public static class Signs
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SignInfo</code> <span>a snapshot of one sign</span></p>
+
+`All()` and `Get(id)` give you one of these, a copy of the sign at the moment you asked. Use `Text` to read what it says, and `MaxLines` and `MaxLength` to check a text before you pass it to `SetText`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -117,6 +123,9 @@ public sealed class SignInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SignTextChangedArgs</code> <span>what TextChanged tells you</span></p>
+
+The `TextChanged` event gives you one of these, with the sign's `Id` and its new `Text`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

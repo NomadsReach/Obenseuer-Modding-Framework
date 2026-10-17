@@ -7,6 +7,9 @@ nav_order: 1
 
 # Characters
 
+This page uses `Sprite` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 ## What it is
 
 Every person in the game, including the player, has a character definition: a name, an age, a job and a few other facts. This API lets your mod read those definitions, including the ones for people who are not in the scene you are in. It also lists the characters the player has saved games for, the same list the main menu shows when you choose to load a game.
@@ -80,6 +83,9 @@ A character definition is the game's record of one person. `Characters` gives yo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Characters</code> <span>the game's character definitions</span></p>
+
+Call `All()` for every character definition, or `Get(id)` with a number from an NPC page to find one.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -93,13 +99,16 @@ public static class Characters
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<CharacterInfo>` | Every character definition the game has loaded. |
-| `Get(int id)` | `CharacterInfo` | The character with this number. It is `null` when none has it. |
+| `Get(id)` | `CharacterInfo` | The character with this number. It is `null` when none has it. |
 
 </div>
 </div>
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>CharacterInfo</code> <span>one character's facts</span></p>
+
+`Characters.All()` and `Characters.Get(id)` give you these. `Id` is the number the NPC pages use, so you can match a person in the scene to their definition. <span class="tech">(It is built from the game's character definitions, and `IsPlayer` is true for the first one in the list.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -150,6 +159,9 @@ When the player starts a new game, the game makes a save folder for that charact
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Characters</code> <span>the saved-character list</span></p>
+
+Call `Saved()` to list the characters the main menu shows.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -168,6 +180,9 @@ public static class Characters
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SavedCharacterInfo</code> <span>one saved character</span></p>
+
+`Characters.Saved()` gives you one of these for each character the main menu lists. `LastPlayed` is `DateTime.MinValue` when the framework cannot read the character's folder.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

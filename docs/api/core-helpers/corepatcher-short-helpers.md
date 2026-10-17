@@ -11,6 +11,9 @@ A prefix runs your method before the game method, a postfix runs it after, and a
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>CorePatcher</code> <span>one-line prefix, postfix and finalizer helpers</span></p>
+
+Call one of these with the game method, your handler's type and name, and your mod id as `owner`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -27,12 +30,12 @@ public static class CorePatcher
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Prefix(Type target, string method, Type handlerType, string handlerName, string owner)` | `bool` | Runs your method before a game method. |
-| `Prefix(Type target, string method, Type[] args, Type handlerType, string handlerName, string owner)` | `bool` | The same, for a game method with several versions. |
-| `Postfix(Type target, string method, Type handlerType, string handlerName, string owner)` | `bool` | Runs your method after a game method. |
-| `Postfix(Type target, string method, Type[] args, Type handlerType, string handlerName, string owner)` | `bool` | The same, for a game method with several versions. |
-| `Finalizer(Type target, string method, Type handlerType, string handlerName, string owner)` | `bool` | Runs your method when a game method throws an error. |
-| `Finalizer(Type target, string method, Type[] args, Type handlerType, string handlerName, string owner)` | `bool` | The same, for a game method with several versions. |
+| `Prefix(target, method, handlerType, handlerName, owner)` | `bool` | Runs your method before a game method. |
+| `Prefix(target, method, args, handlerType, handlerName, owner)` | `bool` | The same, for a game method with several versions. |
+| `Postfix(target, method, handlerType, handlerName, owner)` | `bool` | Runs your method after a game method. |
+| `Postfix(target, method, args, handlerType, handlerName, owner)` | `bool` | The same, for a game method with several versions. |
+| `Finalizer(target, method, handlerType, handlerName, owner)` | `bool` | Runs your method when a game method throws an error. |
+| `Finalizer(target, method, args, handlerType, handlerName, owner)` | `bool` | The same, for a game method with several versions. |
 
 </div>
 </div>

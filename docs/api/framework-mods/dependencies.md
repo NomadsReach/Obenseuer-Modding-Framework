@@ -11,6 +11,9 @@ A dependency says another mod must load before yours, and optionally how new it 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Loader</code> <span>finding out which mods are running</span></p>
+
+Use it to check whether another mod is running, for example before you use its features. Call `Has` from `Events.WhenReady`, not from `Start`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -22,7 +25,7 @@ public static class Loader
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Has(string id)` | `bool` | `true` when a mod with this id is running. |
+| `Has(id)` | `bool` | `true` when a mod with this id is running. |
 
 </div>
 </div>

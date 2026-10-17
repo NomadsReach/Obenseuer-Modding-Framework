@@ -81,6 +81,9 @@ This is the full list of what the API gives you. Text in brackets at the end of 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SaveSlots</code> <span>read the saves on disk and start an autosave</span></p>
+
+This is the class to start from: `All()` lists the saves on disk, `SaveNow()` asks for an autosave, and `CanSaveNow` tells you first whether the game would refuse one.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -110,6 +113,9 @@ public static class SaveSlots
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SaveSlotInfo</code> <span>one save slot on disk</span></p>
+
+`All()` gives you one of these for each save on disk. Use `Character` and `LastWritten` to label a save in your own list, and `Name` to tell the slots apart.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -132,6 +138,9 @@ public sealed class SaveSlotInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SaveAutosaveMode</code> <span>how often the difficulty autosaves</span></p>
+
+`AutosaveMode` gives you one of these. It is read only, and reading it does not change how often the game saves.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

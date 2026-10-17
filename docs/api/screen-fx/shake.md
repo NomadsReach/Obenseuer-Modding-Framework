@@ -11,6 +11,9 @@ nav_order: 3
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ScreenFx</code> <span>shake the camera</span></p>
+
+`ScreenFx.Shake` moves the camera for a set time. `amount` is the most the camera moves each frame.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -19,7 +22,7 @@ public static bool Shake(float duration, float amount);
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Shake(float duration, float amount)` | `bool` | Shakes the camera for `duration` seconds. `amount` is the most the camera moves each frame, in world units. Returns `true` when the shake started. |
+| `Shake(duration, amount)` | `bool` | Shakes the camera for `duration` seconds. `amount` is the most the camera moves each frame, in world units. Returns `true` when the shake started. |
 
 </div>
 </div>

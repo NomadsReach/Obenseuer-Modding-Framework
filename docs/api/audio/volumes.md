@@ -11,6 +11,9 @@ The player sets the master, sound and music volume in the options menu. These pr
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Sounds</code> <span>the player's saved volumes</span></p>
+
+Read `MasterVolume`, `SfxVolume` and `MusicVolume` to see the sliders the player saved. They are in decibels.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

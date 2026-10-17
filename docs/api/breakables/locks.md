@@ -11,6 +11,9 @@ A lock can break when it is hit hard enough. A lock is not a breakable: it is a 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Breakables</code> <span>break locks</span></p>
+
+Use `Locks` to list the locks in the scene and `BreakLock` to break one by its id. `LockBroken` tells you when a hit breaks one.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -26,7 +29,7 @@ public static class Breakables
 | Method | Returns | What it does |
 |---|---|---|
 | `Locks()` | `List<BreakableLockInfo>` | Every lock in the scene the player is in. |
-| `BreakLock(string id)` | `bool` | Breaks a lock. `true` when it is broken afterwards. |
+| `BreakLock(id)` | `bool` | Breaks a lock. `true` when it is broken afterwards. |
 
 | Event | Gives you | When it fires |
 |---|---|---|
@@ -37,6 +40,9 @@ public static class Breakables
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>BreakableLockInfo</code> <span>a snapshot of one lock</span></p>
+
+`Locks` gives you one of these for each lock. Use `Strength` to see whether it is broken, because `Locked` does not change when a lock breaks.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

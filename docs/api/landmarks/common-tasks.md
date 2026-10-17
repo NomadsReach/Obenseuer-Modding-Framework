@@ -7,6 +7,9 @@ nav_order: 1
 
 # Common tasks
 
+This page uses `Vector3` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 Check whether the player has a landmark, and unlock it if not. The id is the landmark's id in the game, which you can see by listing `Landmarks.All()`.
 
 ```csharp

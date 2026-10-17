@@ -7,6 +7,9 @@ nav_order: 3
 
 # Models
 
+This page uses `GameObject`, `Mesh` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 A furniture can use your own 3D model instead of the template's. Load the model with `ModelRegistry.LoadObj` (see the [Registry](../registry/models.md#models) page) and put the result in `FurnitureDefinition.Model`.
 
 ## Things to know

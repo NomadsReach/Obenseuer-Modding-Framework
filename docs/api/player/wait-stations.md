@@ -9,8 +9,44 @@ nav_order: 3
 
 A wait station is a place in the world where the player waits, such as a work station: the player uses it and time passes. These calls list the stations in the scene you are in, check whether one can be used, use one, and tell you when a wait at a station ends.
 
+
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>WaitStations</code> <span>list, check and use wait stations</span></p>
+
+Use it to list the stations in the scene, check whether one can be used, use one, and hear when a wait at a station ends.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class WaitStations
+{
+    public static List<WaitStationInfo> All();
+    public static bool CanUse(string id);
+    public static bool Use(string id);
+    public static event Action<WaitStationDoneArgs> Finished;
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `All()` | `List<WaitStationInfo>` | Every wait station in the scene you are in. |
+| `CanUse(id)` | `bool` | `true` when `Use` would start the wait. Starts nothing. |
+| `Use(id)` | `bool` | Uses the station, as if the player pressed its Interact key. |
+
+| Event | Gives you | When it fires |
+|---|---|---|
+| `Finished` | `WaitStationDoneArgs` | A wait at a station has ended. |
+
+</div>
+</div>
+
+
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WaitStationInfo</code> <span>one wait station</span></p>
+
+`WaitStations.All()` gives you one of these for each station in the scene. Pass its `Id` to `CanUse` or `Use`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -49,6 +85,9 @@ public sealed class WaitStationInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WaitStationDoneArgs</code> <span>what you are told when a wait at a station ends</span></p>
+
+`WaitStations.Finished` hands you one of these when a wait at a station ends. `Id` says which station it was.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -63,33 +102,6 @@ public sealed class WaitStationDoneArgs
 |---|---|---|
 | `Id` | `string` | The station's id. |
 | `Seconds` | `int` | How long the player waited, in game seconds. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>WaitStations</code> <span>list, check and use wait stations</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static class WaitStations
-{
-    public static List<WaitStationInfo> All();
-    public static bool CanUse(string id);
-    public static bool Use(string id);
-    public static event Action<WaitStationDoneArgs> Finished;
-}
-```
-
-| Method | Returns | What it does |
-|---|---|---|
-| `All()` | `List<WaitStationInfo>` | Every wait station in the scene you are in. |
-| `CanUse(string id)` | `bool` | `true` when `Use` would start the wait. Starts nothing. |
-| `Use(string id)` | `bool` | Uses the station, as if the player pressed its Interact key. |
-
-| Event | Gives you | When it fires |
-|---|---|---|
-| `Finished` | `WaitStationDoneArgs` | A wait at a station has ended. |
 
 </div>
 </div>

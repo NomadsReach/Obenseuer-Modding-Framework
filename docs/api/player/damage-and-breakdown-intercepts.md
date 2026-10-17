@@ -10,7 +10,38 @@ nav_order: 4
 An intercept lets your mod look at damage before the player takes it, and change it or cancel it. A breakdown is the game's mental-health breakdown, where the player may harm themselves, drink or take mushrooms. These calls are on `Survival`, and they are described here because they work on the player.
 
 <div class="api-type" markdown="1">
+<p class="api-type-head"><code>Survival</code> <span>damage intercepts and the breakdown event</span></p>
+
+Use `InterceptDamage` to change or cancel damage before the player takes it, and subscribe to `Breakdown` to change or cancel a breakdown action the game is about to try.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static partial class Survival
+{
+    public static bool InterceptDamage(string modId, Action<DamageArgs> handler);
+    public static bool RemoveDamage(string modId, Action<DamageArgs> handler);
+    public static event Action<BreakdownArgs> Breakdown;
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `InterceptDamage(modId, handler)` | `bool` | Adds your handler. Returns `false` when `IsAvailable` is `false`. |
+| `RemoveDamage(modId, handler)` | `bool` | Removes your handler. Returns `true` when it was removed. |
+
+| Event | Gives you | When it fires |
+|---|---|---|
+| `Breakdown` | `BreakdownArgs` | The game is about to try a breakdown action. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
 <p class="api-type-head"><code>DamageArgs</code> <span>the damage the player is about to take</span></p>
+
+`InterceptDamage` handlers get one of these. Set `Amount` to change the damage, or `Cancel` to apply none.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -36,32 +67,33 @@ public sealed class DamageArgs
 </div>
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>Survival</code> <span>damage intercepts and the breakdown event</span></p>
+<p class="api-type-head"><code>BreakdownArgs</code> <span>a breakdown action the game is about to try</span></p>
+
+`Survival.Breakdown` hands you one of these for each action the game tries. `Kind` says which action is starting, and setting `Cancel` stops that action.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
-public static partial class Survival
+public sealed class BreakdownArgs
 {
-    public static bool InterceptDamage(string modId, Action<DamageArgs> handler);
-    public static bool RemoveDamage(string modId, Action<DamageArgs> handler);
-    public static event Action<BreakdownArgs> Breakdown;
+    public BreakdownKind Kind { get; }
+    public bool Cancel { get; set; }
 }
 ```
 
-| Method | Returns | What it does |
+| Property | Type | What it means |
 |---|---|---|
-| `InterceptDamage(string modId, Action<DamageArgs> handler)` | `bool` | Adds your handler. Returns `false` when `IsAvailable` is `false`. |
-| `RemoveDamage(string modId, Action<DamageArgs> handler)` | `bool` | Removes your handler. Returns `true` when it was removed. |
-
-| Event | Gives you | When it fires |
-|---|---|---|
-| `Breakdown` | `BreakdownArgs` | The game is about to try a breakdown action. |
+| `Kind` | `BreakdownKind` | The breakdown step that is starting. |
+| `Cancel` | `bool` | Set to `true` to stop this action. |
 
 </div>
 </div>
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>BreakdownKind</code> <span>the breakdown actions</span></p>
+
+These are the values of `BreakdownArgs.Kind`. The game's roll decides which of them it tries and in what order, as the Breakdowns notes below say.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -80,26 +112,6 @@ public enum BreakdownKind
 | `SelfHarm` | The player hurts themselves. |
 | `Mushrooms` | The player eats mushrooms. |
 | `Alcohol` | The player drinks. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>BreakdownArgs</code> <span>a breakdown action the game is about to try</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public sealed class BreakdownArgs
-{
-    public BreakdownKind Kind { get; }
-    public bool Cancel { get; set; }
-}
-```
-
-| Property | Type | What it means |
-|---|---|---|
-| `Kind` | `BreakdownKind` | The breakdown step that is starting. |
-| `Cancel` | `bool` | Set to `true` to stop this action. |
 
 </div>
 </div>

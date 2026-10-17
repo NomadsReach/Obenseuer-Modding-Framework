@@ -12,27 +12,51 @@ This is the full list of what the API gives you, one section for each part of th
 `Cash` is the player's wallet. You can read the balance, check whether the player can afford something, give money, spend money, and get told when either balance changes.
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>MoneyCurrency</code> <span>the two currencies</span></p>
+<p class="api-type-head"><code>Cash</code> <span>the wallet</span></p>
+
+Call `Balance(currency)` to read a balance, `Has` to check the player can afford something, and `Give` or `TrySpend` to change it.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
-public enum MoneyCurrency
+public static class Cash
 {
-    OC = 0,
-    RM = 1
+    public static event Action<MoneyChangedArgs> MoneyChanged;
+    public static bool IsAvailable { get; }
+    public static float Balance(MoneyCurrency currency);
+    public static bool Has(MoneyCurrency currency, float amount);
+    public static bool Give(MoneyCurrency currency, float amount);
+    public static bool TrySpend(MoneyCurrency currency, float amount);
+    public static int RmToOc(float rm);
+    public static float OcToRm(int oc);
 }
 ```
 
-| Value | Meaning |
-|---|---|
-| `OC` | Open Sewer Coins, the everyday coins. |
-| `RM` | Real Money. |
+| Method | Returns | What it does |
+|---|---|---|
+| `Balance(currency)` | `float` | The balance in that currency. `0` while money is not loaded. |
+| `Has(currency, amount)` | `bool` | `true` when the wallet holds at least that much. |
+| `Give(currency, amount)` | `bool` | Adds money to the wallet. `true` when it was added. |
+| `TrySpend(currency, amount)` | `bool` | Takes money only if the wallet covers it. `true` when it was taken. |
+| `RmToOc(rm)` | `int` | Converts an RM amount to OC at the game's rate, dropping any fraction. |
+| `OcToRm(oc)` | `float` | Converts an OC amount to RM at the game's rate, rounded to 0.1. |
+
+| Property | Type | What it means |
+|---|---|---|
+| `IsAvailable` | `bool` | `false` when the money change could not be set up. |
+
+| Event | Gives you | When it fires |
+|---|---|---|
+| `MoneyChanged` | `MoneyChangedArgs` | A balance has changed. |
 
 </div>
 </div>
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>MoneyChangedArgs</code> <span>what you get when a balance changes</span></p>
+
+`Cash.MoneyChanged` passes you one of these each time a balance changes. `Before` and `After` are the balance either side of the change.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -54,39 +78,24 @@ public sealed class MoneyChangedArgs
 </div>
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>Cash</code> <span>the wallet</span></p>
+<p class="api-type-head"><code>MoneyCurrency</code> <span>the two currencies</span></p>
+
+The `Cash` calls take one of these to say which balance they mean. `OC` is the everyday coin and `RM` is real money.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
-public static class Cash
+public enum MoneyCurrency
 {
-    public static event Action<MoneyChangedArgs> MoneyChanged;
-    public static bool IsAvailable { get; }
-    public static float Balance(MoneyCurrency currency);
-    public static bool Has(MoneyCurrency currency, float amount);
-    public static bool Give(MoneyCurrency currency, float amount);
-    public static bool TrySpend(MoneyCurrency currency, float amount);
-    public static int RmToOc(float rm);
-    public static float OcToRm(int oc);
+    OC = 0,
+    RM = 1
 }
 ```
 
-| Method | Returns | What it does |
-|---|---|---|
-| `Balance(MoneyCurrency currency)` | `float` | The balance in that currency. `0` while money is not loaded. |
-| `Has(MoneyCurrency currency, float amount)` | `bool` | `true` when the wallet holds at least that much. |
-| `Give(MoneyCurrency currency, float amount)` | `bool` | Adds money to the wallet. `true` when it was added. |
-| `TrySpend(MoneyCurrency currency, float amount)` | `bool` | Takes money only if the wallet covers it. `true` when it was taken. |
-| `RmToOc(float rm)` | `int` | Converts an RM amount to OC at the game's rate, dropping any fraction. |
-| `OcToRm(int oc)` | `float` | Converts an OC amount to RM at the game's rate, rounded to 0.1. |
-
-| Property | Type | What it means |
-|---|---|---|
-| `IsAvailable` | `bool` | `false` when the money change could not be set up. |
-
-| Event | Gives you | When it fires |
-|---|---|---|
-| `MoneyChanged` | `MoneyChangedArgs` | A balance has changed. |
+| Value | Meaning |
+|---|---|
+| `OC` | Open Sewer Coins, the everyday coins. |
+| `RM` | Real Money. |
 
 </div>
 </div>

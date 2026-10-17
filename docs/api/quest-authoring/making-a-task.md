@@ -11,6 +11,9 @@ nav_order: 3
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>QuestAuthoring</code> <span>making a task</span></p>
+
+Call `Create` with a `QuestDefinition` to make the task. `TaskId` tells you the id it would get, and when `Create` returns `null`, `refusal` says why.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -24,8 +27,8 @@ public static class QuestAuthoring
 
 | Method | Returns | What it does |
 |---|---|---|
-| `TaskId(string modId, string key)` | `string` | The task id for this mod and key. It is `null` when either is not allowed. |
-| `Create(string modId, QuestDefinition definition, out QuestRefusal refusal)` | `string` | Makes the task. It returns its id, or `null` with the reason in `refusal`. |
+| `TaskId(modId, key)` | `string` | The task id for this mod and key. It is `null` when either is not allowed. |
+| `Create(modId, definition, out refusal)` | `string` | Makes the task. It returns its id, or `null` with the reason in `refusal`. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -36,6 +39,9 @@ public static class QuestAuthoring
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>QuestDefinition</code> <span>the task you want to make</span></p>
+
+Pass one of these to `Create`. Its `Key` gets your mod id in front of it, and it holds 1 to 12 `QuestObjectiveDefinition` steps.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -60,6 +66,9 @@ public sealed class QuestDefinition
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>QuestObjectiveDefinition</code> <span>one step of a task</span></p>
+
+Each step in `QuestDefinition.Objectives` is one of these, and `AddObjective` takes one too. `Target` gives the step a counter.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -86,6 +95,9 @@ public sealed class QuestObjectiveDefinition
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>QuestRefusal</code> <span>why a task was not made</span></p>
+
+`Create` sets this through its `out refusal` parameter. It is `None` when nothing was refused. `PartiallyCreated` is the one value that comes with a task id, as the Limits section says. The game has no such list; the framework makes it.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -106,14 +118,14 @@ public enum QuestRefusal
 | Value | Meaning |
 |---|---|
 | `None` | Nothing was refused. |
-| `NotReady` | The game is not ready: not in a game scene, or the task panel or notifications are not loaded. |
-| `SaveBusy` | A save is loading or being written. |
-| `BadInput` | The key, title, text, objectives or counters you gave are not allowed. |
-| `DuplicateTitle` | Another task already has this title. |
-| `AlreadyExists` | The save already has a task with this id. |
-| `Rejected` | The game refused the first objective, so no task was made. |
-| `Failed` | A game call threw an error before the task was made. |
-| `PartiallyCreated` | The task was made, but a later objective was refused. |
+| `NotReady` | <details>{::nomarkdown}<summary>{:/nomarkdown}The game is not ready yet.{::nomarkdown}</summary>{:/nomarkdown}You are not in a game scene, or the task panel and notifications have not loaded. Make the task again once a save has loaded. Quests.Ready is raised when the quest system can take writes, once for every load.</details> |
+| `SaveBusy` | <details>{::nomarkdown}<summary>{:/nomarkdown}A save is loading or being written.{::nomarkdown}</summary>{:/nomarkdown}Make the task again after the save finishes. Nothing was changed.</details> |
+| `BadInput` | <details>{::nomarkdown}<summary>{:/nomarkdown}Something you passed is not allowed.{::nomarkdown}</summary>{:/nomarkdown}Check the key, the title, the text, and each objective and counter against the rules on this page. Nothing was made.</details> |
+| `DuplicateTitle` | <details>{::nomarkdown}<summary>{:/nomarkdown}Another task already has this title.{::nomarkdown}</summary>{:/nomarkdown}Titles are compared across every task in the save, including finished ones, so pick another title. A repeatable quest needs a numbered title such as Say sorry to Max again.</details> |
+| `AlreadyExists` | <details>{::nomarkdown}<summary>{:/nomarkdown}The save already has a task with this id.{::nomarkdown}</summary>{:/nomarkdown}You made it already, in this session or an earlier one, because tasks live in the save. Read it with Quests.Get instead of making it again, or use another key. Reopening a finished task is not supported.</details> |
+| `Rejected` | <details>{::nomarkdown}<summary>{:/nomarkdown}The game refused the first objective, so no task was made.{::nomarkdown}</summary>{:/nomarkdown}The first objective has to be accepted for the task to exist. Check its key, title and counter.</details> |
+| `Failed` | <details>{::nomarkdown}<summary>{:/nomarkdown}A game call threw an error before the task was made.{::nomarkdown}</summary>{:/nomarkdown}The framework logs the error once. Nothing was made.</details> |
+| `PartiallyCreated` | <details>{::nomarkdown}<summary>{:/nomarkdown}The task was made, but a later objective was refused.{::nomarkdown}</summary>{:/nomarkdown}The task is in the save with the objectives that were accepted. Add the missing ones with AddObjective, and do not call Create again, because the id now exists.</details> |
 
 </div>
 </div>

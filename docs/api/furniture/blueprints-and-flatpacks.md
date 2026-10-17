@@ -7,10 +7,45 @@ nav_order: 4
 
 # Blueprints and flatpacks
 
+This page uses `Sprite` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 A blueprint teaches the player to craft a furniture at a furniture bench, and a flatpack is the packed box form of a furniture that the player unpacks to place it. Define the furniture with `Define` first, then call `DefineBlueprint` when your mod loads. Call `GiveBlueprint` and `GiveFlatpack` when the player earns them.
 
 <div class="api-type" markdown="1">
+<p class="api-type-head"><code>FurnitureRegistry</code> <span>blueprints and flatpacks</span></p>
+
+This is the class for blueprints and flatpacks. `DefineBlueprint` adds a blueprint, `GiveBlueprint` teaches it, `IsBlueprintKnown` checks it, and `GiveFlatpack` puts flatpacks in the player's inventory.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class FurnitureRegistry
+{
+    public static string DefineBlueprint(string furnitureId, BlueprintDefinition definition);
+    public static bool GiveBlueprint(string furnitureId);
+    public static bool GiveBlueprint(string furnitureId, bool silent);
+    public static bool IsBlueprintKnown(string furnitureId);
+    public static bool GiveFlatpack(string furnitureId, int amount);
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `DefineBlueprint(furnitureId, definition)` | `string` | Adds the blueprint. Returns its id, or `null` when refused. |
+| `GiveBlueprint(furnitureId)` | `bool` | Teaches the blueprint to the player, with the game's notice. |
+| `GiveBlueprint(furnitureId, silent)` | `bool` | Teaches the blueprint. With `silent` set to `true`, there is no notice. |
+| `IsBlueprintKnown(furnitureId)` | `bool` | `true` when the player knows the blueprint. |
+| `GiveFlatpack(furnitureId, amount)` | `bool` | Puts flatpacks in the player's inventory, one furniture in each. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
 <p class="api-type-head"><code>BlueprintDefinition</code> <span>the description of one blueprint</span></p>
+
+You fill one in and pass it to `FurnitureRegistry.DefineBlueprint`. It says what the craft takes, how long it takes and how many pieces it makes.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -41,32 +76,6 @@ public sealed class BlueprintDefinition
 | `MinimumSkill` | `int` | The skill level needed, from 0 up to `Skills.MaxLevel`. |
 | `Amount` | `int` | Pieces made by one craft, from 1 to 100. |
 | `Pools` | `List<string>` | The world pools the blueprint joins. See World spawning. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>FurnitureRegistry</code> <span>blueprints and flatpacks</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static class FurnitureRegistry
-{
-    public static string DefineBlueprint(string furnitureId, BlueprintDefinition definition);
-    public static bool GiveBlueprint(string furnitureId);
-    public static bool GiveBlueprint(string furnitureId, bool silent);
-    public static bool IsBlueprintKnown(string furnitureId);
-    public static bool GiveFlatpack(string furnitureId, int amount);
-}
-```
-
-| Method | Returns | What it does |
-|---|---|---|
-| `DefineBlueprint(string furnitureId, BlueprintDefinition definition)` | `string` | Adds the blueprint. Returns its id, or `null` when refused. |
-| `GiveBlueprint(string furnitureId)` | `bool` | Teaches the blueprint to the player, with the game's notice. |
-| `GiveBlueprint(string furnitureId, bool silent)` | `bool` | Teaches the blueprint. With `silent` set to `true`, there is no notice. |
-| `IsBlueprintKnown(string furnitureId)` | `bool` | `true` when the player knows the blueprint. |
-| `GiveFlatpack(string furnitureId, int amount)` | `bool` | Puts flatpacks in the player's inventory, one furniture in each. |
 
 </div>
 </div>

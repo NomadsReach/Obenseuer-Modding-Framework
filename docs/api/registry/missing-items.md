@@ -20,8 +20,37 @@ A save can hold a stack of an item from a mod that is not installed. The game wo
 
 ## Cleaning up
 
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>ItemRegistry</code> <span>the clean-up calls for missing stacks</span></p>
+
+Use `MissingItems()` to list the placeholder stacks, and the two remove calls to empty them.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class ItemRegistry
+{
+    public static List<MissingItemInfo> MissingItems();
+    public static bool RemoveMissingItems(string modId);
+    public static bool RemoveAllMissingItems();
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `MissingItems()` | `List<MissingItemInfo>` | Lists the missing stacks you can reach. |
+| `RemoveMissingItems(modId)` | `bool` | Empties the missing stacks of one mod. |
+| `RemoveAllMissingItems()` | `bool` | Empties the missing stacks of every mod. |
+
+</div>
+</div>
+
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>MissingItemInfo</code> <span>one stack of a missing item</span></p>
+
+`MissingItems()` gives you one of these for each placeholder stack. `Where` says where the stack is, and `Amount` says how many are in it.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -42,28 +71,6 @@ public sealed class MissingItemInfo
 | `Title` | `string` | The item's name, from the save's list. Empty if unknown. |
 | `Where` | `string` | Where the stack is: "player inventory", or "container" and its name. |
 | `Amount` | `int` | How many are in the stack. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>ItemRegistry</code> <span>the clean-up calls for missing stacks</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static class ItemRegistry
-{
-    public static List<MissingItemInfo> MissingItems();
-    public static bool RemoveMissingItems(string modId);
-    public static bool RemoveAllMissingItems();
-}
-```
-
-| Method | Returns | What it does |
-|---|---|---|
-| `MissingItems()` | `List<MissingItemInfo>` | Lists the missing stacks you can reach. |
-| `RemoveMissingItems(string modId)` | `bool` | Empties the missing stacks of one mod. |
-| `RemoveAllMissingItems()` | `bool` | Empties the missing stacks of every mod. |
 
 </div>
 </div>

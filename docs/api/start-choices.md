@@ -83,6 +83,9 @@ A pick is one choice the player made on the start screen. Each pick you get is a
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>StartChoices</code> <span>read the picks and hear about new ones</span></p>
+
+This is the class to start from. `Selected()` and `Has(id)` read the picks the player made, `Relationship` says how the character starts, and `Chosen` tells you about each new pick.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -99,7 +102,7 @@ public static class StartChoices
 | Method | Returns | What it does |
 |---|---|---|
 | `Selected()` | `List<StartChoiceInfo>` | The picks so far, in the order the player made them. |
-| `Has(string id)` | `bool` | `true` when a pick has this id, for example `"Police"`. |
+| `Has(id)` | `bool` | `true` when a pick has this id, for example `"Police"`. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -115,6 +118,9 @@ public static class StartChoices
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>StartChoiceInfo</code> <span>a copy of one pick</span></p>
+
+`Selected()` gives you one of these for each pick. `Oc` and `Rm` are the money the pick gave, so you can add them up.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -141,6 +147,9 @@ public sealed class StartChoiceInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>StartChoiceArgs</code> <span>what Chosen tells you</span></p>
+
+The `Chosen` event gives you one of these for the pick that was just made, with its `Id` and `Title`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

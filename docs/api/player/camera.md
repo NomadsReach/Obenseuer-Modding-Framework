@@ -11,6 +11,9 @@ nav_order: 9
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>CameraView</code> <span>body and third-person claims</span></p>
+
+Call `SetFirstPersonBody` to keep the player's body visible in first person, and `SetThirdPerson` to ask for third person.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -25,10 +28,10 @@ public static class CameraView
 
 | Method | Returns | What it does |
 |---|---|---|
-| `SetFirstPersonBody(string owner)` | `bool` | Keeps the player's body visible in first person, for selfies. |
-| `ClearFirstPersonBody(string owner)` | `bool` | Removes your claim to keep the body visible. |
-| `SetThirdPerson(string owner, float distance)` | `bool` | Asks for third person at this distance. |
-| `SetFirstPerson(string owner)` | `bool` | Gives up your request for third person. |
+| `SetFirstPersonBody(owner)` | `bool` | Keeps the player's body visible in first person, for selfies. |
+| `ClearFirstPersonBody(owner)` | `bool` | Removes your claim to keep the body visible. |
+| `SetThirdPerson(owner, distance)` | `bool` | Asks for third person at this distance. |
+| `SetFirstPerson(owner)` | `bool` | Gives up your request for third person. |
 
 </div>
 </div>

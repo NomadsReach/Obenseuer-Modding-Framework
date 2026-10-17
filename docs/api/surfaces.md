@@ -85,6 +85,9 @@ Text in brackets at the end of a note is extra detail for experienced modders, a
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Surfaces</code> <span>the surfaces in the scene you are in</span></p>
+
+This is the class to start from. `All()` and `Get(id)` read the surfaces, `SetWallpaper` puts a wallpaper on one, `Remove` strips it, and `Changed` tells you when either happens.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -104,9 +107,9 @@ public static class Surfaces
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<SurfaceInfo>` | Every surface in the scene you are in. |
-| `Get(string id)` | `SurfaceInfo` | The surface with this id. It is `null` when no surface has it. |
-| `SetWallpaper(string id, int itemId, int skinIndex)` | `bool` | Puts a wallpaper on the surface in that look. It is `true` when the surface now shows it. |
-| `Remove(string id)` | `bool` | Strips the wallpaper. It is `true` when the surface has none afterwards. |
+| `Get(id)` | `SurfaceInfo` | The surface with this id. It is `null` when no surface has it. |
+| `SetWallpaper(id, itemId, skinIndex)` | `bool` | Puts a wallpaper on the surface in that look. It is `true` when the surface now shows it. |
+| `Remove(id)` | `bool` | Strips the wallpaper. It is `true` when the surface has none afterwards. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -121,6 +124,9 @@ public static class Surfaces
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SurfaceInfo</code> <span>a snapshot of one surface</span></p>
+
+`All()` and `Get(id)` give you one of these. `WallpaperItemId` is `0` when there is no wallpaper, and `SkinIndex` is the look that is showing. <span class="tech">(It is built from the game's `FurnitureSurfaceArea`.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -143,6 +149,9 @@ public sealed class SurfaceInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SurfaceArgs</code> <span>what the Changed event tells you</span></p>
+
+The `Changed` event gives you one of these, with the wallpaper and look now on the surface. `WallpaperItemId` is `0` when the wallpaper was removed.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

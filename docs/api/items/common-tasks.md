@@ -7,6 +7,9 @@ nav_order: 1
 
 # Common tasks
 
+This page uses `Sprite` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 Each of these runs after a save has loaded, for example inside `Events.WhenReady(() => { ... })`.
 
 Get an item by its id. This returns `null` if no item has that id.

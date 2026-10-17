@@ -68,6 +68,9 @@ This is the full list of what the API gives you. Text in brackets at the end of 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Showers</code> <span>list, read and switch showers</span></p>
+
+This is the class to start from. `All()` and `Get(id)` read showers, `SetOn` switches one on or off, and `Changed` tells you when any shower is switched on or off.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -84,8 +87,8 @@ public static class Showers
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<ShowerInfo>` | Every shower in the scene you are in. |
-| `Get(string id)` | `ShowerInfo` | The shower with this id. `null` when nobody has it. |
-| `SetOn(string id, bool on)` | `bool` | Switches a shower on or off. `true` when it ends up in the state you asked for. |
+| `Get(id)` | `ShowerInfo` | The shower with this id. `null` when nobody has it. |
+| `SetOn(id, on)` | `bool` | Switches a shower on or off. `true` when it ends up in the state you asked for. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -100,6 +103,9 @@ public static class Showers
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ShowerInfo</code> <span>a snapshot of one shower</span></p>
+
+`All()` and `Get(id)` give you one of these. `On` is the switch, and `Water` tells you whether water is really running, which can differ from `On` when the tank is empty. <span class="tech">(It is filled from the game's `InteractableShower`.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -122,6 +128,9 @@ public sealed class ShowerInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ShowerChangedArgs</code> <span>what Changed tells you</span></p>
+
+The `Changed` event gives you one of these. `On` is `true` when the shower was switched on and `false` when it was switched off.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

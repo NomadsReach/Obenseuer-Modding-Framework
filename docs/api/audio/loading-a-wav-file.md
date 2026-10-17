@@ -7,10 +7,16 @@ nav_order: 4
 
 # Loading a WAV file
 
+This page uses `AudioClip` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 A WAV file is a sound file. `LoadWav` reads one from disk and gives you a clip you can play.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Sounds</code> <span>loads WAV files</span></p>
+
+Call `LoadWav` with the path to a WAV file, then play the clip with `PlayClip` or `PlayClipAt`. It gives `null` when the file cannot be used.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -22,7 +28,7 @@ public static class Sounds
 
 | Method | Returns | What it does |
 |---|---|---|
-| `LoadWav(string path)` | `AudioClip` | Reads a WAV file into a clip. Returns `null` when the file can't be used. |
+| `LoadWav(path)` | `AudioClip` | Reads a WAV file into a clip. Returns `null` when the file can't be used. |
 
 </div>
 </div>

@@ -11,6 +11,9 @@ One call moves an NPC that is far away into another scene.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>NpcActions</code> <span>moving a far-away NPC to another scene</span></p>
+
+`ChangeLevel` moves the NPC into the scene you name. Check `Npcs.Get(id).CurrentScene` afterwards to see where it is.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -22,7 +25,7 @@ public static class NpcActions
 
 | Method | Returns | What it does |
 |---|---|---|
-| `ChangeLevel(int npcId, string scene)` | `bool` | Moves a far-away NPC to another scene. |
+| `ChangeLevel(npcId, scene)` | `bool` | Moves a far-away NPC to another scene. |
 
 </div>
 </div>

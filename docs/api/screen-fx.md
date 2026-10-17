@@ -8,6 +8,9 @@ nav_order: 3
 
 # Screen effects
 
+This page uses `KeyCode` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 ## What it is
 
 ScreenFx changes how the screen looks while the game runs. It can shake the camera, fade the screen to black and back, change the message shown when the player dies, change the camera's field of view (how wide the view is, which is how you make a zoom), darken the edges of the screen with a coloured vignette, and blur the picture. Effects that take an `owner` belong to your mod, so you clear them with the matching `Clear` call when you are done. The `owner` is your mod's id (see the [glossary](../glossary.md#owner)).

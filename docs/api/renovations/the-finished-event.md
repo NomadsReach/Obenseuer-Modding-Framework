@@ -11,6 +11,9 @@ nav_order: 5
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Renovations</code> <span>a renovation is finished</span></p>
+
+Subscribe to `Renovations.Finished` to react when a renovation is installed. The `RenovationInfo` it gives you has `State` set to `Installed`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

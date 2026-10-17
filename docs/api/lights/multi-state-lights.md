@@ -10,7 +10,42 @@ nav_order: 3
 A multi-state light has a list of settings, and exactly one of them is lit, or none. The number of the lit setting is the light's state, counted from `0`, and `-1` means all settings are off. `Lights.AllMultiState()` lists these fixtures, and each one is a `MultiStateLightInfo`.
 
 <div class="api-type" markdown="1">
+<p class="api-type-head"><code>Lights</code> <span>multi-state light calls and event</span></p>
+
+Call `AllMultiState()` to find these lights, then `GetState`, `SetState` and `StateCount` with the `Id` you got. `StateChanged` fires when the lit setting changes.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class Lights
+{
+    public static List<MultiStateLightInfo> AllMultiState();
+    public static int StateCount(string id);
+    public static int GetState(string id);
+    public static bool SetState(string id, int state);
+    public static event Action<LightStateArgs> StateChanged;
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `AllMultiState()` | `List<MultiStateLightInfo>` | Every multi-state light in the active scene. |
+| `StateCount(id)` | `int` | How many settings. `-1` when the id is not a multi-state light. |
+| `GetState(id)` | `int` | The lit setting. `-1` when all off, and for an unknown id. |
+| `SetState(id, state)` | `bool` | Lights one setting. `true` when it is now lit. |
+
+| Event | Gives you | When it fires |
+|---|---|---|
+| `StateChanged` | `LightStateArgs`: the light's id and the lit setting after the change. | The lit setting was just changed. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
 <p class="api-type-head"><code>MultiStateLightInfo</code> <span>a snapshot of one multi-state light</span></p>
+
+`AllMultiState()` gives you one of these for each fixture. `State` is the lit setting when you asked, so read it again for a current value. <span class="tech">(It is built from the game's `LightTurnOffOnMultiState` component.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -33,6 +68,9 @@ public sealed class MultiStateLightInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>LightStateArgs</code> <span>what the StateChanged event tells you</span></p>
+
+`StateChanged` gives you one of these after the lit setting changes. `State` is the new setting, and `-1` means all are off.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -47,35 +85,6 @@ public sealed class LightStateArgs
 |---|---|---|
 | `Id` | `string` | The light, the same as `MultiStateLightInfo.Id`. |
 | `State` | `int` | The lit setting after the change. `-1` means all off. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>Lights</code> <span>multi-state light calls and event</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static class Lights
-{
-    public static List<MultiStateLightInfo> AllMultiState();
-    public static int StateCount(string id);
-    public static int GetState(string id);
-    public static bool SetState(string id, int state);
-    public static event Action<LightStateArgs> StateChanged;
-}
-```
-
-| Method | Returns | What it does |
-|---|---|---|
-| `AllMultiState()` | `List<MultiStateLightInfo>` | Every multi-state light in the active scene. |
-| `StateCount(string id)` | `int` | How many settings. `-1` when the id is not a multi-state light. |
-| `GetState(string id)` | `int` | The lit setting. `-1` when all off, and for an unknown id. |
-| `SetState(string id, int state)` | `bool` | Lights one setting. `true` when it is now lit. |
-
-| Event | Gives you | When it fires |
-|---|---|---|
-| `StateChanged` | `LightStateArgs`: the light's id and the lit setting after the change. | The lit setting was just changed. |
 
 </div>
 </div>

@@ -11,6 +11,9 @@ This is the full list of what the API gives you. Text in brackets at the end of 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>LootPools</code> <span>add items to the game's loot categories</span></p>
+
+Call `Add` with a category name and your item id, and `Remove` to take it out again. `ContainerFilled` fires each time a container is filled.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -29,10 +32,10 @@ public static class LootPools
 | Method | Returns | What it does |
 |---|---|---|
 | `Categories()` | `List<LootCategoryInfo>` | Every category the game has. |
-| `PoolFor(string category)` | `List<LootEntryInfo>` | The items one category can give. |
-| `DefineCategory(string modId, string name)` | `bool` | Makes a new, empty category. Returns `true` when it was made. |
-| `Add(string modId, string category, int itemId, int weight, LootTier tier = LootTier.Common)` | `bool` | Adds your item to a category. Returns `true` when it was registered. |
-| `Remove(string modId, string category, int itemId)` | `bool` | Takes your item out again. Returns `true` when you had one. |
+| `PoolFor(category)` | `List<LootEntryInfo>` | The items one category can give. |
+| `DefineCategory(modId, name)` | `bool` | Makes a new, empty category. Returns `true` when it was made. |
+| `Add(modId, category, itemId, weight, tier)` | `bool` | Adds your item to a category. Returns `true` when it was registered. |
+| `Remove(modId, category, itemId)` | `bool` | Takes your item out again. Returns `true` when you had one. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -47,6 +50,9 @@ public static class LootPools
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>LootTier</code> <span>which of a category's two lists an item goes in</span></p>
+
+Pass one of these to `Add` to choose the list your item joins. Each game category has a common list and a rare list.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -67,6 +73,9 @@ public enum LootTier
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>LootCategoryInfo</code> <span>one category</span></p>
+
+`Categories()` gives you one of these for each category the game has. `CommonWeight` and `RareWeight` show how long each list is.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -91,6 +100,9 @@ public sealed class LootCategoryInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>LootEntryInfo</code> <span>one item in a category</span></p>
+
+`PoolFor(category)` gives you one of these for each item in that category. `Weight` is how many copies of it sit in the list.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -113,6 +125,9 @@ public sealed class LootEntryInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ContainerFilledArgs</code> <span>what ContainerFilled tells you</span></p>
+
+`ContainerFilled` gives you one of these after a container is filled. `ItemIds` lists what the fill placed, one entry per stack.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

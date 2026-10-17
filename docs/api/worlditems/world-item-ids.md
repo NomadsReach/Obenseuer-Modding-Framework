@@ -7,10 +7,15 @@ nav_order: 3
 
 # World item ids
 
+This page uses `GameObject` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 A world item is an object in the scene that the player can pick up. `WorldItems.IdOf` gives it an id, a piece of text, so you can find it again with `Find`.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WorldItems</code> <span>world item ids</span></p>
+Use `IdOf` to give a world item its id, `Find` to get the item back by that id, and `Remove` to take it out of the world.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -27,8 +32,8 @@ public static class WorldItems
 |---|---|---|
 | `IdOf(GameObject item)` | `string` | The id of a world item. `null` when the object is not a world item. |
 | `IdOf(Component item)` | `string` | The same, for any component on the object. |
-| `Find(string id)` | `GameObject` | The item with this id. `null` when no active item in this scene has it. |
-| `Remove(string id)` | `bool` | Removes the item as a pickup would, but gives nothing to the player. `true` when it was removed. |
+| `Find(id)` | `GameObject` | The item with this id. `null` when no active item in this scene has it. |
+| `Remove(id)` | `bool` | Removes the item as a pickup would, but gives nothing to the player. `true` when it was removed. |
 
 </div>
 </div>

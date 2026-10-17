@@ -11,6 +11,9 @@ nav_order: 4
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Drones</code> <span>drone events</span></p>
+
+Add a handler to `NodePassed`. Every handler gets the same args object, so read it and change nothing.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -29,6 +32,9 @@ public static class Drones
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>DroneNodePassedArgs</code> <span>what you get when a drone passes a node</span></p>
+
+`NodePassed` gives you one of these for each node a drone reaches. `IsRouteEnd` marks the last node of a route, and `DroneId` can be `null`, so check it before you use it.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

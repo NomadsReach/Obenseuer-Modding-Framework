@@ -13,6 +13,9 @@ This is the full list of what the API gives you, one section for each part. Text
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Housing</code> <span>apartments, tenants and rent events</span></p>
+
+This is the class you start from. It lists apartments and their tenants, starts and cancels evictions, and raises the tenant and rent events.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -41,11 +44,11 @@ public static class Housing
 | Method | Returns | What it does |
 |---|---|---|
 | `AllApartments()` | `List<ApartmentInfo>` | Every apartment in the building, empty or not. |
-| `Get(int apartmentId)` | `ApartmentInfo` | The apartment with this number. `null` when there is none. |
-| `GetTenant(int apartmentId)` | `TenantInfo` | Who lives there. `null` when the apartment is vacant. |
-| `StartEviction(int apartmentId)` | `bool` | Starts an eviction with the default hours. `true` when it started. |
-| `StartEviction(int apartmentId, float hours)` | `bool` | Starts an eviction with your hours. `true` when it started. |
-| `CancelEviction(int apartmentId)` | `bool` | Clears a pending eviction. `true` when it was cleared. |
+| `Get(apartmentId)` | `ApartmentInfo` | The apartment with this number. `null` when there is none. |
+| `GetTenant(apartmentId)` | `TenantInfo` | Who lives there. `null` when the apartment is vacant. |
+| `StartEviction(apartmentId)` | `bool` | Starts an eviction with the default hours. `true` when it started. |
+| `StartEviction(apartmentId, hours)` | `bool` | Starts an eviction with your hours. `true` when it started. |
+| `CancelEviction(apartmentId)` | `bool` | Clears a pending eviction. `true` when it was cleared. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -66,6 +69,9 @@ public static class Housing
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ApartmentInfo</code> <span>a snapshot of one apartment</span></p>
+
+`AllApartments()` and `Get(apartmentId)` give you this, one per apartment. It is a copy taken when you asked, so ask again for a current `Tenant` or `Rent`. <span class="tech">(It is filled from the game's apartment object, using its `apartmentNumber` and `apartmentFloor`.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -104,6 +110,9 @@ public sealed class ApartmentInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TenantInfo</code> <span>one tenant</span></p>
+
+`ApartmentInfo.Tenant` and `GetTenant(apartmentId)` give you this. Both are `null` when the apartment is vacant.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -123,27 +132,10 @@ public sealed class TenantInfo
 </div>
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>RentPayment</code> <span>an amount of rent</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public sealed class RentPayment
-{
-    public int Oc { get; }
-    public float Rm { get; }
-}
-```
-
-| Property | Type | What it means |
-|---|---|---|
-| `Oc` | `int` | The OC amount. |
-| `Rm` | `float` | The RM amount. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
 <p class="api-type-head"><code>TenantArgs</code> <span>what the tenant and eviction events tell you</span></p>
+
+`TenantMovedIn`, `TenantMovedOut`, `EvictionStarted` and `EvictionCancelled` give you this. `ApartmentId` says which apartment it is, and `Tenant` is the tenant the event is about.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -163,7 +155,33 @@ public sealed class TenantArgs
 </div>
 
 <div class="api-type" markdown="1">
+<p class="api-type-head"><code>RentPayment</code> <span>an amount of rent</span></p>
+
+`RentPaid` gives you this, and `ApartmentInfo.Rent` holds the rent owed next. Hotel prices use the same type.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class RentPayment
+{
+    public int Oc { get; }
+    public float Rm { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Oc` | `int` | The OC amount. |
+| `Rm` | `float` | The RM amount. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
 <p class="api-type-head"><code>TenementEventArgs</code> <span>what TenementEventStarted tells you</span></p>
+
+`TenementEventStarted` gives you this, once for each random tenement event that starts. `Kind` says which kind it is, and `TenantId` is the tenant it is about, or `0` for none.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -186,6 +204,9 @@ public sealed class TenementEventArgs
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TenementEventKind</code> <span>the kinds of tenement event</span></p>
+
+`Kind` in `TenementEventArgs` holds one of these. <span class="tech">(It is cast from the game's own event type number.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -218,6 +239,9 @@ public enum TenementEventKind
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ApartmentType</code> <span>the apartment's size</span></p>
+
+`ApartmentInfo.Type` holds one of these, the apartment's size from the game's data. <span class="tech">(It is cast from the game's apartment `type.size`.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp

@@ -7,10 +7,39 @@ nav_order: 5
 
 # Blend shapes
 
+This page uses `Mesh` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 A blend shape is a setting on a part that bends it, for example to open a mouth or narrow an eye. Each shape has a weight, which says how strongly it is applied.
 
 <div class="api-type" markdown="1">
+<p class="api-type-head"><code>NpcAppearance</code> <span>blend shape calls</span></p>
+
+Call `BlendShapes(npcId)` to read a character's shapes and `SetBlendShape` to change one. Use `Restore` or `Clear` to undo your changes.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static partial class NpcAppearance
+{
+    public static List<NpcBlendShapeInfo> BlendShapes(int npcId);
+    public static bool SetBlendShape(string modId, int npcId, string mesh, string shape, float weight);
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `BlendShapes(npcId)` | `List<NpcBlendShapeInfo>` | Every blend shape of the character, with its weight. |
+| `SetBlendShape(modId, npcId, mesh, shape, weight)` | `bool` | Sets the weight of one shape. Returns `true` when it was set. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
 <p class="api-type-head"><code>NpcBlendShapeInfo</code> <span>one blend shape on one part</span></p>
+
+`BlendShapes(npcId)` gives you one of these for each shape. `Weight` is its weight now.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -27,26 +56,6 @@ public sealed class NpcBlendShapeInfo
 | `Mesh` | `string` | The name of the part. |
 | `Shape` | `string` | The name of the blend shape. |
 | `Weight` | `float` | Its weight right now. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>NpcAppearance</code> <span>blend shape calls</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static partial class NpcAppearance
-{
-    public static List<NpcBlendShapeInfo> BlendShapes(int npcId);
-    public static bool SetBlendShape(string modId, int npcId, string mesh, string shape, float weight);
-}
-```
-
-| Method | Returns | What it does |
-|---|---|---|
-| `BlendShapes(int npcId)` | `List<NpcBlendShapeInfo>` | Every blend shape of the character, with its weight. |
-| `SetBlendShape(string modId, int npcId, string mesh, string shape, float weight)` | `bool` | Sets the weight of one shape. Returns `true` when it was set. |
 
 </div>
 </div>

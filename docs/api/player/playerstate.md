@@ -7,14 +7,63 @@ nav_order: 2
 
 # PlayerState
 
+This page uses `Vector3`, `Quaternion`, `Transform` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 This is the full list of what the API gives you, one section for each part. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
 
 `PlayerState` reads the player's state and changes some of it: health, position, name, sleeping and waiting, and two cheat flags. Its name is `PlayerState` because the game already has a different class called `Player` (a card-game player).
 
 ## Basics: health, position and names
 
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>PlayerState</code> <span>the player's health, position and name</span></p>
+
+Use these to read the player's health, position and name, and to hurt, heal or move the player.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static partial class PlayerState
+{
+    public static bool IsAvailable { get; }
+    public static Vector3 Position { get; }
+    public static Quaternion Rotation { get; }
+    public static bool IsAlive { get; }
+    public static float Health { get; }
+    public static string FirstName { get; }
+    public static string LastName { get; }
+    public static bool Damage(float amount, DamageReason reason);
+    public static bool Heal(float amount);
+    public static bool Teleport(Transform target);
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `IsAvailable` | `bool` | `false` when one of the sleep, wait or wake-up events could not be set up. |
+| `Position` | `Vector3` | Where the player is. `(0, 0, 0)` when there is no player. |
+| `Rotation` | `Quaternion` | Which way the player is turned. No rotation when there is no player. |
+| `IsAlive` | `bool` | `true` when there is a player and they are not dead. |
+| `Health` | `float` | The player's health, from 0 to 100. |
+| `FirstName` | `string` | The player's first name. `null` when there is none. |
+| `LastName` | `string` | The player's last name. `null` when there is none. |
+
+| Method | Returns | What it does |
+|---|---|---|
+| `Damage(amount, reason)` | `bool` | Hurts the player. Returns `true` when the game took the call. |
+| `Heal(amount)` | `bool` | Heals the player over a short time. Returns `true` when accepted. |
+| `Teleport(target)` | `bool` | Moves the player to a spot. Returns `true` when it was done. |
+
+</div>
+</div>
+
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>DamageReason</code> <span>the kinds of damage you can deal</span></p>
+
+`PlayerState.Damage` takes one of these as its `reason`. Each value is one of the game's damage types, and `Damage` hurts the player the normal way for that type.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -71,45 +120,6 @@ public enum DamageReason
 </div>
 </div>
 
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>PlayerState</code> <span>the player's health, position and name</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static partial class PlayerState
-{
-    public static bool IsAvailable { get; }
-    public static Vector3 Position { get; }
-    public static Quaternion Rotation { get; }
-    public static bool IsAlive { get; }
-    public static float Health { get; }
-    public static string FirstName { get; }
-    public static string LastName { get; }
-    public static bool Damage(float amount, DamageReason reason);
-    public static bool Heal(float amount);
-    public static bool Teleport(Transform target);
-}
-```
-
-| Property | Type | What it means |
-|---|---|---|
-| `IsAvailable` | `bool` | `false` when one of the sleep, wait or wake-up events could not be set up. |
-| `Position` | `Vector3` | Where the player is. `(0, 0, 0)` when there is no player. |
-| `Rotation` | `Quaternion` | Which way the player is turned. No rotation when there is no player. |
-| `IsAlive` | `bool` | `true` when there is a player and they are not dead. |
-| `Health` | `float` | The player's health, from 0 to 100. |
-| `FirstName` | `string` | The player's first name. `null` when there is none. |
-| `LastName` | `string` | The player's last name. `null` when there is none. |
-
-| Method | Returns | What it does |
-|---|---|---|
-| `Damage(float amount, DamageReason reason)` | `bool` | Hurts the player. Returns `true` when the game took the call. |
-| `Heal(float amount)` | `bool` | Heals the player over a short time. Returns `true` when accepted. |
-| `Teleport(Transform target)` | `bool` | Moves the player to a spot. Returns `true` when it was done. |
-
-</div>
-</div>
-
 ### Things to know
 
 - `Damage` hurts the player the normal way, with the game's sounds, camera shake and protection rules. Masks and mushroom protection work as usual. It returns `true` when the game took the call, even if the game then ignores the damage. <span class="tech">(It calls the game's `PlayerStatsHealth.Damage` on the normal (not silent) path.)</span>
@@ -127,8 +137,54 @@ public static partial class PlayerState
 
 The player can sleep in a bed, or wait (while working, reading or watching TV, for example). These calls start a sleep or a wait, and these events tell you when one starts and ends.
 
+
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>PlayerState</code> <span>sleep, wait and their events</span></p>
+
+Use `Sleep` and `Wait` to start a sleep or a wait, `IsSleeping` and `IsWaiting` to check, and the events to hear when they start and end.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static partial class PlayerState
+{
+    public static bool IsSleeping { get; }
+    public static bool IsWaiting { get; }
+    public static bool Sleep(int setTime);
+    public static bool Wait(int seconds, WaitKind kind);
+    public static bool Wait(string modId, int seconds, WaitKind kind, WaitOptions options, Action<int> onDone);
+    public static event Action<SleepStartedArgs> SleepStarted;
+    public static event Action<WaitKind> WaitStarted;
+    public static event Action WokeUp;
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `IsSleeping` | `bool` | `true` when the player is asleep. Passing out counts. |
+| `IsWaiting` | `bool` | `true` when the player is waiting. |
+
+| Method | Returns | What it does |
+|---|---|---|
+| `Sleep(setTime)` | `bool` | Puts the player to bed. Returns `true` when they went to sleep. |
+| `Wait(seconds, kind)` | `bool` | Starts a wait. Returns `true` when it started. |
+| `Wait(modId, seconds, kind, options, onDone)` | `bool` | Starts a wait with settings, and tells you when it ends. |
+
+| Event | Gives you | When it fires |
+|---|---|---|
+| `SleepStarted` | `SleepStartedArgs` | The player goes to bed. `args.SetTime` is the alarm in game seconds, or `-1` for no alarm. |
+| `WaitStarted` | `WaitKind` | It fires when a wait begins. |
+| `WokeUp` | Nothing | A sleep, a pass-out or a wait ends. |
+
+</div>
+</div>
+
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WaitKind</code> <span>the kinds of wait</span></p>
+
+`PlayerState.Wait` takes one of these to choose the word on the wait clock, and `WaitStarted` gives you the kind of the wait that began.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -163,6 +219,9 @@ public enum WaitKind
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WaitOptions</code> <span>extra settings for a wait</span></p>
+
+Pass one of these to the five-argument `Wait` to change how the wait treats needs, passing out and the clock label.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -179,44 +238,6 @@ public sealed class WaitOptions
 | `IgnoreNeeds` | `bool` | `true`: no need wakes the player, and most needs stop ticking. Default `false`. |
 | `NoPassOut` | `bool` | `true`: the player does not pass out during the wait. Default `false`. |
 | `Label` | `string` | Text on the wait clock instead of "Working", "Waiting" and so on. `null` keeps the game's word. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>PlayerState</code> <span>sleep, wait and their events</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static partial class PlayerState
-{
-    public static bool IsSleeping { get; }
-    public static bool IsWaiting { get; }
-    public static bool Sleep(int setTime);
-    public static bool Wait(int seconds, WaitKind kind);
-    public static bool Wait(string modId, int seconds, WaitKind kind, WaitOptions options, Action<int> onDone);
-    public static event Action<SleepStartedArgs> SleepStarted;
-    public static event Action<WaitKind> WaitStarted;
-    public static event Action WokeUp;
-}
-```
-
-| Property | Type | What it means |
-|---|---|---|
-| `IsSleeping` | `bool` | `true` when the player is asleep. Passing out counts. |
-| `IsWaiting` | `bool` | `true` when the player is waiting. |
-
-| Method | Returns | What it does |
-|---|---|---|
-| `Sleep(int setTime)` | `bool` | Puts the player to bed. Returns `true` when they went to sleep. |
-| `Wait(int seconds, WaitKind kind)` | `bool` | Starts a wait. Returns `true` when it started. |
-| `Wait(string modId, int seconds, WaitKind kind, WaitOptions options, Action<int> onDone)` | `bool` | Starts a wait with settings, and tells you when it ends. |
-
-| Event | Gives you | When it fires |
-|---|---|---|
-| `SleepStarted` | `SleepStartedArgs` | The player goes to bed. `args.SetTime` is the alarm in game seconds, or `-1` for no alarm. |
-| `WaitStarted` | `WaitKind` | It fires when a wait begins. |
-| `WokeUp` | Nothing | A sleep, a pass-out or a wait ends. |
 
 </div>
 </div>
@@ -249,6 +270,9 @@ public static partial class PlayerState
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>PlayerState</code> <span>the time picker</span></p>
+
+`PickTime` opens the bed's time panel so the player can choose a number of minutes. It starts no sleep; your code gets the minutes and decides what to do with them.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -261,8 +285,8 @@ public static partial class PlayerState
 
 | Method | Returns | What it does |
 |---|---|---|
-| `PickTime(string modId, string title, int minMinutes, int maxMinutes, int startMinutes, string confirmLabel, Action<int> onConfirm, Action onCancel)` | `bool` | Opens the time panel. Returns `true` when it opened. |
-| `PickTime(string modId, string title, int minMinutes, int maxMinutes, int startMinutes, int stepMinutes, Func<int, string> validate, string confirmLabel, Action<int> onConfirm, Action onCancel)` | `bool` | The same, with steps and a live check. |
+| `PickTime(modId, title, minMinutes, maxMinutes, startMinutes, confirmLabel, onConfirm, onCancel)` | `bool` | Opens the time panel. Returns `true` when it opened. |
+| `PickTime(modId, title, minMinutes, maxMinutes, startMinutes, stepMinutes, validate, confirmLabel, onConfirm, onCancel)` | `bool` | The same, with steps and a live check. |
 
 </div>
 </div>
@@ -319,6 +343,9 @@ These are two cheat flags that the game's console also uses.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>PlayerState</code> <span>god mode and frozen needs</span></p>
+
+`SetGodMode` and `SetNeedsFrozen` turn two cheat flags on or off for the player, and the versions with an owner keep one claim per mod id.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -340,10 +367,10 @@ public static partial class PlayerState
 
 | Method | Returns | What it does |
 |---|---|---|
-| `SetGodMode(bool on)` | `bool` | Turns god mode on or off. |
-| `SetGodMode(string owner, bool on)` | `bool` | The same, as one mod's claim. |
-| `SetNeedsFrozen(bool on)` | `bool` | Turns frozen needs on or off. |
-| `SetNeedsFrozen(string owner, bool on)` | `bool` | The same, as one mod's claim. |
+| `SetGodMode(on)` | `bool` | Turns god mode on or off. |
+| `SetGodMode(owner, on)` | `bool` | The same, as one mod's claim. |
+| `SetNeedsFrozen(on)` | `bool` | Turns frozen needs on or off. |
+| `SetNeedsFrozen(owner, on)` | `bool` | The same, as one mod's claim. |
 
 </div>
 </div>

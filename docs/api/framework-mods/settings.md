@@ -11,6 +11,9 @@ A setting is a value the player can change in the Mods menu and that is saved be
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ModConfig</code> <span>your mod's settings</span></p>
+
+Your mod gets one from its `Config` property. Each `Bind` call makes one setting and returns it as a `ModSetting<T>`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -23,7 +26,7 @@ public sealed class ModConfig
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Bind<T>(string section, string key, T defaultValue, string description)` | `ModSetting<T>` | Creates a setting, or reads the saved value of one that already exists. `section` groups it in the file, `key` names it, and `description` is shown to the player. |
+| `Bind<T>(section, key, defaultValue, description)` | `ModSetting<T>` | Creates a setting, or reads the saved value of one that already exists. `section` groups it in the file, `key` names it, and `description` is shown to the player. |
 | `Bind<T>(string section, string key, T defaultValue, string description, T min, T max) where T : IComparable` | `ModSetting<T>` | The same, with a smallest and largest value. An int or float setting then shows as a slider. |
 
 </div>
@@ -31,6 +34,9 @@ public sealed class ModConfig
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ModSetting&lt;T&gt;</code> <span>one setting</span></p>
+
+`Bind` gives you this. Read `Value` to use the setting, and set `Value` to change it and save it.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

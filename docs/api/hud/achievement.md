@@ -10,7 +10,43 @@ nav_order: 5
 `Achievement` reads the game's achievements and lets your mod unlock them or move their progress. An unlock counts for the real Steam achievement too, so it cannot be taken back from a mod.
 
 <div class="api-type" markdown="1">
+<p class="api-type-head"><code>Achievement</code> <span>the game's achievements</span></p>
+
+This is the class you start from. `All()` and `Get` read the achievements, `Trigger` unlocks one, `AddProgress` and `SetProgress` move its progress, and `ItemLinks()` lists the items that trigger them.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class Achievement
+{
+    public static List<AchievementInfo> All();
+    public static AchievementInfo Get(string id);
+    public static bool IsUnlocked(string id);
+    public static bool Trigger(string id);
+    public static bool AddProgress(string id, float amount);
+    public static bool SetProgress(string id, float value);
+    public static List<AchievementItemLink> ItemLinks();
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `All()` | `List<AchievementInfo>` | Every achievement. It is empty until the game has loaded them. |
+| `Get(id)` | `AchievementInfo` | One achievement. `null` when the id is not known. |
+| `IsUnlocked(id)` | `bool` | `true` when it is unlocked. `false` for an id the game does not know. |
+| `Trigger(id)` | `bool` | Asks the game to unlock it. `true` when it is unlocked afterwards. |
+| `AddProgress(id, amount)` | `bool` | Adds to its progress. `true` when the game was told. |
+| `SetProgress(id, value)` | `bool` | Sets its progress. `true` when the game was told. |
+| `ItemLinks()` | `List<AchievementItemLink>` | Which items trigger which achievements. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
 <p class="api-type-head"><code>AchievementInfo</code> <span>one achievement</span></p>
+
+`All()` and `Get(id)` give you this, one per achievement, read from the game's own achievements.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -37,6 +73,9 @@ public sealed class AchievementInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>AchievementItemLink</code> <span>an item that triggers an achievement</span></p>
+
+`ItemLinks()` gives you one of these for each item that triggers an achievement. `OnConsumed` says whether the achievement fires when the item is used up or when it is picked up.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -53,36 +92,6 @@ public sealed class AchievementItemLink
 | `ItemId` | `int` | The item's id. |
 | `AchievementId` | `string` | The achievement it triggers. |
 | `OnConsumed` | `bool` | `true` when it fires when the item is consumed, `false` when the item is collected. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>Achievement</code> <span>the game's achievements</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static class Achievement
-{
-    public static List<AchievementInfo> All();
-    public static AchievementInfo Get(string id);
-    public static bool IsUnlocked(string id);
-    public static bool Trigger(string id);
-    public static bool AddProgress(string id, float amount);
-    public static bool SetProgress(string id, float value);
-    public static List<AchievementItemLink> ItemLinks();
-}
-```
-
-| Method | Returns | What it does |
-|---|---|---|
-| `All()` | `List<AchievementInfo>` | Every achievement. It is empty until the game has loaded them. |
-| `Get(string id)` | `AchievementInfo` | One achievement. `null` when the id is not known. |
-| `IsUnlocked(string id)` | `bool` | `true` when it is unlocked. `false` for an id the game does not know. |
-| `Trigger(string id)` | `bool` | Asks the game to unlock it. `true` when it is unlocked afterwards. |
-| `AddProgress(string id, float amount)` | `bool` | Adds to its progress. `true` when the game was told. |
-| `SetProgress(string id, float value)` | `bool` | Sets its progress. `true` when the game was told. |
-| `ItemLinks()` | `List<AchievementItemLink>` | Which items trigger which achievements. |
 
 </div>
 </div>

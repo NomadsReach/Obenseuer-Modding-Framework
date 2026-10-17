@@ -7,6 +7,9 @@ nav_order: 3
 
 # Self-check
 
+This page uses `GameObject`, `Transform` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 `SaveData.SelfCheck()` runs a built-in test and returns `game save data self-check ok`, or the first case that failed. It needs a loaded save, because it works on the player's inventory.
 
 **It changes the live inventory.** It applies the inventory's own entry back to it, which rebuilds its slots. Run it on a scratch save, not one you care about.

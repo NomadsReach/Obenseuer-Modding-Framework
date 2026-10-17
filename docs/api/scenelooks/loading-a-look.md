@@ -7,10 +7,16 @@ nav_order: 5
 
 # Loading a look
 
+This page uses `Mesh` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 `Load` reads one look fully from the game's files. It gives you a `SceneLook` handle, which is what `Apply` and `Reskin` take.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SceneLook</code> <span>a handle to one loaded look</span></p>
+
+`SceneLooks.Load` gives you one of these, and `Apply` and `Reskin` take it. `Load` always gives you a handle, so check `Failed` and `Ready` before you use it.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -45,6 +51,9 @@ public sealed class SceneLook
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SceneLooks</code> <span>loads a look</span></p>
+
+This is the class to start from. Pass `Load` a `SceneLookInfo` from [Looking for a look](looking-for-a-look.md), or a scene name and body root, and it gives you a `SceneLook` back.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -57,8 +66,8 @@ public static class SceneLooks
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Load(string modId, SceneLookInfo info)` | `SceneLook` | Loads a look you found with `List`, `FindByName` or `FindByCharacter`. |
-| `Load(string modId, string sceneName, string rendererRoot)` | `SceneLook` | Loads a look by its scene and path or name. |
+| `Load(modId, info)` | `SceneLook` | Loads a look you found with `List`, `FindByName` or `FindByCharacter`. |
+| `Load(modId, sceneName, rendererRoot)` | `SceneLook` | Loads a look by its scene and path or name. |
 
 </div>
 </div>

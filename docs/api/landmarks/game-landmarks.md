@@ -7,10 +7,16 @@ nav_order: 2
 
 # Game landmarks
 
+This page uses `Vector3` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 This is the full list of what the API gives you. The game has landmark definitions, and the player owns a landmark once it has been added to their map. `Landmarks` reads those and unlocks or places one, and a position is a point in the game world (world coordinates).
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Landmarks</code> <span>the game's landmarks</span></p>
+
+Call `Unlock(id)` to give the player a game landmark, and `Has(id)` to check. `Added` fires when one reaches the map.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -28,9 +34,9 @@ public static class Landmarks
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<LandmarkInfo>` | Every landmark the game has loaded. |
-| `Has(string id)` | `bool` | `true` when the player owns this landmark. |
-| `Unlock(string id)` | `bool` | Adds the landmark to the map, with the game's notification. |
-| `Place(string modId, string id, Vector3 position, bool showNotification = true)` | `bool` | Adds an existing landmark at a spot you choose. |
+| `Has(id)` | `bool` | `true` when the player owns this landmark. |
+| `Unlock(id)` | `bool` | Adds the landmark to the map, with the game's notification. |
+| `Place(modId, id, position, showNotification)` | `bool` | Adds an existing landmark at a spot you choose. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -45,6 +51,9 @@ public static class Landmarks
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>LandmarkInfo</code> <span>one landmark</span></p>
+
+`All()` gives you one of these for each landmark the game has loaded. <span class="tech">(It is built from the game's `Landmark` assets.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -67,6 +76,9 @@ public sealed class LandmarkInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>LandmarkArgs</code> <span>what Added tells you</span></p>
+
+`Added` gives you one of these each time a landmark reaches the map. It has the id and title only, so use `All()` for more.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

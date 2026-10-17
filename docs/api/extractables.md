@@ -7,6 +7,9 @@ nav_order: 4
 
 # Extractables
 
+This page uses `GameObject` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 ## What it is
 
 An extractable is a thing in the world that the player breaks apart with the right tool to get items out of it. It has health, and each hit takes some off. When the health runs out, the game spawns the items and removes the object. This API lets your mod list the extractables in the scene you are in, read their health, hit one as if the player had, and be told when one is broken open.
@@ -80,7 +83,37 @@ This is the full list of what the API gives you. Text in brackets at the end of 
 `Extractables` finds the extractables in the scene you are in. Each one is an `ExtractableInfo`, a snapshot of it at the moment you asked. The snapshot does not update by itself, so ask again for fresh values.
 
 <div class="api-type" markdown="1">
+<p class="api-type-head"><code>Extractables</code> <span>lists and hits extractables</span></p>
+
+This is the class you start from. `All()` lists the extractables in the scene, `Get(id)` finds one by its id, and `Damage(id)` hits one as the player would.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class Extractables
+{
+    public static List<ExtractableInfo> All();
+    public static ExtractableInfo Get(string id);
+    public static int Health(string id);
+    public static bool Damage(string id);
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `All()` | `List<ExtractableInfo>` | Every extractable in the active scene. |
+| `Get(id)` | `ExtractableInfo` | The one with this id. `null` when there is none. |
+| `Health(id)` | `int` | Its health. `0` when there is none. |
+| `Damage(id)` | `bool` | Hits it once as the player would. Returns `true` when the hit took health off. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
 <p class="api-type-head"><code>ExtractableInfo</code> <span>a snapshot of one extractable</span></p>
+
+`Extractables.All()` and `Extractables.Get(id)` give you this. It is a copy of the extractable as it was when you asked, so ask again to see a new `Health`. <span class="tech">(It is filled from the game's `Extractable` component and the object's name.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -97,30 +130,6 @@ public sealed class ExtractableInfo
 | `Id` | `string` | Its save id, or when it has none a text path of where it sits in the scene. |
 | `Name` | `string` | The name of the object in the scene. |
 | `Health` | `int` | The health it had when you asked. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>Extractables</code> <span>lists and hits extractables</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static class Extractables
-{
-    public static List<ExtractableInfo> All();
-    public static ExtractableInfo Get(string id);
-    public static int Health(string id);
-    public static bool Damage(string id);
-}
-```
-
-| Method | Returns | What it does |
-|---|---|---|
-| `All()` | `List<ExtractableInfo>` | Every extractable in the active scene. |
-| `Get(string id)` | `ExtractableInfo` | The one with this id. `null` when there is none. |
-| `Health(string id)` | `int` | Its health. `0` when there is none. |
-| `Damage(string id)` | `bool` | Hits it once as the player would. Returns `true` when the hit took health off. |
 
 </div>
 </div>
@@ -143,25 +152,10 @@ public static class Extractables
 `Extracted` tells your mod when an extractable has just been broken open.
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>ExtractedArgs</code> <span>what the event tells you</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public sealed class ExtractedArgs
-{
-    public string Id { get; }
-}
-```
-
-| Property | Type | What it means |
-|---|---|---|
-| `Id` | `string` | The same id as `ExtractableInfo.Id`. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
 <p class="api-type-head"><code>Extractables</code> <span>the break-open event</span></p>
+
+`Extracted` is the event on this class. `IsAvailable` tells you whether the event works in this game version.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -179,6 +173,27 @@ public static class Extractables
 | Event | Gives you | When it fires |
 |---|---|---|
 | `Extracted` | `ExtractedArgs`: the extractable's id. | An extractable was just broken open. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>ExtractedArgs</code> <span>what the event tells you</span></p>
+
+`Extracted` hands you this. Its `Id` is the same as the `Id` of the `ExtractableInfo` for that extractable. The framework builds it from a hook on the game's `Extractable.Damage`, so it is the framework's own type.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class ExtractedArgs
+{
+    public string Id { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Id` | `string` | The same id as `ExtractableInfo.Id`. |
 
 </div>
 </div>

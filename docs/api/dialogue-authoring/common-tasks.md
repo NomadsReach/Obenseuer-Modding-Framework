@@ -7,6 +7,9 @@ nav_order: 1
 
 # Common tasks
 
+This page uses `Transform` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 Start a conversation you added, with the player and the character as the two sides. Call this from your own code, for example when the player presses a key near the character.
 
 ```csharp

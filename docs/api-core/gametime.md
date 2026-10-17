@@ -11,6 +11,9 @@ nav_order: 6
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>GameTime</code> <span>the game's clock, read only</span></p>
+
+Read `Day`, `DayOfWeek`, `Hour` or `Minute` when your code needs the time. `IsDaytime` tells you whether it is day, and `IsPaused` whether the clock has stopped.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

@@ -10,7 +10,44 @@ nav_order: 7
 A task item is a quest item the player carries, such as a key or a recipe. `TaskItems` lists what the player holds, adds and removes them, and tells you when a count changes. It covers only the counts of these items. The quest list and its goals are on the [Quests](../quest-authoring.md) page.
 
 <div class="api-type" markdown="1">
+<p class="api-type-head"><code>TaskItems</code> <span>the task items the player holds</span></p>
+
+This is the class you start from. `All()`, `Has` and `Amount` read what the player holds, `Add` and `Remove` change it, and `Changed` tells you when a count moves.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class TaskItems
+{
+    public static event Action<TaskItemChangedArgs> Changed;
+    public static List<TaskItemCount> All();
+    public static bool Has(string id);
+    public static int Amount(string id);
+    public static bool Add(string id, int amount);
+    public static bool Remove(string id, int amount);
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `All()` | `List<TaskItemCount>` | Every task item the player holds. |
+| `Has(id)` | `bool` | `true` when the player holds this item. |
+| `Amount(id)` | `int` | How many the player holds. `0` for none or an unknown id. |
+| `Add(id, amount)` | `bool` | Gives the player some. `true` when the count went up. |
+| `Remove(id, amount)` | `bool` | Takes some away. `true` when the count went down. |
+
+| Event | Gives you | When it fires |
+|---|---|---|
+| `Changed` | `TaskItemChangedArgs` | Once for each item whose count changes, and once when an item is added or removed. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
 <p class="api-type-head"><code>TaskItemCount</code> <span>one task item the player holds</span></p>
+
+`TaskItems.All()` gives you one of these for each item the player holds. `Amount` is how many the player has.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -37,6 +74,9 @@ public sealed class TaskItemCount
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TaskItemChangedArgs</code> <span>what Changed tells you</span></p>
+
+`Changed` gives you this, once for each change. `OldAmount` and `NewAmount` give the count before and after, and `Held` says whether the player still has the item.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -59,37 +99,6 @@ public sealed class TaskItemChangedArgs
 | `OldAmount` | `int` | The count before the change. |
 | `NewAmount` | `int` | The count after the change. |
 | `Held` | `bool` | `true` when the player still holds the item after the change. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>TaskItems</code> <span>the task items the player holds</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static class TaskItems
-{
-    public static event Action<TaskItemChangedArgs> Changed;
-    public static List<TaskItemCount> All();
-    public static bool Has(string id);
-    public static int Amount(string id);
-    public static bool Add(string id, int amount);
-    public static bool Remove(string id, int amount);
-}
-```
-
-| Method | Returns | What it does |
-|---|---|---|
-| `All()` | `List<TaskItemCount>` | Every task item the player holds. |
-| `Has(string id)` | `bool` | `true` when the player holds this item. |
-| `Amount(string id)` | `int` | How many the player holds. `0` for none or an unknown id. |
-| `Add(string id, int amount)` | `bool` | Gives the player some. `true` when the count went up. |
-| `Remove(string id, int amount)` | `bool` | Takes some away. `true` when the count went down. |
-
-| Event | Gives you | When it fires |
-|---|---|---|
-| `Changed` | `TaskItemChangedArgs` | Once for each item whose count changes, and once when an item is added or removed. |
 
 </div>
 </div>

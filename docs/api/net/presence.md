@@ -7,10 +7,42 @@ nav_order: 6
 
 # Presence
 
+This page uses `Vector3` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 Presence shares where each player is, so your mod can show other players in its world. You publish your own position, and the framework sends it to everyone in the lobby ten times a second.
 
 <div class="api-type" markdown="1">
+<p class="api-type-head"><code>Presence</code> <span>share and read player positions</span></p>
+
+Call `Publish` from `Update` to share your position, and read `Remotes` for the other players' positions.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class Presence
+{
+    public static bool Publish(string area, Vector3 position, float yaw, bool moving);
+    public static List<PresenceRecord> Remotes { get; }
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `Publish(area, position, yaw, moving)` | `bool` | Shares your own position. Returns `true` when you are in a lobby. |
+
+| Property | Type | What it means |
+|---|---|---|
+| `Remotes` | `List<PresenceRecord>` | One record for each other player who has sent a position. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
 <p class="api-type-head"><code>PresenceRecord</code> <span>the last position another player sent</span></p>
+
+`Presence.Remotes` gives you one of these for each other player who has sent a position. Each new position replaces the record.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -35,29 +67,6 @@ public sealed class PresenceRecord
 | `Yaw` | `float` | Which way the player faces. |
 | `Moving` | `bool` | `true` while the player is moving. |
 | `LastSeen` | `float` | When the sample arrived, in `Time.unscaledTime` seconds. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>Presence</code> <span>share and read player positions</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static class Presence
-{
-    public static bool Publish(string area, Vector3 position, float yaw, bool moving);
-    public static List<PresenceRecord> Remotes { get; }
-}
-```
-
-| Method | Returns | What it does |
-|---|---|---|
-| `Publish(string area, Vector3 position, float yaw, bool moving)` | `bool` | Shares your own position. Returns `true` when you are in a lobby. |
-
-| Property | Type | What it means |
-|---|---|---|
-| `Remotes` | `List<PresenceRecord>` | One record for each other player who has sent a position. |
 
 </div>
 </div>

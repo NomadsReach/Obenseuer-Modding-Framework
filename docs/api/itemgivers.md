@@ -79,7 +79,40 @@ This is the full list of what the API gives you, one section for each part. Text
 `ItemGivers` finds the item givers in the scene you are in. Each one is an `ItemGiverInfo`, a snapshot of it at the moment you asked. The snapshot does not update by itself, so ask again for fresh values.
 
 <div class="api-type" markdown="1">
+<p class="api-type-head"><code>ItemGivers</code> <span>finds, empties and refills item givers</span></p>
+
+This is the class you start from. `All()` lists the item givers in the scene, `SetEmpty` empties or restocks one, and `Respawn` refills one the way the game does.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class ItemGivers
+{
+    public static List<ItemGiverInfo> All();
+    public static bool SetEmpty(string id, bool empty);
+    public static bool Respawn(string id);
+    public static bool IsAvailable { get; }
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `All()` | `List<ItemGiverInfo>` | Every item giver in the active scene. |
+| `SetEmpty(id, empty)` | `bool` | Empties the giver, or gives it one unit of stock. `true` when it now matches. |
+| `Respawn(id)` | `bool` | Refills the giver the way the game does. `true` when the refill ran. |
+
+| Property | Type | What it means |
+|---|---|---|
+| `IsAvailable` | `bool` | `false` when the handout event could not be set up. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
 <p class="api-type-head"><code>ItemGiverInfo</code> <span>a snapshot of one item giver</span></p>
+
+`All()` gives you one of these for each item giver in the scene. Its `Id` is the value `SetEmpty` and `Respawn` take.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -104,33 +137,6 @@ public sealed class ItemGiverInfo
 </div>
 </div>
 
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>ItemGivers</code> <span>finds, empties and refills item givers</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static class ItemGivers
-{
-    public static List<ItemGiverInfo> All();
-    public static bool SetEmpty(string id, bool empty);
-    public static bool Respawn(string id);
-    public static bool IsAvailable { get; }
-}
-```
-
-| Method | Returns | What it does |
-|---|---|---|
-| `All()` | `List<ItemGiverInfo>` | Every item giver in the active scene. |
-| `SetEmpty(string id, bool empty)` | `bool` | Empties the giver, or gives it one unit of stock. `true` when it now matches. |
-| `Respawn(string id)` | `bool` | Refills the giver the way the game does. `true` when the refill ran. |
-
-| Property | Type | What it means |
-|---|---|---|
-| `IsAvailable` | `bool` | `false` when the handout event could not be set up. |
-
-</div>
-</div>
-
 - `All()` lists the item givers in the scene you are in. Givers that are switched off, or in another scene, are not listed. With no save loaded it returns an empty list. <span class="tech">(It lists every `InteractableItemGiver` in the active scene with `FindObjectsByType`, which skips inactive objects. `Id` is the save `GUID`, or the scene path.)</span>
 - Some item givers never run out. For those, `Amount` is `-1` and `Empty` is always `false`. <span class="tech">(A giver is unlimited when either of its stock bounds is `-1`. That is the game's own rule (`HasInfiniteAmount`). `Amount` and `Empty` come from the private stock field and the private bounds, which the framework reads through cached reflection.)</span>
 - `SetEmpty(id, true)` sets the stock to zero. It does nothing when the stock is already zero.
@@ -146,7 +152,31 @@ public static class ItemGivers
 `Gave` tells your mod when an item giver has put items into the player's inventory.
 
 <div class="api-type" markdown="1">
+<p class="api-type-head"><code>ItemGivers</code> <span>the handout event</span></p>
+
+`Gave` is the only event here. `IsAvailable` is `false` when the handout event could not be set up, and `All`, `SetEmpty` and `Respawn` keep working.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class ItemGivers
+{
+    public static event Action<ItemGiverArgs> Gave;
+}
+```
+
+| Event | Gives you | When it fires |
+|---|---|---|
+| `Gave` | `ItemGiverArgs` | An item giver has just handed items to the player. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
 <p class="api-type-head"><code>ItemGiverArgs</code> <span>what the event tells you</span></p>
+
+`Gave` gives you this each time a giver hands items to the player. `Id` is the giver, so you can pass it to `SetEmpty` or `Respawn`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -163,24 +193,6 @@ public sealed class ItemGiverArgs
 | `Id` | `string` | The giver, the same as `ItemGiverInfo.Id`. |
 | `ItemId` | `int` | The number of the item that was handed over. |
 | `Amount` | `int` | How many of that item were handed over. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>ItemGivers</code> <span>the handout event</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static class ItemGivers
-{
-    public static event Action<ItemGiverArgs> Gave;
-}
-```
-
-| Event | Gives you | When it fires |
-|---|---|---|
-| `Gave` | `ItemGiverArgs` | An item giver has just handed items to the player. |
 
 </div>
 </div>

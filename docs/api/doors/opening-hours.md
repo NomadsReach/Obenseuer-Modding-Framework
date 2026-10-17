@@ -10,7 +10,33 @@ nav_order: 4
 Some doors follow a schedule. The game locks them outside their opening hours and unlocks them inside. A door has opening hours only when a schedule lists it, and most doors have none.
 
 <div class="api-type" markdown="1">
+<p class="api-type-head"><code>Doors</code> <span>reads and replaces opening hours</span></p>
+
+Call `OpeningTimes(id)` to read a door's hours, and `SetOpeningTimes(id, times)` to replace them.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class Doors
+{
+    public static List<DoorOpenTime> OpeningTimes(string id);
+    public static bool SetOpeningTimes(string id, IList<DoorOpenTime> times);
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `OpeningTimes(id)` | `List<DoorOpenTime>` | The door's hours. `null` when it has none. |
+| `SetOpeningTimes(id, times)` | `bool` | Replaces all of the door's hours. `true` when something changed. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
 <p class="api-type-head"><code>DoorOpenTime</code> <span>one window of time when a door is open</span></p>
+
+`OpeningTimes` gives you a list of these, and `SetOpeningTimes` takes one. Each one is one window of time on one day of the week.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -25,33 +51,13 @@ public sealed class DoorOpenTime
 
 | Method | Returns | What it does |
 |---|---|---|
-| `DoorOpenTime(DayOfWeek day, int opens, int closes)` | `DoorOpenTime` | Makes one window of time. |
+| `DoorOpenTime(day, opens, closes)` | `DoorOpenTime` | Makes one window of time. |
 
 | Property | Type | What it means |
 |---|---|---|
 | `Day` | `DayOfWeek` | The day of the week this window is on. |
 | `Opens` | `int` | The first hour the door is open, 0 to 23. |
 | `Closes` | `int` | The hour the door shuts. Above `Opens` and at most 24. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>Doors</code> <span>reads and replaces opening hours</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static class Doors
-{
-    public static List<DoorOpenTime> OpeningTimes(string id);
-    public static bool SetOpeningTimes(string id, IList<DoorOpenTime> times);
-}
-```
-
-| Method | Returns | What it does |
-|---|---|---|
-| `OpeningTimes(string id)` | `List<DoorOpenTime>` | The door's hours. `null` when it has none. |
-| `SetOpeningTimes(string id, IList<DoorOpenTime> times)` | `bool` | Replaces all of the door's hours. `true` when something changed. |
 
 </div>
 </div>

@@ -7,12 +7,54 @@ nav_order: 2
 
 # Reading how the player moves
 
+This page uses `Vector3`, `Transform` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 This is the full list of what the API gives you, one section for each part. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
 
 These properties give you what the player is doing right now. `State()` gives several of them together in one `PlayerMovementInfo`, a snapshot of the speeds and flags at the moment you asked. The snapshot does not update by itself, so ask again for fresh values.
 
 <div class="api-type" markdown="1">
+<p class="api-type-head"><code>PlayerMovement</code> <span>what the player is doing right now</span></p>
+
+Read these properties to see what the player is doing now, or call `State()` to get several of them at once.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class PlayerMovement
+{
+    public static bool IsAvailable { get; }
+    public static bool IsGrounded { get; }
+    public static bool IsSprinting { get; }
+    public static bool IsCrouching { get; }
+    public static Vector3 Velocity { get; }
+    public static Vector3 Position { get; }
+    public static PlayerMovementInfo State();
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `State()` | `PlayerMovementInfo` | Several of the properties below in one snapshot. `null` when no player is loaded. |
+
+| Property | Type | What it means |
+|---|---|---|
+| `IsAvailable` | `bool` | `false` when the speed hooks did not set up. |
+| `IsGrounded` | `bool` | `true` while the player stands on the ground. |
+| `IsSprinting` | `bool` | `true` when the player is set to run (see below). |
+| `IsCrouching` | `bool` | `true` while the player is crouched. |
+| `Velocity` | `Vector3` | How fast and in which direction the player is moving, in world space. |
+| `Position` | `Vector3` | Where the player's body is, in world coordinates. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
 <p class="api-type-head"><code>PlayerMovementInfo</code> <span>a snapshot of the player's movement</span></p>
+
+`PlayerMovement.State()` gives you one of these, with the speeds and states at that moment. It is `null` when no player is loaded. <span class="tech">(The speeds and flags come from the game's `OpenSewerCharacterController`.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -43,39 +85,6 @@ public sealed class PlayerMovementInfo
 | `IsWalking` | `bool` | `true` when the walk toggle is on (walk mode instead of run mode). |
 | `IsGrounded` | `bool` | `true` while the player stands on the ground. |
 | `ControlsDisabled` | `bool` | `true` while the player's controls are held, including a `Lock` from this API. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>PlayerMovement</code> <span>what the player is doing right now</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static class PlayerMovement
-{
-    public static bool IsAvailable { get; }
-    public static bool IsGrounded { get; }
-    public static bool IsSprinting { get; }
-    public static bool IsCrouching { get; }
-    public static Vector3 Velocity { get; }
-    public static Vector3 Position { get; }
-    public static PlayerMovementInfo State();
-}
-```
-
-| Method | Returns | What it does |
-|---|---|---|
-| `State()` | `PlayerMovementInfo` | Several of the properties below in one snapshot. `null` when no player is loaded. |
-
-| Property | Type | What it means |
-|---|---|---|
-| `IsAvailable` | `bool` | `false` when the speed hooks did not set up. |
-| `IsGrounded` | `bool` | `true` while the player stands on the ground. |
-| `IsSprinting` | `bool` | `true` when the player is set to run (see below). |
-| `IsCrouching` | `bool` | `true` while the player is crouched. |
-| `Velocity` | `Vector3` | How fast and in which direction the player is moving, in world space. |
-| `Position` | `Vector3` | Where the player's body is, in world coordinates. |
 
 </div>
 </div>

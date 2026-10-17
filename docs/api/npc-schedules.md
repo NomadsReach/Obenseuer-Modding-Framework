@@ -81,37 +81,10 @@ This is the full list of what the API gives you, one section for each part. Text
 `NpcSchedules` reads an NPC's current activity and its timetable. Each timetable entry is a `ScheduleInfo`.
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>ScheduleInfo</code> <span>one entry in an NPC's timetable</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public sealed class ScheduleInfo
-{
-    public string Name { get; }
-    public string ActivityName { get; }
-    public string Place { get; }
-    public int WeekDay { get; }
-    public float StartHour { get; }
-    public float DurationMinutes { get; }
-    public bool Disabled { get; }
-}
-```
-
-| Property | Type | What it means |
-|---|---|---|
-| `Name` | `string` | The entry's name in the game's data. |
-| `ActivityName` | `string` | What the NPC does. `null` when the entry has no activity. |
-| `Place` | `string` | The scene the activity takes place in. `null` when unknown. |
-| `WeekDay` | `int` | The day of the week the entry starts on, as the game numbers it. |
-| `StartHour` | `float` | When it starts, from 0 to 24. `6.5` means half past six. |
-| `DurationMinutes` | `float` | How long it lasts, in minutes. |
-| `Disabled` | `bool` | `true` when the game's data switches this entry off. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
 <p class="api-type-head"><code>NpcSchedules</code> <span>read an NPC's activity and timetable</span></p>
+
+Call `CurrentActivity(npcId)` to see what the NPC is doing now, and `Timetable(npcId)` for its fixed timetable.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -144,12 +117,48 @@ public static class NpcSchedules
 - `Timetable(npcId)` does not include random activities that the game picks on its own.
 - `Timetable(npcId)` gives an empty list when the id is not known.
 
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>ScheduleInfo</code> <span>one entry in an NPC's timetable</span></p>
+
+`Timetable(npcId)` gives you one of these for each entry. `StartHour`, `DurationMinutes` and `Place` tell you when and where the NPC is due.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class ScheduleInfo
+{
+    public string Name { get; }
+    public string ActivityName { get; }
+    public string Place { get; }
+    public int WeekDay { get; }
+    public float StartHour { get; }
+    public float DurationMinutes { get; }
+    public bool Disabled { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Name` | `string` | The entry's name in the game's data. |
+| `ActivityName` | `string` | What the NPC does. `null` when the entry has no activity. |
+| `Place` | `string` | The scene the activity takes place in. `null` when unknown. |
+| `WeekDay` | `int` | The day of the week the entry starts on, as the game numbers it. |
+| `StartHour` | `float` | When it starts, from 0 to 24. `6.5` means half past six. |
+| `DurationMinutes` | `float` | How long it lasts, in minutes. |
+| `Disabled` | `bool` | `true` when the game's data switches this entry off. |
+
+</div>
+</div>
+
 ### Activity changes
 
 `ActivityChanged` tells you when an NPC starts doing something different.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ActivityChangedArgs</code> <span>what you are told when an NPC's activity changes</span></p>
+
+`ActivityChanged` gives you one of these when an NPC starts a different activity. `From` and `To` are the old and new activities.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -172,6 +181,9 @@ public sealed class ActivityChangedArgs
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>NpcSchedules</code> <span>the activity change event</span></p>
+
+Subscribe to `ActivityChanged` to hear each time an NPC gets a different activity.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

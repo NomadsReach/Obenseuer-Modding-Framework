@@ -7,6 +7,9 @@ nav_order: 1
 
 # Common tasks
 
+This page uses `GameObject` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 Find a look by its name, load it, and put it on a body that your mod has spawned. `body` here is the NPC's object in the scene. `Apply` tells you why it refused through `reason`.
 
 ```csharp

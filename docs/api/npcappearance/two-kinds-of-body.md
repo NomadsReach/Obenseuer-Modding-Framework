@@ -10,7 +10,31 @@ nav_order: 3
 The game gives each character one of two kinds of body, and `ShapeKind` tells you which. It is read while the game runs.
 
 <div class="api-type" markdown="1">
+<p class="api-type-head"><code>NpcAppearance</code> <span>body kind call</span></p>
+
+Call `ShapeKind(npcId)` first to see which kind of body the character has, since the look and shape calls depend on it.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static partial class NpcAppearance
+{
+    public static NpcShapeKind ShapeKind(int npcId);
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `ShapeKind(npcId)` | `NpcShapeKind` | Which kind of body this character has. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
 <p class="api-type-head"><code>NpcShapeKind</code> <span>what kind of body a character has</span></p>
+
+`ShapeKind(npcId)` gives you one of these. `None` means the character is not in the loaded scene, or has neither kind of body.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -27,24 +51,6 @@ public enum NpcShapeKind
 | `None` | Neither kind, or the character is not in the loaded scene. |
 | `Sliders` | A body built from sliders, like the player's. |
 | `BlendShapes` | A baked body that changes through blend shapes. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>NpcAppearance</code> <span>body kind call</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static partial class NpcAppearance
-{
-    public static NpcShapeKind ShapeKind(int npcId);
-}
-```
-
-| Method | Returns | What it does |
-|---|---|---|
-| `ShapeKind(int npcId)` | `NpcShapeKind` | Which kind of body this character has. |
 
 </div>
 </div>

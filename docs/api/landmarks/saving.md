@@ -7,6 +7,9 @@ nav_order: 4
 
 # Saving
 
+This page uses `Sprite` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 The framework keeps your landmarks in its own file rather than in the game's save, because the game's save cannot hold a landmark that has no game file behind it.
 
 ## Things to know

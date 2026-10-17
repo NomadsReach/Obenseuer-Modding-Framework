@@ -7,6 +7,9 @@ nav_order: 1
 
 # Common tasks
 
+This page uses `GameObject` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 Log each time the player uses a held item.
 
 ```csharp

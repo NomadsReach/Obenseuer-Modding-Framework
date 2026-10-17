@@ -7,6 +7,9 @@ nav_order: 1
 
 # Common tasks
 
+This page uses `Vector3` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 Share the local player's position every frame and count the other players within five metres. `Publish` keeps sending for as long as you keep calling it, so call it from `Update`.
 
 ```csharp

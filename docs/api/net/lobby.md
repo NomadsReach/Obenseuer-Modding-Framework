@@ -10,31 +10,10 @@ nav_order: 4
 A lobby is a group of players who are connected to each other so their mods can talk. One player hosts it, and the others join. There is one lobby for all mods at a time.
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>LobbyStatus</code> <span>where you are in a lobby</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public enum LobbyStatus
-{
-    Offline,
-    Pending,
-    Hosting,
-    Joined
-}
-```
-
-| Value | Meaning |
-|---|---|
-| `Offline` | You are not in a lobby. |
-| `Pending` | A host or join request is still working. |
-| `Hosting` | You made the lobby. |
-| `Joined` | You are in someone else's lobby. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
 <p class="api-type-head"><code>Lobby</code> <span>host, join and watch the lobby</span></p>
+
+Call `Host` to make a lobby, `Join` to enter one, and `Leave` to get out. `MemberJoined`, `MemberLeft` and `OwnerChanged` tell you when players come and go.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -63,13 +42,13 @@ public static class Lobby
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Host(string gameTag, string version, int maxMembers, bool openInvite)` | `bool` | Makes a lobby. |
-| `Join(ulong lobby, string gameTag, string version)` | `bool` | Joins a lobby. |
+| `Host(gameTag, version, maxMembers, openInvite)` | `bool` | Makes a lobby. |
+| `Join(lobby, gameTag, version)` | `bool` | Joins a lobby. |
 | `Leave()` | `bool` | Leaves any lobby. |
-| `Leave(string gameTag)` | `bool` | Leaves only when the lobby belongs to this game tag. |
+| `Leave(gameTag)` | `bool` | Leaves only when the lobby belongs to this game tag. |
 | `Invite()` | `bool` | Opens the invite window for the lobby you host. |
-| `MemberName(ulong member)` | `string` | A member's name. `""` when not in a lobby. |
-| `IsRefused(ulong member)` | `bool` | `true` when the host refused this member because of a version mismatch. |
+| `MemberName(member)` | `string` | A member's name. `""` when not in a lobby. |
+| `IsRefused(member)` | `bool` | `true` when the host refused this member because of a version mismatch. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -87,6 +66,33 @@ public static class Lobby
 | `MemberLeft` | The player's SteamID64. | A checked player has left or was refused. |
 | `OwnerChanged` | The previous host and the new host. | The host changes. |
 | `JoinRequested` | The lobby's id. | The player accepts a Steam invite. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>LobbyStatus</code> <span>where you are in a lobby</span></p>
+
+`Lobby.Status` gives you this. Check it before you host or join, because only one lobby is allowed at a time.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public enum LobbyStatus
+{
+    Offline,
+    Pending,
+    Hosting,
+    Joined
+}
+```
+
+| Value | Meaning |
+|---|---|
+| `Offline` | You are not in a lobby. |
+| `Pending` | A host or join request is still working. |
+| `Hosting` | You made the lobby. |
+| `Joined` | You are in someone else's lobby. |
 
 </div>
 </div>

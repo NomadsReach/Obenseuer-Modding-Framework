@@ -7,6 +7,9 @@ nav_order: 1
 
 # Common tasks
 
+This page uses `Vector3` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 Open one door. `Open` gives back `false` when the door is locked, so unlock it first if you need to.
 
 ```csharp

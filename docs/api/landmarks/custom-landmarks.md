@@ -7,10 +7,16 @@ nav_order: 3
 
 # Custom landmarks
 
+This page uses `Vector3`, `Sprite` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 A custom landmark is one your mod makes. It does not exist in the game's files, so the framework keeps it in its own save file and draws it on the map for you.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Landmarks</code> <span>your own landmarks on the map</span></p>
+
+Call `Create` with your own id, title and position to add a marker, and `Remove` or `Clear` to take your markers off.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -26,11 +32,11 @@ public static class Landmarks
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Create(string modId, string id, string title, Vector3 position, Sprite icon, int priority = 0, int width = 0, int height = 0, bool showNotification = true)` | `bool` | A new landmark with an icon already in memory. |
-| `Create(string modId, string id, string title, Vector3 position, string iconPath, int priority = 0, int width = 0, int height = 0, bool showNotification = true)` | `bool` | A new landmark with an icon from a file. |
-| `Mark(string modId, string id, string title, Vector3 position, bool showNotification = false)` | `bool` | A new landmark with a red dot icon. |
-| `Remove(string modId, string id)` | `bool` | Removes one of your landmarks. |
-| `Clear(string modId)` | `bool` | Removes all of your landmarks. |
+| `Create(modId, id, title, position, icon, priority, width, height, showNotification)` | `bool` | A new landmark with an icon already in memory. |
+| `Create(modId, id, title, position, iconPath, priority, width, height, showNotification)` | `bool` | A new landmark with an icon from a file. |
+| `Mark(modId, id, title, position, showNotification)` | `bool` | A new landmark with a red dot icon. |
+| `Remove(modId, id)` | `bool` | Removes one of your landmarks. |
+| `Clear(modId)` | `bool` | Removes all of your landmarks. |
 
 </div>
 </div>

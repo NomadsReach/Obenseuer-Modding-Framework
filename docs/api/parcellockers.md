@@ -68,6 +68,9 @@ Each bank of hatches is a `ParcelLockerInfo`, and each hatch in it is a `LockerI
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ParcelLockers</code> <span>lists lockers and hands out parcels</span></p>
+
+Use it to list the parcel lockers in the scene you are in, read one by its `Id`, take a parcel out of a hatch, or put the packages the player holds into a locker.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -83,15 +86,18 @@ public static class ParcelLockers
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<ParcelLockerInfo>` | Every parcel locker in the scene you are in. |
-| `Get(string id)` | `ParcelLockerInfo` | The parcel locker with this id. `null` when none has it. An unknown or empty id also gives `null`. |
-| `TakeParcel(string id, int index)` | `bool` | Gives the player the parcel in one hatch. `true` when the hatch is empty afterwards. |
-| `Claim(string id)` | `bool` | Puts the packages the player holds into this locker. `true` when at least one went in. |
+| `Get(id)` | `ParcelLockerInfo` | The parcel locker with this id. `null` when none has it. An unknown or empty id also gives `null`. |
+| `TakeParcel(id, index)` | `bool` | Gives the player the parcel in one hatch. `true` when the hatch is empty afterwards. |
+| `Claim(id)` | `bool` | Puts the packages the player holds into this locker. `true` when at least one went in. |
 
 </div>
 </div>
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ParcelLockerInfo</code> <span>one bank of hatches</span></p>
+
+`ParcelLockers.All()` and `ParcelLockers.Get(id)` give you these. Pass the `Id` to `TakeParcel` or `Claim`, and read the hatches from `Lockers`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -112,6 +118,9 @@ public sealed class ParcelLockerInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>LockerInfo</code> <span>one hatch</span></p>
+
+You get these from `Lockers`. Check `Occupied` before you call `TakeParcel` with the hatch's `Index`. <span class="tech">(It is read from the game's `ParcelLocker.Locker` slot and the `MailController.Mail` parcel in it.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp

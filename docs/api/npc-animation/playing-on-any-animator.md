@@ -11,6 +11,9 @@ nav_order: 3
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>NpcAnimation</code> <span>clips on any animator</span></p>
+
+Call `PlayOn` with an animator that is not on a scene NPC, and `StopOn` to fade that clip out.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -23,8 +26,8 @@ public static class NpcAnimation
 
 | Method | Returns | What it does |
 |---|---|---|
-| `PlayOn(string modId, Animator animator, AnimationClip clip, bool loop, float fadeSeconds = 0.2f)` | `bool` | Starts a clip on an animator. |
-| `StopOn(string modId, Animator animator, float fadeSeconds = 0.2f)` | `bool` | Fades that clip out. |
+| `PlayOn(modId, animator, clip, loop, fadeSeconds)` | `bool` | Starts a clip on an animator. |
+| `StopOn(modId, animator, fadeSeconds)` | `bool` | Fades that clip out. |
 
 </div>
 </div>

@@ -7,10 +7,54 @@ nav_order: 3
 
 # Items
 
+This page uses `Sprite` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 An item definition says which existing item to copy and what to change. Leave a field out to keep the template's value.
+
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>ItemRegistry</code> <span>adds items and gives them models</span></p>
+
+Use `Define` to add an item based on an existing one, and `SetHeldModel` to give an item a model for the player's hand. Check `CanDefine` before you call `Define`.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class ItemRegistry
+{
+    public static event Action Loaded;
+    public static bool IsAvailable { get; }
+    public static bool CanDefine { get; }
+    public static int IdFor(string modGuid, string key);
+    public static int Define(string modGuid, string key, ItemDefinition definition);
+    public static bool SetHeldModel(string modGuid, int itemId, ModelHandle model);
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `IdFor(modGuid, key)` | `int` | The number a key will have. |
+| `Define(modGuid, key, definition)` | `int` | Adds an item. Returns its number, or -1 when refused. |
+| `SetHeldModel(modGuid, itemId, model)` | `bool` | Gives an item a model to show in the player's hand. |
+
+| Property | Type | What it means |
+|---|---|---|
+| `IsAvailable` | `bool` | `false` when the registry could not be set up. |
+| `CanDefine` | `bool` | `true` while `Define` is still accepted. |
+
+| Event | Gives you | When it fires |
+|---|---|---|
+| `Loaded` | Nothing. | Each time the game assigns a new item list. |
+
+</div>
+</div>
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ItemDefinition</code> <span>what your new item is based on and what is different</span></p>
+
+Pass one of these to `ItemRegistry.Define`. Only `TemplateId` is required.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -39,40 +83,6 @@ public sealed class ItemDefinition
 | `Categories` | `string[]` | The item's categories, such as Food. `null` keeps the template's. |
 | `IconPath` | `string` | The full path to your icon file. `null` keeps the template's. |
 | `Model` | `ModelHandle` | A 3D model from `ModelRegistry.LoadObj`. `null` keeps the template's. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>ItemRegistry</code> <span>adds items and gives them models</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static class ItemRegistry
-{
-    public static event Action Loaded;
-    public static bool IsAvailable { get; }
-    public static bool CanDefine { get; }
-    public static int IdFor(string modGuid, string key);
-    public static int Define(string modGuid, string key, ItemDefinition definition);
-    public static bool SetHeldModel(string modGuid, int itemId, ModelHandle model);
-}
-```
-
-| Method | Returns | What it does |
-|---|---|---|
-| `IdFor(string modGuid, string key)` | `int` | The number a key will have. |
-| `Define(string modGuid, string key, ItemDefinition definition)` | `int` | Adds an item. Returns its number, or -1 when refused. |
-| `SetHeldModel(string modGuid, int itemId, ModelHandle model)` | `bool` | Gives an item a model to show in the player's hand. |
-
-| Property | Type | What it means |
-|---|---|---|
-| `IsAvailable` | `bool` | `false` when the registry could not be set up. |
-| `CanDefine` | `bool` | `true` while `Define` is still accepted. |
-
-| Event | Gives you | When it fires |
-|---|---|---|
-| `Loaded` | Nothing. | Each time the game assigns a new item list. |
 
 </div>
 </div>

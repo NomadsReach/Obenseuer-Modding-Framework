@@ -7,6 +7,9 @@ nav_order: 13
 
 # Tarp doors
 
+This page uses `Mesh` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 ## What it is
 
 A tarp door is a sheet of plastic that the game uses as a door: it rolls open and shut. This API lets your mod list the tarp doors in the scene, check whether one is open, open or close one, and get told when one changes. It covers only tarp doors. The ordinary doors are on the [Doors](doors.md) page.
@@ -84,6 +87,9 @@ This is the full list of what the API gives you. Text in brackets at the end of 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TarpDoors</code> <span>list, read, open and close tarp doors</span></p>
+
+This is the class to start from. `All()`, `Get(id)` and `IsOpen(id)` read tarp doors, and `SetOpen(id, open)` opens or closes one.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -101,9 +107,9 @@ public static class TarpDoors
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<TarpDoorInfo>` | Every tarp door in the scene you are in. |
-| `Get(string id)` | `TarpDoorInfo` | The tarp door with this id. `null` when none has it. |
-| `IsOpen(string id)` | `bool` | `true` when that tarp door is open. `false` when it is closed or the id is unknown. |
-| `SetOpen(string id, bool open)` | `bool` | Opens (`true`) or closes (`false`) a tarp door. `true` when it is now in that state. |
+| `Get(id)` | `TarpDoorInfo` | The tarp door with this id. `null` when none has it. |
+| `IsOpen(id)` | `bool` | `true` when that tarp door is open. `false` when it is closed or the id is unknown. |
+| `SetOpen(id, open)` | `bool` | Opens (`true`) or closes (`false`) a tarp door. `true` when it is now in that state. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -118,6 +124,9 @@ public static class TarpDoors
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TarpDoorInfo</code> <span>a snapshot of one tarp door</span></p>
+
+`All()` and `Get(id)` give you one of these. `IsOpen` is `true` from the moment the tarp starts to open, not when it stops moving.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -138,6 +147,9 @@ public sealed class TarpDoorInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TarpDoorChangedArgs</code> <span>what the Changed event tells you</span></p>
+
+The `Changed` event gives you one of these. `IsOpen` is the new state, and the event fires when the tarp starts moving, not when it stops.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

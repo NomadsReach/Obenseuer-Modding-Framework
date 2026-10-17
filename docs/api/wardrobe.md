@@ -74,6 +74,8 @@ The four places are called by name: `"Head"`, `"Face"`, `"Watch"` and `"Backpack
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Wardrobe</code> <span>what the player wears</span></p>
+Use it to list the clothing slots, see what is worn in each one, equip or unequip items, and hear about changes.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -108,6 +110,8 @@ public static class Wardrobe
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WardrobeChangedArgs</code> <span>what you get when a place changes</span></p>
+`Changed` gives you this when a slot changes. `Slot` names the slot, and `ItemId` is what is worn in it now.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

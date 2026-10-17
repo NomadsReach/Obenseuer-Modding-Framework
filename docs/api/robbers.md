@@ -77,7 +77,38 @@ Text in brackets at the end of a note is extra detail for experienced modders, a
 `Robbers.All()` and `Robbers.State()` tell you which NPCs are robbers and what they are doing. They also see a robber that is far away and not in the scene you are in.
 
 <div class="api-type" markdown="1">
+<p class="api-type-head"><code>Robbers</code> <span>reading robbers</span></p>
+
+This is the class to start from when you want to list robbers with `All()` or check one with `State(npcId)`.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class Robbers
+{
+    public static bool IsAvailable { get; }
+    public static List<RobberInfo> All();
+    public static string State(int npcId);
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `All()` | `List<RobberInfo>` | Every robber the game knows. |
+| `State(npcId)` | `string` | What that robber is doing. It is `null` when the NPC is not a robber. |
+
+| Property | Type | What it means |
+|---|---|---|
+| `IsAvailable` | `bool` | `false` when the `Robbed` event could not be set up. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
 <p class="api-type-head"><code>RobberInfo</code> <span>one robber</span></p>
+
+`Robbers.All()` gives you one of these for each robber. `NpcId` is the id to pass to the other `Robbers` members, and `State` is what the robber is doing right now. <span class="tech">(It wraps the game's robber activity, `Act_Robber`, and `State` is the name of that activity's state.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -96,31 +127,6 @@ public sealed class RobberInfo
 </div>
 </div>
 
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>Robbers</code> <span>reading robbers</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static class Robbers
-{
-    public static bool IsAvailable { get; }
-    public static List<RobberInfo> All();
-    public static string State(int npcId);
-}
-```
-
-| Method | Returns | What it does |
-|---|---|---|
-| `All()` | `List<RobberInfo>` | Every robber the game knows. |
-| `State(int npcId)` | `string` | What that robber is doing. It is `null` when the NPC is not a robber. |
-
-| Property | Type | What it means |
-|---|---|---|
-| `IsAvailable` | `bool` | `false` when the `Robbed` event could not be set up. |
-
-</div>
-</div>
-
 - A robber is an NPC whose current activity is the game's robber activity. When a robber is doing something else, such as another job, it is not listed. <span class="tech">(`All` looks at each NPC's `state.CurrentActivity` in `NPCDirector.globalDatabase` and keeps the ones that are an `Act_Robber`.)</span>
 - The states mean what the robber is doing now. `Idle` and `Stand` are waiting, `Patrol` is walking its route, `Wander` is walking around, `Chase` is following the player, and `Aggro` is attacking the player.
 - `IsAvailable` is `false` when the `Robbed` event does not work. The reads and the other writes keep working.
@@ -131,6 +137,9 @@ These calls make a robber do something. The first argument is your mod's id (`Mo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Robbers</code> <span>making a robber act</span></p>
+
+Use these to make a robber attack, rob the player, take a bribe or change its aloof flag. Each one takes your mod's id first, and each returns `true` only when it worked.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -145,10 +154,10 @@ public static class Robbers
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Aggro(string modId, int npcId)` | `bool` | Makes the robber attack the player. It is `true` when it is now attacking. |
-| `Rob(string modId, int npcId)` | `bool` | Robs the player now. It is `true` when the robbery ran. |
-| `Negotiate(string modId, int npcId)` | `bool` | Tries to bribe the robber. It is `true` when it worked. |
-| `SetAloof(string modId, int npcId, bool aloof)` | `bool` | Changes the robber's "aloof" dialogue flag. It is `true` when it was set. |
+| `Aggro(modId, npcId)` | `bool` | Makes the robber attack the player. It is `true` when it is now attacking. |
+| `Rob(modId, npcId)` | `bool` | Robs the player now. It is `true` when the robbery ran. |
+| `Negotiate(modId, npcId)` | `bool` | Tries to bribe the robber. It is `true` when it worked. |
+| `SetAloof(modId, npcId, aloof)` | `bool` | Changes the robber's "aloof" dialogue flag. It is `true` when it was set. |
 
 </div>
 </div>
@@ -166,6 +175,9 @@ public static class Robbers
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Robbers</code> <span>knowing when the player is robbed</span></p>
+
+Subscribe to `Robbed` to run code once a robbery has finished. The handler gets the robber's NPC id, which you can pass to `Npcs.Get` (see the [NPCs](npcs.md) page) to find its name.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

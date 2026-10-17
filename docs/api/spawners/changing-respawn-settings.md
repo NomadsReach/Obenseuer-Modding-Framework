@@ -11,6 +11,9 @@ These two calls change whether a spawner respawns and how long it waits.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Spawners</code> <span>respawn on or off, and the wait</span></p>
+
+`SetRespawn` turns respawning on or off and sets its chance, and `SetRespawnTiming` sets how long a spawner waits.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -23,8 +26,8 @@ public static class Spawners
 
 | Method | Returns | What it does |
 |---|---|---|
-| `SetRespawn(string id, bool enabled, float chance)` | `bool` | Turns respawning on or off and sets the chance. `true` when written. |
-| `SetRespawnTiming(string id, RespawnTime time, bool useCustomSpawnTime, int minSeconds, int maxSeconds)` | `bool` | Sets the wait. `true` when written. |
+| `SetRespawn(id, enabled, chance)` | `bool` | Turns respawning on or off and sets the chance. `true` when written. |
+| `SetRespawnTiming(id, time, useCustomSpawnTime, minSeconds, maxSeconds)` | `bool` | Sets the wait. `true` when written. |
 
 </div>
 </div>

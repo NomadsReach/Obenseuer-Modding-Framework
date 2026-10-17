@@ -7,10 +7,15 @@ nav_order: 5
 
 # WorldRadiation
 
+This page uses `Transform` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 The game tracks radiation. The player takes in a dose that builds up over time and starts to hurt above a limit. `WorldRadiation` reads that dose, the radiation around the player, and the player's dosimeter, a hand-held device that shows the radiation level.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WorldRadiation</code> <span>dose, background and dosimeter</span></p>
+Use these to read the player's dose, the radiation around them, and the dosimeter.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

@@ -13,6 +13,9 @@ An `owner` is your mod's id. It is how the framework keeps your hides and bars a
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Hud</code> <span>what you can show and hide on screen</span></p>
+
+This is the class you start from. It shows notifications, subtitles, hints, notes, the tooltip and a bar, and it hides the crosshair or the game's HUD for your owner.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -40,23 +43,23 @@ public static class Hud
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Notify(string text)` | `bool` | Shows your text in the game's notification box, under the heading `Notice`. |
-| `Notify(string title, string body)` | `bool` | Shows your title and body in the same box. |
-| `ShowSubtitle(string text, float fadeSeconds)` | `bool` | Types a line at the bottom of the screen, then fades it. |
-| `ShowHint(string modId, string title, string[] lines)` | `bool` | Puts a hint in the card game's hint box. |
-| `HideHint(string modId)` | `bool` | Removes your mod's hint. |
-| `ShowNote(string noteId)` | `bool` | Opens the Notes page at a note the player already has. |
+| `Notify(text)` | `bool` | Shows your text in the game's notification box, under the heading `Notice`. |
+| `Notify(title, body)` | `bool` | Shows your title and body in the same box. |
+| `ShowSubtitle(text, fadeSeconds)` | `bool` | Types a line at the bottom of the screen, then fades it. |
+| `ShowHint(modId, title, lines)` | `bool` | Puts a hint in the card game's hint box. |
+| `HideHint(modId)` | `bool` | Removes your mod's hint. |
+| `ShowNote(noteId)` | `bool` | Opens the Notes page at a note the player already has. |
 | `ShowCrosshair()` | `bool` | Shows the crosshair. It has no owner, so it is shared. |
 | `HideCrosshair()` | `bool` | Hides the crosshair. It has no owner, so it is shared. |
-| `HideCrosshair(string owner)` | `bool` | Hides the crosshair for this owner. |
-| `ShowCrosshair(string owner)` | `bool` | Takes back this owner's hide. |
-| `ShowTooltip(string title, string details)` | `bool` | Shows the game's tooltip box with your text. |
+| `HideCrosshair(owner)` | `bool` | Hides the crosshair for this owner. |
+| `ShowCrosshair(owner)` | `bool` | Takes back this owner's hide. |
+| `ShowTooltip(title, details)` | `bool` | Shows the game's tooltip box with your text. |
 | `HideTooltip()` | `bool` | Hides the tooltip box. |
-| `HideGameUi(string owner)` | `bool` | Hides the whole HUD for this owner. |
-| `ShowGameUi(string owner)` | `bool` | Takes back this owner's hide. |
-| `Bar(string owner, string title, float fill)` | `bool` | Shows or updates this owner's bar. |
-| `Bar(string owner, string title, float fill, Color color)` | `bool` | Shows or updates this owner's bar, in your own colour. |
-| `ClearBar(string owner)` | `bool` | Removes this owner's bar. |
+| `HideGameUi(owner)` | `bool` | Hides the whole HUD for this owner. |
+| `ShowGameUi(owner)` | `bool` | Takes back this owner's hide. |
+| `Bar(owner, title, fill)` | `bool` | Shows or updates this owner's bar. |
+| `Bar(owner, title, fill, color)` | `bool` | Shows or updates this owner's bar, in your own colour. |
+| `ClearBar(owner)` | `bool` | Removes this owner's bar. |
 
 </div>
 </div>

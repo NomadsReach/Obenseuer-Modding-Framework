@@ -7,10 +7,16 @@ nav_order: 5
 
 # Speaking
 
+This page uses `Transform` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 These calls make an NPC show your text, say one of the game's lines, or start one of the game's conversations.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>NpcActions</code> <span>making an NPC speak</span></p>
+
+Call `Say` to show your own line above the NPC, `Comment` to make it say one of the game's lines, or `StartDialogue` to start one of the game's conversations.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -24,9 +30,9 @@ public static class NpcActions
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Say(int npcId, string text)` | `bool` | Shows a line of text above the NPC. |
-| `Comment(int npcId, string conversationTitle)` | `bool` | Makes the NPC say one of the game's lines. |
-| `StartDialogue(int npcId, string conversationTitle)` | `bool` | Starts one of the game's conversations. |
+| `Say(npcId, text)` | `bool` | Shows a line of text above the NPC. |
+| `Comment(npcId, conversationTitle)` | `bool` | Makes the NPC say one of the game's lines. |
+| `StartDialogue(npcId, conversationTitle)` | `bool` | Starts one of the game's conversations. |
 
 </div>
 </div>

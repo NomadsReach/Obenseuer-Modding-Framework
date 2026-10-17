@@ -7,6 +7,9 @@ nav_order: 1
 
 # Common tasks
 
+This page uses `Transform` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 Group controls in a titled panel (a card), and put a row of tabs at the top. Each tab has its own page to fill.
 
 ```csharp

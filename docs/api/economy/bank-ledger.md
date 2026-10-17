@@ -10,7 +10,43 @@ nav_order: 6
 The bank ledger is a history of the changes to the player's bank accounts: deposits, withdrawals, interest, loans and so on. Each change is a `BankLedgerEntry`.
 
 <div class="api-type" markdown="1">
+<p class="api-type-head"><code>BankLedger</code> <span>the ledger's reads and its event</span></p>
+
+Call `Entries(bankName, max, beforeId)` to read a bank's history, newest first, and subscribe to `Added` to hear each new entry.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class BankLedger
+{
+    public static bool IsAvailable { get; }
+    public static int FirstDay { get; }
+    public static List<BankLedgerEntry> Entries(string bankName, int max, int beforeId);
+    public static event Action<BankLedgerEntry> Added;
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `Entries(bankName, max, beforeId)` | `List<BankLedgerEntry>` | Entries for one bank, newest first. A `beforeId` of 0 means no limit. |
+
+| Property | Type | What it means |
+|---|---|---|
+| `IsAvailable` | `bool` | `false` when the ledger is off. |
+| `FirstDay` | `int` | The day of the first entry in this save, or `-1` when there is none. |
+
+| Event | Gives you | When it fires |
+|---|---|---|
+| `Added` | `BankLedgerEntry` | A new entry was recorded. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
 <p class="api-type-head"><code>BankLedgerEntry</code> <span>one change to one bank account</span></p>
+
+`BankLedger.Entries` returns these, and `Added` gives you one as it is recorded. `Kind` says what sort of change it was, and `OcAfter` and `RmAfter` show the balance after it.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -43,36 +79,6 @@ public sealed class BankLedgerEntry
 | `OcAfter` | `int` | The OC in the account afterwards. |
 | `RmAfter` | `float` | The RM in the account afterwards. |
 | `Memo` | `string` | A short note about the change. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>BankLedger</code> <span>the ledger's reads and its event</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static class BankLedger
-{
-    public static bool IsAvailable { get; }
-    public static int FirstDay { get; }
-    public static List<BankLedgerEntry> Entries(string bankName, int max, int beforeId);
-    public static event Action<BankLedgerEntry> Added;
-}
-```
-
-| Method | Returns | What it does |
-|---|---|---|
-| `Entries(string bankName, int max, int beforeId)` | `List<BankLedgerEntry>` | Entries for one bank, newest first. A `beforeId` of 0 means no limit. |
-
-| Property | Type | What it means |
-|---|---|---|
-| `IsAvailable` | `bool` | `false` when the ledger is off. |
-| `FirstDay` | `int` | The day of the first entry in this save, or `-1` when there is none. |
-
-| Event | Gives you | When it fires |
-|---|---|---|
-| `Added` | `BankLedgerEntry` | A new entry was recorded. |
 
 </div>
 </div>

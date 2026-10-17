@@ -13,6 +13,9 @@ Each spawner is a `SpawnerInfo`, a snapshot of its state at the moment you asked
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Spawners</code> <span>find spawners in the scene</span></p>
+
+This is the class to start from. `All()` and `Get(id)` give you the spawners in the scene you are in, as `SpawnerInfo` values.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -27,7 +30,7 @@ public static class Spawners
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<SpawnerInfo>` | Every spawner in the scene you are in. |
-| `Get(string id)` | `SpawnerInfo` | The spawner with this id. `null` when there is none. |
+| `Get(id)` | `SpawnerInfo` | The spawner with this id. `null` when there is none. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -38,6 +41,9 @@ public static class Spawners
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SpawnerInfo</code> <span>a snapshot of one spawner</span></p>
+
+`All()` and `Get(id)` give you one of these. Pass its `Id` to the other `Spawners` calls, and read `SecondsToSpawn` to see how long the game has until the next spawn.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -74,6 +80,9 @@ public sealed class SpawnerInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>RespawnTime</code> <span>the wait-time presets</span></p>
+
+`SpawnerInfo.SpawnTime` gives you one of these, and `SetRespawnTiming` takes one. The ranges below are before the game adjusts them for its difficulty setting.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

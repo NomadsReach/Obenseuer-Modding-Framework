@@ -11,6 +11,9 @@ The `Spawned` event tells your mod each time a spawner spawns something.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Spawners</code> <span>the spawn event</span></p>
+
+`Spawned` is the event to subscribe to. It fires each time a spawner spawns, including the spawns the game makes on its own.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -29,6 +32,9 @@ public static class Spawners
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SpawnerArgs</code> <span>what you get when a spawner spawns</span></p>
+
+The `Spawned` event gives you one of these. `SpawnedCount` is counted after this spawn.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

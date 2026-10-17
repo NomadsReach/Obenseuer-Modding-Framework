@@ -75,6 +75,9 @@ This is the full list of what the API gives you. Text in brackets at the end of 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>MailSchedules</code> <span>list senders and send their mail</span></p>
+
+Call `Senders()` to find the random mail senders in the scene, then `SendNow` or `SendRandom` to make one send its mail.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -89,14 +92,17 @@ public static class MailSchedules
 | Method | Returns | What it does |
 |---|---|---|
 | `Senders()` | `List<MailSenderInfo>` | The random mail senders in the scene you are in. |
-| `SendNow(string modId, string senderId)` | `bool` | Sends mail with the sender's own amounts. `true` when it was sent. |
-| `SendRandom(string modId, string senderId, int min, int max)` | `bool` | Sends a number of mails from `min` up to, but not including, `max`. `true` when it was sent. |
+| `SendNow(modId, senderId)` | `bool` | Sends mail with the sender's own amounts. `true` when it was sent. |
+| `SendRandom(modId, senderId, min, max)` | `bool` | Sends a number of mails from `min` up to, but not including, `max`. `true` when it was sent. |
 
 </div>
 </div>
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>MailSenderInfo</code> <span>one random mail sender</span></p>
+
+`Senders()` gives you one of these for each sender. Pass its `Id` to `SendNow` or `SendRandom`. <span class="tech">(It is built from the game's `RandommailSender` objects.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp

@@ -7,10 +7,16 @@ nav_order: 3
 
 # Moving and hurting
 
+This page uses `Vector3` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 These calls move an NPC, kill it, or make it react to a hit.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>NpcActions</code> <span>moving and hurting an NPC</span></p>
+
+Call `Teleport` to move the NPC to a spot, `Kill` to make it dead, or `Hit` to make it react to a hit.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -24,9 +30,9 @@ public static class NpcActions
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Teleport(int npcId, Vector3 position)` | `bool` | Moves the NPC to a spot in the scene. |
-| `Kill(int npcId)` | `bool` | Stops the NPC and puts it in the dead state. |
-| `Hit(int npcId)` | `bool` | Makes the NPC react as if the player hit it. |
+| `Teleport(npcId, position)` | `bool` | Moves the NPC to a spot in the scene. |
+| `Kill(npcId)` | `bool` | Stops the NPC and puts it in the dead state. |
+| `Hit(npcId)` | `bool` | Makes the NPC react as if the player hit it. |
 
 </div>
 </div>

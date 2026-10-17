@@ -7,6 +7,9 @@ nav_order: 16
 
 # Train tickets
 
+This page uses `GameObject` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 ## What it is
 
 A ticket machine is the machine where the player buys a train ticket. The player pays, the machine prints the ticket, and the player takes it. This API lets your mod list the ticket machines in the scene you are in, read the price each one charges, and get told when a ticket is bought and when it is taken.
@@ -79,6 +82,8 @@ Each ticket machine is a `TicketMachineInfo`, a snapshot of it at the moment you
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TrainTickets</code> <span>lists ticket machines and reports sales</span></p>
+Use `All()` to list the ticket machines, and the `Bought` and `Taken` events to hear when a ticket is bought or taken.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -109,6 +114,8 @@ public static class TrainTickets
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TicketMachineInfo</code> <span>a snapshot of one ticket machine</span></p>
+`All()` gives you one of these for each ticket machine, with its `Price` and `Currency`. It is a snapshot, so ask again for fresh values. <span class="tech">(It reads the game's `InteractableTicketMachine`.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -133,6 +140,8 @@ public sealed class TicketMachineInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TicketBoughtArgs</code> <span>what you get when a ticket is bought</span></p>
+`Bought` gives you this when the player buys a ticket. `MachineId` names the machine, and `Price` and `Currency` are its ticket price.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -155,6 +164,8 @@ public sealed class TicketBoughtArgs
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TicketTakenArgs</code> <span>what you get when a ticket is taken</span></p>
+`Taken` gives you this when the player takes a ticket out of a machine. `ItemId` is the item id of that ticket.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

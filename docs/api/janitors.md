@@ -7,6 +7,9 @@ nav_order: 2
 
 # Janitors
 
+This page uses `GameObject` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 ## What it is
 
 A janitor in this game is not a cleaning character. It is an invisible script that the map designers place on an object in a level. It does one chore when the game triggers it by a tag, a word the game uses to pick a group of janitors. There are two kinds. A storage janitor restocks a container: it puts an item (or a liquid) back in it, and may empty it first. A relay janitor fires the scripted actions (relays) that the map has attached to it. This API lets your mod list the janitors in the scene and get told each time one does its chore. It only reads. It cannot place a janitor or trigger one.
@@ -74,6 +77,9 @@ This is the full list of what the API gives you.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Janitors</code> <span>the janitor event</span></p>
+
+Subscribe to `Acted` to hear each time a janitor does its chore, and read `All` to list the objects that hold a janitor script.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -99,6 +105,9 @@ public static class Janitors
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>JanitorActionKind</code> <span>what kind of chore a janitor does</span></p>
+
+`JanitorActedArgs.Kind` gives you this: `Storage` for a storage janitor and `Relay` for a relay janitor. The game has no such enum. The framework sets it from which of the game's two janitor actions ran.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -119,6 +128,9 @@ public enum JanitorActionKind
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>JanitorActedArgs</code> <span>what one janitor just did</span></p>
+
+The `Acted` event gives you one of these each time a janitor does its chore. Check `Kind` first, since `Container`, `ItemId` and `LiquidId` only carry real values for a storage janitor.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

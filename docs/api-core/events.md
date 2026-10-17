@@ -11,6 +11,9 @@ nav_order: 5
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Events</code> <span>clock, scene and save events</span></p>
+
+Subscribe to `HourPassed`, `DayPassed`, `SceneLoaded`, `Saved` or `Loaded` with `+=`. Use `WhenReady` for code that needs a save loaded first.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -27,7 +30,7 @@ public static class Events
 
 | Method | Returns | What it does |
 |---|---|---|
-| `WhenReady(Action action)` | `void` | Runs now if a save is loaded or a new game's first level is loaded. Otherwise it runs once when that happens. |
+| `WhenReady(action)` | `void` | Runs now if a save is loaded or a new game's first level is loaded. Otherwise it runs once when that happens. |
 
 | Event | Gives you | When it fires |
 |---|---|---|

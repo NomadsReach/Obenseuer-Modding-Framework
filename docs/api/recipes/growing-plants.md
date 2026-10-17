@@ -7,10 +7,103 @@ nav_order: 4
 
 # Growing plants
 
+This page uses `Vector3` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 `Plants` lists the plants that grow in the scene you are in and tells your mod when they are harvested or picked. Each plant is a `PlantInfo`.
+
+
+
+
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>Plants</code> <span>the plant list and pick events</span></p>
+
+Use it to list the plants in the scene, read the fruit slots of one plant, and hear when a plant is harvested or a fruit is picked.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class Plants
+{
+    public static event Action<PlantHarvestArgs> Harvested;
+    public static event Action<PlantPickArgs> Picked;
+    public static List<PlantInfo> All();
+    public static List<PlantFruitInfo> Fruits(string plantId);
+    public static bool IsAvailable { get; }
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `All()` | `List<PlantInfo>` | Every plant in the active scene. |
+| `Fruits(plantId)` | `List<PlantFruitInfo>` | The fruit slots of one plant. |
+
+| Property | Type | What it means |
+|---|---|---|
+| `IsAvailable` | `bool` | `false` when the plant events could not be set up. |
+
+| Event | Gives you | When it fires |
+|---|---|---|
+| `Harvested` | `PlantHarvestArgs` | A plant's harvest was handed out. |
+| `Picked` | `PlantPickArgs` | One fruit was picked. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>PlantHarvestArgs</code> <span>what Harvested gives you</span></p>
+
+`Plants.Harvested` hands you one of these when a plant's harvest is handed out. `Items` lists what the harvest gave.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class PlantHarvestArgs
+{
+    public string PlantId { get; }
+    public List<ItemCount> Items { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `PlantId` | `string` | The plant that was harvested. |
+| `Items` | `List<ItemCount>` | What the harvest gave. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>PlantPickArgs</code> <span>what Picked gives you</span></p>
+
+`Plants.Picked` hands you one of these for each fruit that is picked, with the fruit's item number and how many.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class PlantPickArgs
+{
+    public string PlantId { get; }
+    public int ItemId { get; }
+    public int Amount { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `PlantId` | `string` | The plant the fruit came from. |
+| `ItemId` | `int` | The fruit's item number. |
+| `Amount` | `int` | How many. It is the amount the game rolled for the fruit. |
+
+</div>
+</div>
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>PlantInfo</code> <span>a snapshot of one plant</span></p>
+
+`Plants.All()` gives you one of these for each plant in the scene. Pass its `Id` to `Plants.Fruits` or to the calls on the [Plant actions page](../plantactions.md).
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -45,6 +138,9 @@ public sealed class PlantInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>PlantFruitInfo</code> <span>a snapshot of one fruit slot on a plant</span></p>
+
+`Plants.Fruits(plantId)` gives you one of these for each fruit slot. Check `Visible` first, because hidden slots are listed too.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -69,80 +165,6 @@ public sealed class PlantFruitInfo
 | `Spoiled` | `bool` | `true` when it has spoiled. |
 | `GrowProgress` | `float` | 0 to 1. How far it has grown. It is 0 when its full age is 0. |
 | `SpoilProgress` | `float` | 0 to 1. How far it has spoiled. It is 0 when the value is not a number. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>PlantHarvestArgs</code> <span>what Harvested gives you</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public sealed class PlantHarvestArgs
-{
-    public string PlantId { get; }
-    public List<ItemCount> Items { get; }
-}
-```
-
-| Property | Type | What it means |
-|---|---|---|
-| `PlantId` | `string` | The plant that was harvested. |
-| `Items` | `List<ItemCount>` | What the harvest gave. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>PlantPickArgs</code> <span>what Picked gives you</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public sealed class PlantPickArgs
-{
-    public string PlantId { get; }
-    public int ItemId { get; }
-    public int Amount { get; }
-}
-```
-
-| Property | Type | What it means |
-|---|---|---|
-| `PlantId` | `string` | The plant the fruit came from. |
-| `ItemId` | `int` | The fruit's item number. |
-| `Amount` | `int` | How many. It is the amount the game rolled for the fruit. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>Plants</code> <span>the plant list and pick events</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static class Plants
-{
-    public static event Action<PlantHarvestArgs> Harvested;
-    public static event Action<PlantPickArgs> Picked;
-    public static List<PlantInfo> All();
-    public static List<PlantFruitInfo> Fruits(string plantId);
-    public static bool IsAvailable { get; }
-}
-```
-
-| Method | Returns | What it does |
-|---|---|---|
-| `All()` | `List<PlantInfo>` | Every plant in the active scene. |
-| `Fruits(string plantId)` | `List<PlantFruitInfo>` | The fruit slots of one plant. |
-
-| Property | Type | What it means |
-|---|---|---|
-| `IsAvailable` | `bool` | `false` when the plant events could not be set up. |
-
-| Event | Gives you | When it fires |
-|---|---|---|
-| `Harvested` | `PlantHarvestArgs` | A plant's harvest was handed out. |
-| `Picked` | `PlantPickArgs` | One fruit was picked. |
 
 </div>
 </div>

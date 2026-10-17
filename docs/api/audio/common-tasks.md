@@ -7,6 +7,9 @@ nav_order: 1
 
 # Common tasks
 
+This page uses `Vector3`, `AudioClip` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 Play the sound an item makes when you pick it up. `PickupNames()` lists the names you can use, such as `Can`, `Cash` and `Keys`.
 
 ```csharp

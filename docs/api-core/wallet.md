@@ -11,6 +11,9 @@ nav_order: 7
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Wallet</code> <span>read and spend OC</span></p>
+
+Read `Balance`, and use `Has`, `TrySpend` or `Give` to check and change the player's OC.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -25,9 +28,9 @@ public static class Wallet
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Has(int amount)` | `bool` | `true` when the player has at least this much OC. |
-| `TrySpend(int amount)` | `bool` | Takes the OC away. Returns `false` when it could not be done. See Things to know. |
-| `Give(int amount)` | `bool` | Gives the OC to the player. Returns `false` when it could not be done. See Things to know. |
+| `Has(amount)` | `bool` | `true` when the player has at least this much OC. |
+| `TrySpend(amount)` | `bool` | Takes the OC away. Returns `false` when it could not be done. See Things to know. |
+| `Give(amount)` | `bool` | Gives the OC to the player. Returns `false` when it could not be done. See Things to know. |
 
 | Property | Type | What it means |
 |---|---|---|

@@ -11,6 +11,9 @@ nav_order: 2
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>FloodGates</code> <span>read and control the flood gates</span></p>
+
+This is the class you start from. `All()` and `Get(id)` find gates, `Open` and `Close` move them, and `Changed` tells you when a gate has been told to open or to close.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -33,12 +36,12 @@ public static class FloodGates
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<FloodGateInfo>` | Every flood gate in the scene you are in. |
-| `Get(string id)` | `FloodGateInfo` | The gate with this id. `null` when none has it. |
-| `IsOpen(string id)` | `bool` | `true` when the gate is open or opening. `false` when it is closed or the id is unknown. |
-| `IsPowered(string id)` | `bool` | `true` when the gate has power. `false` when it has none or the id is unknown. |
-| `Open(string id)` | `bool` | Tells the gate to open. `true` when it started to open. |
-| `Close(string id)` | `bool` | Tells the gate to close. `true` when it started to close. |
-| `SetPowered(string id, bool on)` | `bool` | Turns the gate's power on or off. `true` when the power changed. |
+| `Get(id)` | `FloodGateInfo` | The gate with this id. `null` when none has it. |
+| `IsOpen(id)` | `bool` | `true` when the gate is open or opening. `false` when it is closed or the id is unknown. |
+| `IsPowered(id)` | `bool` | `true` when the gate has power. `false` when it has none or the id is unknown. |
+| `Open(id)` | `bool` | Tells the gate to open. `true` when it started to open. |
+| `Close(id)` | `bool` | Tells the gate to close. `true` when it started to close. |
+| `SetPowered(id, on)` | `bool` | Turns the gate's power on or off. `true` when the power changed. |
 
 | Event | Gives you | When it fires |
 |---|---|---|
@@ -53,6 +56,9 @@ public static class FloodGates
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>FloodGateInfo</code> <span>a snapshot of one flood gate</span></p>
+
+`All()` and `Get(id)` give you this. It is a copy of the gate's state when you asked, so ask again for a current `IsOpen`. <span class="tech">(It is filled from the game's `FloodGateControl` on the gate's object.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -77,6 +83,9 @@ public sealed class FloodGateInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>FloodGateChangedArgs</code> <span>what the Changed event tells you</span></p>
+
+`Changed` gives you this. The framework builds it from a hook on the game's gate commands, and only when the open state really changes, so it is the framework's own type.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

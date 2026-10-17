@@ -10,93 +10,10 @@ nav_order: 2
 Each running contest is a `ContestInfo`, a snapshot taken when you asked. The snapshot does not update by itself, so ask again for fresh values. When a contest ends you get a `ContestResultInfo`.
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>ContestKind</code> <span>the sort of contest</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public enum ContestKind
-{
-    Unknown = 0,
-    Drinking = 1,
-    Sauna = 2,
-    RatFight = 3
-}
-```
-
-| Value | Meaning |
-|---|---|
-| `Unknown` | A contest the framework has no name for. |
-| `Drinking` | The drinking contest. |
-| `Sauna` | The sauna contest. |
-| `RatFight` | The rat fight arena. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>ContestInfo</code> <span>one contest</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public sealed class ContestInfo
-{
-    public string Id { get; }
-    public ContestKind Kind { get; }
-    public string Name { get; }
-}
-```
-
-| Property | Type | What it means |
-|---|---|---|
-| `Id` | `string` | A name for this contest. It is the same in `Started`, `Active` and `Finished`. |
-| `Kind` | `ContestKind` | Which sort of contest it is. |
-| `Name` | `string` | The name the game gives it. It is "Rat fight" for an arena. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>ContestParticipantInfo</code> <span>one person or combatant in a contest</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public sealed class ContestParticipantInfo
-{
-    public string Name { get; }
-}
-```
-
-| Property | Type | What it means |
-|---|---|---|
-| `Name` | `string` | The NPC's name in the scene, or the rat's name in a rat fight. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>ContestResultInfo</code> <span>how a finished contest went</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public sealed class ContestResultInfo
-{
-    public ContestInfo Contest { get; }
-    public bool PlayerWon { get; }
-    public string Winner { get; }
-}
-```
-
-| Property | Type | What it means |
-|---|---|---|
-| `Contest` | `ContestInfo` | Which contest it was. |
-| `PlayerWon` | `bool` | `true` when the player won. See below for what that means in each contest. |
-| `Winner` | `string` | The winning rat's name in a rat fight. It is `""` in a drinking or sauna contest. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
 <p class="api-type-head"><code>Contests</code> <span>contests running now, and their results</span></p>
+
+Call `Active()` to see the contests running now, and `LastResult()` for the last one that finished. Subscribe to `Started` and `Finished` to hear each one as it happens.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -121,12 +38,12 @@ public static class Contests
 | Method | Returns | What it does |
 |---|---|---|
 | `Active()` | `List<ContestInfo>` | Every contest running now. |
-| `Participants(ContestInfo contest)` | `List<ContestParticipantInfo>` | Who is in the contest. It is empty when it is not running. |
-| `OpponentTolerance(ContestInfo contest)` | `float` | How much the opponent has left, from 0 to 1. It is `-1` when it cannot be read. |
+| `Participants(contest)` | `List<ContestParticipantInfo>` | Who is in the contest. It is empty when it is not running. |
+| `OpponentTolerance(contest)` | `float` | How much the opponent has left, from 0 to 1. It is `-1` when it cannot be read. |
 | `GiveUp()` | `bool` | Ends the player's contest as a loss. It is `true` when it did. |
 | `LastResult()` | `ContestResultInfo` | The last contest that finished. It is `null` before the first. |
-| `SetPayoutFactor(string modId, string contestId, float factor)` | `bool` | Scales what the player collects from a rat fight. It is `true` when it was set. |
-| `Clear(string modId)` | `bool` | Takes back every payout factor your mod set. It is `true` when there was something to remove. |
+| `SetPayoutFactor(modId, contestId, factor)` | `bool` | Scales what the player collects from a rat fight. It is `true` when it was set. |
+| `Clear(modId)` | `bool` | Takes back every payout factor your mod set. It is `true` when there was something to remove. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -137,6 +54,104 @@ public static class Contests
 |---|---|---|
 | `Started` | `ContestInfo` | A contest has just started. |
 | `Finished` | `ContestResultInfo` | A contest has just finished. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>ContestInfo</code> <span>one contest</span></p>
+
+`Contests.Active()` gives you these, and `Started` gives you one when a contest begins. Pass one to `Participants` or `OpponentTolerance`.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class ContestInfo
+{
+    public string Id { get; }
+    public ContestKind Kind { get; }
+    public string Name { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Id` | `string` | A name for this contest. It is the same in `Started`, `Active` and `Finished`. |
+| `Kind` | `ContestKind` | Which sort of contest it is. |
+| `Name` | `string` | The name the game gives it. It is "Rat fight" for an arena. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>ContestParticipantInfo</code> <span>one person or combatant in a contest</span></p>
+
+`Contests.Participants(contest)` returns one of these for each person or rat in the contest. The list is empty once the contest has ended.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class ContestParticipantInfo
+{
+    public string Name { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Name` | `string` | The NPC's name in the scene, or the rat's name in a rat fight. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>ContestResultInfo</code> <span>how a finished contest went</span></p>
+
+`Finished` gives you one of these when a contest ends, and `LastResult()` returns the most recent one. Read `PlayerWon` with the notes below on what it means in each contest.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class ContestResultInfo
+{
+    public ContestInfo Contest { get; }
+    public bool PlayerWon { get; }
+    public string Winner { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Contest` | `ContestInfo` | Which contest it was. |
+| `PlayerWon` | `bool` | `true` when the player won. See below for what that means in each contest. |
+| `Winner` | `string` | The winning rat's name in a rat fight. It is `""` in a drinking or sauna contest. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>ContestKind</code> <span>the sort of contest</span></p>
+
+`ContestInfo.Kind` holds one of these. The framework sets it from the game's contest, and `Unknown` covers a contest it has no name for.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public enum ContestKind
+{
+    Unknown = 0,
+    Drinking = 1,
+    Sauna = 2,
+    RatFight = 3
+}
+```
+
+| Value | Meaning |
+|---|---|
+| `Unknown` | A contest the framework has no name for. |
+| `Drinking` | The drinking contest. |
+| `Sauna` | The sauna contest. |
+| `RatFight` | The rat fight arena. |
 
 </div>
 </div>

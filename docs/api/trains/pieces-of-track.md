@@ -11,6 +11,8 @@ A track segment is one piece of track. Each piece can lead on to one or more nex
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Trains</code> <span>lists the pieces of track</span></p>
+Use `Segments()` to list the pieces of track in the loaded scene.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -29,6 +31,8 @@ public static class Trains
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TrackSegmentInfo</code> <span>a snapshot of one piece of track</span></p>
+`Trains.Segments()` gives you one of these for each piece of track. `Occupied` and `OccupiedBy` say whether a train is on it. `Previous` names the piece it comes from, and `Next` lists the piece it leads to on each branch. <span class="tech">(It reads the game's `Track_Segment`.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp

@@ -11,6 +11,9 @@ nav_order: 16
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>PlayerLook</code> <span>read, change and randomise the look</span></p>
+
+Use `Capture` to read the player's look, then `Apply` or `Live` to change it. `Randomise` rolls a new look for you.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -35,16 +38,16 @@ public static class PlayerLook
 | Method | Returns | What it does |
 |---|---|---|
 | `Capture()` | `Look` | Reads the player's look. Returns `null` when `IsAvailable` is `false`. |
-| `Capture(Appearance appearance)` | `Look` | Reads the look of any `Appearance`, such as a character's look in the game. |
-| `Apply(Look look)` | `bool` | Changes the player to this look. Returns `false` when it is not available, or when the game throws. |
-| `Apply(Look look, Appearance appearance)` | `bool` | Changes the look of any `Appearance` to this look, without firing `Changed`. Returns `false` when the appearance is not ready, or when the game throws. |
-| `Live(Look look)` | `bool` | Changes only the body and face dials, not the clothes. |
-| `Live(Look look, Appearance appearance)` | `bool` | Changes only the body and face dials of any `Appearance`, not the clothes, without firing `Changed`. |
+| `Capture(appearance)` | `Look` | Reads the look of any `Appearance`, such as a character's look in the game. |
+| `Apply(look)` | `bool` | Changes the player to this look. Returns `false` when it is not available, or when the game throws. |
+| `Apply(look, appearance)` | `bool` | Changes the look of any `Appearance` to this look, without firing `Changed`. Returns `false` when the appearance is not ready, or when the game throws. |
+| `Live(look)` | `bool` | Changes only the body and face dials, not the clothes. |
+| `Live(look, appearance)` | `bool` | Changes only the body and face dials of any `Appearance`, not the clothes, without firing `Changed`. |
 | `Randomise()` | `Look` | Rolls a new random look, applies it, and returns it. |
-| `Randomise(Appearance appearance)` | `Look` | Rolls a new random look for any `Appearance`, applies it, and returns it, without firing `Changed`. |
+| `Randomise(appearance)` | `Look` | Rolls a new random look for any `Appearance`, applies it, and returns it, without firing `Changed`. |
 | `Vanilla()` | `Look` | A random look made with the game's own random-character rules. It is not applied. |
-| `Options(string slot, bool male)` | `IList<string>` | The clothes names you can pick for a slot, in the game's order. |
-| `Options(string slot, bool male, Appearance appearance)` | `IList<string>` | Does the same for any `Appearance`. |
+| `Options(slot, male)` | `IList<string>` | The clothes names you can pick for a slot, in the game's order. |
+| `Options(slot, male, appearance)` | `IList<string>` | Does the same for any `Appearance`. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -59,6 +62,9 @@ public static class PlayerLook
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>PlayerLook.Look</code> <span>one complete look: flags and height, public fields</span></p>
+
+`Capture`, `Vanilla` and `Randomise` return a `Look`, and `Apply` and `Live` take one. This part holds the flags and the height, and the dials and clothes are in the two blocks below.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -84,6 +90,9 @@ public sealed class Look
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>PlayerLook.Look</code> <span>body and face dials, all floats</span></p>
+
+These are the body and face dials of a `Look`. When `Apply` or `Live` sets them, the framework keeps each one inside its range.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -145,6 +154,9 @@ public sealed class Look
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>PlayerLook.Look</code> <span>clothes, each a wearable name</span></p>
+
+These are the clothes names of a `Look`. `Options` lists the names a slot accepts, and an empty string means nothing is worn there.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

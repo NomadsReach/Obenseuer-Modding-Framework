@@ -7,6 +7,9 @@ nav_order: 3
 
 # Autofarms
 
+This page uses `Vector3` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 ## What it is
 
 An autofarm is a machine in the game that plants crops by itself. It fills its growing slots with plants when a scene starts and again at set times of the week. This API lets your mod list the autofarms in the scene you are in, read what each one grows, change how grown its next plants start, and get told when one plants. The plants themselves, their age and their harvest are on the [recipes page](recipes/growing-plants.md#growing-plants) under `Plants`, not here.
@@ -76,6 +79,9 @@ Each autofarm is an `AutofarmInfo`, a snapshot of its state at the moment you as
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Autofarms</code> <span>lists autofarms and their planting</span></p>
+
+Use `All` or `Get` to find autofarms, `SetGrowPercentage` to change how grown their next plants start, and `Replanted` to hear when one plants.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -92,8 +98,8 @@ public static class Autofarms
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<AutofarmInfo>` | Every autofarm in the scene you are in. |
-| `Get(string id)` | `AutofarmInfo` | The autofarm with this id. `null` when none has it. |
-| `SetGrowPercentage(string id, int min, int max)` | `bool` | Sets how grown the next plants start. `false` when no autofarm has the id. |
+| `Get(id)` | `AutofarmInfo` | The autofarm with this id. `null` when none has it. |
+| `SetGrowPercentage(id, min, max)` | `bool` | Sets how grown the next plants start. `false` when no autofarm has the id. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -108,6 +114,9 @@ public static class Autofarms
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>AutofarmInfo</code> <span>a snapshot of one autofarm</span></p>
+
+`All` and `Get` give you one of these for each autofarm. It is a snapshot, so ask again for fresh values.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -142,6 +151,9 @@ public sealed class AutofarmInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ReplantedArgs</code> <span>what you get when an autofarm plants</span></p>
+
+`Replanted` hands you this each time an autofarm plants. `PlantedCount` says how many slots the planting filled, and `Initial` is `true` for the first planting of a new autofarm.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

@@ -11,6 +11,9 @@ nav_order: 2
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Instruments</code> <span>the guitars in the scene</span></p>
+
+This is the class you start from. `All()` and `Get(id)` find the guitars in the scene, and `IsAvailable` tells you whether the strum and comment events work. The calls that play a guitar are on the [Playing notes and songs](playing-notes-and-songs.md) page.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -25,7 +28,7 @@ public static class Instruments
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<GuitarInfo>` | Every guitar in the scene you are in, held or not. |
-| `Get(string id)` | `GuitarInfo` | The guitar with this id. `null` when none has it. |
+| `Get(id)` | `GuitarInfo` | The guitar with this id. `null` when none has it. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -36,6 +39,9 @@ public static class Instruments
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>GuitarInfo</code> <span>a snapshot of one guitar</span></p>
+
+`All()` and `Get(id)` give you this, one per guitar. It is a copy of the guitar when you asked, so ask again for a current `Equipped` or `HoldPlaying`. <span class="tech">(`Equipped` is the game's `WieldableGuitar.equipped`.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp

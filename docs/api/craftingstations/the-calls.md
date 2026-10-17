@@ -13,6 +13,9 @@ These are the three classes.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>CraftingSpeed</code> <span>how fast a kind of station works</span></p>
+
+Call `SetSpeedFactor` with your mod id and a station kind, or `AllStations` for every kind, and `Clear` to undo it.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -27,8 +30,8 @@ public static class CraftingSpeed
 
 | Method | Returns | What it does |
 |---|---|---|
-| `SetSpeedFactor(string modId, string stationKind, float speed)` | `bool` | Sets how fast one kind of station works for your mod. The speed is from 0.01 to 4. Returns `true` when it was set. |
-| `Clear(string modId)` | `bool` | Removes all of this mod's speed changes. |
+| `SetSpeedFactor(modId, stationKind, speed)` | `bool` | Sets how fast one kind of station works for your mod. The speed is from 0.01 to 4. Returns `true` when it was set. |
+| `Clear(modId)` | `bool` | Removes all of this mod's speed changes. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -40,6 +43,9 @@ public static class CraftingSpeed
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>CraftingQuality</code> <span>how good what stations make is</span></p>
+
+Call `SetQualityFactor` with your mod id to change how good everything a station makes is, and `Clear` to undo it.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -53,8 +59,8 @@ public static class CraftingQuality
 
 | Method | Returns | What it does |
 |---|---|---|
-| `SetQualityFactor(string modId, float factor)` | `bool` | Sets how good everything a station makes is, for your mod. The factor is from 0 to 4. Returns `true` when it was set. |
-| `Clear(string modId)` | `bool` | Removes this mod's quality change. |
+| `SetQualityFactor(modId, factor)` | `bool` | Sets how good everything a station makes is, for your mod. The factor is from 0 to 4. Returns `true` when it was set. |
+| `Clear(modId)` | `bool` | Removes this mod's quality change. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -65,6 +71,9 @@ public static class CraftingQuality
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>CraftingStations</code> <span>start, stop, pause and resume a station</span></p>
+
+Call `Start`, `Stop`, `Pause` and `Resume` with your mod id and the station's id to control a craft.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -79,10 +88,10 @@ public static class CraftingStations
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Start(string modId, string stationId)` | `bool` | Starts a craft. Returns `true` when the station started. |
-| `Stop(string modId, string stationId)` | `bool` | Ends a liquid batch early. Returns `true` when it stopped. |
-| `Pause(string modId, string stationId)` | `bool` | Freezes a running batch. Returns `true` when it froze. |
-| `Resume(string modId, string stationId)` | `bool` | Unfreezes a batch. Returns `true` when it carried on. |
+| `Start(modId, stationId)` | `bool` | Starts a craft. Returns `true` when the station started. |
+| `Stop(modId, stationId)` | `bool` | Ends a liquid batch early. Returns `true` when it stopped. |
+| `Pause(modId, stationId)` | `bool` | Freezes a running batch. Returns `true` when it froze. |
+| `Resume(modId, stationId)` | `bool` | Unfreezes a batch. Returns `true` when it carried on. |
 
 </div>
 </div>

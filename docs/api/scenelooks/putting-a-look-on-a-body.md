@@ -7,10 +7,16 @@ nav_order: 6
 
 # Putting a look on a body
 
+This page uses `GameObject`, `Mesh` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 `Apply` and `Reskin` put a loaded look on a body. `Remove` takes it off again.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SceneLooks</code> <span>puts looks on bodies</span></p>
+
+`Apply` puts a loaded look on a body your mod has just spawned, `Reskin` puts it on an NPC that is already in the scene, and `Remove` takes it off again. `Apply`, `Reskin` and `Remove` return `false` with a `reason` when they refuse.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -25,10 +31,10 @@ public static class SceneLooks
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Apply(string modId, SceneLook look, GameObject body, out string reason)` | `bool` | Puts the look on a body your mod just spawned. Returns `true`, or `false` with a `reason`. |
-| `Reskin(string modId, SceneLook look, GameObject liveNpc, out string reason)` | `bool` | Puts the look on an NPC that is already in the scene. Returns `true`, or `false` with a `reason`. |
-| `Remove(string modId, GameObject body, out string reason)` | `bool` | Takes the look off a body. Returns `true`, or `false` with a `reason`. |
-| `Release(string modId, SceneLook look)` | `void` | Lets go of the look. |
+| `Apply(modId, look, body, out reason)` | `bool` | Puts the look on a body your mod just spawned. Returns `true`, or `false` with a `reason`. |
+| `Reskin(modId, look, liveNpc, out reason)` | `bool` | Puts the look on an NPC that is already in the scene. Returns `true`, or `false` with a `reason`. |
+| `Remove(modId, body, out reason)` | `bool` | Takes the look off a body. Returns `true`, or `false` with a `reason`. |
+| `Release(modId, look)` | `void` | Lets go of the look. |
 
 </div>
 </div>

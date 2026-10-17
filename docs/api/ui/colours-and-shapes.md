@@ -7,10 +7,15 @@ nav_order: 6
 
 # Colours and shapes
 
+This page uses `Sprite` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 `UiTheme` and `UiSprites` give you the kit's colours and shapes, so your own screens look the same. You can read them but not change them. The colours are properties that only give a value. Their names and types are fixed, so a mod that uses `UiTheme.Card` or `UiTheme.Font` directly keeps building when the framework updates.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>UiTheme</code> <span>the kit's colours and font</span></p>
+`UiTheme` gives you the colours the framework's own windows and controls use, so yours can match them. Each one is read-only.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -51,6 +56,8 @@ public static class UiTheme
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>UiSprites</code> <span>the kit's shapes</span></p>
+`Rounded(radius)` gives you a sprite with rounded corners of that radius, which the framework's own windows and controls use.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -62,7 +69,7 @@ public static class UiSprites
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Rounded(int radius)` | `Sprite` | Makes a rounded rectangle. Each radius is made once. The radius is kept between 0 and 64. |
+| `Rounded(radius)` | `Sprite` | Makes a rounded rectangle. Each radius is made once. The radius is kept between 0 and 64. |
 
 </div>
 </div>

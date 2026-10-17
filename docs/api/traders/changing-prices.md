@@ -11,6 +11,8 @@ nav_order: 4
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Traders</code> <span>scales one trader's prices</span></p>
+Use `SetPriceFactors` to scale one trader's prices, and `ClearPriceFactors` to remove your mod's scale.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -23,8 +25,8 @@ public static class Traders
 
 | Method | Returns | What it does |
 |---|---|---|
-| `SetPriceFactors(string modId, string shopId, float buy, float sell)` | `bool` | Scales one trader's prices. Returns `true` when set. |
-| `ClearPriceFactors(string modId, string shopId)` | `bool` | Removes your factors from one trader. |
+| `SetPriceFactors(modId, shopId, buy, sell)` | `bool` | Scales one trader's prices. Returns `true` when set. |
+| `ClearPriceFactors(modId, shopId)` | `bool` | Removes your factors from one trader. |
 
 </div>
 </div>

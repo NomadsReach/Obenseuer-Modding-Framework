@@ -11,6 +11,9 @@ An `ItemStackInfo` is one stack of an item with everything the game knows about 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ItemStackInfo</code> <span>one stack of an item</span></p>
+
+`Containers.GetItems` and `Containers.TakeStack` give you this, and so does `PlayerInventory.Items()`. `Slot` is `-1` when the stack is not in a container slot.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

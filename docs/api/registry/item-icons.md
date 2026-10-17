@@ -11,6 +11,9 @@ The icon of any item can be replaced with your own PNG while the game runs.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ItemIcons</code> <span>replaces item pictures</span></p>
+
+Call `OverrideVanilla` with an item number and the path to a PNG to replace that item's icon while the game runs.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -23,7 +26,7 @@ public static class ItemIcons
 
 | Method | Returns | What it does |
 |---|---|---|
-| `OverrideVanilla(int itemId, string pngPath)` | `bool` | Replaces the icon of any item. Returns `true` when the change was accepted. |
+| `OverrideVanilla(itemId, pngPath)` | `bool` | Replaces the icon of any item. Returns `true` when the change was accepted. |
 
 | Property | Type | What it means |
 |---|---|---|

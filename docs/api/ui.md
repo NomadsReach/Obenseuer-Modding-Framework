@@ -8,6 +8,9 @@ nav_order: 4
 
 # UI
 
+This page uses `KeyCode` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 ## What it is
 
 This is the framework's small kit for building screens in your mod. It has windows (`ModWindow`), ready-made controls such as buttons, sliders and toggles (`ModUi`), and the colours and shapes the kit uses (`UiTheme`, `UiSprites`). Screens built with it match the framework's Mods menu. If you would rather write your screen in HTML, see the [WebUi page](webui.md).

@@ -7,6 +7,9 @@ nav_order: 3
 
 # Keybinds
 
+This page uses `KeyCode` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 `Keybinds` reads the keys the player bound to the game's actions, and registers keys for your mod. A key you register is saved in a config file and can be changed in the Mods menu.
 
 Game actions use the game's own names, written exactly as the game spells them:
@@ -15,6 +18,9 @@ Game actions use the game's own names, written exactly as the game spells them:
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Keybinds</code> <span>reads and registers keys</span></p>
+
+This is the class to start from. `Key`, `Button`, `Label`, `Down` and `Held` read the keys the player bound to a game action, and `Register` adds a key for your mod.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -31,18 +37,21 @@ public static class Keybinds
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Key(string action)` | `KeyCode` | The keyboard key the player bound to a game action. |
-| `Button(string action)` | `KeyCode` | The controller button for a game action. |
-| `Label(string action)` | `string` | The text to show the player for the action's key or button. |
-| `Down(string action)` | `bool` | `true` on the frame the player presses the action. |
-| `Held(string action)` | `bool` | `true` while the player holds the action. |
-| `Register(string modId, string id, string displayName, KeyCode defaultKey)` | `ModKeybind` | Adds a key for your mod. |
+| `Key(action)` | `KeyCode` | The keyboard key the player bound to a game action. |
+| `Button(action)` | `KeyCode` | The controller button for a game action. |
+| `Label(action)` | `string` | The text to show the player for the action's key or button. |
+| `Down(action)` | `bool` | `true` on the frame the player presses the action. |
+| `Held(action)` | `bool` | `true` while the player holds the action. |
+| `Register(modId, id, displayName, defaultKey)` | `ModKeybind` | Adds a key for your mod. |
 
 </div>
 </div>
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ModKeybind</code> <span>a key your mod registered</span></p>
+
+`Keybinds.Register` gives you one of these. Use its `Down`, `Up` and `Held` methods to check your key, and read `Key` for the main key it is bound to.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

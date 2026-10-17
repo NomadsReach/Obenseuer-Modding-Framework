@@ -9,6 +9,9 @@ nav_order: 3
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Surveillance</code> <span>the three surveillance events</span></p>
+
+This is the class to start from. `PlayerSpotted` tells you when a camera or a person spots the player, and `TrespassEntered` and `TrespassLeft` tell you when the player enters or leaves a trespassing area.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -31,6 +34,9 @@ public static class Surveillance
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SurveillanceSource</code> <span>who spotted the player</span></p>
+
+`PlayerSpottedArgs.Source` gives you one of these.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -51,6 +57,9 @@ public enum SurveillanceSource
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>PlayerSpottedArgs</code> <span>what PlayerSpotted tells you</span></p>
+
+The `PlayerSpotted` event gives you one of these. `Source` says whether a camera or a person spotted the player, and `NpcId` is the person's number, or `0` for a camera.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -73,6 +82,9 @@ public sealed class PlayerSpottedArgs
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TrespassArgs</code> <span>what TrespassEntered and TrespassLeft tell you</span></p>
+
+The `TrespassEntered` and `TrespassLeft` events give you one of these, with the `AreaId` of the trespassing area.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

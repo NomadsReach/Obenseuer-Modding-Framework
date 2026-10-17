@@ -7,10 +7,16 @@ nav_order: 2
 
 # Defining furniture
 
+This page uses `Sprite` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 `FurnitureRegistry` is where you add furniture. A furniture is described by a `FurnitureDefinition` and has an id, a text name that you use for it afterwards. The id looks like `obx:<mod id>/<key>`.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>FurnitureRegistry</code> <span>adding and finding furniture</span></p>
+
+This is the class you use to add and find furniture. `Define` adds a furniture, and `Get` returns the game's object for one.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -29,10 +35,10 @@ public static class FurnitureRegistry
 
 | Method | Returns | What it does |
 |---|---|---|
-| `IdFor(string modGuid, string key)` | `string` | The id a furniture would have. It does not define anything. |
-| `Define(string modGuid, string key, FurnitureDefinition definition)` | `string` | Adds a furniture. Returns its id, or `null` when refused. |
-| `Get(string id)` | `Furniture` | The game's furniture object for an id. `null` when there is none. |
-| `Give(string furnitureId, int amount)` | `bool` | Puts pieces into the player's stock. `true` when done. |
+| `IdFor(modGuid, key)` | `string` | The id a furniture would have. It does not define anything. |
+| `Define(modGuid, key, definition)` | `string` | Adds a furniture. Returns its id, or `null` when refused. |
+| `Get(id)` | `Furniture` | The game's furniture object for an id. `null` when there is none. |
+| `Give(furnitureId, amount)` | `bool` | Puts pieces into the player's stock. `true` when done. |
 | `ShopGuids()` | `List<string>` | The id of every furniture shop in the loaded levels. |
 
 | Property | Type | What it means |
@@ -48,6 +54,9 @@ public static class FurnitureRegistry
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>FurnitureDefinition</code> <span>the description of one new furniture</span></p>
+
+You fill one in and pass it to `FurnitureRegistry.Define`. Set `TemplatePath` or `TemplateName` to pick the game piece to copy, and leave the other fields `null` or `-1` to keep the copy's own values.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -90,6 +99,9 @@ public sealed class FurnitureDefinition
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>FurniturePlacement</code> <span>where a piece may be placed</span></p>
+
+`Placement` in a `FurnitureDefinition` takes one of these. The framework sets the preview's orientation from it, using the game's `PlaceType` of the same name for `Floor`, `Wall`, `Ceiling` and `FloorAndWall`. <span class="tech">(It calls `ObjectPreview.SetOrientationType`.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp

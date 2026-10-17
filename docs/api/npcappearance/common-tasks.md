@@ -7,6 +7,9 @@ nav_order: 1
 
 # Common tasks
 
+This page uses `Mesh` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 Hide one body part of a character, then put everything back. `npcId` is the character's number and `"Hat"` stands for a part name taken from `Meshes`. `Mod.Id` is your mod's id (see the [glossary](../../glossary.md#mod-id)).
 
 ```csharp

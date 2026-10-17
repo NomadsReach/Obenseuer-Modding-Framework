@@ -17,6 +17,9 @@ Scores run from -100 to 100.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Relationships</code> <span>scores and change event</span></p>
+
+Use `GetDisposition` or `All()` to read the scores, `Has` to check whether the player has one, and `RelationshipChanged` to hear when a score changes.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -33,8 +36,8 @@ public static class Relationships
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<RelationshipValue>` | Every relationship the framework tracks. |
-| `GetDisposition(string id)` | `float` | The score, or `0` if the player does not have it. |
-| `Has(string id)` | `bool` | It is `true` when the player has it. |
+| `GetDisposition(id)` | `float` | The score, or `0` if the player does not have it. |
+| `Has(id)` | `bool` | It is `true` when the player has it. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -49,6 +52,9 @@ public static class Relationships
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>RelationshipValue</code> <span>one relationship</span></p>
+
+`Relationships.All()` gives you one of these for each relationship the framework tracks. `Disposition` is the score now, and `Target` is the score it moves toward.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -75,6 +81,9 @@ public sealed class RelationshipValue
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>RelationshipChange</code> <span>a score change</span></p>
+
+`Relationships.RelationshipChanged` hands you one of these when the game's daily check changes a score. `Previous` and `Current` are the scores before and after.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

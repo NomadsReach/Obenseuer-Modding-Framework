@@ -11,6 +11,9 @@ You can open or close a door from your mod. Both calls give back a `bool` that t
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Doors</code> <span>opens and closes doors</span></p>
+
+Call `Open` or `Close` with a door's id, and check the `bool` it returns.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -23,8 +26,8 @@ public static class Doors
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Open(string id)` | `bool` | Opens the door. `true` when it is now open or opening. |
-| `Close(string id)` | `bool` | Closes the door. `true` when it is closed or closing. |
+| `Open(id)` | `bool` | Opens the door. `true` when it is now open or opening. |
+| `Close(id)` | `bool` | Closes the door. `true` when it is closed or closing. |
 
 </div>
 </div>

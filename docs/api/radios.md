@@ -7,6 +7,9 @@ nav_order: 10
 
 # Radios
 
+This page uses `KeyCode`, `Vector3`, `Mesh` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 ## What it is
 
 The radios in the game's rooms are objects you can switch on, and each can be tuned to a channel. This API lets your mod list the radios in the scene you are in, read whether each one is switched on and which channel it is on, and switch a radio on or off.
@@ -88,6 +91,9 @@ This is the full list of what the API gives you. `Radios.All()` and `Radios.Get(
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Radios</code> <span>the radios in the scene</span></p>
+
+Use it to list the radios in the scene, read whether each one is switched on, and switch one on or off with `SetEnabled`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -104,16 +110,19 @@ public static class Radios
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<RadioInfo>` | Every radio in the scene you are in. |
-| `Get(string id)` | `RadioInfo` | One radio. `null` when no radio has that id. |
-| `Enabled(string id)` | `bool` | `true` when the radio is switched on. `false` when the id is not known. |
-| `State(string id)` | `int` | The channel. `0` when the radio is off or the id is not known. |
-| `SetEnabled(string id, bool enabled)` | `bool` | Switches the radio on or off. `true` when the radio was found. |
+| `Get(id)` | `RadioInfo` | One radio. `null` when no radio has that id. |
+| `Enabled(id)` | `bool` | `true` when the radio is switched on. `false` when the id is not known. |
+| `State(id)` | `int` | The channel. `0` when the radio is off or the id is not known. |
+| `SetEnabled(id, enabled)` | `bool` | Switches the radio on or off. `true` when the radio was found. |
 
 </div>
 </div>
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>RadioInfo</code> <span>a snapshot of one radio</span></p>
+
+`Radios.All()` and `Radios.Get(id)` give you these. `Enabled` says whether the radio is switched on, and `State` gives its channel, where 0 means off.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

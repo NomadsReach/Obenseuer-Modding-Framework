@@ -7,6 +7,9 @@ nav_order: 6
 
 # Plant actions
 
+This page uses `KeyCode` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 ## What it is
 
 Plants grow in growing spots, such as the beds of a growing station. This API lets your mod change a single plant: harvest it, restart it, set how old it is, change how old it must be to be ripe, pause it, make it rot, or plant a new one in an empty spot. It can also pick up a plant that the player takes by hand. Listing the plants and getting told about a harvest are on the [Recipes page](recipes.md) (`Plants.All`, `Plants.Harvested`, `Plants.Picked`). Plant ids are the ids that `Plants.All` gives you. To act on a whole station at once, use [Growing stations](growingstations.md).
@@ -97,6 +100,9 @@ This is the full list of what the API gives you. Text in brackets at the end of 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>PlantActions</code> <span>change one plant or one growing spot</span></p>
+
+Use it to harvest a plant, reset or pause its growth, change its age or rot, plant an item in an empty growing spot, or pick up a plant that was picked by hand.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

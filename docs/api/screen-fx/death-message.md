@@ -11,6 +11,9 @@ This call sets the reason the death screen shows.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ScreenFx</code> <span>the reason on the death screen</span></p>
+
+`ScreenFx.SetDeathMessage` sets the reason the death screen shows. Call it just before the death screen appears, because the game may replace the text before then.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -19,7 +22,7 @@ public static bool SetDeathMessage(string text);
 
 | Method | Returns | What it does |
 |---|---|---|
-| `SetDeathMessage(string text)` | `bool` | Sets the reason shown on the death screen. |
+| `SetDeathMessage(text)` | `bool` | Sets the reason shown on the death screen. |
 
 </div>
 </div>

@@ -7,10 +7,16 @@ nav_order: 5
 
 # Building a clip from numbers
 
+This page uses `AudioClip` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 Sometimes the sound has to live inside your DLL instead of a loose file, or your code makes the sound. `FromPcm` and `FromPcm16` build a clip from a list of numbers. Each number is one point on the sound wave, called a sample.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Sounds</code> <span>builds clips from sample numbers</span></p>
+
+Call `FromPcm` or `FromPcm16` with your samples to build a clip, then play it with `PlayClip` or `PlayClipAt`. Destroy the clip when you are finished with it.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -23,8 +29,8 @@ public static class Sounds
 
 | Method | Returns | What it does |
 |---|---|---|
-| `FromPcm(string name, float[] samples, int channels, int rate)` | `AudioClip` | Builds a clip from decimal samples between -1 and 1. |
-| `FromPcm16(string name, short[] samples, int channels, int rate)` | `AudioClip` | Builds a clip from 16-bit whole-number samples. |
+| `FromPcm(name, samples, channels, rate)` | `AudioClip` | Builds a clip from decimal samples between -1 and 1. |
+| `FromPcm16(name, samples, channels, rate)` | `AudioClip` | Builds a clip from 16-bit whole-number samples. |
 
 </div>
 </div>

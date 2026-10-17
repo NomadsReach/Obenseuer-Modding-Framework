@@ -74,6 +74,9 @@ The game calls the part you place dynamite on a cone, so the names below say "co
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>BlastSites</code> <span>list blast sites and listen for them going off</span></p>
+
+Use `All` or `Get` to find blast sites, and listen to `Detonated` for the id of each one that goes off. `IsAvailable` is `false` when that event could not be set up.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -89,7 +92,7 @@ public static class BlastSites
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<BlastSiteInfo>` | Every blast site in the scene you are in. |
-| `Get(string id)` | `BlastSiteInfo` | The blast site with this id. `null` when there is none. |
+| `Get(id)` | `BlastSiteInfo` | The blast site with this id. `null` when there is none. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -104,6 +107,9 @@ public static class BlastSites
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>BlastSiteInfo</code> <span>a snapshot of one blast site</span></p>
+
+`All` and `Get` give you one of these for each site. `DynamitePlaced` and `Detonated` say where the site is in the blast, and the `Linked` counts describe its group.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

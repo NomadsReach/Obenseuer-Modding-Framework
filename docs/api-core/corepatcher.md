@@ -13,6 +13,9 @@ A change that runs before the game method is a prefix, one that runs after is a 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>CorePatcher</code> <span>change a game method</span></p>
+
+Call one of the `Patch` overloads with the game method and your prefix, postfix or finalizer, passing `null` for any you do not need. `IsDisabled` tells you whether the framework has turned off your changes.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -28,11 +31,11 @@ public static class CorePatcher
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Patch(MethodBase target, MethodInfo prefix, MethodInfo postfix, MethodInfo finalizer, bool core, string owner)` | `bool` | Changes a game method given as a method object. |
-| `Patch(Type type, string name, Type[] args, MethodInfo prefix, MethodInfo postfix, MethodInfo finalizer, bool core, string owner)` | `bool` | The same, but finds the game method by its type, name and parameter types. |
-| `Patch(MethodBase target, MethodInfo prefix, MethodInfo postfix, MethodInfo finalizer, bool core, string owner, int priority)` | `bool` | The same as the first, with a priority that decides the order against other mods' changes. |
-| `Patch(Type type, string name, Type[] args, MethodInfo prefix, MethodInfo postfix, MethodInfo finalizer, bool core, string owner, int priority)` | `bool` | The same as the second, with a priority. |
-| `IsDisabled(string owner)` | `bool` | `true` when the framework turned off all changes made under this mod id. |
+| `Patch(target, prefix, postfix, finalizer, core, owner)` | `bool` | Changes a game method given as a method object. |
+| `Patch(type, name, args, prefix, postfix, finalizer, core, owner)` | `bool` | The same, but finds the game method by its type, name and parameter types. |
+| `Patch(target, prefix, postfix, finalizer, core, owner, priority)` | `bool` | The same as the first, with a priority that decides the order against other mods' changes. |
+| `Patch(type, name, args, prefix, postfix, finalizer, core, owner, priority)` | `bool` | The same as the second, with a priority. |
+| `IsDisabled(owner)` | `bool` | `true` when the framework turned off all changes made under this mod id. |
 
 </div>
 </div>

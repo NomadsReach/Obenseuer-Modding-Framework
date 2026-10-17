@@ -11,6 +11,8 @@ You can store one piece of text per mod on an object that has a save id. The fra
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WorldObjects</code> <span>stores text on saved objects</span></p>
+Use `GetData` and `SetData` to read and write your mod's text on a saved object, passing the `WorldObjectInfo` you got from [`InfoOf`](finding-objects.md).
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -23,8 +25,8 @@ public static class WorldObjects
 
 | Method | Returns | What it does |
 |---|---|---|
-| `GetData(string modId, WorldObjectInfo obj)` | `string` | Your stored text for this object. `null` when there is none. |
-| `SetData(string modId, WorldObjectInfo obj, string blob)` | `bool` | Stores your text on this object. Returns `true` when it was stored. |
+| `GetData(modId, obj)` | `string` | Your stored text for this object. `null` when there is none. |
+| `SetData(modId, obj, blob)` | `bool` | Stores your text on this object. Returns `true` when it was stored. |
 
 </div>
 </div>

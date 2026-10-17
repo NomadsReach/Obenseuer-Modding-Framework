@@ -7,6 +7,9 @@ nav_order: 4
 
 # Dishwashers
 
+This page uses `Vector3` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 Status: experimental.
 
 ## What it is
@@ -81,6 +84,9 @@ if (!Dishwashers.IsAvailable) Log.Warn("Dishwasher events are off");
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Dishwashers</code> <span>find dishwashers and watch their washes</span></p>
+
+Call `All()` or `Get(id)` to find dishwashers, and `Ready` or `Progress` to see how a wash is going.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -99,10 +105,10 @@ public static class Dishwashers
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<DishwasherInfo>` | Every dishwasher in the scene you are in. |
-| `Get(string id)` | `DishwasherInfo` | The dishwasher with this id. `null` when there is none. |
-| `Contents(string id)` | `List<ItemStackInfo>` | The items inside the dishwasher. An empty list when there is none. |
-| `Ready(string id)` | `bool` | `true` when the dishwasher is switched on, has power and is not washing. |
-| `Progress(string id)` | `float` | How far through the wash it is, from 0 to 1. `0` when it is not washing. |
+| `Get(id)` | `DishwasherInfo` | The dishwasher with this id. `null` when there is none. |
+| `Contents(id)` | `List<ItemStackInfo>` | The items inside the dishwasher. An empty list when there is none. |
+| `Ready(id)` | `bool` | `true` when the dishwasher is switched on, has power and is not washing. |
+| `Progress(id)` | `float` | How far through the wash it is, from 0 to 1. `0` when it is not washing. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -117,6 +123,9 @@ public static class Dishwashers
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>DishwasherInfo</code> <span>a snapshot of one dishwasher</span></p>
+
+`Dishwashers.All()` and `Get(id)` give you one of these. Pass its `Id` to the other calls on this page. <span class="tech">(The id is the game's `CraftingBase.GUID` for the station.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp

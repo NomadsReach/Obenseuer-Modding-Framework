@@ -11,6 +11,9 @@ nav_order: 2
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Invoices</code> <span>list, send and cancel bills</span></p>
+
+This is the class you start from. `All()` and `Get` list the bills, `Create` sends one, `Cancel` removes one, and the `Issued`, `Paid` and `Cancelled` events tell you when a bill changes.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -34,11 +37,11 @@ public static class Invoices
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<InvoiceInfo>` | Every open invoice the player has. |
-| `Get(int id)` | `InvoiceInfo` | The invoice with this id. `null` when there is none. |
-| `CanPay(int id)` | `bool` | `true` when the invoice can be paid right now. |
-| `Create(string debtor, MoneyCurrency currency, int amount, int days = 7)` | `bool` | Sends a new invoice. `false` when it was not sent. |
-| `Cancel(int id)` | `bool` | Cancels an invoice. `true` when it is gone. |
-| `FireSender(string id)` | `bool` | Sets off an invoice sender in the level. `false` when no new invoice was issued. |
+| `Get(id)` | `InvoiceInfo` | The invoice with this id. `null` when there is none. |
+| `CanPay(id)` | `bool` | `true` when the invoice can be paid right now. |
+| `Create(debtor, currency, amount, days)` | `bool` | Sends a new invoice. `false` when it was not sent. |
+| `Cancel(id)` | `bool` | Cancels an invoice. `true` when it is gone. |
+| `FireSender(id)` | `bool` | Sets off an invoice sender in the level. `false` when no new invoice was issued. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -55,6 +58,9 @@ public static class Invoices
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>InvoiceInfo</code> <span>a snapshot of one invoice</span></p>
+
+`All()` and `Get(id)` give you this, one for each bill in the game's list. It is a snapshot taken when you asked. Use its `Id` with `Get`, `CanPay` and `Cancel`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -87,6 +93,9 @@ public sealed class InvoiceInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>InvoiceArgs</code> <span>what you are told when an invoice changes</span></p>
+
+`Issued`, `Paid` and `Cancelled` give you this. `Invoice` is the bill the event is about. After `Cancelled`, `Get` returns null for that id, so keep the bill from the args.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

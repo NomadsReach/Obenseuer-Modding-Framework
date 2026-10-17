@@ -8,6 +8,9 @@ nav_order: 7
 
 # NPC appearance
 
+This page uses `Mesh` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 Status: experimental. Every member on this page is experimental.
 
 ## What it is

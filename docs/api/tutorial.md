@@ -70,6 +70,8 @@ This is the full list of what the API gives you. Text in brackets at the end of 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TutorialGuide</code> <span>read the opening tutorial step and listen for changes</span></p>
+Use `Step` to read the opening tutorial step, and `StepChanged` to hear when it moves on.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -97,6 +99,8 @@ public static class TutorialGuide
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TutorialStep</code> <span>the opening tutorial steps</span></p>
+`Step` and `StepChanged` use this for the opening tutorial. The framework works the step out from the game's own look, move, interact and menu flags.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -123,6 +127,8 @@ public enum TutorialStep
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TutorialStepArgs</code> <span>what changed</span></p>
+`StepChanged` gives you this. `Previous` is the step before, and `Step` is the step now.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

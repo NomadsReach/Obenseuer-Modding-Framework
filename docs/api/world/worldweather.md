@@ -13,6 +13,8 @@ This is the full list of what the API gives you, one section for each part. Text
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WorldWeather</code> <span>read and set the global weather</span></p>
+Use these to read the weather now, `Set` to change it, and `WeatherChanged` to hear when it changes.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -56,10 +58,10 @@ public static partial class WorldWeather
 
 | Method | Returns | What it does |
 |---|---|---|
-| `NameOf(int index)` | `string` | The name of a weather. `null` when the index is out of range. |
-| `IndexOf(string name)` | `int` | The index of a weather by name. `-1` when not found. |
-| `Set(int index, float transitionSeconds = 0f)` | `bool` | Changes the global weather. Returns `true` when it worked. |
-| `SetThunder(bool active)` | `bool` | Turns thunder on or off. Returns `true` also when it already was that way. |
+| `NameOf(index)` | `string` | The name of a weather. `null` when the index is out of range. |
+| `IndexOf(name)` | `int` | The index of a weather by name. `-1` when not found. |
+| `Set(index, transitionSeconds)` | `bool` | Changes the global weather. Returns `true` when it worked. |
+| `SetThunder(active)` | `bool` | Turns thunder on or off. Returns `true` also when it already was that way. |
 
 | Event | Gives you | When it fires |
 |---|---|---|
@@ -70,6 +72,8 @@ public static partial class WorldWeather
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WeatherChangedArgs</code> <span>what WeatherChanged tells you</span></p>
+`WeatherChanged` gives you this when the weather changes. `Index` is the index of the weather it changed to.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -109,6 +113,8 @@ A weather zone is an area in a scene with its own local weather. While the playe
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WorldWeather</code> <span>weather zones</span></p>
+Use `SetZone` to give one weather zone its own weather, and `ClearZones` to remove your mod's zones.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -129,14 +135,16 @@ public static partial class WorldWeather
 | Method | Returns | What it does |
 |---|---|---|
 | `Zones()` | `List<WeatherZoneInfo>` | The weather zones the game has in this scene. |
-| `SetZone(string modId, string zoneId, int weatherIndex, float blendDistance)` | `bool` | Makes a zone use one of the global weathers. |
-| `ClearZones(string modId)` | `bool` | Takes back every zone change your mod made. Returns `true` when it had made one. |
+| `SetZone(modId, zoneId, weatherIndex, blendDistance)` | `bool` | Makes a zone use one of the global weathers. |
+| `ClearZones(modId)` | `bool` | Takes back every zone change your mod made. Returns `true` when it had made one. |
 
 </div>
 </div>
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WeatherZoneInfo</code> <span>a snapshot of one weather zone</span></p>
+`Zones()` gives you one of these for each weather zone. `Overridden` says whether a mod has changed the zone with `SetZone`. <span class="tech">(It reads the game's `AzureWeatherZone`.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp

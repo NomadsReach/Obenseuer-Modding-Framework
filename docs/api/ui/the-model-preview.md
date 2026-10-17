@@ -7,10 +7,15 @@ nav_order: 5
 
 # The model preview
 
+This page uses `Transform`, `Mesh` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 A model preview draws a 3D model, such as the player, inside a window. The player can drag to turn it and use the wheel to zoom.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ModelPreview</code> <span>a 3D view of a model</span></p>
+[`ModUi.ModelPreview`](controls.md) builds one of these for a transform you pass in, with the framing you choose.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

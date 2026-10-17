@@ -11,6 +11,9 @@ A blueprint can join the game's own blueprint pools, so it turns up as a pickup 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>FurnitureRegistry</code> <span>world spawning</span></p>
+
+This is the class for spawning blueprints and flatpacks. `MailBlueprint` sends a blueprint by mail, and `AddFlatpackLoot` makes flatpacks turn up in a loot category. The two pool names are for the `Pools` list on `BlueprintDefinition`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -30,8 +33,8 @@ public static class FurnitureRegistry
 
 | Method | Returns | What it does |
 |---|---|---|
-| `MailBlueprint(string furnitureId, string mailName, MailKind kind)` | `bool` | Sends the blueprint by mail. |
-| `AddFlatpackLoot(string furnitureId, string category, int weight)` | `bool` | Makes flatpacks turn up in a loot category. |
+| `MailBlueprint(furnitureId, mailName, kind)` | `bool` | Sends the blueprint by mail. |
+| `AddFlatpackLoot(furnitureId, category, weight)` | `bool` | Makes flatpacks turn up in a loot category. |
 
 </div>
 </div>

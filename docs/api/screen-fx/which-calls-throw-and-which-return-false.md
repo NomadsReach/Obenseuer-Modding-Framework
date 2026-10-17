@@ -11,6 +11,9 @@ This is the full list of what the API gives you. Text in brackets at the end of 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ScreenFx</code> <span>whether the field of view override works</span></p>
+
+`IsAvailable` tells you whether the field of view override works. Every `ScreenFx` call returns `false` when it could not do its job, and throws only for a bad value.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

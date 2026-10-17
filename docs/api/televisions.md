@@ -70,6 +70,8 @@ This is the full list of what the API gives you. Text in brackets at the end of 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Televisions</code> <span>lists, reads and switches sets</span></p>
+Use it to find the televisions in the loaded scene and to switch one on or off with `SetOn`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -86,8 +88,8 @@ public static class Televisions
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<TelevisionInfo>` | Every television in the scene you are in. |
-| `Get(string id)` | `TelevisionInfo` | The television with this id. `null` when nobody has it. |
-| `SetOn(string id, bool on)` | `bool` | Switches a television on or off. `true` when it ends up in the state you asked for. |
+| `Get(id)` | `TelevisionInfo` | The television with this id. `null` when nobody has it. |
+| `SetOn(id, on)` | `bool` | Switches a television on or off. `true` when it ends up in the state you asked for. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -102,6 +104,8 @@ public static class Televisions
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TelevisionInfo</code> <span>a snapshot of one television</span></p>
+`All()` gives you one of these for each television, and `Get(id)` gives you one for a single id. It is a snapshot, so ask again to see a change. <span class="tech">(It reads the game's `TelevisionNoise`.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -122,6 +126,8 @@ public sealed class TelevisionInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TelevisionChangedArgs</code> <span>what Changed tells you</span></p>
+`Changed` gives you this each time a television turns on or off, and `On` is its new state. The framework hooks the game's own `TurnOn` and `TurnOff`, so a switch the player makes raises it too.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

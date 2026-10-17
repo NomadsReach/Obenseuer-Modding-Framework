@@ -13,6 +13,9 @@ This is the full list of what the API gives you, one section for each part. Text
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>GameSettings</code> <span>reads the player's options</span></p>
+
+This is the class to start from. `Display()` and `Quality()` give you the saved options, `SetFov` and `ClearFov` change the field of view, and `Changed` tells you when the game applies new display or quality options.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -44,9 +47,9 @@ public static class GameSettings
 | `HintsEnabled()` | `bool` | `true` when the card game's hints are switched on. |
 | `ToggleSprint()` | `bool` | `true` for toggle mode, `false` for hold mode. |
 | `ToggleCrouch()` | `bool` | `true` for toggle mode, `false` for hold mode. |
-| `SetFov(int fov)` | `bool` | Overwrites the player's saved field of view. |
-| `SetFov(string owner, int fov)` | `bool` | Sets the field of view in memory only. |
-| `ClearFov(string owner)` | `bool` | Gives the field of view back. |
+| `SetFov(fov)` | `bool` | Overwrites the player's saved field of view. |
+| `SetFov(owner, fov)` | `bool` | Sets the field of view in memory only. |
+| `ClearFov(owner)` | `bool` | Gives the field of view back. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -61,6 +64,9 @@ public static class GameSettings
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>GameScreenMode</code> <span>window, borderless or full screen</span></p>
+
+`GameDisplay.ScreenMode` gives you one of these.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -83,6 +89,9 @@ public enum GameScreenMode
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>GameDisplay</code> <span>the saved display options</span></p>
+
+`GameSettings.Display()` gives you one of these, or `null` when the game has not created its options yet. It is a snapshot of what is saved when you ask. <span class="tech">(It is built from the game's saved display settings.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -115,6 +124,9 @@ public sealed class GameDisplay
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>GameQuality</code> <span>the saved graphics options</span></p>
+
+`GameSettings.Quality()` gives you one of these, or `null` when the game has not created its options yet. Its numbers are the game's own index numbers, not named levels. <span class="tech">(It is built from the game's saved quality settings.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp

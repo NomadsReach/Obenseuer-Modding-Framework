@@ -7,10 +7,15 @@ nav_order: 3
 
 # Trains on the track
 
+This page uses `Vector3` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 Each `TrackTrainInfo` is a snapshot of one train or wagon on the track. `All()` gives you every one of them.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Trains</code> <span>lists the trains on the track</span></p>
+Use `All()` to list every train and wagon on the track.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -29,6 +34,8 @@ public static class Trains
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TrackTrainInfo</code> <span>a snapshot of one train or wagon</span></p>
+`All()` gives you one of these for each train or wagon on the track. `FrontCoupledTo` and `BackCoupledTo` name what is joined at each end. It is a snapshot, so ask again for fresh values. <span class="tech">(It reads the game's `TrackTrain`.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp

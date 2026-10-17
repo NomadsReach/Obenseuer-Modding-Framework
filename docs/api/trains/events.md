@@ -11,6 +11,8 @@ The events tell your mod when a train sets off, stops or crashes.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Trains</code> <span>train events and status</span></p>
+Use these events to hear when a train departs, arrives or crashes.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -38,6 +40,8 @@ public static class Trains
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TrainArgs</code> <span>what Departed and Arrived tell you</span></p>
+`Departed` fires when a train starts moving and `Arrived` when it stops, and both give you this. `Speed` is the train's speed at that moment.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -58,6 +62,8 @@ public sealed class TrainArgs
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TrainCrashArgs</code> <span>what Crashed tells you</span></p>
+`Crashed` gives you this when a moving train stops in a crash. `OtherTrainId` names the train it hit, or is `null` when the object it hit is not a train.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

@@ -7,10 +7,16 @@ nav_order: 3
 
 # Air nodes
 
+This page uses `Vector3` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 An air node is a waypoint on a drone's route. `Drones.Nodes()` lists them so your mod can find a node id to send a drone to.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Drones</code> <span>the air nodes in the scene</span></p>
+
+Call `Drones.Nodes()` to list the air nodes in the scene, and pass a node's `Id` to `SetTarget`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -29,6 +35,9 @@ public static class Drones
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>AirNodeInfo</code> <span>a snapshot of one air node</span></p>
+
+`Drones.Nodes()` gives you one of these for each node. `LinkedNodeIds` lists the nodes it connects to, in route order.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

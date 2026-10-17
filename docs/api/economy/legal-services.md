@@ -10,29 +10,49 @@ nav_order: 9
 Legal services are the game's menu of paid services that a player can queue: clearing a crime, or unfreezing a bank account. `LegalServices` lists them with their price, lets your mod queue one, and tells you when one is queued or done.
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>LegalActionKind</code> <span>what a legal service does</span></p>
+<p class="api-type-head"><code>LegalServices</code> <span>the menu, the debts and the queue</span></p>
+
+Call `Actions()` to list the services and their prices, and `Queue(name)` with a service's `Name` to queue one.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
-public enum LegalActionKind
+public static class LegalServices
 {
-    None = 0,
-    ClearCrime = 1,
-    UnfreezeAccount = 2
+    public static bool IsAvailable { get; }
+    public static event Action<LegalActionArgs> Queued;
+    public static event Action<LegalActionArgs> Completed;
+    public static List<LegalActionInfo> Actions();
+    public static bool HasDebt(string invoiceName);
+    public static bool GetDebt(string invoiceName, out int oc, out float rm);
+    public static bool Queue(string name);
 }
 ```
 
-| Value | Meaning |
-|---|---|
-| `None` | No particular kind. |
-| `ClearCrime` | Clears a crime. |
-| `UnfreezeAccount` | Unfreezes a bank account. |
+| Method | Returns | What it does |
+|---|---|---|
+| `Actions()` | `List<LegalActionInfo>` | The game's menu of services. |
+| `HasDebt(invoiceName)` | `bool` | `true` when there is a debt for that invoice. |
+| `GetDebt(invoiceName, out oc, out rm)` | `bool` | Reads that debt. |
+| `Queue(name)` | `bool` | Queues a service by its name. |
+
+| Property | Type | What it means |
+|---|---|---|
+| `IsAvailable` | `bool` | `true` when the game's legal services exist. |
+
+| Event | Gives you | When it fires |
+|---|---|---|
+| `Queued` | `LegalActionArgs` | A service was queued. |
+| `Completed` | `LegalActionArgs` | A queued service was done. |
 
 </div>
 </div>
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>LegalActionInfo</code> <span>one legal service</span></p>
+
+`LegalServices.Actions()` gives you one of these for each service. `CanTrigger` says whether it can be queued now, and `Queued` says whether it already is.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -69,6 +89,9 @@ public sealed class LegalActionInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>LegalActionArgs</code> <span>what you get when a service is queued or done</span></p>
+
+`Queued` and `Completed` pass you one of these, with the service's `Name`, `Kind` and `Target`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -90,37 +113,26 @@ public sealed class LegalActionArgs
 </div>
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>LegalServices</code> <span>the menu, the debts and the queue</span></p>
+<p class="api-type-head"><code>LegalActionKind</code> <span>what a legal service does</span></p>
+
+`LegalActionInfo.Kind` holds one of these, so you can tell a crime clearance from an account unfreeze.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
-public static class LegalServices
+public enum LegalActionKind
 {
-    public static bool IsAvailable { get; }
-    public static event Action<LegalActionArgs> Queued;
-    public static event Action<LegalActionArgs> Completed;
-    public static List<LegalActionInfo> Actions();
-    public static bool HasDebt(string invoiceName);
-    public static bool GetDebt(string invoiceName, out int oc, out float rm);
-    public static bool Queue(string name);
+    None = 0,
+    ClearCrime = 1,
+    UnfreezeAccount = 2
 }
 ```
 
-| Method | Returns | What it does |
-|---|---|---|
-| `Actions()` | `List<LegalActionInfo>` | The game's menu of services. |
-| `HasDebt(string invoiceName)` | `bool` | `true` when there is a debt for that invoice. |
-| `GetDebt(string invoiceName, out int oc, out float rm)` | `bool` | Reads that debt. |
-| `Queue(string name)` | `bool` | Queues a service by its name. |
-
-| Property | Type | What it means |
-|---|---|---|
-| `IsAvailable` | `bool` | `true` when the game's legal services exist. |
-
-| Event | Gives you | When it fires |
-|---|---|---|
-| `Queued` | `LegalActionArgs` | A service was queued. |
-| `Completed` | `LegalActionArgs` | A queued service was done. |
+| Value | Meaning |
+|---|---|
+| `None` | No particular kind. |
+| `ClearCrime` | Clears a crime. |
+| `UnfreezeAccount` | Unfreezes a bank account. |
 
 </div>
 </div>

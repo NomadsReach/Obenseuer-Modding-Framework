@@ -11,6 +11,9 @@ These two properties read the balance directly, as a whole number for OC and as 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Cash</code> <span>the balance, read directly</span></p>
+
+Read `Cash.Oc` or `Cash.Rm` whenever you need the balance. They are plain reads, not events, so ask again after a change.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

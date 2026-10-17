@@ -11,6 +11,9 @@ nav_order: 5
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SaveData</code> <span>make a slot that is saved and loaded for you</span></p>
+
+`Bind<T>(modId, key)` is the only method here. It gives you a `SaveSlot<T>` that the framework saves and loads for you.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -22,13 +25,16 @@ public static class SaveData
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Bind<T>(string modId, string key)` | `SaveSlot<T>` | Makes a slot that is saved and loaded for you. |
+| `Bind<T>(modId, key)` | `SaveSlot<T>` | Makes a slot that is saved and loaded for you. |
 
 </div>
 </div>
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SaveSlot&lt;T&gt;</code> <span>your saved data</span></p>
+
+`Bind` gives you one of these. Keep your data in `Value`, and read `Value` again after a load, because a load replaces the object.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

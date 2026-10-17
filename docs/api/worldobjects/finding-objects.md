@@ -7,12 +7,17 @@ nav_order: 2
 
 # Finding objects
 
+This page uses `Vector3`, `GameObject` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 This is the full list of what the API gives you, one section for each part. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
 
 `WorldObjects` finds objects by save id (also called a GUID, a unique name the game gives to an object it saves), tells you whether the game saves a given object, and lists the saved objects near a point. Each object you get from a search is a `WorldObjectInfo`, a snapshot taken when you asked.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WorldObjects</code> <span>finds saved objects</span></p>
+Use `Find`, [`FindByPath`](scene-paths.md) and `Near` to find saved objects, and `InfoOf` to get a snapshot of one.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -28,17 +33,19 @@ public static class WorldObjects
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Find(string guid)` | `GameObject` | The active saved object with this save id. `null` when there is none. |
-| `GuidOf(GameObject go)` | `string` | The save id the game gave this object. `null` when it has none. |
-| `IsSaved(GameObject go)` | `bool` | `true` when the game's save writes this object. |
-| `InfoOf(GameObject go)` | `WorldObjectInfo` | A snapshot of the object. `null` when the game does not save it. |
-| `Near(Vector3 position, float radius)` | `List<WorldObjectInfo>` | The saved objects within this distance of a point. |
+| `Find(guid)` | `GameObject` | The active saved object with this save id. `null` when there is none. |
+| `GuidOf(go)` | `string` | The save id the game gave this object. `null` when it has none. |
+| `IsSaved(go)` | `bool` | `true` when the game's save writes this object. |
+| `InfoOf(go)` | `WorldObjectInfo` | A snapshot of the object. `null` when the game does not save it. |
+| `Near(position, radius)` | `List<WorldObjectInfo>` | The saved objects within this distance of a point. |
 
 </div>
 </div>
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WorldObjectKind</code> <span>what sort of object it is</span></p>
+`WorldObjectInfo.Kind` holds one of these. The framework works it out from the game's collectible components, and `Other` is any saved object that has none of them.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -65,6 +72,8 @@ public enum WorldObjectKind
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WorldObjectInfo</code> <span>a snapshot of one saved object</span></p>
+`InfoOf` and `Near` give you one of these for each saved object. It is a snapshot, with the object's `Guid`, `Scene` and `Position`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

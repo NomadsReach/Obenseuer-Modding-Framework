@@ -7,10 +7,16 @@ nav_order: 4
 
 # Smashed
 
+This page uses `Vector3` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 Some objects spawn an item when a hit uses up their health. They are not breakables, so `Broken` never fires for them and `Smashed` never fires for a breakable. `Smashed` tells you about the hit and what the object would drop.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Breakables</code> <span>smashable objects</span></p>
+
+Listen to `Smashed` to hear when a hit destroys an object that drops an item. The event only reports what happened, and you cannot change the outcome.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -29,6 +35,9 @@ public static class Breakables
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SmashedArgs</code> <span>what Smashed tells you</span></p>
+
+`Smashed` hands you this. `SpawnItemId` is the item it drops, or `-1` when it drops none, and `IsAnimal` says whether it was an animal.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

@@ -7,10 +7,16 @@ nav_order: 3
 
 # Locks and doors
 
+This page uses `GameObject` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 A lock keeps a door, chest or other object shut until it is opened with a key, a pick or a code. The `target` for these calls is any object with a game lock on it, such as a door, a storage, a button, or a keypad.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Locks</code> <span>reading, changing and picking locks and keypads</span></p>
+
+This is the class you start from. It reads and changes locks and keypads, and `StartLockpick` runs the lockpick minigame. Its `Locked`, `Unlocked` and lockpick events give you a `LockArgs`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -42,20 +48,20 @@ public static class Locks
 
 | Method | Returns | What it does |
 |---|---|---|
-| `IsLocked(GameObject target)` | `bool` | `true` when the object is locked. |
-| `IsLockpickable(GameObject target)` | `bool` | `true` when the lock can be picked. |
-| `Difficulty(GameObject target)` | `float` | How hard it is to pick, from 0 to 2. It is `-1` when the object has no lock. |
-| `PlayerHasKey(GameObject target)` | `bool` | `true` when the player carries the key. |
-| `Lock(GameObject target)` | `bool` | Locks it. It is `true` when it is locked afterwards. |
-| `Unlock(GameObject target)` | `bool` | Unlocks it. It is `true` when it is unlocked afterwards. |
-| `SetLockpickable(GameObject target, bool lockpickable)` | `bool` | Lets the lock be picked or not. |
-| `SetDifficulty(GameObject target, float difficulty)` | `bool` | Sets the pick difficulty, from 0 to 2. Anything else throws `ArgumentException`. |
-| `SetKeypadOpen(GameObject target, bool open)` | `bool` | Opens or closes a keypad. |
-| `LockKeypad(GameObject target)` | `bool` | Closes an open keypad again. |
-| `TriggerKeypad(GameObject target, bool success)` | `bool` | Makes the keypad count as solved or failed. |
-| `KeypadCode(string id)` | `int[]` | A copy of the keypad's code. It is `null` when there is no such keypad. |
-| `SetKeypadCode(string id, int[] code)` | `bool` | Changes the keypad's code. |
-| `StartLockpick(GameObject target, float difficulty, Action<bool> done)` | `bool` | Starts the minigame. |
+| `IsLocked(target)` | `bool` | `true` when the object is locked. |
+| `IsLockpickable(target)` | `bool` | `true` when the lock can be picked. |
+| `Difficulty(target)` | `float` | How hard it is to pick, from 0 to 2. It is `-1` when the object has no lock. |
+| `PlayerHasKey(target)` | `bool` | `true` when the player carries the key. |
+| `Lock(target)` | `bool` | Locks it. It is `true` when it is locked afterwards. |
+| `Unlock(target)` | `bool` | Unlocks it. It is `true` when it is unlocked afterwards. |
+| `SetLockpickable(target, lockpickable)` | `bool` | Lets the lock be picked or not. |
+| `SetDifficulty(target, difficulty)` | `bool` | Sets the pick difficulty, from 0 to 2. Anything else throws `ArgumentException`. |
+| `SetKeypadOpen(target, open)` | `bool` | Opens or closes a keypad. |
+| `LockKeypad(target)` | `bool` | Closes an open keypad again. |
+| `TriggerKeypad(target, success)` | `bool` | Makes the keypad count as solved or failed. |
+| `KeypadCode(id)` | `int[]` | A copy of the keypad's code. It is `null` when there is no such keypad. |
+| `SetKeypadCode(id, code)` | `bool` | Changes the keypad's code. |
+| `StartLockpick(target, difficulty, done)` | `bool` | Starts the minigame. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -73,6 +79,9 @@ public static class Locks
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>LockArgs</code> <span>the object a lock event is about</span></p>
+
+`Locked`, `Unlocked`, `LockpickSucceeded` and `LockpickFailed` give you this. `Target` is the object the event is about, and `Name` and `Guid` identify it.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

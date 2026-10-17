@@ -7,10 +7,16 @@ nav_order: 2
 
 # Orders
 
+This page uses `Transform` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 This is the full list of what the API gives you. All orders are in one static class. `modId` is your mod's id (see [Mod id](../../glossary.md#mod-id)). `animalId` is the `Id` of an `AnimalInfo` from `Animals.All()`.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>AnimalActions</code> <span>orders for animals</span></p>
+
+Each order takes your mod id and the `Id` of an animal from `Animals.All()`, and returns `false` when the game refuses it.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -29,14 +35,14 @@ public static class AnimalActions
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Sit(string modId, int animalId)` | `bool` | The animal sits down for a while. |
-| `Sleep(string modId, int animalId)` | `bool` | The animal sleeps until the game wakes it. |
-| `SleepPermanently(string modId, int animalId)` | `bool` | The animal sleeps until your mod lets it go. |
-| `Hunt(string modId, int animalId, Transform target)` | `bool` | The animal goes after the target. |
-| `StopHunt(string modId, int animalId)` | `bool` | The animal gives up its hunt and picks a new place to go. |
-| `Clear(string modId)` | `bool` | Lets go of everything your mod holds on animals. |
-| `Run(string modId, int animalId, float seconds)` | `bool` | The animal runs for this many seconds. |
-| `SetTame(string modId, int animalId, bool tame)` | `bool` | `true` makes the animal tame, `false` makes it wild. |
+| `Sit(modId, animalId)` | `bool` | The animal sits down for a while. |
+| `Sleep(modId, animalId)` | `bool` | The animal sleeps until the game wakes it. |
+| `SleepPermanently(modId, animalId)` | `bool` | The animal sleeps until your mod lets it go. |
+| `Hunt(modId, animalId, target)` | `bool` | The animal goes after the target. |
+| `StopHunt(modId, animalId)` | `bool` | The animal gives up its hunt and picks a new place to go. |
+| `Clear(modId)` | `bool` | Lets go of everything your mod holds on animals. |
+| `Run(modId, animalId, seconds)` | `bool` | The animal runs for this many seconds. |
+| `SetTame(modId, animalId, tame)` | `bool` | `true` makes the animal tame, `false` makes it wild. |
 
 </div>
 </div>

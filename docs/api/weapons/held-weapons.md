@@ -13,6 +13,8 @@ This is the full list of what the API gives you, one section for each part. Text
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WeaponKind</code> <span>what kind of weapon an item is</span></p>
+`WeaponInfo.Kind` holds one of these. It says whether the item is a melee weapon, a Detonator, or neither.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -35,6 +37,8 @@ public enum WeaponKind
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WeaponInfo</code> <span>a snapshot of one held item</span></p>
+`Weapons.Equipped()` and `EquippedLeft()` give you one of these for the item in each hand, or `null` when the hand is empty. The [`MeleeSwung`](events.md) and [`Reloaded`](events.md) events hand you one too.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -59,6 +63,8 @@ public sealed class WeaponInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Weapons</code> <span>the held items</span></p>
+Use `Equipped` and `EquippedLeft` to read the items in your hands, and `Ammo` to count how many of an ammo item the player carries.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -74,7 +80,7 @@ public static class Weapons
 |---|---|---|
 | `Equipped()` | `WeaponInfo` | The item in the right (primary) hand. `null` when the hand is empty. |
 | `EquippedLeft()` | `WeaponInfo` | The item in the left hand. `null` when the hand is empty. |
-| `Ammo(int ammoItemId)` | `int` | How many of this item the player carries. |
+| `Ammo(ammoItemId)` | `int` | How many of this item the player carries. |
 
 </div>
 </div>

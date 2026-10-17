@@ -7,6 +7,9 @@ nav_order: 13
 
 # Resource nodes
 
+This page uses `Vector3` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 Status: experimental.
 
 ## What it is
@@ -74,6 +77,9 @@ This is the full list of what the API gives you.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ResourceNodes</code> <span>list, read and refill resource nodes</span></p>
+
+Use it to list the nodes in the scene, find the ones near a place, read or refill one, and hear when a node is hit or runs out.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -93,9 +99,9 @@ public static class ResourceNodes
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<ResourceNodeInfo>` | Every node in the scene you are in. |
-| `Near(Vector3 position, float radius)` | `List<ResourceNodeInfo>` | The nodes within `radius` metres of a position, including those exactly `radius` away. |
-| `Get(string id)` | `ResourceNodeInfo` | The node with this id. `null` when nobody has it. |
-| `SetStock(string id, int stock)` | `bool` | Sets how many items the node has left. `true` when it was set. |
+| `Near(position, radius)` | `List<ResourceNodeInfo>` | The nodes within `radius` metres of a position, including those exactly `radius` away. |
+| `Get(id)` | `ResourceNodeInfo` | The node with this id. `null` when nobody has it. |
+| `SetStock(id, stock)` | `bool` | Sets how many items the node has left. `true` when it was set. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -111,6 +117,9 @@ public static class ResourceNodes
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ResourceNodeInfo</code> <span>a snapshot of one node</span></p>
+
+`ResourceNodes.All()`, `Near` and `Get` give you these. Pass the `Id` to `Get` or `SetStock`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -143,6 +152,9 @@ public sealed class ResourceNodeInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ResourceHitArgs</code> <span>what Hit tells you</span></p>
+
+`ResourceNodes.Hit` hands you one of these after each hit. `Yielded` says whether that hit gave the player an item.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -165,6 +177,9 @@ public sealed class ResourceHitArgs
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ResourceDepletedArgs</code> <span>what Depleted tells you</span></p>
+
+`ResourceNodes.Depleted` hands you one of these when a hit takes the last item, with the id of the node that ran out.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

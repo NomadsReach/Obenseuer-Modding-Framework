@@ -74,6 +74,9 @@ This is the full list of what the API gives you. Text in brackets at the end of 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Notes</code> <span>list, check and give single notes</span></p>
+
+Call `Give(id)` to add a note the game already has, and `Has(id)` or `Held()` to check what the player holds. `Collected` fires each time a new note is collected.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -92,8 +95,8 @@ public static class Notes
 |---|---|---|
 | `All()` | `List<NoteEntryInfo>` | Every single note the game has. |
 | `Held()` | `List<NoteEntryInfo>` | The single notes the player holds, in the order they were collected. |
-| `Has(string id)` | `bool` | `true` when the player holds this note. |
-| `Give(string id)` | `bool` | Gives the player the note. Returns `true` only when it was added just now. |
+| `Has(id)` | `bool` | `true` when the player holds this note. |
+| `Give(id)` | `bool` | Gives the player the note. Returns `true` only when it was added just now. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -108,6 +111,9 @@ public static class Notes
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>NoteEntryInfo</code> <span>one note</span></p>
+
+`All()` and `Held()` give you one of these. Use its `Id` with `Has` and `Give`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -128,6 +134,9 @@ public sealed class NoteEntryInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>NoteCollectedArgs</code> <span>what Collected gives you</span></p>
+
+`Collected` gives you one of these when the player gets a note they did not have. `Id` and `Title` say which note it was.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

@@ -7,6 +7,9 @@ nav_order: 3
 
 # Cleaning
 
+This page uses `Vector3` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 ## What it is
 
 The tenement's apartments get dirty. The game keeps a cleaning timer for each apartment: a number of days that must pass before the apartment is ready. While the timer runs, the game shows a timer marker in the apartment. When the timer ends, the game takes away the thing that was blocking the apartment. This API lets your mod read that timer for any apartment. It also lists the piles of trash lying around in the scene you are in, and what is inside each pile.
@@ -74,29 +77,31 @@ This is the full list of what the API gives you. Text in brackets at the end of 
 `Cleaning.Timer(apartmentId)` tells you where an apartment is in its cleaning timer. The answer is a `CleaningTimerInfo`, a snapshot of the timer at the moment you asked. The snapshot does not update by itself, so ask again for fresh values.
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>CleaningTimerState</code> <span>where a cleaning timer is</span></p>
+<p class="api-type-head"><code>Cleaning</code> <span>read the cleaning timers</span></p>
+
+Call `Timer` with an apartment number. It returns `null` when the building has no apartment with that number.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
-public enum CleaningTimerState
+public static class Cleaning
 {
-    NotStarted,
-    Running,
-    Done
+    public static CleaningTimerInfo Timer(int apartmentId);
 }
 ```
 
-| Value | Meaning |
-|---|---|
-| `NotStarted` | no cleaning timer has been started for this apartment |
-| `Running` | the timer is counting down the days |
-| `Done` | the timer has ended and the game has removed what was blocking the apartment |
+| Method | Returns | What it does |
+|---|---|---|
+| `Timer(apartmentId)` | `CleaningTimerInfo` | The timer for this apartment. `null` when the building has no such apartment. |
 
 </div>
 </div>
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>CleaningTimerInfo</code> <span>a snapshot of one apartment's cleaning timer</span></p>
+
+`Cleaning.Timer` gives you one of these for an apartment. Read `State` first, because `CompleteDay` only means something while it is `Running`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -118,19 +123,26 @@ public sealed class CleaningTimerInfo
 </div>
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>Cleaning</code> <span>read the cleaning timers</span></p>
+<p class="api-type-head"><code>CleaningTimerState</code> <span>where a cleaning timer is</span></p>
+
+`CleaningTimerInfo.State` holds one of these. The framework works it out from the game's own timer day for the apartment.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
-public static class Cleaning
+public enum CleaningTimerState
 {
-    public static CleaningTimerInfo Timer(int apartmentId);
+    NotStarted,
+    Running,
+    Done
 }
 ```
 
-| Method | Returns | What it does |
-|---|---|---|
-| `Timer(int apartmentId)` | `CleaningTimerInfo` | The timer for this apartment. `null` when the building has no such apartment. |
+| Value | Meaning |
+|---|---|
+| `NotStarted` | no cleaning timer has been started for this apartment |
+| `Running` | the timer is counting down the days |
+| `Done` | the timer has ended and the game has removed what was blocking the apartment |
 
 </div>
 </div>
@@ -150,7 +162,31 @@ public static class Cleaning
 `Cleaning.TrashItems()` lists the piles of trash in the scene you are in. Each pile is a `TrashInfo`, a snapshot of the pile and the items inside it.
 
 <div class="api-type" markdown="1">
+<p class="api-type-head"><code>Cleaning</code> <span>list the trash piles</span></p>
+
+Call `TrashItems()` to list the trash piles in the scene you are standing in.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class Cleaning
+{
+    public static List<TrashInfo> TrashItems();
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `TrashItems()` | `List<TrashInfo>` | Every trash pile in the active scene. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
 <p class="api-type-head"><code>TrashInfo</code> <span>one pile of trash in the scene</span></p>
+
+`Cleaning.TrashItems()` gives you one of these for each pile. A pile does not say which apartment it is in, so use `Position` to work out where it is. <span class="tech">(It is built from the game's `FurnitureTrash` objects in the scene.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -167,24 +203,6 @@ public sealed class TrashInfo
 | `Id` | `string` | The pile's save id. Can be `null`. |
 | `Position` | `Vector3` | Where the pile is, in world coordinates. |
 | `Items` | `List<ItemStackInfo>` | What is in the pile. Empty stacks are left out. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>Cleaning</code> <span>list the trash piles</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static class Cleaning
-{
-    public static List<TrashInfo> TrashItems();
-}
-```
-
-| Method | Returns | What it does |
-|---|---|---|
-| `TrashItems()` | `List<TrashInfo>` | Every trash pile in the active scene. |
 
 </div>
 </div>

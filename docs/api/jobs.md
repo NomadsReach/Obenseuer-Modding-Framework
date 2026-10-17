@@ -73,6 +73,9 @@ This is the full list of what the API gives you.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Jobs</code> <span>list jobs and hear when work is finished</span></p>
+
+Call `All()` or `Get(id)` to read the jobs in the scene, and subscribe to `Worked` to hear when the player finishes work.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -92,7 +95,7 @@ public static class Jobs
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<JobInfo>` | Every job in the scene you are in. |
-| `Get(string id)` | `JobInfo` | The job with this id. `null` when no job has it. |
+| `Get(id)` | `JobInfo` | The job with this id. `null` when no job has it. |
 
 | Event | Gives you | When it fires |
 |---|---|---|
@@ -103,6 +106,9 @@ public static class Jobs
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>JobInfo</code> <span>a snapshot of one job</span></p>
+
+`All()` and `Get(id)` give you one of these for each job. It is built at the moment you call, so keep it if you need the values later. <span class="tech">(It is built from the game's `InteractableWaitWork` component on each job.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -129,6 +135,9 @@ public sealed class JobInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WorkedArgs</code> <span>what you get when the player finishes working</span></p>
+
+`Worked` gives you one of these each time the player finishes a stretch of work. `Id` matches it to a `JobInfo`, and `PayOc` and `PayRm` show what the work paid.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

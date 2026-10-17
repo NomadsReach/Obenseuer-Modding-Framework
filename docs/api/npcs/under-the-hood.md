@@ -7,6 +7,9 @@ nav_order: 5
 
 # Under the hood
 
+This page uses `Transform` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 How the framework reads the game, for modders who want to dig deeper.
 
 ## Npcs

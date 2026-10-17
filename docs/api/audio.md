@@ -8,6 +8,9 @@ nav_order: 1
 
 # Audio
 
+This page uses `AudioClip` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 Status: experimental.
 
 ## What it is

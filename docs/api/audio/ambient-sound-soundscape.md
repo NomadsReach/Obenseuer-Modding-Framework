@@ -11,6 +11,9 @@ The game plays a background ambient sound for the area the player is in. This is
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Sounds</code> <span>ambient sound controls</span></p>
+
+Read `SoundscapeId` to see which ambient sound is playing, then use `SetSoundscape` or `ResetSoundscape` to change it.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -24,7 +27,7 @@ public static class Sounds
 
 | Method | Returns | What it does |
 |---|---|---|
-| `SetSoundscape(string id)` | `bool` | Starts the ambient sound with this id now. Returns `false` when there is none. |
+| `SetSoundscape(id)` | `bool` | Starts the ambient sound with this id now. Returns `false` when there is none. |
 | `ResetSoundscape()` | `bool` | Goes back to the game's ordinary ambient sound. |
 
 | Property | Type | What it means |

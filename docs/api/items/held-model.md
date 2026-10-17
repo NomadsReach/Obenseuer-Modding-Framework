@@ -7,10 +7,16 @@ nav_order: 5
 
 # Held model
 
+This page uses `Mesh` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 An item shows in the player's hand through a model the game attaches to the item's equipment action. A mod item can borrow another equippable item's hand model with `ItemDefinition.WieldTemplateId` (see [Registry](../registry.md)). A mod can also give any equippable item, from the game or from a mod, its own hand model.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ItemRegistry</code> <span>give an item your hand model</span></p>
+
+Call `SetHeldModel` to give an item your hand model. Build the model first with `ModelRegistry.LoadObj` and pass its handle in. The framework puts your picture into the item's own hand model, which keeps its positions.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -22,7 +28,7 @@ public static class ItemRegistry
 
 | Method | Returns | What it does |
 |---|---|---|
-| `SetHeldModel(string modGuid, int itemId, ModelHandle model)` | `bool` | Gives the item your model in the hand. `true` when it was recorded. |
+| `SetHeldModel(modGuid, itemId, model)` | `bool` | Gives the item your model in the hand. `true` when it was recorded. |
 
 </div>
 </div>

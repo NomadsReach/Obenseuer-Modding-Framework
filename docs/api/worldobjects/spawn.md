@@ -7,10 +7,15 @@ nav_order: 5
 
 # Spawn
 
+This page uses `Vector3`, `GameObject` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 `Spawn.Item` drops new items into the world at a position, the way the game drops an item.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Spawn</code> <span>drops items into the world</span></p>
+Use `Item` to drop items into the world at a position.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -23,8 +28,8 @@ public static class Spawn
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Item(int itemId, int count, Vector3 position)` | `bool` | Drops the items. Returns `true` when they were placed. |
-| `Item(int itemId, int count, Vector3 position, out GameObject spawned)` | `bool` | The same, and also gives you the first object it made. |
+| `Item(itemId, count, position)` | `bool` | Drops the items. Returns `true` when they were placed. |
+| `Item(itemId, count, position, out spawned)` | `bool` | The same, and also gives you the first object it made. |
 
 </div>
 </div>

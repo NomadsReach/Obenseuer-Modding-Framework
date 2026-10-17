@@ -7,6 +7,9 @@ nav_order: 2
 
 # Orders
 
+This page uses `Vector3` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 This is the full list of what the API gives you, one section for each part. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
 
 Every call takes your mod's id (`modId`, see [Mod id](../../glossary.md#mod-id)) and the id you gave the NPC when you spawned it with `ModNpcs.Spawn` or `ModNpcs.SpawnSaved`.
@@ -15,6 +18,9 @@ An order is a one-off command for an NPC. An order only works on a live NPC that
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ModNpcRoutines</code> <span>one-off orders for your mod's NPCs</span></p>
+
+Each call starts or ends one order for an NPC your mod spawned, so pass your mod's id and that NPC's id.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -32,12 +38,12 @@ public static partial class ModNpcRoutines
 
 | Method | Returns | What it does |
 |---|---|---|
-| `WalkTo(string modId, string npcId, Vector3 point, float yaw, bool run, Action<bool> done = null)` | `bool` | Walks to a point, then turns to face `yaw`. |
-| `Wander(string modId, string npcId, Vector3 center, float radius)` | `bool` | Walks around a spot, resting between walks. |
-| `Patrol(string modId, string npcId, IList<Vector3> points, bool run)` | `bool` | Walks the points in order, again and again. |
-| `Sit(string modId, string npcId, Vector3 seat)` | `bool` | Sits on the nearest chair. |
-| `Sleep(string modId, string npcId, Vector3 bed)` | `bool` | Lies down in the nearest free bed. |
-| `Stop(string modId, string npcId)` | `bool` | Ends the current order. |
+| `WalkTo(modId, npcId, point, yaw, run, done)` | `bool` | Walks to a point, then turns to face `yaw`. |
+| `Wander(modId, npcId, center, radius)` | `bool` | Walks around a spot, resting between walks. |
+| `Patrol(modId, npcId, points, run)` | `bool` | Walks the points in order, again and again. |
+| `Sit(modId, npcId, seat)` | `bool` | Sits on the nearest chair. |
+| `Sleep(modId, npcId, bed)` | `bool` | Lies down in the nearest free bed. |
+| `Stop(modId, npcId)` | `bool` | Ends the current order. |
 
 | Property | Type | What it means |
 |---|---|---|

@@ -11,6 +11,9 @@ nav_order: 3
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Net</code> <span>short text messages in the lobby</span></p>
+
+Call `Register` with your mod's id and a channel name to receive messages, and `Send` to send one to a player in `Peers`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -28,8 +31,8 @@ public static class Net
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Send(ulong peer, string channel, string payload, bool reliable)` | `bool` | Sends text to one player on a channel. When `reliable` is `true`, Steam resends it until it arrives. Returns `true` when the message was sent. |
-| `Register(string modId, string channel, Action<ulong, string> handler)` | `bool` | Gives your code to run when a message arrives on this channel. `handler` gets the sender's SteamID64 and the text. Returns `true` when it was registered. |
+| `Send(peer, channel, payload, reliable)` | `bool` | Sends text to one player on a channel. When `reliable` is `true`, Steam resends it until it arrives. Returns `true` when the message was sent. |
+| `Register(modId, channel, handler)` | `bool` | Gives your code to run when a message arrives on this channel. `handler` gets the sender's SteamID64 and the text. Returns `true` when it was registered. |
 
 | Property | Type | What it means |
 |---|---|---|

@@ -7,12 +7,18 @@ nav_order: 2
 
 # Copying one saved object
 
+This page uses `GameObject` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
 
 A savable object is an object the game saves, such as the player's inventory. `Capture` copies its entry into text, and `Apply` puts text back into it. Neither writes to disk.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SaveData</code> <span>copy a saved object to text and back</span></p>
+
+`Capture` copies a saved object into text and `Apply` puts that text back, without touching the disk. `CaptureByGuid` and `ApplyByGuid` do the same by GUID, and you should use the overload with an allowed list whenever another player can choose the GUID.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -29,11 +35,11 @@ public static class SaveData
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Capture(UnityEngine.Object target)` | `string` | The object's save entry as compact text. `null` when there is none. |
-| `Apply(UnityEngine.Object target, string json)` | `bool` | Puts a save entry into the object. `true` when the game took it. |
-| `CaptureByGuid(string guid)` | `string` | The same as `Capture`, for the object with this GUID. `null` when none. |
-| `ApplyByGuid(string guid, string json)` | `bool` | Obsolete: trusts any GUID. Use the overload with a list. |
-| `ApplyByGuid(string guid, string json, ICollection<string> allowedGuids)` | `bool` | The same as `Apply`, only for the GUIDs in the list. |
+| `Capture(target)` | `string` | The object's save entry as compact text. `null` when there is none. |
+| `Apply(target, json)` | `bool` | Puts a save entry into the object. `true` when the game took it. |
+| `CaptureByGuid(guid)` | `string` | The same as `Capture`, for the object with this GUID. `null` when none. |
+| `ApplyByGuid(guid, json)` | `bool` | Obsolete: trusts any GUID. Use the overload with a list. |
+| `ApplyByGuid(guid, json, allowedGuids)` | `bool` | The same as `Apply`, only for the GUIDs in the list. |
 | `SelfCheck()` | `string` | Runs a built-in test. |
 
 </div>

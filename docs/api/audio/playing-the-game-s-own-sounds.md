@@ -7,10 +7,16 @@ nav_order: 2
 
 # Playing the game's own sounds
 
+This page uses `Vector3` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 This is the full list of the game's own sounds you can use: the item pickup sounds and the random sound libraries. `Sounds` lets you list their names and play them. A play call returns `true` when a sound started and `false` when it did not. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Sounds</code> <span>the game's pickup and library sounds</span></p>
+
+Use `PickupNames` or `LibraryNames` to list the game's sounds, then `PlayPickup`, `PlayLibrary` or `PlayLibraryAt` to play one.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -28,9 +34,9 @@ public static class Sounds
 |---|---|---|
 | `PickupNames()` | `List<string>` | The names of the item pickup sounds you can play. |
 | `LibraryNames()` | `List<string>` | The names of the random sound sets you can play. |
-| `PlayPickup(string name)` | `bool` | Plays one pickup sound. Returns `false` when it could not start. |
-| `PlayLibrary(string name)` | `bool` | Plays one sound from a random set, with no position. |
-| `PlayLibraryAt(string name, Vector3 position)` | `bool` | Plays one sound from a random set at a place in the world. |
+| `PlayPickup(name)` | `bool` | Plays one pickup sound. Returns `false` when it could not start. |
+| `PlayLibrary(name)` | `bool` | Plays one sound from a random set, with no position. |
+| `PlayLibraryAt(name, position)` | `bool` | Plays one sound from a random set at a place in the world. |
 
 </div>
 </div>

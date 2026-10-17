@@ -7,10 +7,79 @@ nav_order: 7
 
 # Player shops
 
+This page uses `Vector3` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 A player shop is a shop the player runs themselves, in a furniture area of their own. It has prices, a cash register, a till that holds the earnings, and sales. See the [glossary](../../glossary.md#player-shop). `PlayerShops` lets you list these shops, change their prices, open and close them, work with their till, and sell things to them.
 
 <div class="api-type" markdown="1">
+<p class="api-type-head"><code>PlayerShops</code> <span>list, price, till and sell</span></p>
+
+Call `All()` or `Get(shopId)` to read the player's shops, `SetPrice` to price an item, and `Sell` to make a sale through one.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class PlayerShops
+{
+    public static bool IsAvailable { get; }
+    public static event Action<SoldArgs> Sold;
+    public static List<PlayerShopInfo> All();
+    public static PlayerShopInfo Get(string shopId);
+    public static List<StockItem> Stock(string shopId);
+    public static bool CollectEarnings(string shopId);
+    public static string Ensure(string managerGuid);
+    public static bool Release(string managerGuid);
+    public static bool SetOpen(string shopId, bool open);
+    public static bool SetMarkup(string shopId, float factor);
+    public static bool SetPrice(string shopId, int itemId, int price);
+    public static bool ClearPrice(string shopId, int itemId);
+    public static float GetPrice(string shopId, int itemId, object[] meta, out MoneyCurrency currency);
+    public static bool AddEarnings(string shopId, MoneyCurrency currency, float amount);
+    public static bool TakeEarnings(string shopId, MoneyCurrency currency, float amount);
+    public static float Earnings(string shopId, MoneyCurrency currency);
+    public static bool Sell(string shopId, ContainerInfo container, int slot, int expectedItemId, int count, bool byWorker);
+    public static List<ContainerInfo> Storages(string shopId);
+    public static List<Vector3> Registers(string shopId);
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `All()` | `List<PlayerShopInfo>` | Every player shop in the scene you are in. |
+| `Get(shopId)` | `PlayerShopInfo` | One shop. `null` when there is none. |
+| `Stock(shopId)` | `List<StockItem>` | What the shop has for sale. |
+| `CollectEarnings(shopId)` | `bool` | Pays the till out to the player. |
+| `Ensure(managerGuid)` | `string` | Turns a furniture manager into a player shop. Gives its shop id. |
+| `Release(managerGuid)` | `bool` | Removes a shop that `Ensure` made. |
+| `SetOpen(shopId, open)` | `bool` | Opens or closes the shop. |
+| `SetMarkup(shopId, factor)` | `bool` | Sets the general price factor. |
+| `SetPrice(shopId, itemId, price)` | `bool` | Sets the price of one item. |
+| `ClearPrice(shopId, itemId)` | `bool` | Goes back to the general factor for that item. |
+| `GetPrice(shopId, itemId, meta, out currency)` | `float` | The price of one unit. Sets `currency` to the shop's currency. |
+| `AddEarnings(shopId, currency, amount)` | `bool` | Puts money in the till. |
+| `TakeEarnings(shopId, currency, amount)` | `bool` | Takes money out of the till. |
+| `Earnings(shopId, currency)` | `float` | The money in the till. |
+| `Sell(shopId, container, slot, expectedItemId, count, byWorker)` | `bool` | Sells a stack to the shop. |
+| `Storages(shopId)` | `List<ContainerInfo>` | The storage furniture that `Sell` can take from. |
+| `Registers(shopId)` | `List<Vector3>` | Where the shop's cash registers are. |
+
+| Property | Type | What it means |
+|---|---|---|
+| `IsAvailable` | `bool` | `false` when the price change or the shop save data could not be set up. |
+
+| Event | Gives you | When it fires |
+|---|---|---|
+| `Sold` | `SoldArgs` | A sale was made through `PlayerShops.Sell`. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
 <p class="api-type-head"><code>PlayerShopInfo</code> <span>a snapshot of one player shop</span></p>
+
+`PlayerShops.All()` and `Get(shopId)` give you these. `Open` is `true` only when the shop is open, has a cash register and is in a valid area. `UncollectedOc` and `UncollectedRm` are the earnings waiting in the till.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -49,6 +118,9 @@ public sealed class PlayerShopInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SoldArgs</code> <span>what you get when a sale is made with PlayerShops.Sell</span></p>
+
+`PlayerShops.Sold` gives you one of these for each sale made through `PlayerShops.Sell`. `Stolen` is `true` for goods that belong to someone else.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -73,66 +145,6 @@ public sealed class SoldArgs
 | `Currency` | `MoneyCurrency` | The shop's currency. |
 | `Stolen` | `bool` | `true` when the items are marked as someone else's (the stack's owner id is above 0). That is the game's test for stolen goods. |
 | `ByWorker` | `bool` | `true` when a worker made the sale. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>PlayerShops</code> <span>list, price, till and sell</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static class PlayerShops
-{
-    public static bool IsAvailable { get; }
-    public static event Action<SoldArgs> Sold;
-    public static List<PlayerShopInfo> All();
-    public static PlayerShopInfo Get(string shopId);
-    public static List<StockItem> Stock(string shopId);
-    public static bool CollectEarnings(string shopId);
-    public static string Ensure(string managerGuid);
-    public static bool Release(string managerGuid);
-    public static bool SetOpen(string shopId, bool open);
-    public static bool SetMarkup(string shopId, float factor);
-    public static bool SetPrice(string shopId, int itemId, int price);
-    public static bool ClearPrice(string shopId, int itemId);
-    public static float GetPrice(string shopId, int itemId, object[] meta, out MoneyCurrency currency);
-    public static bool AddEarnings(string shopId, MoneyCurrency currency, float amount);
-    public static bool TakeEarnings(string shopId, MoneyCurrency currency, float amount);
-    public static float Earnings(string shopId, MoneyCurrency currency);
-    public static bool Sell(string shopId, ContainerInfo container, int slot, int expectedItemId, int count, bool byWorker);
-    public static List<ContainerInfo> Storages(string shopId);
-    public static List<Vector3> Registers(string shopId);
-}
-```
-
-| Method | Returns | What it does |
-|---|---|---|
-| `All()` | `List<PlayerShopInfo>` | Every player shop in the scene you are in. |
-| `Get(string shopId)` | `PlayerShopInfo` | One shop. `null` when there is none. |
-| `Stock(string shopId)` | `List<StockItem>` | What the shop has for sale. |
-| `CollectEarnings(string shopId)` | `bool` | Pays the till out to the player. |
-| `Ensure(string managerGuid)` | `string` | Turns a furniture manager into a player shop. Gives its shop id. |
-| `Release(string managerGuid)` | `bool` | Removes a shop that `Ensure` made. |
-| `SetOpen(string shopId, bool open)` | `bool` | Opens or closes the shop. |
-| `SetMarkup(string shopId, float factor)` | `bool` | Sets the general price factor. |
-| `SetPrice(string shopId, int itemId, int price)` | `bool` | Sets the price of one item. |
-| `ClearPrice(string shopId, int itemId)` | `bool` | Goes back to the general factor for that item. |
-| `GetPrice(string shopId, int itemId, object[] meta, out MoneyCurrency currency)` | `float` | The price of one unit. Sets `currency` to the shop's currency. |
-| `AddEarnings(string shopId, MoneyCurrency currency, float amount)` | `bool` | Puts money in the till. |
-| `TakeEarnings(string shopId, MoneyCurrency currency, float amount)` | `bool` | Takes money out of the till. |
-| `Earnings(string shopId, MoneyCurrency currency)` | `float` | The money in the till. |
-| `Sell(string shopId, ContainerInfo container, int slot, int expectedItemId, int count, bool byWorker)` | `bool` | Sells a stack to the shop. |
-| `Storages(string shopId)` | `List<ContainerInfo>` | The storage furniture that `Sell` can take from. |
-| `Registers(string shopId)` | `List<Vector3>` | Where the shop's cash registers are. |
-
-| Property | Type | What it means |
-|---|---|---|
-| `IsAvailable` | `bool` | `false` when the price change or the shop save data could not be set up. |
-
-| Event | Gives you | When it fires |
-|---|---|---|
-| `Sold` | `SoldArgs` | A sale was made through `PlayerShops.Sell`. |
 
 </div>
 </div>

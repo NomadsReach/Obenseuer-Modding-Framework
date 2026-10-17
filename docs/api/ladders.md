@@ -68,6 +68,9 @@ Each ladder is a `LadderInfo`, a snapshot of its state at the moment you asked. 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Ladders</code> <span>list and block ladders</span></p>
+
+Call `All()` or `Get(id)` to find ladders, and `SetBlocked` to block or unblock one. `IsPlayerClimbing` tells you whether the player is on a ladder now.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -83,8 +86,8 @@ public static class Ladders
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<LadderInfo>` | Every ladder that is switched on in the scene you are in. |
-| `Get(string id)` | `LadderInfo` | The ladder with this id. `null` when none has it. |
-| `SetBlocked(string id, bool blocked)` | `bool` | Blocks or unblocks a ladder. `true` when it ends up as you asked. |
+| `Get(id)` | `LadderInfo` | The ladder with this id. `null` when none has it. |
+| `SetBlocked(id, blocked)` | `bool` | Blocks or unblocks a ladder. `true` when it ends up as you asked. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -95,6 +98,9 @@ public static class Ladders
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>LadderInfo</code> <span>a snapshot of one ladder</span></p>
+
+`All()` and `Get(id)` give you one of these for each ladder. `Blocked` and `PlayerOn` are as they were when you asked, so ask again for fresh values. <span class="tech">(It is built from the game's `InteractableLadder` component.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp

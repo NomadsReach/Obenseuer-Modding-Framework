@@ -69,6 +69,9 @@ A book in your list is a `BookEntryInfo`. The list only has books the player is 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Books</code> <span>the books the player holds</span></p>
+
+Use `All` to list the books the player holds, `IsRead` to check one by its id, and listen to `Read` to hear when a book is read.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -84,7 +87,7 @@ public static class Books
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<BookEntryInfo>` | The books the player holds, in the order the game keeps them. |
-| `IsRead(string id)` | `bool` | `true` when the player has read the book. `false` when the player does not hold it. |
+| `IsRead(id)` | `bool` | `true` when the player has read the book. `false` when the player does not hold it. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -99,6 +102,9 @@ public static class Books
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>BookEntryInfo</code> <span>one book the player holds</span></p>
+
+`All` gives you one of these for each book the player holds. Its `Id` is what `IsRead` takes.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -121,6 +127,9 @@ public sealed class BookEntryInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>BookReadArgs</code> <span>what you get when a book is read</span></p>
+
+`Read` hands you this when a book goes from unread to read. `Id` and `Title` say which book it was.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

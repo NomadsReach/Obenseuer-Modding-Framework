@@ -11,6 +11,9 @@ Obenseuer is played in first person. The game also has a third person camera, bu
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>CameraView</code> <span>first and third person</span></p>
+
+Check `IsAvailable` first, since there is no camera on the main menu. Then use `SetThirdPerson`, `SetFirstPerson` or `Toggle` to change the view, and `IsFirstPerson` to see which one is on.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -28,7 +31,7 @@ public static class CameraView
 
 | Method | Returns | What it does |
 |---|---|---|
-| `SetThirdPerson(float distance = 2.5f)` | `bool` | Switches to third person at this distance. Returns `false` when third person is not allowed. |
+| `SetThirdPerson(distance)` | `bool` | Switches to third person at this distance. Returns `false` when third person is not allowed. |
 | `SetFirstPerson()` | `void` | Switches back to first person. |
 | `Toggle()` | `bool` | Switches to the other view. Returns `false` when it is not available or refused. |
 

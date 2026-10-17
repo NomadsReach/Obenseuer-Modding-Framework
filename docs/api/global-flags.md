@@ -84,6 +84,9 @@ This is the full list of what the API gives you. Text in brackets at the end of 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>GlobalFlags</code> <span>read, write and watch flags</span></p>
+
+This is the class you start from. `Get` and `Set` read and switch a flag by name, `All()` lists the names, and `Changed` tells you when a flag changes.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -101,8 +104,8 @@ public static class GlobalFlags
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Get(string key)` | `bool` | `true` when the flag exists and is on. |
-| `Set(string key, bool active)` | `bool` | Switches a flag on or off. Returns `true` when it now has that value. |
+| `Get(key)` | `bool` | `true` when the flag exists and is on. |
+| `Set(key, active)` | `bool` | Switches a flag on or off. Returns `true` when it now has that value. |
 | `All()` | `List<string>` | The names of every flag, on or off. |
 
 | Property | Type | What it means |
@@ -118,6 +121,9 @@ public static class GlobalFlags
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>GlobalFlagChangedArgs</code> <span>what Changed gives you</span></p>
+
+`Changed` gives you this. The framework builds it when a flag's on or off value really changes, so it is the framework's own type.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

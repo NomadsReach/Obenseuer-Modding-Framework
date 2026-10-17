@@ -11,6 +11,9 @@ These calls change a task your mod made.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>QuestAuthoring</code> <span>changing a running task</span></p>
+
+Use these calls to add a step to a running task, change a step or its counter, or end the task.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -26,11 +29,11 @@ public static class QuestAuthoring
 
 | Method | Returns | What it does |
 |---|---|---|
-| `AddObjective(string modId, string taskId, QuestObjectiveDefinition objective)` | `bool` | Adds a step to a running task. |
-| `SetObjective(string modId, string taskId, string objectiveKey, ObjectiveState state)` | `bool` | Marks one step failed, finished or abandoned. |
-| `SetCounter(string modId, string taskId, string objectiveKey, int amount)` | `bool` | Sets a step's counter to an exact number. |
-| `Finish(string modId, string taskId)` | `bool` | Ends the task as finished. |
-| `Fail(string modId, string taskId)` | `bool` | Ends the task as failed. |
+| `AddObjective(modId, taskId, objective)` | `bool` | Adds a step to a running task. |
+| `SetObjective(modId, taskId, objectiveKey, state)` | `bool` | Marks one step failed, finished or abandoned. |
+| `SetCounter(modId, taskId, objectiveKey, amount)` | `bool` | Sets a step's counter to an exact number. |
+| `Finish(modId, taskId)` | `bool` | Ends the task as finished. |
+| `Fail(modId, taskId)` | `bool` | Ends the task as failed. |
 
 </div>
 </div>

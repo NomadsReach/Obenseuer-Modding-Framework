@@ -7,10 +7,16 @@ nav_order: 4
 
 # Looking for a look
 
+This page uses `Mesh` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 These types describe the looks the game has. A `SceneLookInfo` is information about one look. It is not loaded, so reading it is quick.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SceneLookInfo</code> <span>information about one look in a scene</span></p>
+
+`SceneLooks.List` and the `Find` methods give you one of these. It is only information, so reading it does not load the look. Pass it to `SceneLooks.Load` (see [Loading a look](loading-a-look.md)) to load it.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -55,6 +61,9 @@ public sealed class SceneLookInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SceneLooks</code> <span>finds looks</span></p>
+
+This is the class to start from: `List`, `FindByName` and `FindByCharacter` give you the `SceneLookInfo` for a look, which you then load.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -70,11 +79,11 @@ public static class SceneLooks
 
 | Method | Returns | What it does |
 |---|---|---|
-| `List(string sceneName)` | `SceneLookInfo[]` | The character looks in a scene. |
-| `List(string sceneName, bool charactersOnly)` | `SceneLookInfo[]` | When `charactersOnly` is `false`, every body root in the scene, not only characters. |
-| `FindByName(string sceneName, string name)` | `SceneLookInfo` | One look by name. `null` when none matches. |
-| `FindByCharacter(int characterId)` | `SceneLookInfo` | Searches every scene. `null` when none matches. |
-| `FindByCharacter(string sceneName, int characterId)` | `SceneLookInfo` | Searches one scene. `null` when none matches. |
+| `List(sceneName)` | `SceneLookInfo[]` | The character looks in a scene. |
+| `List(sceneName, charactersOnly)` | `SceneLookInfo[]` | When `charactersOnly` is `false`, every body root in the scene, not only characters. |
+| `FindByName(sceneName, name)` | `SceneLookInfo` | One look by name. `null` when none matches. |
+| `FindByCharacter(characterId)` | `SceneLookInfo` | Searches every scene. `null` when none matches. |
+| `FindByCharacter(sceneName, characterId)` | `SceneLookInfo` | Searches one scene. `null` when none matches. |
 
 </div>
 </div>

@@ -10,7 +10,36 @@ nav_order: 3
 `Buy(id, furnitureId, count)` buys `count` pieces of one kind of furniture from a furniture shop for the player, the way the shop screen does.
 
 <div class="api-type" markdown="1">
+<p class="api-type-head"><code>BaseShops</code> <span>buying furniture from a shop</span></p>
+
+Call `Buy` to buy furniture for the player from a furniture shop, and listen to `Bought` to hear about purchases made through it.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class BaseShops
+{
+    public static BaseShopBuyResult Buy(string id, string furnitureId, int count);
+    public static event Action<BaseShopBoughtArgs> Bought;
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `Buy(id, furnitureId, count)` | `BaseShopBuyResult` | Buys `count` pieces of one kind of furniture from a shop for the player. |
+
+| Event | Gives you | When it fires |
+|---|---|---|
+| `Bought` | `BaseShopBoughtArgs` | The player bought furniture through `Buy`. It fires once, after the stock and the shop's money have changed. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
 <p class="api-type-head"><code>BaseShopBuyResult</code> <span>what happened when you tried to buy</span></p>
+
+`Buy` returns this. `Ok` means the purchase is complete, and the other values say why it was not.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -45,6 +74,9 @@ public enum BaseShopBuyResult
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>BaseShopBoughtArgs</code> <span>what Bought tells you</span></p>
+
+`Bought` hands you this after a purchase made with `Buy`. `FurnitureId` and `Count` say what was bought, and `Oc` and `Rm` what was paid.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -67,29 +99,6 @@ public sealed class BaseShopBoughtArgs
 | `Count` | `int` | How many pieces were bought. |
 | `Oc` | `int` | The total OC paid. |
 | `Rm` | `int` | The total RM paid. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>BaseShops</code> <span>buying furniture from a shop</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static class BaseShops
-{
-    public static BaseShopBuyResult Buy(string id, string furnitureId, int count);
-    public static event Action<BaseShopBoughtArgs> Bought;
-}
-```
-
-| Method | Returns | What it does |
-|---|---|---|
-| `Buy(string id, string furnitureId, int count)` | `BaseShopBuyResult` | Buys `count` pieces of one kind of furniture from a shop for the player. |
-
-| Event | Gives you | When it fires |
-|---|---|---|
-| `Bought` | `BaseShopBoughtArgs` | The player bought furniture through `Buy`. It fires once, after the stock and the shop's money have changed. |
 
 </div>
 </div>

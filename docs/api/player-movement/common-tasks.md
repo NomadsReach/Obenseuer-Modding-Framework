@@ -7,6 +7,9 @@ nav_order: 1
 
 # Common tasks
 
+This page uses `Transform` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 Hold the player still while your mod plays a scene, then let go. The player cannot move or look around while the lock is held:
 
 ```csharp

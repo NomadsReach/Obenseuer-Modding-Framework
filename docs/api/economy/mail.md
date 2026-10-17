@@ -10,27 +10,53 @@ nav_order: 8
 `Mail` reads the player's mailbox and parcel locker, sends letters and packages to the player, and tells you when mail arrives. A letter goes to the mailbox and a package goes to the parcel locker.
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>MailKind</code> <span>where a piece of mail goes</span></p>
+<p class="api-type-head"><code>Mail</code> <span>read the mailbox, send mail, and hear when it arrives</span></p>
+
+Call `Inbox(kind)` to read the mailbox or the locker, and `SendItem`, `SendMoney` or `SendBundle` to send mail to the player.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
-public enum MailKind
+public static class Mail
 {
-    Letter = 0,
-    Package = 1
+    public static event Action<MailReceivedArgs> Received;
+    public static event Action<MailReceivedArgs> PackageReceived;
+    public static event Action<MailSentArgs> Sent;
+    public static bool IsAvailable { get; }
+    public static List<MailInfo> Inbox(MailKind kind);
+    public static bool SendItem(string mailName, int itemId, int count, MailKind kind);
+    public static bool SendMoney(string mailName, MoneyCurrency currency, float amount, MailKind kind);
+    public static bool SendBundle(string mailName, IList<MailLine> lines, MailKind kind, int delayMinutes);
+    public static List<PendingMail> Pending();
 }
 ```
 
-| Value | Meaning |
-|---|---|
-| `Letter` | A letter, delivered to the mailbox. |
-| `Package` | A package, delivered to the parcel locker. |
+| Method | Returns | What it does |
+|---|---|---|
+| `Inbox(kind)` | `List<MailInfo>` | The mail that has arrived and is waiting. |
+| `SendItem(mailName, itemId, count, kind)` | `bool` | Sends the player an item. |
+| `SendMoney(mailName, currency, amount, kind)` | `bool` | Sends the player money. |
+| `SendBundle(mailName, lines, kind, delayMinutes)` | `bool` | Sends several items in one mail. |
+| `Pending()` | `List<PendingMail>` | The player's mail that is still on its way. |
+
+| Property | Type | What it means |
+|---|---|---|
+| `IsAvailable` | `bool` | `false` when the mail events could not be set up. |
+
+| Event | Gives you | When it fires |
+|---|---|---|
+| `Received` | `MailReceivedArgs` | A letter arrived. `args.Name` is the letter name and `args.Kind` is `Letter`. |
+| `PackageReceived` | `MailReceivedArgs` | A package arrived. `args.Name` is the package name and `args.Kind` is `Package`. |
+| `Sent` | `MailSentArgs` | The game sent mail out into the world. |
 
 </div>
 </div>
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>MailInfo</code> <span>one piece of mail waiting in the mailbox or locker</span></p>
+
+`Mail.Inbox` returns these for each letter or package waiting. `Name` is the subject, and `ItemId`, `Count`, `Oc` and `Rm` say what is inside.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -64,47 +90,33 @@ public sealed class MailInfo
 </div>
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>Mail</code> <span>read the mailbox, send mail, and hear when it arrives</span></p>
+<p class="api-type-head"><code>MailKind</code> <span>where a piece of mail goes</span></p>
+
+`Inbox`, the send calls and `MailInfo.Kind` take one of these. `Letter` goes to the mailbox and `Package` to the parcel locker.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
-public static class Mail
+public enum MailKind
 {
-    public static event Action<MailReceivedArgs> Received;
-    public static event Action<MailReceivedArgs> PackageReceived;
-    public static event Action<MailSentArgs> Sent;
-    public static bool IsAvailable { get; }
-    public static List<MailInfo> Inbox(MailKind kind);
-    public static bool SendItem(string mailName, int itemId, int count, MailKind kind);
-    public static bool SendMoney(string mailName, MoneyCurrency currency, float amount, MailKind kind);
-    public static bool SendBundle(string mailName, IList<MailLine> lines, MailKind kind, int delayMinutes);
-    public static List<PendingMail> Pending();
+    Letter = 0,
+    Package = 1
 }
 ```
 
-| Method | Returns | What it does |
-|---|---|---|
-| `Inbox(MailKind kind)` | `List<MailInfo>` | The mail that has arrived and is waiting. |
-| `SendItem(string mailName, int itemId, int count, MailKind kind)` | `bool` | Sends the player an item. |
-| `SendMoney(string mailName, MoneyCurrency currency, float amount, MailKind kind)` | `bool` | Sends the player money. |
-| `SendBundle(string mailName, IList<MailLine> lines, MailKind kind, int delayMinutes)` | `bool` | Sends several items in one mail. |
-| `Pending()` | `List<PendingMail>` | The player's mail that is still on its way. |
-
-| Property | Type | What it means |
-|---|---|---|
-| `IsAvailable` | `bool` | `false` when the mail events could not be set up. |
-
-| Event | Gives you | When it fires |
-|---|---|---|
-| `Received` | `MailReceivedArgs` | A letter arrived. `args.Name` is the letter name and `args.Kind` is `Letter`. |
-| `PackageReceived` | `MailReceivedArgs` | A package arrived. `args.Name` is the package name and `args.Kind` is `Package`. |
-| `Sent` | `MailSentArgs` | The game sent mail out into the world. |
+| Value | Meaning |
+|---|---|
+| `Letter` | A letter, delivered to the mailbox. |
+| `Package` | A package, delivered to the parcel locker. |
 
 </div>
 </div>
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>MailLine</code> <span>one line of a bundle</span></p>
+
+`SendBundle` takes a list of these, one for each line of the bundle.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -125,6 +137,9 @@ public sealed class MailLine
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>MailSentArgs</code> <span>what you get when the game sends mail into the world</span></p>
+
+`Sent` gives you one of these when the game sends mail out into the world.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -149,6 +164,9 @@ public sealed class MailSentArgs
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>PendingMail</code> <span>one piece of mail still on its way to the player</span></p>
+
+`Mail.Pending()` lists the mail still on its way to the player, with `SecondsLeft` until each one arrives.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

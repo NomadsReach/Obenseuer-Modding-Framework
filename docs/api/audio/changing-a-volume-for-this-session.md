@@ -11,6 +11,9 @@ nav_order: 7
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Sounds</code> <span>volume channels</span></p>
+
+Call `SetMixerVolume` with your mod id, a channel name and a value in decibels to change that channel for this session. The volumes the player saved are not changed.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -22,7 +25,7 @@ public static class Sounds
 
 | Method | Returns | What it does |
 |---|---|---|
-| `SetMixerVolume(string modId, string group, float decibels)` | `bool` | Sets a channel's loudness. Returns `false` when it was not set. |
+| `SetMixerVolume(modId, group, decibels)` | `bool` | Sets a channel's loudness. Returns `false` when it was not set. |
 
 </div>
 </div>

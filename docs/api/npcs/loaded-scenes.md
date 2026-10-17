@@ -7,10 +7,16 @@ nav_order: 3
 
 # NPCs in the loaded scenes
 
+This page uses `Vector3` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 `Npcs.InScene()` finds every NPC object in loaded scenes.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Npcs</code> <span>the scene search</span></p>
+
+Use `InScene()` to find every NPC object in the loaded scenes, including the ones the game has no record of.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -29,6 +35,9 @@ public static class Npcs
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SceneNpcInfo</code> <span>one NPC object</span></p>
+
+`Npcs.InScene()` gives you one of these for each NPC object, whether it is switched on or off. Use `Present` to see whether the NPC is really there, and `IsDirector` to see whether `Npcs.All()` lists it too.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

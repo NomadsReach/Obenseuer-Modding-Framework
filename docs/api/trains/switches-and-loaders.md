@@ -7,10 +7,15 @@ nav_order: 4
 
 # Switches and loaders
 
+This page uses `GameObject` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 A track switch is a lever that sends a train down one of several branches of track. A wagon loader is a machine that puts goods in a wagon.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Trains</code> <span>switches and wagon loaders</span></p>
+Use `Switches` and `Loaders` to find the track switches and wagon loaders, then `SetBranch` and `SetLoaderOn` to work them.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -27,10 +32,10 @@ public static class Trains
 
 | Method | Returns | What it does |
 |---|---|---|
-| `GetBranch(GameObject target)` | `int` | Which branch a switch points at. `-1` when the object is not a switch. |
-| `SetBranch(GameObject target, int branch, bool force)` | `bool` | Points a switch at another branch. `true` when the change was accepted. |
-| `SetLoaderOn(GameObject target, bool on)` | `bool` | Turns a wagon loader on or off. `true` when it ends up in that state. |
-| `SetLoaderFreeToTake(GameObject target, bool freeToTake)` | `bool` | Sets whether the player may take the loader's goods without stealing. |
+| `GetBranch(target)` | `int` | Which branch a switch points at. `-1` when the object is not a switch. |
+| `SetBranch(target, branch, force)` | `bool` | Points a switch at another branch. `true` when the change was accepted. |
+| `SetLoaderOn(target, on)` | `bool` | Turns a wagon loader on or off. `true` when it ends up in that state. |
+| `SetLoaderFreeToTake(target, freeToTake)` | `bool` | Sets whether the player may take the loader's goods without stealing. |
 
 | Property | Type | What it means |
 |---|---|---|

@@ -7,10 +7,15 @@ nav_order: 3
 
 # Scene paths
 
+This page uses `GameObject` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 A name path describes where an object sits in a scene, written as the names from the top of the scene down, joined by `/`, for example `Room/Shelf/Jar`. `FindByPath` and `PathOf` turn a path into an object and an object into a path. The scene's own name is not part of the path.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WorldObjects</code> <span>finds objects by path</span></p>
+Use `FindByPath` to find an object from its path in a scene, and `PathOf` to get the path of an object.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -23,8 +28,8 @@ public static class WorldObjects
 
 | Method | Returns | What it does |
 |---|---|---|
-| `FindByPath(string scene, string path, bool includeInactive)` | `GameObject` | The first object that matches the path in that scene. `null` when none matches. |
-| `PathOf(GameObject go)` | `string` | The object's name path, such as `Root/Child/Grandchild`. |
+| `FindByPath(scene, path, includeInactive)` | `GameObject` | The first object that matches the path in that scene. `null` when none matches. |
+| `PathOf(go)` | `string` | The object's name path, such as `Root/Child/Grandchild`. |
 
 </div>
 </div>

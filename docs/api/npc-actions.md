@@ -8,6 +8,9 @@ nav_order: 5
 
 # NPC actions
 
+This page uses `KeyCode`, `Vector3` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 ## What it is
 
 This API makes a character you can see in the scene do something right now: jump to a new place, die, get hit, follow the player, say a line, start a conversation, look at something, or be sent to another scene. It only works on NPCs that are standing in the scene you are in. To find an NPC and read its state first, use the [NPCs page](npcs.md). Every call here takes the NPC's id from there.

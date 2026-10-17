@@ -11,6 +11,9 @@ A look is a set of body and face dials plus the names of the clothes and hair wo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>NpcAppearance</code> <span>look calls</span></p>
+
+Call `GetLook(npcId)` to read a slider character's look, and `SetLook` to apply one. `GetLook` gives `null` for a character that is not built from sliders.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -23,8 +26,8 @@ public static partial class NpcAppearance
 
 | Method | Returns | What it does |
 |---|---|---|
-| `GetLook(int npcId)` | `PlayerLook.Look` | The character's current look. It is `null` if the character is not built from sliders. |
-| `SetLook(string modId, int npcId, PlayerLook.Look look)` | `bool` | Applies a look. Returns `true` when it was applied. |
+| `GetLook(npcId)` | `PlayerLook.Look` | The character's current look. It is `null` if the character is not built from sliders. |
+| `SetLook(modId, npcId, look)` | `bool` | Applies a look. Returns `true` when it was applied. |
 
 </div>
 </div>

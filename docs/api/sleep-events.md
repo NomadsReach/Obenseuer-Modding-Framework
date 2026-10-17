@@ -82,6 +82,9 @@ These read the game's current state. They never change anything.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SleepEvents</code> <span>the state of sleep</span></p>
+
+This is the class to start from. `InProgress`, `PlayerInSafeArea` and `SafetyFactor` read the game's sleep state, and the `Occurred` and `Intercept` events below are where you hear about a sleep event or act on its roll.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -110,6 +113,9 @@ public static class SleepEvents
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SleepEventKind</code> <span>every event the game can run during a sleep</span></p>
+
+`SleepEventOccurredArgs.Kind` and `SleepEventInterceptArgs.Candidates` give you these values. <span class="tech">(The framework casts the game's sleep event value to this enum by its number.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -164,6 +170,9 @@ public enum SleepEventKind
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SleepEvents</code> <span>the event that ran</span></p>
+
+The `Occurred` event tells you which sleep event the game just ran, through its `Kind`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -182,6 +191,9 @@ public static class SleepEvents
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SleepEventOccurredArgs</code> <span>what the Occurred event tells you</span></p>
+
+The `Occurred` event gives you one of these. `Kind` is the event the game just ran.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -204,6 +216,9 @@ public sealed class SleepEventOccurredArgs
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SleepEvents</code> <span>the roll before it happens</span></p>
+
+The `Intercept` event fires just before the game rolls a random event for a sleep, and lets you cancel that roll.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -222,6 +237,9 @@ public static class SleepEvents
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SleepEventInterceptArgs</code> <span>what the Intercept event tells you</span></p>
+
+The `Intercept` event gives you one of these. Set `Cancel` to `true` to stop the random event for this sleep, and read `Candidates` to see what the game could have rolled.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

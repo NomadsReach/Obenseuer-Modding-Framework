@@ -10,7 +10,45 @@ nav_order: 2
 A simple light is a fixture that is either on or off. `Lights.All()` lists them, and each one is a `LightInfo`, a snapshot of the light at the moment you asked. The snapshot does not update by itself, so ask again for fresh values.
 
 <div class="api-type" markdown="1">
+<p class="api-type-head"><code>Lights</code> <span>simple light calls and event</span></p>
+
+Call `All()` or `Get(id)` to read simple lights, and `SetOn(id, on)` to switch one. `Toggled` fires after a light is switched.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class Lights
+{
+    public static List<LightInfo> All();
+    public static LightInfo Get(string id);
+    public static bool SetOn(string id, bool on);
+    public static event Action<LightToggledArgs> Toggled;
+    public static bool IsAvailable { get; }
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `All()` | `List<LightInfo>` | Every simple light in the active scene. |
+| `Get(id)` | `LightInfo` | One light. `null` when nobody has that id. |
+| `SetOn(id, on)` | `bool` | Switches the light. `true` when it now matches. |
+
+| Property | Type | What it means |
+|---|---|---|
+| `IsAvailable` | `bool` | `false` when a light event could not be set up. |
+
+| Event | Gives you | When it fires |
+|---|---|---|
+| `Toggled` | `LightToggledArgs`: the light's id and whether it is on after the change. | A light was just switched on or off. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
 <p class="api-type-head"><code>LightInfo</code> <span>a snapshot of one simple light</span></p>
+
+`All()` and `Get(id)` give you one of these. `On` is as it was when you asked, so ask again for a fresh value. <span class="tech">(It is built from the game's `LightTurnOffOn` component and its `on` flag.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -31,6 +69,9 @@ public sealed class LightInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>LightToggledArgs</code> <span>what the Toggled event tells you</span></p>
+
+`Toggled` gives you one of these when a light is switched. `On` is the state after the change.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -45,38 +86,6 @@ public sealed class LightToggledArgs
 |---|---|---|
 | `Id` | `string` | The light, the same as `LightInfo.Id`. |
 | `On` | `bool` | `true` when the light is on after the change. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>Lights</code> <span>simple light calls and event</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static class Lights
-{
-    public static List<LightInfo> All();
-    public static LightInfo Get(string id);
-    public static bool SetOn(string id, bool on);
-    public static event Action<LightToggledArgs> Toggled;
-    public static bool IsAvailable { get; }
-}
-```
-
-| Method | Returns | What it does |
-|---|---|---|
-| `All()` | `List<LightInfo>` | Every simple light in the active scene. |
-| `Get(string id)` | `LightInfo` | One light. `null` when nobody has that id. |
-| `SetOn(string id, bool on)` | `bool` | Switches the light. `true` when it now matches. |
-
-| Property | Type | What it means |
-|---|---|---|
-| `IsAvailable` | `bool` | `false` when a light event could not be set up. |
-
-| Event | Gives you | When it fires |
-|---|---|---|
-| `Toggled` | `LightToggledArgs`: the light's id and whether it is on after the change. | A light was just switched on or off. |
 
 </div>
 </div>

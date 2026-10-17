@@ -10,7 +10,72 @@ nav_order: 2
 This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read. OC is Open Sewer Coins and RM is Real Money (see the [glossary](../../glossary.md#oc)).
 
 <div class="api-type" markdown="1">
+<p class="api-type-head"><code>Medical</code> <span>list, check, buy and hear about treatments</span></p>
+
+Call `Treatments()` to see what the doctor sells and `CanTreat(kind)` to check one. `Treat(kind)` buys it, and `Treated` tells you about each purchase.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class Medical
+{
+    public static bool IsAvailable { get; }
+    public static List<MedicalTreatmentInfo> Treatments();
+    public static bool CanTreat(MedicalTreatment kind);
+    public static bool Treat(MedicalTreatment kind);
+    public static event Action<MedicalTreatedArgs> Treated;
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `Treatments()` | `List<MedicalTreatmentInfo>` | The treatments the doctors in the scene sell. |
+| `CanTreat(kind)` | `bool` | `true` when the doctor's screen is open, it is offered, and the player can pay. |
+| `Treat(kind)` | `bool` | Buys the treatment for the player. `true` when it was bought. |
+
+| Property | Type | What it means |
+|---|---|---|
+| `IsAvailable` | `bool` | `false` when the `Treated` event could not be set up. |
+
+| Event | Gives you | When it fires |
+|---|---|---|
+| `Treated` | `MedicalTreatedArgs` | A treatment was bought. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>MedicalTreatmentInfo</code> <span>one treatment and its price</span></p>
+
+`Treatments()` gives you one of these for each treatment the doctor sells. `Price` and `Available` tell you what it costs and whether the doctor offers it now. <span class="tech">(It is built from the game's `MedicalTreatments` slots.)</span>
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class MedicalTreatmentInfo
+{
+    public MedicalTreatment Kind { get; }
+    public int Price { get; }
+    public MoneyCurrency Currency { get; }
+    public bool Available { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Kind` | `MedicalTreatment` | Which treatment it is. |
+| `Price` | `int` | What it costs, in `Currency`. |
+| `Currency` | `MoneyCurrency` | OC (Open Sewer Coins) or RM (Real Money). |
+| `Available` | `bool` | `true` when the doctor offers it right now. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
 <p class="api-type-head"><code>MedicalTreatment</code> <span>the treatments the doctor sells</span></p>
+
+`Treat` and `CanTreat` take one of these, and `MedicalTreatmentInfo.Kind` gives you one. The table below says what each value does for the player.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -58,31 +123,10 @@ public enum MedicalTreatment
 </div>
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>MedicalTreatmentInfo</code> <span>one treatment and its price</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public sealed class MedicalTreatmentInfo
-{
-    public MedicalTreatment Kind { get; }
-    public int Price { get; }
-    public MoneyCurrency Currency { get; }
-    public bool Available { get; }
-}
-```
-
-| Property | Type | What it means |
-|---|---|---|
-| `Kind` | `MedicalTreatment` | Which treatment it is. |
-| `Price` | `int` | What it costs, in `Currency`. |
-| `Currency` | `MoneyCurrency` | OC (Open Sewer Coins) or RM (Real Money). |
-| `Available` | `bool` | `true` when the doctor offers it right now. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
 <p class="api-type-head"><code>MedicalTreatedArgs</code> <span>what <code>Treated</code> tells you</span></p>
+
+`Treated` gives you one of these when a treatment is bought. `Kind` says which one, and `Price` and `Currency` say what it cost.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -99,38 +143,6 @@ public sealed class MedicalTreatedArgs
 | `Kind` | `MedicalTreatment` | Which treatment was bought. |
 | `Price` | `int` | What it cost. |
 | `Currency` | `MoneyCurrency` | The currency it was paid in. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>Medical</code> <span>list, check, buy and hear about treatments</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static class Medical
-{
-    public static bool IsAvailable { get; }
-    public static List<MedicalTreatmentInfo> Treatments();
-    public static bool CanTreat(MedicalTreatment kind);
-    public static bool Treat(MedicalTreatment kind);
-    public static event Action<MedicalTreatedArgs> Treated;
-}
-```
-
-| Method | Returns | What it does |
-|---|---|---|
-| `Treatments()` | `List<MedicalTreatmentInfo>` | The treatments the doctors in the scene sell. |
-| `CanTreat(MedicalTreatment kind)` | `bool` | `true` when the doctor's screen is open, it is offered, and the player can pay. |
-| `Treat(MedicalTreatment kind)` | `bool` | Buys the treatment for the player. `true` when it was bought. |
-
-| Property | Type | What it means |
-|---|---|---|
-| `IsAvailable` | `bool` | `false` when the `Treated` event could not be set up. |
-
-| Event | Gives you | When it fires |
-|---|---|---|
-| `Treated` | `MedicalTreatedArgs` | A treatment was bought. |
 
 </div>
 </div>

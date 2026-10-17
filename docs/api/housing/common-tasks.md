@@ -7,6 +7,9 @@ nav_order: 1
 
 # Common tasks
 
+This page uses `Vector3`, `Quaternion` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 These snippets run from your mod's normal code, after a save is loaded.
 
 List the apartments, their floors and who lives in them.

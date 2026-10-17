@@ -7,10 +7,15 @@ nav_order: 3
 
 # WorldPower
 
+This page uses `GameObject` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 `WorldPower` tells your mod about blackouts and generators, and lets you control how the player wakes up after a blackout.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WorldPower</code> <span>blackouts, generators and wake-ups</span></p>
+Use `ScheduleWakeUp` to choose how the player wakes after a blackout, and `WakeUp` to wake them now.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -37,7 +42,7 @@ public static class WorldPower
 
 | Method | Returns | What it does |
 |---|---|---|
-| `ScheduleWakeUp(float fadeOutSpeed, float wakeUpDelay, WakeUpAnimation wakeUpAnimation, bool autoWakeUp)` | `bool` | Sets how the player wakes after the next level load. |
+| `ScheduleWakeUp(fadeOutSpeed, wakeUpDelay, wakeUpAnimation, autoWakeUp)` | `bool` | Sets how the player wakes after the next level load. |
 | `WakeUp()` | `bool` | Wakes the player now. |
 
 | Event | Gives you | When it fires |
@@ -50,6 +55,8 @@ public static class WorldPower
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WakeUpAnimation</code> <span>how the player wakes up</span></p>
+`ScheduleWakeUp` takes one of these to pick how the player wakes up.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

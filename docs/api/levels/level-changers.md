@@ -7,10 +7,16 @@ nav_order: 2
 
 # Level changers
 
+This page uses `Vector3`, `Transform` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 A level changer is named by an id, a text name for that changer in the scene. You get the ids from `Levels.All()` and pass them to the other members. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Levels</code> <span>list, lock and use level changers</span></p>
+
+Call `All()` to list the changers, then `SetLocked`, `Use` or `ChangeTo` to lock a door or move the player. `Changing` fires just before any level change starts.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -29,10 +35,10 @@ public static class Levels
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<LevelDoorInfo>` | Every level changer in the scene you are in. |
-| `Get(string id)` | `LevelDoorInfo` | The changer with this id. `null` when none has it. |
-| `SetLocked(string id, bool locked)` | `bool` | Locks or unlocks a door. `true` when it is now in that state. |
-| `Use(string id)` | `bool` | Uses a changer for the player. `true` when it worked or started. |
-| `ChangeTo(string scene, string entrypoint)` | `bool` | Moves the player to any level. `true` when the change started. |
+| `Get(id)` | `LevelDoorInfo` | The changer with this id. `null` when none has it. |
+| `SetLocked(id, locked)` | `bool` | Locks or unlocks a door. `true` when it is now in that state. |
+| `Use(id)` | `bool` | Uses a changer for the player. `true` when it worked or started. |
+| `ChangeTo(scene, entrypoint)` | `bool` | Moves the player to any level. `true` when the change started. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -47,6 +53,9 @@ public static class Levels
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>LevelDoorInfo</code> <span>one level changer</span></p>
+
+`All()` and `Get(id)` give you one of these. `OtherLevel` and `OtherEntrypoint` tell you where the changer leads before you use it.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -77,6 +86,9 @@ public sealed class LevelDoorInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>LevelChangeArgs</code> <span>the level change that is about to start</span></p>
+
+`Changing` gives you one of these just before the game changes level. It tells you where the player is going.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

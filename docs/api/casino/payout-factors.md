@@ -11,6 +11,9 @@ A payout factor changes how much a machine pays. You set one factor for one kind
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Casino</code> <span>the payout factor calls</span></p>
+
+You call `SetPayoutFactor` to change how much one kind of machine pays, and `Clear` to remove every factor your mod set.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -25,8 +28,8 @@ public static class Casino
 
 | Method | Returns | What it does |
 |---|---|---|
-| `SetPayoutFactor(string modId, CasinoMachineKind kind, float factor)` | `bool` | Sets your factor for a kind of machine. `true` when it was set. |
-| `Clear(string modId)` | `bool` | Removes every factor your mod set. |
+| `SetPayoutFactor(modId, kind, factor)` | `bool` | Sets your factor for a kind of machine. `true` when it was set. |
+| `Clear(modId)` | `bool` | Removes every factor your mod set. |
 | `Machines()` | `List<CasinoMachineInfo>` | Every machine in the scene you are in. |
 
 | Property | Type | What it means |

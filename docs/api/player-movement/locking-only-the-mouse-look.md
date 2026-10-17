@@ -11,6 +11,9 @@ A look lock stops the player turning the camera with the mouse, and leaves walki
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>PlayerMovement</code> <span>stop and restore the mouse look</span></p>
+
+Call `LockLook` to stop the mouse look while the player can still move, and `UnlockLook` to give it back.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -23,8 +26,8 @@ public static class PlayerMovement
 
 | Method | Returns | What it does |
 |---|---|---|
-| `LockLook(string modId)` | `bool` | Stops the mouse look. `false` if it could not. |
-| `UnlockLook(string modId)` | `bool` | Lets go of your newest look lock. `false` if you hold none. |
+| `LockLook(modId)` | `bool` | Stops the mouse look. `false` if it could not. |
+| `UnlockLook(modId)` | `bool` | Lets go of your newest look lock. `false` if you hold none. |
 
 </div>
 </div>

@@ -13,6 +13,9 @@ This is the full list of what the API gives you. Text in brackets at the end of 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>CasinoMachineKind</code> <span>the kinds of machine</span></p>
+
+`CasinoMachineInfo.Kind` holds one of these, and `Casino.SetPayoutFactor` takes one. <span class="tech">(It stands for the game's `SlotMachineGameplay` and `PajatsoGameplay` components.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -33,6 +36,9 @@ public enum CasinoMachineKind
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>CasinoMachineInfo</code> <span>a snapshot of one machine</span></p>
+
+`Casino.Machines()` returns a list of these, one for each machine it finds in the scene you are in.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

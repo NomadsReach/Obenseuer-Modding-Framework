@@ -7,40 +7,52 @@ nav_order: 3
 
 # Crafting stations
 
+This page uses `Vector3` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 A crafting station is a place that carries out recipes. `Crafting.All()` lists the stations in the scene you are in, each one as a `CraftingStationInfo`. The craft events tell you when a station takes ingredients and when it makes the results.
 
+
+
+
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>CraftingStationInfo</code> <span>a snapshot of one crafting station</span></p>
+<p class="api-type-head"><code>Crafting</code> <span>the station list and craft events</span></p>
+
+Use it to list the crafting stations in the scene, and to hear when a station takes ingredients or makes its results.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
-public sealed class CraftingStationInfo
+public static class Crafting
 {
-    public string Kind { get; }
-    public Vector3 Position { get; }
-    public bool Busy { get; }
-    public string Id { get; }
-    public List<string> Modifiers { get; }
-    public List<string> RecipeTypes { get; }
-    public bool? HasNaturalLight { get; }
+    public static event Action<CraftStartArgs> CraftStarted;
+    public static event Action<CraftedArgs> Crafted;
+    public static List<CraftingStationInfo> All();
+    public static bool IsAvailable { get; }
 }
 ```
 
+| Method | Returns | What it does |
+|---|---|---|
+| `All()` | `List<CraftingStationInfo>` | Every crafting station in the active scene. |
+
 | Property | Type | What it means |
 |---|---|---|
-| `Kind` | `string` | The game's class name for it, such as `"manufacturing"`, `"manufacturingProcess"` or `"Growing"`. |
-| `Position` | `Vector3` | Where the station is, in world coordinates. |
-| `Busy` | `bool` | `true` while the station is working on a craft. |
-| `Id` | `string` | The id the scene gives it. It can be `null` or empty, and it is for information only. |
-| `Modifiers` | `List<string>` | The conditions the station has now, such as `Clean`, `Makeshift` or `Industrial`. |
-| `RecipeTypes` | `List<string>` | The kinds of recipe the station can make. |
-| `HasNaturalLight` | `bool?` | `true` when sunlight reaches it. It is `null` when that can't be told. |
+| `IsAvailable` | `bool` | `false` when the craft events could not be set up. |
+
+| Event | Gives you | When it fires |
+|---|---|---|
+| `CraftStarted` | `CraftStartArgs` | A station just took the ingredients. |
+| `Crafted` | `CraftedArgs` | A station just made the results. |
 
 </div>
 </div>
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>CraftStartArgs</code> <span>what CraftStarted gives you</span></p>
+
+`Crafting.CraftStarted` hands you one of these when a station takes the ingredients. `RecipeId` says what is being made, and `Station` says where.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -63,6 +75,9 @@ public sealed class CraftStartArgs
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>CraftedArgs</code> <span>what Crafted gives you</span></p>
+
+`Crafting.Crafted` hands you one of these when a station makes its results. Check `Success` first, because a failed craft gives the failure results in `Results`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -88,31 +103,34 @@ public sealed class CraftedArgs
 </div>
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>Crafting</code> <span>the station list and craft events</span></p>
+<p class="api-type-head"><code>CraftingStationInfo</code> <span>a snapshot of one crafting station</span></p>
+
+`Crafting.All()` gives you one of these for each station in the scene, and both craft events give you the station too. Read `Busy` to see whether it is working on a craft.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
-public static class Crafting
+public sealed class CraftingStationInfo
 {
-    public static event Action<CraftStartArgs> CraftStarted;
-    public static event Action<CraftedArgs> Crafted;
-    public static List<CraftingStationInfo> All();
-    public static bool IsAvailable { get; }
+    public string Kind { get; }
+    public Vector3 Position { get; }
+    public bool Busy { get; }
+    public string Id { get; }
+    public List<string> Modifiers { get; }
+    public List<string> RecipeTypes { get; }
+    public bool? HasNaturalLight { get; }
 }
 ```
 
-| Method | Returns | What it does |
-|---|---|---|
-| `All()` | `List<CraftingStationInfo>` | Every crafting station in the active scene. |
-
 | Property | Type | What it means |
 |---|---|---|
-| `IsAvailable` | `bool` | `false` when the craft events could not be set up. |
-
-| Event | Gives you | When it fires |
-|---|---|---|
-| `CraftStarted` | `CraftStartArgs` | A station just took the ingredients. |
-| `Crafted` | `CraftedArgs` | A station just made the results. |
+| `Kind` | `string` | The game's class name for it, such as `"manufacturing"`, `"manufacturingProcess"` or `"Growing"`. |
+| `Position` | `Vector3` | Where the station is, in world coordinates. |
+| `Busy` | `bool` | `true` while the station is working on a craft. |
+| `Id` | `string` | The id the scene gives it. It can be `null` or empty, and it is for information only. |
+| `Modifiers` | `List<string>` | The conditions the station has now, such as `Clean`, `Makeshift` or `Industrial`. |
+| `RecipeTypes` | `List<string>` | The kinds of recipe the station can make. |
+| `HasNaturalLight` | `bool?` | `true` when sunlight reaches it. It is `null` when that can't be told. |
 
 </div>
 </div>

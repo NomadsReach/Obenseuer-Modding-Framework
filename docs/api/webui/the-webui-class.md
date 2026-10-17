@@ -11,6 +11,8 @@ nav_order: 3
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WebUi</code> <span>opens views and tells you about the web side</span></p>
+Use `Open` to show one of your HTML pages, and `SuspendAll` and `ResumeAll` to hold and release every open view under a reason you name.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -28,9 +30,9 @@ public static class WebUi
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Open(string modId, string folder, string page, bool modal)` | `WebView` | Opens a view and shows it. Gives `null` when it cannot. |
-| `SuspendAll(string reason)` | `void` | Hides the popup-window views for a reason. |
-| `ResumeAll(string reason)` | `void` | Lets go of that reason. |
+| `Open(modId, folder, page, modal)` | `WebView` | Opens a view and shows it. Gives `null` when it cannot. |
+| `SuspendAll(reason)` | `void` | Hides the popup-window views for a reason. |
+| `ResumeAll(reason)` | `void` | Lets go of that reason. |
 
 | Property | Type | What it means |
 |---|---|---|

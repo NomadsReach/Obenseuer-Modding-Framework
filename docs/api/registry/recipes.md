@@ -7,10 +7,45 @@ nav_order: 6
 
 # Recipes
 
+This page uses `Sprite` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 A recipe definition says which existing recipe to copy and what is different. Leave a field out to keep the template's.
+
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>RecipeRegistry</code> <span>adds recipes</span></p>
+
+Use `Define` to add a recipe based on an existing one. `IdFor` gives the number a key will have before you define it.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class RecipeRegistry
+{
+    public static bool IsAvailable { get; }
+    public static int IdFor(string modGuid, string key);
+    public static int Define(string modGuid, string key, RecipeDefinition definition);
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `IdFor(modGuid, key)` | `int` | The number a key will have. |
+| `Define(modGuid, key, definition)` | `int` | Adds a recipe. Returns its number, or -1 when refused. |
+
+| Property | Type | What it means |
+|---|---|---|
+| `IsAvailable` | `bool` | `false` when the registry could not be set up. |
+
+</div>
+</div>
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>RecipeDefinition</code> <span>what your new recipe is based on and what is different</span></p>
+
+Pass one of these to `RecipeRegistry.Define`. `TemplateRecipeId`, `Name`, `Station`, `Inputs` and `Outputs` are required.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -47,31 +82,6 @@ public sealed class RecipeDefinition
 | `FailChance` | `float` | The chance it fails, from 0 to 1. |
 | `RecipeRequired` | `bool` | `true` if the recipe stays hidden until the player learns it. |
 | `RecipeTags` | `List<string>` | Labels for the recipe. `null` keeps the template's. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>RecipeRegistry</code> <span>adds recipes</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static class RecipeRegistry
-{
-    public static bool IsAvailable { get; }
-    public static int IdFor(string modGuid, string key);
-    public static int Define(string modGuid, string key, RecipeDefinition definition);
-}
-```
-
-| Method | Returns | What it does |
-|---|---|---|
-| `IdFor(string modGuid, string key)` | `int` | The number a key will have. |
-| `Define(string modGuid, string key, RecipeDefinition definition)` | `int` | Adds a recipe. Returns its number, or -1 when refused. |
-
-| Property | Type | What it means |
-|---|---|---|
-| `IsAvailable` | `bool` | `false` when the registry could not be set up. |
 
 </div>
 </div>

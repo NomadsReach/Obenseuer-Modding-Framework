@@ -11,6 +11,8 @@ nav_order: 3
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Traders</code> <span>changes a trader's money</span></p>
+Use `SetMoney` to set a trader's cash to an amount you give, and `Restock` to give the trader a new random amount from the game's difficulty settings.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -23,8 +25,8 @@ public static class Traders
 
 | Method | Returns | What it does |
 |---|---|---|
-| `SetMoney(string modId, string shopId, float amount)` | `bool` | Sets how much money the trader has. Returns `true` when it was set. |
-| `Restock(string modId, string shopId)` | `bool` | Refills the trader's money the way the game does. Returns `true` when it was done. |
+| `SetMoney(modId, shopId, amount)` | `bool` | Sets how much money the trader has. Returns `true` when it was set. |
+| `Restock(modId, shopId)` | `bool` | Refills the trader's money the way the game does. Returns `true` when it was done. |
 
 </div>
 </div>

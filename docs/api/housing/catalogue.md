@@ -7,10 +7,41 @@ nav_order: 6
 
 # Catalogue
 
+This page uses `GameObject` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 The catalogue lists the furniture the game has, plus the furniture mods added. You use it to find the id to give to `Place`.
 
 <div class="api-type" markdown="1">
+<p class="api-type-head"><code>Building</code> <span>the catalogue helpers</span></p>
+
+This is the class that lists the catalogue. `Catalog()` gives you the list to search for an id, `PrefabOf` returns the model that `Place` would build, and `IsKnownFurniture` checks that an id is real furniture.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static partial class Building
+{
+    public static List<FurnitureCatalogEntry> Catalog();
+    public static GameObject PrefabOf(string furnitureId, int alt);
+    public static bool IsKnownFurniture(string furnitureId);
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `Catalog()` | `List<FurnitureCatalogEntry>` | All furniture the game and mods have. |
+| `PrefabOf(furnitureId, alt)` | `GameObject` | The model `Place` would build. `0` is the normal one. |
+| `IsKnownFurniture(furnitureId)` | `bool` | `true` when the id is real furniture. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
 <p class="api-type-head"><code>FurnitureCatalogEntry</code> <span>one kind of furniture</span></p>
+
+`Catalog()` gives you one of these for each kind of furniture. Its `Id` is the value to pass to `Place`. <span class="tech">(Game pieces are read from the game's furniture list. A mod piece is described from its definition and template until it is built.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -33,28 +64,6 @@ public sealed class FurnitureCatalogEntry
 | `Category` | `string` | The furniture's category name. |
 | `SkinCount` | `int` | How many looks it has. |
 | `AltCount` | `int` | How many alternative shapes it has. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>Building</code> <span>the catalogue helpers</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static partial class Building
-{
-    public static List<FurnitureCatalogEntry> Catalog();
-    public static GameObject PrefabOf(string furnitureId, int alt);
-    public static bool IsKnownFurniture(string furnitureId);
-}
-```
-
-| Method | Returns | What it does |
-|---|---|---|
-| `Catalog()` | `List<FurnitureCatalogEntry>` | All furniture the game and mods have. |
-| `PrefabOf(string furnitureId, int alt)` | `GameObject` | The model `Place` would build. `0` is the normal one. |
-| `IsKnownFurniture(string furnitureId)` | `bool` | `true` when the id is real furniture. |
 
 </div>
 </div>

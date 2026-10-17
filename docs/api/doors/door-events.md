@@ -11,6 +11,9 @@ The two events tell you when a door has finished moving.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Doors</code> <span>the two door events</span></p>
+
+Subscribe to `Opened` and `Closed` on `Doors` to hear when a door has finished moving.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -31,6 +34,9 @@ public static class Doors
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>DoorChangedArgs</code> <span>what happened</span></p>
+
+`Opened` and `Closed` give you one of these. Its `Id` is the same as `DoorInfo.Id`, so you can look the door up with `Doors.Get`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

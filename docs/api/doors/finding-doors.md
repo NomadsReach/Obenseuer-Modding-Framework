@@ -7,12 +7,18 @@ nav_order: 2
 
 # Finding doors
 
+This page uses `Vector3`, `Transform` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 This is the full list of what the API gives you.
 
 Every door is addressed by an id. `Doors.All()` and `Doors.Get(id)` give you a `DoorInfo`, a snapshot of one door taken when you asked. The snapshot does not update by itself, so ask again for fresh values.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Doors</code> <span>finds doors and reads their state</span></p>
+
+Call `All()` or `Get(id)` to read doors, and `IsOpen(id)` when you only need the open flag.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -28,8 +34,8 @@ public static class Doors
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<DoorInfo>` | Every door in the scene you are in. |
-| `Get(string id)` | `DoorInfo` | One door. `null` when the id is not known. |
-| `IsOpen(string id)` | `bool` | `true` when that door is open. `false` when the id is not known. |
+| `Get(id)` | `DoorInfo` | One door. `null` when the id is not known. |
+| `IsOpen(id)` | `bool` | `true` when that door is open. `false` when the id is not known. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -40,6 +46,9 @@ public static class Doors
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>DoorInfo</code> <span>a snapshot of one door</span></p>
+
+`Doors.All()` and `Doors.Get(id)` give you these. `StandPosition` is where NPCs wait for the door, and it can be `null`. <span class="tech">(It is read from the game's `Door` object.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp

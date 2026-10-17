@@ -66,6 +66,9 @@ Money here uses the game's two currencies: OC is Open Sewer Coins and RM is Real
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>LawActions</code> <span>the player's criminal record</span></p>
+
+Check `CanPayFine()` or `CanBribe()` first, then call `PayFine`, `TryBribe` or `ConfiscateInventory` with your mod's id.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -83,9 +86,9 @@ public static class LawActions
 |---|---|---|
 | `CanPayFine()` | `bool` | `true` when the fine is above 0 and the player has the Real Money for it. |
 | `CanBribe()` | `bool` | `true` until a bribe has been tried for this criminal record. |
-| `PayFine(string modId)` | `bool` | Pays the fine and clears the record. `true` when it did. |
-| `TryBribe(string modId)` | `bool` | Tries a bribe. `true` when it worked and the record is cleared. |
-| `ConfiscateInventory(string modId, string containerGuid, bool clearContainer)` | `bool` | Moves the player's things into the container with this GUID. `true` when it was done. Passing `true` for `clearContainer` empties the container first. |
+| `PayFine(modId)` | `bool` | Pays the fine and clears the record. `true` when it did. |
+| `TryBribe(modId)` | `bool` | Tries a bribe. `true` when it worked and the record is cleared. |
+| `ConfiscateInventory(modId, containerGuid, clearContainer)` | `bool` | Moves the player's things into the container with this GUID. `true` when it was done. Passing `true` for `clearContainer` empties the container first. |
 
 </div>
 </div>

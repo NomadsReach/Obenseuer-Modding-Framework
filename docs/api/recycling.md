@@ -65,6 +65,9 @@ This is the full list of what the API gives you. A machine is named by an id, a 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Recycling</code> <span>recycling machines in the scene</span></p>
+
+Use it to list the machines in the scene, read and set what a machine owes the player, and hear when bottles are returned.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -85,8 +88,8 @@ public static class Recycling
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<string>` | The id of every machine in the scene you are in. |
-| `Owed(string id)` | `int` | The OC the machine owes the player. `-1` when no machine has that id or no save is loaded. |
-| `SetOwed(string id, int owed)` | `bool` | Sets what the machine owes. `true` when it was set. |
+| `Owed(id)` | `int` | The OC the machine owes the player. `-1` when no machine has that id or no save is loaded. |
+| `SetOwed(id, owed)` | `bool` | Sets what the machine owes. `true` when it was set. |
 
 | Event | Gives you | When it fires |
 |---|---|---|
@@ -97,6 +100,9 @@ public static class Recycling
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>RecycledArgs</code> <span>one bottle return</span></p>
+
+`Recycling.Recycled` hands you one of these for each return the machine accepts. `Money` is the OC that return really added, and `Amount` is the number of items.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

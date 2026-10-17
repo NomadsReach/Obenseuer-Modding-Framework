@@ -81,6 +81,9 @@ This is the full list of what the API gives you. Every value has an id: the id t
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SceneState</code> <span>read and change the scene's values</span></p>
+
+This is the class to start from. The five list methods read the scene's values, and the other methods change one of them by its id.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -105,24 +108,27 @@ public static class SceneState
 | Method | Returns | What it does |
 |---|---|---|
 | `Branches()` | `List<BranchInfo>` | Every true or false switch in the scene. |
-| `SetBranch(string modId, string id, bool value)` | `bool` | Sets a switch. Returns `true` when it is now the value you asked for. |
+| `SetBranch(modId, id, value)` | `bool` | Sets a switch. Returns `true` when it is now the value you asked for. |
 | `Counters()` | `List<CounterInfo>` | Every counter in the scene. |
-| `SetCounter(string modId, string id, int value)` | `bool` | Sets a counter to a value. Returns `false` when refused. |
-| `AddCounter(string modId, string id, int amount)` | `bool` | Adds to a counter. Returns `false` when refused. |
+| `SetCounter(modId, id, value)` | `bool` | Sets a counter to a value. Returns `false` when refused. |
+| `AddCounter(modId, id, amount)` | `bool` | Adds to a counter. Returns `false` when refused. |
 | `States()` | `List<StateMachineInfo>` | Every state machine in the scene. |
-| `SetState(string modId, string id, string stateName)` | `bool` | Moves a state machine to a named state. |
+| `SetState(modId, id, stateName)` | `bool` | Moves a state machine to a named state. |
 | `Sequences()` | `List<SequenceInfo>` | Every sequence in the scene. |
-| `StartSequence(string modId, string id)` | `bool` | Starts a sequence from its first entry. |
-| `StopSequence(string modId, string id)` | `bool` | Stops a sequence. |
+| `StartSequence(modId, id)` | `bool` | Starts a sequence from its first entry. |
+| `StopSequence(modId, id)` | `bool` | Stops a sequence. |
 | `Timers()` | `List<SceneTimerInfo>` | Every timer in the scene. |
-| `StartTimer(string modId, string id)` | `bool` | Starts a timer. |
-| `SetInterval(string modId, string id, float seconds)` | `bool` | Changes how long a timer waits between ticks. |
+| `StartTimer(modId, id)` | `bool` | Starts a timer. |
+| `SetInterval(modId, id, seconds)` | `bool` | Changes how long a timer waits between ticks. |
 
 </div>
 </div>
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>BranchInfo</code> <span>a true or false switch</span></p>
+
+`SceneState.Branches()` gives you one of these for each switch in the scene. Pass its `Id` to `SetBranch`. <span class="tech">(It is filled from the game's `logic_branch` objects.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -143,6 +149,9 @@ public sealed class BranchInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>CounterInfo</code> <span>a counter</span></p>
+
+`SceneState.Counters()` gives you one of these for each counter. `Max` is the value at which the counter fires its reactions, and `SetCounter` and `AddCounter` take its `Id`. <span class="tech">(It is filled from the game's `CounterRelay` objects.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -165,6 +174,9 @@ public sealed class CounterInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>StateMachineInfo</code> <span>something in one of several named states</span></p>
+
+`SceneState.States()` gives you one of these for each state machine. Pass one of its `Names` to `SetState` to move the machine to that state. <span class="tech">(It is filled from the game's `logic_state` objects.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -187,6 +199,9 @@ public sealed class StateMachineInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SequenceInfo</code> <span>a list of steps that run one after another</span></p>
+
+`SceneState.Sequences()` gives you one of these for each sequence. Pass its `Id` to `StartSequence` or `StopSequence`. <span class="tech">(It is filled from the game's `Logic_Sequence` objects.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -209,6 +224,9 @@ public sealed class SequenceInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SceneTimerInfo</code> <span>a timer</span></p>
+
+`SceneState.Timers()` gives you one of these for each timer. Pass its `Id` to `StartTimer` or `SetInterval`. <span class="tech">(It is filled from the game's `logic_timer` objects.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp

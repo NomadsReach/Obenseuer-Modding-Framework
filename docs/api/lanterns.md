@@ -7,6 +7,9 @@ nav_order: 9
 
 # Lanterns
 
+This page uses `Vector3` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 ## What it is
 
 A lantern is an object placed in the world, not an item you carry. The player puts a candle from their inventory into it, and the candle burns for a while until it runs out. This API lets your mod list the lanterns in the scene you are in, read whether each one is lit and how many seconds of candle are left, and get told when a candle burns out. The candle itself is an inventory item: see [Inventory](inventory.md).
@@ -66,6 +69,9 @@ Text in brackets at the end of a note is extra detail for experienced modders, a
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Lanterns</code> <span>the lanterns in the scene you are in</span></p>
+
+Call `All()` or `Get(id)` to read the lanterns in the scene, and subscribe to `CandleBurntOut` to hear when a candle runs out.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -82,7 +88,7 @@ public static class Lanterns
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<LanternInfo>` | Every lantern in the scene you are in. |
-| `Get(string id)` | `LanternInfo` | The lantern with this id. It is `null` when no lantern has it. |
+| `Get(id)` | `LanternInfo` | The lantern with this id. It is `null` when no lantern has it. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -97,6 +103,9 @@ public static class Lanterns
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>LanternInfo</code> <span>a snapshot of one lantern</span></p>
+
+`All()` and `Get(id)` give you one of these for each lantern. `Lit` and `RemainingSeconds` are as they were when you asked. <span class="tech">(`RemainingSeconds` is the game's `candleTimer.remainingInSeconds`, or `0` when the lantern is not lit.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -121,6 +130,9 @@ public sealed class LanternInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>CandleBurntOutArgs</code> <span>what you get when a candle burns out</span></p>
+
+`CandleBurntOut` gives you one of these when a candle burns out. Pass its `Id` to `Get` to find the lantern.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

@@ -11,6 +11,9 @@ These read the saved data of mods that used `SaveData.Register`, straight from t
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SaveData</code> <span>the save folder and an early read</span></p>
+
+`Folder` is the folder of the save you are playing. `Peek<T>(modId)` reads the data a mod saved with `SaveData.Register` from that folder before the load has finished.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -23,7 +26,7 @@ public static class SaveData
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Peek<T>(string modId)` | `T` | Reads your mod's saved data early, before it is loaded for you. |
+| `Peek<T>(modId)` | `T` | Reads your mod's saved data early, before it is loaded for you. |
 
 | Property | Type | What it means |
 |---|---|---|

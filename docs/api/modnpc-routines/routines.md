@@ -7,10 +7,148 @@ nav_order: 3
 
 # Routines
 
+This page uses `Vector3` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 A routine is a weekly timetable for one mod NPC. You build it with `NpcRoutine`, then store it with `ModNpcRoutines.Set`. A routine lasts for the game session only. It is not written to the player's save, so you set it again each time the game starts.
 
 <div class="api-type" markdown="1">
+<p class="api-type-head"><code>ModNpcRoutines</code> <span>stores, removes and reads routines</span></p>
+
+Call `Set` with your mod's id, the NPC's id and an `NpcRoutine` to store a timetable, and `Remove` or `Clear` to take it away. `Current` tells you which step the NPC is in.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static partial class ModNpcRoutines
+{
+    public static event Action<NpcStepArgs> StepChanged;
+    public static bool Set(string modId, string npcId, int sourceCharacterId, string name, string lastName, NpcRoutine routine, bool keepSourceDialogue = false);
+    public static bool Remove(string modId, string npcId);
+    public static bool Clear(string modId);
+    public static NpcStepKind Current(string modId, string npcId);
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `Set(modId, npcId, sourceCharacterId, name, lastName, routine, keepSourceDialogue)` | `bool` | Stores a timetable for an NPC. |
+| `Remove(modId, npcId)` | `bool` | Removes one timetable, and its NPC. |
+| `Clear(modId)` | `bool` | Removes all of your mod's timetables. |
+| `Current(modId, npcId)` | `NpcStepKind` | The step the clock says the NPC is in now. |
+
+| Event | Gives you | When it fires |
+|---|---|---|
+| `StepChanged` | `NpcStepArgs` | An NPC's timetable has moved to a different step. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>NpcStepArgs</code> <span>what you are told when the NPC changes step</span></p>
+
+`StepChanged` gives you one of these when an NPC moves to another step. `From` and `To` are the old and new steps, and `ModId` and `NpcId` say which NPC.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class NpcStepArgs
+{
+    public string ModId { get; }
+    public string NpcId { get; }
+    public NpcStepKind From { get; }
+    public NpcStepKind To { get; }
+    public string Scene { get; }
+    public int CharacterId { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `ModId` | `string` | Your mod's id. |
+| `NpcId` | `string` | The id you gave the NPC. |
+| `From` | `NpcStepKind` | The step it was in. |
+| `To` | `NpcStepKind` | The step it is in now. |
+| `Scene` | `string` | The scene the new step is in. |
+| `CharacterId` | `int` | The NPC's character number. 0 when it is not in the loaded scene. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>NpcRoutine</code> <span>a weekly timetable, built one step at a time</span></p>
+
+You build one with `new NpcRoutine()`, then add steps with `Stand`, `Wander`, `Patrol`, `Sit` or `Sleep`. Hand it to `ModNpcRoutines.Set` to store it.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class NpcRoutine
+{
+    public NpcRoutine();
+    public int Count { get; }
+    public NpcRoutine Stand(NpcDays days, TimeSpan from, TimeSpan to, string scene, Vector3 point, float yaw);
+    public NpcRoutine Wander(NpcDays days, TimeSpan from, TimeSpan to, string scene, Vector3 center, float radius);
+    public NpcRoutine Patrol(NpcDays days, TimeSpan from, TimeSpan to, string scene, IList<Vector3> points);
+    public NpcRoutine Sit(NpcDays days, TimeSpan from, TimeSpan to, string scene, Vector3 seat);
+    public NpcRoutine Sleep(NpcDays days, TimeSpan from, TimeSpan to, string scene, Vector3 bed);
+    public NpcRoutine Door(string scene, Vector3 point);
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `NpcRoutine()` | `NpcRoutine` | Makes an empty timetable. |
+| `Stand(days, from, to, scene, point, yaw)` | `NpcRoutine` | Adds a step where the NPC stands at a point, facing `yaw`. |
+| `Wander(days, from, to, scene, center, radius)` | `NpcRoutine` | Adds a step where the NPC wanders around a spot. |
+| `Patrol(days, from, to, scene, points)` | `NpcRoutine` | Adds a step where the NPC patrols along points. |
+| `Sit(days, from, to, scene, seat)` | `NpcRoutine` | Adds a step where the NPC sits on the chair near this point. |
+| `Sleep(days, from, to, scene, bed)` | `NpcRoutine` | Adds a step where the NPC sleeps in the bed near this point. |
+| `Door(scene, point)` | `NpcRoutine` | Sets where the NPC walks in and out of this scene. |
+
+| Property | Type | What it means |
+|---|---|---|
+| `Count` | `int` | How many steps it has. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>NpcStepKind</code> <span>what the NPC is doing in a step</span></p>
+
+`Current` and `NpcStepArgs.From` and `To` give you one of these.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public enum NpcStepKind
+{
+    Away,
+    Stand,
+    Wander,
+    Patrol,
+    Sit,
+    Sleep
+}
+```
+
+| Value | Meaning |
+|---|---|
+| `Away` | The NPC is in no scene. |
+| `Stand` | Standing at a point. |
+| `Wander` | Wandering around a spot. |
+| `Patrol` | Walking between points. |
+| `Sit` | Sitting on a chair. |
+| `Sleep` | Sleeping in a bed. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
 <p class="api-type-head"><code>NpcDays</code> <span>the days a step covers</span></p>
+
+Pass one of these to each step method. It is a flags value, so `NpcDays.Monday | NpcDays.Friday` is a valid set.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -44,126 +182,6 @@ public enum NpcDays
 | `Weekdays` | Monday to Friday. |
 | `Weekend` | Saturday and Sunday. |
 | `Every` | Every day of the week. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>NpcStepKind</code> <span>what the NPC is doing in a step</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public enum NpcStepKind
-{
-    Away,
-    Stand,
-    Wander,
-    Patrol,
-    Sit,
-    Sleep
-}
-```
-
-| Value | Meaning |
-|---|---|
-| `Away` | The NPC is in no scene. |
-| `Stand` | Standing at a point. |
-| `Wander` | Wandering around a spot. |
-| `Patrol` | Walking between points. |
-| `Sit` | Sitting on a chair. |
-| `Sleep` | Sleeping in a bed. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>NpcRoutine</code> <span>a weekly timetable, built one step at a time</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public sealed class NpcRoutine
-{
-    public NpcRoutine();
-    public int Count { get; }
-    public NpcRoutine Stand(NpcDays days, TimeSpan from, TimeSpan to, string scene, Vector3 point, float yaw);
-    public NpcRoutine Wander(NpcDays days, TimeSpan from, TimeSpan to, string scene, Vector3 center, float radius);
-    public NpcRoutine Patrol(NpcDays days, TimeSpan from, TimeSpan to, string scene, IList<Vector3> points);
-    public NpcRoutine Sit(NpcDays days, TimeSpan from, TimeSpan to, string scene, Vector3 seat);
-    public NpcRoutine Sleep(NpcDays days, TimeSpan from, TimeSpan to, string scene, Vector3 bed);
-    public NpcRoutine Door(string scene, Vector3 point);
-}
-```
-
-| Method | Returns | What it does |
-|---|---|---|
-| `NpcRoutine()` | `NpcRoutine` | Makes an empty timetable. |
-| `Stand(NpcDays days, TimeSpan from, TimeSpan to, string scene, Vector3 point, float yaw)` | `NpcRoutine` | Adds a step where the NPC stands at a point, facing `yaw`. |
-| `Wander(NpcDays days, TimeSpan from, TimeSpan to, string scene, Vector3 center, float radius)` | `NpcRoutine` | Adds a step where the NPC wanders around a spot. |
-| `Patrol(NpcDays days, TimeSpan from, TimeSpan to, string scene, IList<Vector3> points)` | `NpcRoutine` | Adds a step where the NPC patrols along points. |
-| `Sit(NpcDays days, TimeSpan from, TimeSpan to, string scene, Vector3 seat)` | `NpcRoutine` | Adds a step where the NPC sits on the chair near this point. |
-| `Sleep(NpcDays days, TimeSpan from, TimeSpan to, string scene, Vector3 bed)` | `NpcRoutine` | Adds a step where the NPC sleeps in the bed near this point. |
-| `Door(string scene, Vector3 point)` | `NpcRoutine` | Sets where the NPC walks in and out of this scene. |
-
-| Property | Type | What it means |
-|---|---|---|
-| `Count` | `int` | How many steps it has. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>NpcStepArgs</code> <span>what you are told when the NPC changes step</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public sealed class NpcStepArgs
-{
-    public string ModId { get; }
-    public string NpcId { get; }
-    public NpcStepKind From { get; }
-    public NpcStepKind To { get; }
-    public string Scene { get; }
-    public int CharacterId { get; }
-}
-```
-
-| Property | Type | What it means |
-|---|---|---|
-| `ModId` | `string` | Your mod's id. |
-| `NpcId` | `string` | The id you gave the NPC. |
-| `From` | `NpcStepKind` | The step it was in. |
-| `To` | `NpcStepKind` | The step it is in now. |
-| `Scene` | `string` | The scene the new step is in. |
-| `CharacterId` | `int` | The NPC's character number. 0 when it is not in the loaded scene. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>ModNpcRoutines</code> <span>stores, removes and reads routines</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static partial class ModNpcRoutines
-{
-    public static event Action<NpcStepArgs> StepChanged;
-    public static bool Set(string modId, string npcId, int sourceCharacterId, string name, string lastName, NpcRoutine routine, bool keepSourceDialogue = false);
-    public static bool Remove(string modId, string npcId);
-    public static bool Clear(string modId);
-    public static NpcStepKind Current(string modId, string npcId);
-}
-```
-
-| Method | Returns | What it does |
-|---|---|---|
-| `Set(string modId, string npcId, int sourceCharacterId, string name, string lastName, NpcRoutine routine, bool keepSourceDialogue = false)` | `bool` | Stores a timetable for an NPC. |
-| `Remove(string modId, string npcId)` | `bool` | Removes one timetable, and its NPC. |
-| `Clear(string modId)` | `bool` | Removes all of your mod's timetables. |
-| `Current(string modId, string npcId)` | `NpcStepKind` | The step the clock says the NPC is in now. |
-
-| Event | Gives you | When it fires |
-|---|---|---|
-| `StepChanged` | `NpcStepArgs` | An NPC's timetable has moved to a different step. |
 
 </div>
 </div>

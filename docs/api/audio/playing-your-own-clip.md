@@ -7,10 +7,16 @@ nav_order: 3
 
 # Playing your own clip
 
+This page uses `Vector3`, `AudioClip` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 An `AudioClip` is Unity's name for a sound held in memory. These calls play one, and `Find` checks that a mixer group exists. A mixer group is one of the game's volume channels, so the player's volume sliders apply to your sound.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Sounds</code> <span>plays your own clips</span></p>
+
+Use `Find` to get one of the game's volume channels, such as `Effects`, then `PlayClip` or `PlayClipAt` to play your clip through it.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -24,9 +30,9 @@ public static class Sounds
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Find(string name)` | `AudioMixerGroup` | The game's volume channel with this name. `null` when there is none. |
-| `PlayClip(AudioClip clip, string group, float volume = 1f)` | `bool` | Plays a clip with no position. Returns `false` when it could not start. |
-| `PlayClipAt(AudioClip clip, string group, Vector3 position, float volume = 1f)` | `bool` | Plays a clip at a place in the world. Returns `false` when it could not start. |
+| `Find(name)` | `AudioMixerGroup` | The game's volume channel with this name. `null` when there is none. |
+| `PlayClip(clip, group, volume)` | `bool` | Plays a clip with no position. Returns `false` when it could not start. |
+| `PlayClipAt(clip, group, position, volume)` | `bool` | Plays a clip at a place in the world. Returns `false` when it could not start. |
 
 </div>
 </div>

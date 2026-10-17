@@ -10,57 +10,53 @@ nav_order: 3
 The game gives the player tasks, and each task has steps, called objectives. `Quests` lets your mod list them, check how far the player is, move a task or a step on, and add progress to a step that counts things (for example "collect 5 cans"). It tells you when a task or step changes.
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>TaskState</code> <span>where a task is</span></p>
+<p class="api-type-head"><code>Quests</code> <span>list, check and move tasks and steps</span></p>
+
+Use `All` and `Get` to read the tasks, `Reached` to check a step, and `SetTask`, `SetObjective` or `AddProgress` to move them on. `TaskChanged` and `ObjectiveChanged` tell you when they change.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
-public enum TaskState
+public static class Quests
 {
-    Active = 0,
-    Failed = 1,
-    Finished = 2,
-    Abandoned = 3
+    public static event Action<TaskChangedArgs> TaskChanged;
+    public static event Action<ObjectiveChangedArgs> ObjectiveChanged;
+    public static bool IsAvailable { get; }
+    public static List<QuestInfo> All();
+    public static QuestInfo Get(string taskId);
+    public static bool Reached(string taskId, string objectiveId);
+    public static bool SetTask(string taskId, TaskState state);
+    public static bool SetObjective(string taskId, string objectiveId, ObjectiveState state);
+    public static bool AddProgress(string taskId, string objectiveId, int amount);
 }
 ```
 
-| Value | Meaning |
-|---|---|
-| `Active` | The player is working on it. |
-| `Failed` | The player failed it. |
-| `Finished` | The player completed it. |
-| `Abandoned` | The task was dropped. |
+| Property | Type | What it means |
+|---|---|---|
+| `IsAvailable` | `bool` | `true` when the Quests API works. |
 
-</div>
-</div>
+| Method | Returns | What it does |
+|---|---|---|
+| `All()` | `List<QuestInfo>` | Every task the player has started. |
+| `Get(taskId)` | `QuestInfo` | One task. `null` when none matches. |
+| `Reached(taskId, objectiveId)` | `bool` | `true` when the player has got to this step. |
+| `SetTask(taskId, state)` | `bool` | Closes a task. `true` when it has that state afterwards. |
+| `SetObjective(taskId, objectiveId, state)` | `bool` | Closes a step. `true` when it has that state afterwards. |
+| `AddProgress(taskId, objectiveId, amount)` | `bool` | Adds to a step's counter. |
 
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>ObjectiveState</code> <span>where one step of a task is</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public enum ObjectiveState
-{
-    Active = 0,
-    Failed = 1,
-    Finished = 2,
-    Abandoned = 3,
-    Hidden = 4
-}
-```
-
-| Value | Meaning |
-|---|---|
-| `Active` | The player is working on it. |
-| `Failed` | The player failed it. |
-| `Finished` | The player completed it. |
-| `Abandoned` | The step was dropped. |
-| `Hidden` | The game has set the step to hidden. |
+| Event | Gives you | When it fires |
+|---|---|---|
+| `TaskChanged` | `TaskChangedArgs` | A task started or changed state. `args.TaskId` and `args.State` tell you which, and to what. |
+| `ObjectiveChanged` | `ObjectiveChangedArgs` | A step started or changed state. `args.TaskId`, `args.ObjectiveId` and `args.State` tell you which, and to what. |
 
 </div>
 </div>
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>QuestInfo</code> <span>a task</span></p>
+
+`All` and `Get` give you one of these for each task. Its `Objectives` lists the steps, as `ObjectiveInfo` values.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -87,6 +83,9 @@ public sealed class QuestInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ObjectiveInfo</code> <span>one step of a task</span></p>
+
+Each step of a `QuestInfo` is one of these. `Current` and `Target` show its counter, and `AddProgress` adds to it. `Target` is `0` when the step has no counter.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -116,41 +115,57 @@ public sealed class ObjectiveInfo
 </div>
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>Quests</code> <span>list, check and move tasks and steps</span></p>
+<p class="api-type-head"><code>TaskState</code> <span>where a task is</span></p>
+
+`QuestInfo.State` holds this. `SetTask` accepts `Failed`, `Finished` and `Abandoned`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
-public static class Quests
+public enum TaskState
 {
-    public static event Action<TaskChangedArgs> TaskChanged;
-    public static event Action<ObjectiveChangedArgs> ObjectiveChanged;
-    public static bool IsAvailable { get; }
-    public static List<QuestInfo> All();
-    public static QuestInfo Get(string taskId);
-    public static bool Reached(string taskId, string objectiveId);
-    public static bool SetTask(string taskId, TaskState state);
-    public static bool SetObjective(string taskId, string objectiveId, ObjectiveState state);
-    public static bool AddProgress(string taskId, string objectiveId, int amount);
+    Active = 0,
+    Failed = 1,
+    Finished = 2,
+    Abandoned = 3
 }
 ```
 
-| Property | Type | What it means |
-|---|---|---|
-| `IsAvailable` | `bool` | `true` when the Quests API works. |
+| Value | Meaning |
+|---|---|
+| `Active` | The player is working on it. |
+| `Failed` | The player failed it. |
+| `Finished` | The player completed it. |
+| `Abandoned` | The task was dropped. |
 
-| Method | Returns | What it does |
-|---|---|---|
-| `All()` | `List<QuestInfo>` | Every task the player has started. |
-| `Get(string taskId)` | `QuestInfo` | One task. `null` when none matches. |
-| `Reached(string taskId, string objectiveId)` | `bool` | `true` when the player has got to this step. |
-| `SetTask(string taskId, TaskState state)` | `bool` | Closes a task. `true` when it has that state afterwards. |
-| `SetObjective(string taskId, string objectiveId, ObjectiveState state)` | `bool` | Closes a step. `true` when it has that state afterwards. |
-| `AddProgress(string taskId, string objectiveId, int amount)` | `bool` | Adds to a step's counter. |
+</div>
+</div>
 
-| Event | Gives you | When it fires |
-|---|---|---|
-| `TaskChanged` | `TaskChangedArgs` | A task started or changed state. `args.TaskId` and `args.State` tell you which, and to what. |
-| `ObjectiveChanged` | `ObjectiveChangedArgs` | A step started or changed state. `args.TaskId`, `args.ObjectiveId` and `args.State` tell you which, and to what. |
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>ObjectiveState</code> <span>where one step of a task is</span></p>
+
+`ObjectiveInfo.State` holds this. `SetObjective` accepts `Failed`, `Finished` and `Abandoned`, and the game sets `Hidden`.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public enum ObjectiveState
+{
+    Active = 0,
+    Failed = 1,
+    Finished = 2,
+    Abandoned = 3,
+    Hidden = 4
+}
+```
+
+| Value | Meaning |
+|---|---|
+| `Active` | The player is working on it. |
+| `Failed` | The player failed it. |
+| `Finished` | The player completed it. |
+| `Abandoned` | The step was dropped. |
+| `Hidden` | The game has set the step to hidden. |
 
 </div>
 </div>

@@ -11,6 +11,9 @@ This is the full list of what the API gives you. Text in brackets at the end of 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Surveillance</code> <span>cameras and the crime checks</span></p>
+
+This is the class to start from. `Cameras()` lists the security cameras, `SetCameraActive` switches one on or off, and `IsPlayerWitnessed` and `IsTrespassing` tell you whether the player can be seen or is on trespassing ground right now.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -27,8 +30,8 @@ public static class Surveillance
 | Method | Returns | What it does |
 |---|---|---|
 | `Cameras()` | `List<SurveillanceCameraInfo>` | Every security camera in the scene you are in. |
-| `IsPlayerWitnessed(bool crime = true)` | `bool` | `true` when someone could see the player right now. |
-| `SetCameraActive(string id, bool active)` | `bool` | Switches a camera on (`true`) or off (`false`). |
+| `IsPlayerWitnessed(crime)` | `bool` | `true` when someone could see the player right now. |
+| `SetCameraActive(id, active)` | `bool` | Switches a camera on (`true`) or off (`false`). |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -40,6 +43,9 @@ public static class Surveillance
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SurveillanceCameraInfo</code> <span>a snapshot of one camera</span></p>
+
+`Cameras()` gives you one of these for each security camera. Pass its `Id` to `SetCameraActive`. <span class="tech">(It is built from the game's `SurveilanceCamera`.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp

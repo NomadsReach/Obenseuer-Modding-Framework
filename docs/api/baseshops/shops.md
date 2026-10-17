@@ -11,6 +11,9 @@ This is the full list of what the API gives you.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>BaseShops</code> <span>the static class for base shops</span></p>
+
+Use `All` to list the shops in the scene, `SetMoney` and `Restock` to change a shop, and `Buy` and `Sell` to trade furniture with one.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -29,10 +32,10 @@ public static class BaseShops
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<BaseShopInfo>` | Every shop in the scene you are in. |
-| `SetMoney(string id, int oc, int rm)` | `bool` | Sets how much money the shop holds. `true` when it was set. |
-| `Restock(string id)` | `bool` | Makes the shop restock now. `true` when it was told to. |
-| `Buy(string id, string furnitureId, int count)` | `BaseShopBuyResult` | Buys furniture from a shop for the player. See [Buying](buying.md). |
-| `Sell(string id, string furnitureId, int count)` | `BaseShopSellResult` | Sells furniture from the player to a shop. See [Selling](selling.md). |
+| `SetMoney(id, oc, rm)` | `bool` | Sets how much money the shop holds. `true` when it was set. |
+| `Restock(id)` | `bool` | Makes the shop restock now. `true` when it was told to. |
+| `Buy(id, furnitureId, count)` | `BaseShopBuyResult` | Buys furniture from a shop for the player. See [Buying](buying.md). |
+| `Sell(id, furnitureId, count)` | `BaseShopSellResult` | Sells furniture from the player to a shop. See [Selling](selling.md). |
 
 | Event | Gives you | When it fires |
 |---|---|---|
@@ -44,6 +47,9 @@ public static class BaseShops
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>BaseShopInfo</code> <span>a snapshot of one shop</span></p>
+
+`All` gives you one of these for each shop. Pass its `Id` to the other calls.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

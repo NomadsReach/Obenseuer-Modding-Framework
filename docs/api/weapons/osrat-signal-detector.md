@@ -11,6 +11,8 @@ The osrat is a hand-held signal detector that the player holds. It is not an ani
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Osrats</code> <span>the osrat's signal state</span></p>
+Use these to read the osrat's signal strength, and whether it is beeping or its signal is disturbed.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

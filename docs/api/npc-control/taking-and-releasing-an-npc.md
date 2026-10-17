@@ -10,7 +10,46 @@ nav_order: 2
 This is the full list of what the API gives you, one section for each part. Every call takes `modId`, the id of your mod. The framework uses it to remember which mod holds which NPC (see [Owner](../../glossary.md#owner) in the glossary).
 
 <div class="api-type" markdown="1">
+<p class="api-type-head"><code>NpcControl</code> <span>take and release NPCs</span></p>
+
+Call `Take` with your mod's id and the NPC's id to hold it, and `Release` to give it back. `IsTaken` and `TakenBy` tell you whether another mod holds it.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class NpcControl
+{
+    public static bool IsAvailable { get; }
+
+    public static bool Take(string modId, int npcId, NpcControlFlags flags = NpcControlFlags.All);
+    public static bool Release(string modId, int npcId);
+    public static int ReleaseAll(string modId);
+
+    public static bool IsTaken(int npcId);
+    public static string TakenBy(int npcId);
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `Take(modId, npcId, flags)` | `bool` | Takes the NPC and switches off the parts named in `flags`. `true` on success. |
+| `Release(modId, npcId)` | `bool` | Gives the NPC back. `false` when your mod holds nothing on that NPC. |
+| `ReleaseAll(modId)` | `int` | Gives back every NPC your mod holds, and returns how many. |
+| `IsTaken(npcId)` | `bool` | `true` while any mod holds the NPC. |
+| `TakenBy(npcId)` | `string` | The id of the mod that holds the NPC. `null` when it is free. |
+
+| Property | Type | What it means |
+|---|---|---|
+| `IsAvailable` | `bool` | `false` when the NPC control feature was turned off. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
 <p class="api-type-head"><code>NpcControlFlags</code> <span>which parts of the NPC to switch off</span></p>
+
+`Take` takes one of these to choose which parts of the NPC to switch off. Leave it out and every part is switched off.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -36,39 +75,6 @@ public enum NpcControlFlags
 | `Fade` | It is no longer hidden when you are far away or look away. |
 | `Movement` | It stops walking and stays where it is. |
 | `All` | Every part above. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>NpcControl</code> <span>take and release NPCs</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static class NpcControl
-{
-    public static bool IsAvailable { get; }
-
-    public static bool Take(string modId, int npcId, NpcControlFlags flags = NpcControlFlags.All);
-    public static bool Release(string modId, int npcId);
-    public static int ReleaseAll(string modId);
-
-    public static bool IsTaken(int npcId);
-    public static string TakenBy(int npcId);
-}
-```
-
-| Method | Returns | What it does |
-|---|---|---|
-| `Take(string modId, int npcId, NpcControlFlags flags = NpcControlFlags.All)` | `bool` | Takes the NPC and switches off the parts named in `flags`. `true` on success. |
-| `Release(string modId, int npcId)` | `bool` | Gives the NPC back. `false` when your mod holds nothing on that NPC. |
-| `ReleaseAll(string modId)` | `int` | Gives back every NPC your mod holds, and returns how many. |
-| `IsTaken(int npcId)` | `bool` | `true` while any mod holds the NPC. |
-| `TakenBy(int npcId)` | `string` | The id of the mod that holds the NPC. `null` when it is free. |
-
-| Property | Type | What it means |
-|---|---|---|
-| `IsAvailable` | `bool` | `false` when the NPC control feature was turned off. |
 
 </div>
 </div>

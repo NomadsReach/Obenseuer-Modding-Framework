@@ -9,8 +9,51 @@ nav_order: 6
 
 A status effect is something that changes how the player sees or feels the world, such as being drunk or being in the wasteland.
 
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>Effects</code> <span>read and change status effects</span></p>
+
+Use it to read which status effects are on and how strong they look, to turn the wasteland on or off, and to hear when an effect changes.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class Effects
+{
+    public static bool IsAvailable { get; }
+    public static bool IsActive(Effect effect);
+    public static float Strength(Effect effect);
+    public static List<Effect> Active();
+    public static bool Apply(Effect effect);
+    public static bool Clear(Effect effect);
+    public static event Action<EffectChangedArgs> Changed;
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `IsAvailable` | `bool` | `false` when the effect change event could not be set up. |
+
+| Method | Returns | What it does |
+|---|---|---|
+| `IsActive(effect)` | `bool` | `true` when the effect is on now. |
+| `Strength(effect)` | `float` | How strong the effect is, from 0 to 1. It is 0 when the effect is not on. |
+| `Active()` | `List<Effect>` | Every effect that is on now. |
+| `Apply(effect)` | `bool` | Turns an effect on. Only the wasteland works. |
+| `Clear(effect)` | `bool` | Turns an effect off. Only the wasteland works. |
+
+| Event | Gives you | When it fires |
+|---|---|---|
+| `Changed` | `EffectChangedArgs` | An effect turns on or off. `args.Effect` is the effect and `args.Active` is its new state. |
+
+</div>
+</div>
+
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Effect</code> <span>the status effects</span></p>
+
+Pass one of these to `Effects.IsActive`, `Effects.Strength`, `Effects.Apply` or `Effects.Clear`. `EffectChangedArgs` tells you which one changed.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -35,42 +78,6 @@ public enum Effect
 | `LowHealth` | The player has low health. |
 | `Wasteland` | The wasteland effect (SMV). |
 | `OrangeMushroom` | The player is high on the orange mushroom. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>Effects</code> <span>read and change status effects</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static class Effects
-{
-    public static bool IsAvailable { get; }
-    public static bool IsActive(Effect effect);
-    public static float Strength(Effect effect);
-    public static List<Effect> Active();
-    public static bool Apply(Effect effect);
-    public static bool Clear(Effect effect);
-    public static event Action<EffectChangedArgs> Changed;
-}
-```
-
-| Property | Type | What it means |
-|---|---|---|
-| `IsAvailable` | `bool` | `false` when the effect change event could not be set up. |
-
-| Method | Returns | What it does |
-|---|---|---|
-| `IsActive(Effect effect)` | `bool` | `true` when the effect is on now. |
-| `Strength(Effect effect)` | `float` | How strong the effect is, from 0 to 1. It is 0 when the effect is not on. |
-| `Active()` | `List<Effect>` | Every effect that is on now. |
-| `Apply(Effect effect)` | `bool` | Turns an effect on. Only the wasteland works. |
-| `Clear(Effect effect)` | `bool` | Turns an effect off. Only the wasteland works. |
-
-| Event | Gives you | When it fires |
-|---|---|---|
-| `Changed` | `EffectChangedArgs` | An effect turns on or off. `args.Effect` is the effect and `args.Active` is its new state. |
 
 </div>
 </div>

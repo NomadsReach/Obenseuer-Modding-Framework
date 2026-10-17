@@ -7,10 +7,16 @@ nav_order: 2
 
 # Moving an NPC
 
+This page uses `Vector3` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read. Every call takes `modId`, the id of your mod, and the framework uses it to remember which mod holds which NPC (see [Owner](../../glossary.md#owner) in the glossary). Taking over an NPC's movement is called holding it.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>NpcMovement</code> <span>move, hold and release an NPC</span></p>
+
+Call `MoveTo`, `Patrol` or `Stand` to give the NPC a job, `SetActivityEnabled` to hold it still, and `Clear` to end everything your mod has on it.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -27,12 +33,12 @@ public static class NpcMovement
 
 | Method | Returns | What it does |
 |---|---|---|
-| `SetActivityEnabled(string modId, int npcId, bool enabled)` | `bool` | Holds the NPC still when `enabled` is `false`. Gives your hold back when it is `true`. |
-| `MoveTo(string modId, int npcId, Vector3 position)` | `bool` | Walks the NPC to a spot in the world. |
-| `Patrol(string modId, int npcId, string nodeGroupId)` | `bool` | Makes the NPC patrol a group of waypoints. |
-| `Stand(string modId, int npcId, string nodeGroupId)` | `bool` | Makes the NPC stand at a group of waypoints. |
-| `ForceStopActivity(string modId, int npcId)` | `bool` | Stops what the NPC is doing now, whoever started it. |
-| `Clear(string modId, int npcId)` | `bool` | Ends everything your mod has on this NPC. |
+| `SetActivityEnabled(modId, npcId, enabled)` | `bool` | Holds the NPC still when `enabled` is `false`. Gives your hold back when it is `true`. |
+| `MoveTo(modId, npcId, position)` | `bool` | Walks the NPC to a spot in the world. |
+| `Patrol(modId, npcId, nodeGroupId)` | `bool` | Makes the NPC patrol a group of waypoints. |
+| `Stand(modId, npcId, nodeGroupId)` | `bool` | Makes the NPC stand at a group of waypoints. |
+| `ForceStopActivity(modId, npcId)` | `bool` | Stops what the NPC is doing now, whoever started it. |
+| `Clear(modId, npcId)` | `bool` | Ends everything your mod has on this NPC. |
 
 </div>
 </div>

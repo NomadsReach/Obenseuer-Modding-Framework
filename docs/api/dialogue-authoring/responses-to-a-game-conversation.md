@@ -11,6 +11,9 @@ nav_order: 3
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Dialogue</code> <span>adds and removes responses in game conversations</span></p>
+
+You call `AddResponse` with the anchor and the player's text, and keep the key it returns so that `RemoveResponse` can take the choice out later.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -24,9 +27,9 @@ public static class Dialogue
 
 | Method | Returns | What it does |
 |---|---|---|
-| `AddResponse(string modId, string conversationTitle, string anchorText, string playerText, string npcReply, string luaCondition, Action onPicked)` | `string` | Adds one player choice under the anchor line, found by its text. Gives back the response key. |
-| `AddResponse(string modId, string conversationTitle, int anchorId, string playerText, string npcReply, string luaCondition, Action onPicked)` | `string` | Adds one player choice under the anchor line, found by its id. Gives back the response key. |
-| `RemoveResponse(string modId, string key)` | `bool` | Removes one of your responses. `false` for another mod's or an unknown key. |
+| `AddResponse(modId, conversationTitle, anchorText, playerText, npcReply, luaCondition, onPicked)` | `string` | Adds one player choice under the anchor line, found by its text. Gives back the response key. |
+| `AddResponse(modId, conversationTitle, anchorId, playerText, npcReply, luaCondition, onPicked)` | `string` | Adds one player choice under the anchor line, found by its id. Gives back the response key. |
+| `RemoveResponse(modId, key)` | `bool` | Removes one of your responses. `false` for another mod's or an unknown key. |
 
 </div>
 </div>

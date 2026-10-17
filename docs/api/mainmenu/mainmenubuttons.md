@@ -11,6 +11,9 @@ This is the full list of what the API gives you.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>MainMenuButtons</code> <span>adds buttons and holds the controls</span></p>
+
+Call `Add` to put a button on the main menu, and read `IsOpen` to check the menu is up with your buttons on it.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -26,10 +29,10 @@ public static class MainMenuButtons
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Add(string id, string label, Action onClick)` | `bool` | Adds a button with no mod id. Returns `true` when added. |
-| `Add(string modId, string id, string label, Action onClick)` | `bool` | Adds a button for your mod. Returns `true` when added. |
-| `SetControlsEnabled(bool enabled)` | `void` | Switches the menu's controls off or on, with no mod id. |
-| `SetControlsEnabled(string modId, bool enabled)` | `void` | Switches the menu's controls off or on, counted for your mod. |
+| `Add(id, label, onClick)` | `bool` | Adds a button with no mod id. Returns `true` when added. |
+| `Add(modId, id, label, onClick)` | `bool` | Adds a button for your mod. Returns `true` when added. |
+| `SetControlsEnabled(enabled)` | `void` | Switches the menu's controls off or on, with no mod id. |
+| `SetControlsEnabled(modId, enabled)` | `void` | Switches the menu's controls off or on, counted for your mod. |
 
 | Property | Type | What it means |
 |---|---|---|

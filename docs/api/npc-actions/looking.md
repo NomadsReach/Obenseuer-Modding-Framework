@@ -7,10 +7,16 @@ nav_order: 6
 
 # Looking
 
+This page uses `Transform` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 These calls turn an NPC's head and eyes toward the player or an object, or back to looking around by itself.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>NpcActions</code> <span>looking at the player or an object</span></p>
+
+Call `LookAtPlayer` or `LookAt` to make the NPC look, and `StopLooking` to let it look around by itself.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -25,10 +31,10 @@ public static class NpcActions
 
 | Method | Returns | What it does |
 |---|---|---|
-| `LookAtPlayer(int npcId)` | `bool` | Makes the NPC look at the player. |
-| `LookAtPlayer(int npcId, int seconds)` | `bool` | Makes the NPC look at the player for a number of seconds. |
-| `LookAt(int npcId, Transform target)` | `bool` | Makes the NPC look at an object. |
-| `StopLooking(int npcId)` | `bool` | Makes the NPC go back to looking around by itself. |
+| `LookAtPlayer(npcId)` | `bool` | Makes the NPC look at the player. |
+| `LookAtPlayer(npcId, seconds)` | `bool` | Makes the NPC look at the player for a number of seconds. |
+| `LookAt(npcId, target)` | `bool` | Makes the NPC look at an object. |
+| `StopLooking(npcId)` | `bool` | Makes the NPC go back to looking around by itself. |
 
 </div>
 </div>

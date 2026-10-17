@@ -81,6 +81,9 @@ This is the full list of what the API gives you. Text in brackets at the end of 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Breeding</code> <span>list the breeders and report whether breeding events work</span></p>
+
+Use `All` to list the breeders in the scene and count their animals. Check `IsAvailable` before you rely on the `Bred` event.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -104,6 +107,9 @@ public static class Breeding
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>BreederInfo</code> <span>a snapshot of one breeder</span></p>
+
+`All` gives you one of these for each breeder. Its `Id` matches the `BreederId` of a `Bred` event, and `Count` is the number of animals it holds.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -130,6 +136,9 @@ public sealed class BreederInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Breeding</code> <span>the Bred event</span></p>
+
+Subscribe with `+=` to hear each time a breeder makes an animal, including the catch-up breeds while a save loads. Each call gets a `BredArgs`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -148,6 +157,9 @@ public static class Breeding
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>BredArgs</code> <span>what happened</span></p>
+
+`Bred` hands you this for each animal a breeder makes. `OfflineCatchUp` says whether it was a catch-up breed while a save loaded.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -176,6 +188,9 @@ public sealed class BredArgs
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Breeding</code> <span>the TrapSprung event</span></p>
+
+Subscribe with `+=` to hear when a rat trap goes off. Each call gets a `TrapSprungArgs`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -194,6 +209,9 @@ public static class Breeding
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TrapSprungArgs</code> <span>what happened</span></p>
+
+`TrapSprung` hands you this. `Catch` says what the trap holds now, and `TrapId` says which trap it was.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -214,6 +232,9 @@ public sealed class TrapSprungArgs
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TrapCatch</code> <span>what a trap holds after it went off</span></p>
+
+`TrapSprungArgs.Catch` holds this. Each value says whether the trap caught a rat, a glowing rat, or nothing.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

@@ -11,6 +11,9 @@ nav_order: 12
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TweakState</code> <span>is a tweak on right now</span></p>
+
+Read `RenovationsMoneyOnly` before your mod takes renovation items itself, so your code follows the same setting as the game.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

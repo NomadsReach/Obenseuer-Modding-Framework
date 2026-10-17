@@ -11,6 +11,9 @@ nav_order: 4
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Dialogue</code> <span>links your branches into game conversations</span></p>
+
+You call `AddBranch` and keep the key it gives back, so you can call `RemoveBranch` with that key later.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -24,9 +27,9 @@ public static class Dialogue
 
 | Method | Returns | What it does |
 |---|---|---|
-| `AddBranch(string modId, string conversationTitle, string anchorText, ConversationDefinition branch)` | `string` | Links your branch under the anchor line, found by its text. Gives back the branch key. |
-| `AddBranch(string modId, string conversationTitle, int anchorId, ConversationDefinition branch)` | `string` | Links your branch under the anchor line, found by its id. Gives back the branch key. |
-| `RemoveBranch(string modId, string key)` | `bool` | Removes one of your branches. `false` for another mod's or an unknown key. |
+| `AddBranch(modId, conversationTitle, anchorText, branch)` | `string` | Links your branch under the anchor line, found by its text. Gives back the branch key. |
+| `AddBranch(modId, conversationTitle, anchorId, branch)` | `string` | Links your branch under the anchor line, found by its id. Gives back the branch key. |
+| `RemoveBranch(modId, key)` | `bool` | Removes one of your branches. `false` for another mod's or an unknown key. |
 
 </div>
 </div>

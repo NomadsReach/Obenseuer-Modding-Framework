@@ -10,123 +10,10 @@ nav_order: 3
 Amounts are in OC. All events fire from your mod's normal code, inside the game's own call. If one of your handlers throws an error, the framework logs it and still runs the others.
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>CasinoPlayedArgs</code> <span>what Played tells you</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public sealed class CasinoPlayedArgs
-{
-    public CasinoMachineInfo Machine { get; }
-    public int Stake { get; }
-}
-```
-
-| Property | Type | What it means |
-|---|---|---|
-| `Machine` | `CasinoMachineInfo` | The machine. |
-| `Stake` | `int` | The stake of this round, in OC. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>CasinoWonArgs</code> <span>what Won tells you</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public sealed class CasinoWonArgs
-{
-    public CasinoMachineInfo Machine { get; }
-    public int Payout { get; }
-}
-```
-
-| Property | Type | What it means |
-|---|---|---|
-| `Machine` | `CasinoMachineInfo` | The machine. |
-| `Payout` | `int` | The win, in OC. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>CasinoCashedOutArgs</code> <span>what CashedOut tells you</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public sealed class CasinoCashedOutArgs
-{
-    public CasinoMachineInfo Machine { get; }
-    public int Amount { get; }
-}
-```
-
-| Property | Type | What it means |
-|---|---|---|
-| `Machine` | `CasinoMachineInfo` | The machine. |
-| `Amount` | `int` | The OC that went into the wallet. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>CasinoDoubledArgs</code> <span>what Doubled tells you</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public sealed class CasinoDoubledArgs
-{
-    public CasinoMachineInfo Machine { get; }
-    public int Before { get; }
-    public int After { get; }
-    public bool Won { get; }
-}
-```
-
-| Property | Type | What it means |
-|---|---|---|
-| `Machine` | `CasinoMachineInfo` | The slot machine. |
-| `Before` | `int` | The winnings of the round before the double. |
-| `After` | `int` | The winnings of the round after the double. |
-| `Won` | `bool` | `true` when `After` is more than `Before`. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>ScratchcardArgs</code> <span>what Scratched tells you</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public sealed class ScratchcardArgs
-{
-    public int CardItemId { get; }
-    public string CardTitle { get; }
-    public bool Won { get; }
-    public int Prize { get; }
-    public bool PrizeInRm { get; }
-    public int PrizeOc { get; }
-    public int Cost { get; }
-    public int ReceiptItemId { get; }
-}
-```
-
-| Property | Type | What it means |
-|---|---|---|
-| `CardItemId` | `int` | The item number of the card. |
-| `CardTitle` | `string` | The card's name. |
-| `Won` | `bool` | `true` when the card paid a prize. |
-| `Prize` | `int` | The prize the game paid. It is in RM when `PrizeInRm` is `true`, and in OC otherwise. |
-| `PrizeInRm` | `bool` | `true` when the prize is in RM (Real Money). |
-| `PrizeOc` | `int` | The prize worth in OC. It is the same as `Prize` when `PrizeInRm` is `false`. |
-| `Cost` | `int` | The card's value, in OC. |
-| `ReceiptItemId` | `int` | The item number of the card's receipt. `-1` when the card has none or it is not known. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
 <p class="api-type-head"><code>Casino</code> <span>the casino events and their totals</span></p>
+
+Subscribe with `+=` to `Played`, `Won`, `CashedOut`, `Doubled` or `Scratched` to hear about casino play. `LastPayout` holds the last win of this session.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -155,6 +42,137 @@ public static class Casino
 |---|---|---|
 | `LastPayout` | `int` | The payout of the last `Won` event this session. `0` before the first win. Not saved. |
 | `IsAvailable` | `bool` | `false` when a needed event could not be set up. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>CasinoPlayedArgs</code> <span>what Played tells you</span></p>
+
+`Played` hands you this when a paid round starts. `Machine` says which machine, and `Stake` is the stake for the round in OC.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class CasinoPlayedArgs
+{
+    public CasinoMachineInfo Machine { get; }
+    public int Stake { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Machine` | `CasinoMachineInfo` | The machine. |
+| `Stake` | `int` | The stake of this round, in OC. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>CasinoWonArgs</code> <span>what Won tells you</span></p>
+
+`Won` hands you this when a win is credited inside a machine. That is not money in the wallet yet, and `CashedOut` reports when it is. `Payout` is the win in OC.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class CasinoWonArgs
+{
+    public CasinoMachineInfo Machine { get; }
+    public int Payout { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Machine` | `CasinoMachineInfo` | The machine. |
+| `Payout` | `int` | The win, in OC. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>CasinoCashedOutArgs</code> <span>what CashedOut tells you</span></p>
+
+`CashedOut` hands you this when winnings reach the player's wallet. `Amount` is the OC that went into the wallet.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class CasinoCashedOutArgs
+{
+    public CasinoMachineInfo Machine { get; }
+    public int Amount { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Machine` | `CasinoMachineInfo` | The machine. |
+| `Amount` | `int` | The OC that went into the wallet. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>CasinoDoubledArgs</code> <span>what Doubled tells you</span></p>
+
+`Doubled` hands you this when the player's double on a slot win is settled. `Before` and `After` are the winnings either side of the double.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class CasinoDoubledArgs
+{
+    public CasinoMachineInfo Machine { get; }
+    public int Before { get; }
+    public int After { get; }
+    public bool Won { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Machine` | `CasinoMachineInfo` | The slot machine. |
+| `Before` | `int` | The winnings of the round before the double. |
+| `After` | `int` | The winnings of the round after the double. |
+| `Won` | `bool` | `true` when `After` is more than `Before`. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>ScratchcardArgs</code> <span>what Scratched tells you</span></p>
+
+`Scratched` hands you this each time a scratchcard is used, win or not. `Prize` is what the game paid, and `Won` is `true` when it is above 0.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class ScratchcardArgs
+{
+    public int CardItemId { get; }
+    public string CardTitle { get; }
+    public bool Won { get; }
+    public int Prize { get; }
+    public bool PrizeInRm { get; }
+    public int PrizeOc { get; }
+    public int Cost { get; }
+    public int ReceiptItemId { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `CardItemId` | `int` | The item number of the card. |
+| `CardTitle` | `string` | The card's name. |
+| `Won` | `bool` | `true` when the card paid a prize. |
+| `Prize` | `int` | The prize the game paid. It is in RM when `PrizeInRm` is `true`, and in OC otherwise. |
+| `PrizeInRm` | `bool` | `true` when the prize is in RM (Real Money). |
+| `PrizeOc` | `int` | The prize worth in OC. It is the same as `Prize` when `PrizeInRm` is `false`. |
+| `Cost` | `int` | The card's value, in OC. |
+| `ReceiptItemId` | `int` | The item number of the card's receipt. `-1` when the card has none or it is not known. |
 
 </div>
 </div>

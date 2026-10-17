@@ -11,6 +11,8 @@ nav_order: 7
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WorldTime</code> <span>the time in the game, in one read</span></p>
+`WorldClock.Now` gives you one of these, with the year, month, day, weekday, hour and minute in one read.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -41,6 +43,8 @@ public struct WorldTime
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WorldClock</code> <span>read the calendar, set the time and date</span></p>
+Use `Now` to read the time, `SetTimeOfDay` to set the hour and minute, and `SetDate` to set the date.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -67,8 +71,8 @@ public static class WorldClock
 
 | Method | Returns | What it does |
 |---|---|---|
-| `SetTimeOfDay(int hour, int minute)` | `bool` | Moves the clock forward to this time today. Hour 0 to 23, minute 0 to 59. |
-| `SetDate(int year, int month, int day)` | `bool` | Sets the calendar date. Year 1 to 9999, month 1 to 12, day 3 to the last day of that month. |
+| `SetTimeOfDay(hour, minute)` | `bool` | Moves the clock forward to this time today. Hour 0 to 23, minute 0 to 59. |
+| `SetDate(year, month, day)` | `bool` | Sets the calendar date. Year 1 to 9999, month 1 to 12, day 3 to the last day of that month. |
 
 </div>
 </div>

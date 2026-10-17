@@ -7,10 +7,16 @@ nav_order: 8
 
 # Travel
 
+This page uses `Transform` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 Travel moves the player between places in a level. An entrypoint is a named spawn point in a level. The game uses entrypoints for level changes and for teleports inside a level.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Travel</code> <span>spawn points and teleports</span></p>
+
+Use it to list the spawn points in the loaded level, teleport the player to one, and add or remove your own spawn points.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -34,12 +40,12 @@ public static class Travel
 | Method | Returns | What it does |
 |---|---|---|
 | `Entrypoints()` | `List<string>` | The names of the spawn points in the loaded level. |
-| `TeleportTo(string name)` | `bool` | Moves the player to the spawn point with this name. |
+| `TeleportTo(name)` | `bool` | Moves the player to the spawn point with this name. |
 | `OpenFastTravelMenu()` | `bool` | Opens the game's fast travel panel. |
-| `AddEntrypoint(string name, Transform location)` | `bool` | Adds a named spawn point to the loaded level. |
-| `AddEntrypoint(string modId, string name, Transform location)` | `bool` | The same, filed under your mod's id. |
-| `RemoveEntrypoint(string name)` | `bool` | Removes a spawn point that `AddEntrypoint` added. |
-| `RemoveEntrypoint(string modId, string name)` | `bool` | Removes a spawn point that your mod added. |
+| `AddEntrypoint(name, location)` | `bool` | Adds a named spawn point to the loaded level. |
+| `AddEntrypoint(modId, name, location)` | `bool` | The same, filed under your mod's id. |
+| `RemoveEntrypoint(name)` | `bool` | Removes a spawn point that `AddEntrypoint` added. |
+| `RemoveEntrypoint(modId, name)` | `bool` | Removes a spawn point that your mod added. |
 
 </div>
 </div>

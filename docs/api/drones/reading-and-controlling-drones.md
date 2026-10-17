@@ -7,10 +7,16 @@ nav_order: 2
 
 # Reading and controlling drones
 
+This page uses `Vector3` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 This is the full list of what the API gives you. `Drones` reads and controls the drones in the scene you are in. Each drone is a `DroneInfo`, a snapshot of its state at the moment you asked, and the snapshot does not update by itself, so ask again for fresh values.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Drones</code> <span>read and control drones</span></p>
+
+Call `All()` or `Get(id)` to read drones, and `SetActive`, `SetTarget` or `SetMaxSpeed` to control one.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -29,10 +35,10 @@ public static class Drones
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<DroneInfo>` | Every drone in the scene you are in. |
-| `Get(string id)` | `DroneInfo` | The drone with this id. `null` when there is none. |
-| `SetActive(string id, bool active)` | `bool` | Switches a drone on or off. `true` when it ends up in that state. |
-| `SetTarget(string id, string nodeId)` | `bool` | Points a drone at an air node. `true` when that node is now its target. |
-| `SetMaxSpeed(string id, float maxSpeed)` | `bool` | Sets the top speed. `true` when the drone now has that top speed. |
+| `Get(id)` | `DroneInfo` | The drone with this id. `null` when there is none. |
+| `SetActive(id, active)` | `bool` | Switches a drone on or off. `true` when it ends up in that state. |
+| `SetTarget(id, nodeId)` | `bool` | Points a drone at an air node. `true` when that node is now its target. |
+| `SetMaxSpeed(id, maxSpeed)` | `bool` | Sets the top speed. `true` when the drone now has that top speed. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -47,6 +53,9 @@ public static class Drones
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>DroneInfo</code> <span>a snapshot of one drone</span></p>
+
+`Drones.All()` and `Drones.Get(id)` give you these. `TargetNodeId` is the node the drone is heading for, and `MaxSpeed` is the top speed it is set to, not the speed it is flying at.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -75,6 +84,9 @@ public sealed class DroneInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>DroneChangedArgs</code> <span>what you get when a drone is switched on or off</span></p>
+
+`Drones.Changed` hands you one of these when a drone is switched on or off. `Id` is the drone's id, the same as `DroneInfo.Id`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

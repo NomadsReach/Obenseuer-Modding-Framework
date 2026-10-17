@@ -12,112 +12,10 @@ The game keeps a record of the crimes the player has committed, and it can send 
 Currency: RM is Real Money (see [RM](../glossary.md#rm)).
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>CrimeKind</code> <span>what sort of crime it is</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public enum CrimeKind
-{
-    Unspecified = 0,
-    Theft = 1,
-    Violence = 2,
-    Fraud = 3,
-    PrisonEscape = 4,
-    Administrative = 5,
-    AnimalCruelty = 6,
-    Trespassing = 7,
-    Burglary = 8,
-    None = 9,
-    Harassment = 10,
-    Vandalism = 11,
-    Terrorism = 12
-}
-```
-
-| Value | Meaning |
-|---|---|
-| `Unspecified` | The game's Unspecified crime type. |
-| `Theft` | The game's Theft crime type. |
-| `Violence` | The game's Violence crime type. |
-| `Fraud` | The game's Fraud crime type. |
-| `PrisonEscape` | The game's PrisonEscape crime type. |
-| `Administrative` | The game's Administrative crime type. |
-| `AnimalCruelty` | The game's AnimalCruelty crime type. |
-| `Trespassing` | The game's Trespassing crime type. |
-| `Burglary` | The game's Burglary crime type. |
-| `None` | The game's None crime type. The framework refuses this one. |
-| `Harassment` | The game's Harassment crime type. |
-| `Vandalism` | The game's Vandalism crime type. |
-| `Terrorism` | The game's Terrorism crime type. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>CrimeHandler</code> <span>your code that runs before a crime is recorded</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public delegate void CrimeHandler(CrimeArgs args);
-```
-
-| Parameter | Type | What it means |
-|---|---|---|
-| `args` | `CrimeArgs` | The crime about to be recorded. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>CrimeArgs</code> <span>a crime that is about to be recorded</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public sealed class CrimeArgs
-{
-    public CrimeKind Kind { get; set; }
-    public int Severity { get; set; }
-    public int VictimId { get; }
-    public bool Silent { get; set; }
-    public bool Cancel { get; set; }
-}
-```
-
-| Property | Type | What it means |
-|---|---|---|
-| `Kind` | `CrimeKind` | The kind of crime. You may change it. |
-| `Severity` | `int` | How bad it is. You may change it. |
-| `VictimId` | `int` | The victim's NPC id. `-1` when there is no victim. |
-| `Silent` | `bool` | `true` hides the crime notification. |
-| `Cancel` | `bool` | `true` drops the crime. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>CommittedArgs</code> <span>a crime that was recorded</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public sealed class CommittedArgs
-{
-    public CrimeKind Kind { get; }
-    public int Severity { get; }
-    public int VictimId { get; }
-}
-```
-
-| Property | Type | What it means |
-|---|---|---|
-| `Kind` | `CrimeKind` | The kind of crime. |
-| `Severity` | `int` | The recorded severity, at least 1. |
-| `VictimId` | `int` | The victim's NPC id. `-1` when there is no victim. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
 <p class="api-type-head"><code>Law</code> <span>read, record and clear crimes, and arrests</span></p>
+
+Use `Commit` to record a crime, `Clear` to remove records, and `Intercept` to change or cancel a crime before it is recorded. `Arrest` sends the player to prison, and it is experimental.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -164,16 +62,16 @@ public static class Law
 
 | Method | Returns | What it does |
 |---|---|---|
-| `GetGeneric(CrimeKind kind)` | `float` | The amount of the generic records of that kind. |
-| `GetAgainst(int npcId)` | `float` | The amount recorded against one NPC. `0` for ids of 0 or less. |
-| `Commit(CrimeKind kind, int severity, int victimNpcId, bool silent)` | `bool` | Records a crime. Returns `true` when it was recorded. |
+| `GetGeneric(kind)` | `float` | The amount of the generic records of that kind. |
+| `GetAgainst(npcId)` | `float` | The amount recorded against one NPC. `0` for ids of 0 or less. |
+| `Commit(kind, severity, victimNpcId, silent)` | `bool` | Records a crime. Returns `true` when it was recorded. |
 | `Clear()` | `bool` | Clears all crime records. |
-| `Clear(int victimNpcId)` | `bool` | Clears one victim's records, across every crime type. |
-| `Clear(CrimeKind kind)` | `bool` | Clears the first generic record of that kind. |
-| `Clear(int victimNpcId, CrimeKind kind)` | `bool` | Clears the first record of that kind against one victim. |
-| `Arrest(float severityFactor)` | `bool` | Sends the player to prison (experimental). |
-| `Intercept(string modId, CrimeHandler handler)` | `void` | Runs your code before every crime is recorded. |
-| `RemoveAll(string modId)` | `void` | Removes your mod's crime handlers. |
+| `Clear(victimNpcId)` | `bool` | Clears one victim's records, across every crime type. |
+| `Clear(kind)` | `bool` | Clears the first generic record of that kind. |
+| `Clear(victimNpcId, kind)` | `bool` | Clears the first record of that kind against one victim. |
+| `Arrest(severityFactor)` | `bool` | Sends the player to prison (experimental). |
+| `Intercept(modId, handler)` | `void` | Runs your code before every crime is recorded. |
+| `RemoveAll(modId)` | `void` | Removes your mod's crime handlers. |
 
 | Event | Gives you | When it fires |
 |---|---|---|
@@ -187,7 +85,35 @@ public static class Law
 </div>
 
 <div class="api-type" markdown="1">
+<p class="api-type-head"><code>CommittedArgs</code> <span>a crime that was recorded</span></p>
+
+`Committed` hands you this after a crime is recorded. `Kind`, `Severity` and `VictimId` say what was recorded.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class CommittedArgs
+{
+    public CrimeKind Kind { get; }
+    public int Severity { get; }
+    public int VictimId { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Kind` | `CrimeKind` | The kind of crime. |
+| `Severity` | `int` | The recorded severity, at least 1. |
+| `VictimId` | `int` | The victim's NPC id. `-1` when there is no victim. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
 <p class="api-type-head"><code>FineArgs</code> <span>what Fined tells you</span></p>
+
+`Fined` hands you this when the player pays a fine. `Amount` is the RM that was due before the payment.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -200,6 +126,98 @@ public sealed class FineArgs
 | Property | Type | What it means |
 |---|---|---|
 | `Amount` | `float` | The RM that was due before payment. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>CrimeKind</code> <span>what sort of crime it is</span></p>
+
+This is the `Kind` of a crime, used by `Commit`, `GetGeneric`, `Clear` and `CrimeArgs`. Each value is one of the game's crime types, and the framework refuses `None`.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public enum CrimeKind
+{
+    Unspecified = 0,
+    Theft = 1,
+    Violence = 2,
+    Fraud = 3,
+    PrisonEscape = 4,
+    Administrative = 5,
+    AnimalCruelty = 6,
+    Trespassing = 7,
+    Burglary = 8,
+    None = 9,
+    Harassment = 10,
+    Vandalism = 11,
+    Terrorism = 12
+}
+```
+
+| Value | Meaning |
+|---|---|
+| `Unspecified` | The game's Unspecified crime type. |
+| `Theft` | The game's Theft crime type. |
+| `Violence` | The game's Violence crime type. |
+| `Fraud` | The game's Fraud crime type. |
+| `PrisonEscape` | The game's PrisonEscape crime type. |
+| `Administrative` | The game's Administrative crime type. |
+| `AnimalCruelty` | The game's AnimalCruelty crime type. |
+| `Trespassing` | The game's Trespassing crime type. |
+| `Burglary` | The game's Burglary crime type. |
+| `None` | The game's None crime type. The framework refuses this one. |
+| `Harassment` | The game's Harassment crime type. |
+| `Vandalism` | The game's Vandalism crime type. |
+| `Terrorism` | The game's Terrorism crime type. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>CrimeHandler</code> <span>your code that runs before a crime is recorded</span></p>
+
+This is the delegate you pass to `Law.Intercept`. The framework calls it before each crime is recorded, with the `CrimeArgs` for that crime.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public delegate void CrimeHandler(CrimeArgs args);
+```
+
+| Parameter | Type | What it means |
+|---|---|---|
+| `args` | `CrimeArgs` | The crime about to be recorded. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>CrimeArgs</code> <span>a crime that is about to be recorded</span></p>
+
+Each `CrimeHandler` gets one of these for the crime. Change `Kind`, `Severity` or `Silent`, or set `Cancel` to drop the crime.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class CrimeArgs
+{
+    public CrimeKind Kind { get; set; }
+    public int Severity { get; set; }
+    public int VictimId { get; }
+    public bool Silent { get; set; }
+    public bool Cancel { get; set; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Kind` | `CrimeKind` | The kind of crime. You may change it. |
+| `Severity` | `int` | How bad it is. You may change it. |
+| `VictimId` | `int` | The victim's NPC id. `-1` when there is no victim. |
+| `Silent` | `bool` | `true` hides the crime notification. |
+| `Cancel` | `bool` | `true` drops the crime. |
 
 </div>
 </div>

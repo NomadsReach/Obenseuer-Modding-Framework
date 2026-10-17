@@ -11,6 +11,9 @@ nav_order: 4
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Renovations</code> <span>order a renovation</span></p>
+
+Call `Start` with a renovation's `Id` to order it for the player. It works only while the contractor menu is open and a contractor is chosen.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -22,7 +25,7 @@ public static class Renovations
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Start(string id)` | `bool` | Orders a renovation the way the game does. `true` when the game took the order. |
+| `Start(id)` | `bool` | Orders a renovation the way the game does. `true` when the game took the order. |
 
 </div>
 </div>

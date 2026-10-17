@@ -7,10 +7,42 @@ nav_order: 4
 
 # Selling
 
+This page uses `GameObject` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 `Sell(id, furnitureId, count)` sells `count` pieces of one kind of furniture from the player's building stock to a furniture shop, the way the shop screen does. The game's own sale code reads the selection on the open shop screen, so the framework repeats its steps with calls that work without the screen.
 
 <div class="api-type" markdown="1">
+<p class="api-type-head"><code>BaseShops</code> <span>selling furniture to a shop</span></p>
+
+Call `Sell` to sell furniture from the player to a furniture shop, and listen to `Sold` to hear about sales made through it.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class BaseShops
+{
+    public static BaseShopSellResult Sell(string id, string furnitureId, int count);
+    public static event Action<BaseShopSoldArgs> Sold;
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `Sell(id, furnitureId, count)` | `BaseShopSellResult` | Sells `count` pieces of one kind of furniture from the player to a shop. |
+
+| Event | Gives you | When it fires |
+|---|---|---|
+| `Sold` | `BaseShopSoldArgs` | The player sold furniture through `Sell`. It fires once, after the sale is complete. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
 <p class="api-type-head"><code>BaseShopSellResult</code> <span>what happened when you tried to sell</span></p>
+
+`Sell` returns this. `Ok` means the sale is complete, and the other values say why it was not.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -45,6 +77,9 @@ public enum BaseShopSellResult
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>BaseShopSoldArgs</code> <span>what Sold tells you</span></p>
+
+`Sold` hands you this after a sale made with `Sell`. `FurnitureId` and `Count` say what was sold, and `Oc` and `Rm` what the player was paid.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -67,29 +102,6 @@ public sealed class BaseShopSoldArgs
 | `Count` | `int` | How many pieces were sold. |
 | `Oc` | `int` | The total OC the player was paid. |
 | `Rm` | `int` | The total RM the player was paid. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>BaseShops</code> <span>selling furniture to a shop</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static class BaseShops
-{
-    public static BaseShopSellResult Sell(string id, string furnitureId, int count);
-    public static event Action<BaseShopSoldArgs> Sold;
-}
-```
-
-| Method | Returns | What it does |
-|---|---|---|
-| `Sell(string id, string furnitureId, int count)` | `BaseShopSellResult` | Sells `count` pieces of one kind of furniture from the player to a shop. |
-
-| Event | Gives you | When it fires |
-|---|---|---|
-| `Sold` | `BaseShopSoldArgs` | The player sold furniture through `Sell`. It fires once, after the sale is complete. |
 
 </div>
 </div>

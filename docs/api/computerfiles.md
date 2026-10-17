@@ -7,6 +7,9 @@ nav_order: 3
 
 # Computer files
 
+This page uses `GameObject` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 Status: experimental.
 
 ## What it is
@@ -75,6 +78,9 @@ This is the full list of what the API gives you. Text in brackets at the end of 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ComputerContents</code> <span>find computers and read their files and emails</span></p>
+
+Call `All()` to find the computers in the scene, then `Files` or `Emails` with a computer's `Id` to read what is on it.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -90,15 +96,18 @@ public static class ComputerContents
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<ComputerInfo>` | Every computer in the scene you are in. |
-| `IdOf(GameObject computer)` | `string` | The id of this computer. `null` when the object is not a computer. |
-| `Files(string computerId)` | `List<ComputerDocInfo>` | The files in this computer's recycle bin. |
-| `Emails(string computerId)` | `List<ComputerDocInfo>` | The emails in this computer's inbox. |
+| `IdOf(computer)` | `string` | The id of this computer. `null` when the object is not a computer. |
+| `Files(computerId)` | `List<ComputerDocInfo>` | The files in this computer's recycle bin. |
+| `Emails(computerId)` | `List<ComputerDocInfo>` | The emails in this computer's inbox. |
 
 </div>
 </div>
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ComputerInfo</code> <span>one computer</span></p>
+
+`ComputerContents.All()` gives you one of these for each computer in the scene. Pass its `Id` to `Files` or `Emails`. <span class="tech">(It is built from the game's `InteractableComputer` objects.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -121,6 +130,9 @@ public sealed class ComputerInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ComputerDocInfo</code> <span>one file or one email</span></p>
+
+`Files` and `Emails` return these. A file has no `Sender`, and for an email `Title` is the subject. <span class="tech">(It is built from the game's `ComputerFile` and `Email` entries.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp

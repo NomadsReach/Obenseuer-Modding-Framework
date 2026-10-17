@@ -11,6 +11,9 @@ nav_order: 4
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>CoreLog</code> <span>your mod's log file</span></p>
+
+This is the file your mod writes its own messages to. Get one with `CoreLog.For` and your mod id, then write with `Info`, `Warn`, `Error` or `Debug`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -26,11 +29,11 @@ public class CoreLog
 
 | Method | Returns | What it does |
 |---|---|---|
-| `For(string modId)` | `CoreLog` | The log for your mod id, written to `BepInEx\logs\<modId>.log`. |
-| `Info(string message)` | `void` | Writes a normal message. |
-| `Warn(string message)` | `void` | Writes something that looks wrong, but the mod keeps working. |
-| `Error(string message)` | `void` | Writes something that failed. |
-| `Debug(string key, string message)` | `void` | Writes a message that only shows when `[Debug] Verbose` is true. It writes again only when the text for this key changes. |
+| `For(modId)` | `CoreLog` | The log for your mod id, written to `BepInEx\logs\<modId>.log`. |
+| `Info(message)` | `void` | Writes a normal message. |
+| `Warn(message)` | `void` | Writes something that looks wrong, but the mod keeps working. |
+| `Error(message)` | `void` | Writes something that failed. |
+| `Debug(key, message)` | `void` | Writes a message that only shows when `[Debug] Verbose` is true. It writes again only when the text for this key changes. |
 
 </div>
 </div>

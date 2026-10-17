@@ -7,10 +7,16 @@ nav_order: 2
 
 # Listing and breaking objects
 
+This page uses `Transform` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 A breakable is an object with a strength. `Breakables` lets you list them, look one up by its id, break it, repair it, and hear when the game breaks or repairs one. Each breakable you get back is a `BreakableInfo`, a snapshot taken when you asked. The snapshot does not update by itself, so ask again for fresh values.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Breakables</code> <span>list, break and repair breakables</span></p>
+
+Use `All` or `Get` to find breakables, `Break` and `Repair` to change them, and `Broken` and `Repaired` to hear when the game does.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -32,10 +38,10 @@ public static class Breakables
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<BreakableInfo>` | Every breakable in the scene the player is in. |
-| `Get(string id)` | `BreakableInfo` | The breakable with this id. `null` when none matches. |
-| `IsBroken(string id)` | `bool` | `true` when the breakable exists and is broken. |
-| `Break(string id)` | `bool` | Breaks it. `true` when it is broken afterwards. |
-| `Repair(string id)` | `bool` | Repairs it. `true` when it is whole afterwards. |
+| `Get(id)` | `BreakableInfo` | The breakable with this id. `null` when none matches. |
+| `IsBroken(id)` | `bool` | `true` when the breakable exists and is broken. |
+| `Break(id)` | `bool` | Breaks it. `true` when it is broken afterwards. |
+| `Repair(id)` | `bool` | Repairs it. `true` when it is whole afterwards. |
 
 | Event | Gives you | When it fires |
 |---|---|---|
@@ -51,6 +57,9 @@ public static class Breakables
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>BreakableInfo</code> <span>a snapshot of one breakable</span></p>
+
+`All` and `Get` give you one of these for each breakable. Pass its `Id` to the other calls.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -73,6 +82,9 @@ public sealed class BreakableInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>BreakableArgs</code> <span>what an event tells you</span></p>
+
+`Broken`, `Repaired` and `LockBroken` hand you this. `Id` is the breakable's id, or the lock's id for `LockBroken`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

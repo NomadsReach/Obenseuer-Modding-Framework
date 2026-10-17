@@ -11,6 +11,9 @@ A multiplier makes a speed bigger or smaller. A value of `2` doubles it, and `0.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>PlayerMovement</code> <span>speed and jump multipliers</span></p>
+
+Call `SetSpeedMultiplier`, `SetWalkMultiplier`, `SetRunMultiplier` or `SetJumpMultiplier` to change how fast the player moves or how high they jump, and `ClearMultipliers` to take your mod id's values back.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -29,12 +32,12 @@ public static class PlayerMovement
 
 | Method | Returns | What it does |
 |---|---|---|
-| `SetSpeedMultiplier(float multiplier)` | `bool` | Sets all six speeds, with no mod id. `false` for `NaN` or infinity. |
-| `SetSpeedMultiplier(string owner, float multiplier)` | `bool` | Sets all six speeds for your mod id. |
-| `SetWalkMultiplier(string owner, float multiplier)` | `bool` | Sets walk speed only. |
-| `SetRunMultiplier(string owner, float multiplier)` | `bool` | Sets run and sprint speed only. |
-| `SetJumpMultiplier(string owner, float multiplier)` | `bool` | Sets jump height. |
-| `ClearMultipliers(string owner)` | `bool` | Takes back everything your mod id set. `false` when it set nothing. |
+| `SetSpeedMultiplier(multiplier)` | `bool` | Sets all six speeds, with no mod id. `false` for `NaN` or infinity. |
+| `SetSpeedMultiplier(owner, multiplier)` | `bool` | Sets all six speeds for your mod id. |
+| `SetWalkMultiplier(owner, multiplier)` | `bool` | Sets walk speed only. |
+| `SetRunMultiplier(owner, multiplier)` | `bool` | Sets run and sprint speed only. |
+| `SetJumpMultiplier(owner, multiplier)` | `bool` | Sets jump height. |
+| `ClearMultipliers(owner)` | `bool` | Takes back everything your mod id set. `false` when it set nothing. |
 
 | Property | Type | What it means |
 |---|---|---|

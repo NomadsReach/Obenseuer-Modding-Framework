@@ -92,6 +92,8 @@ An NPC is given by its id from the [NPC API](npcs.md) (`NpcInfo.Id`). A flat is 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Tenants</code> <span>move tenants, trigger their events and read the tenement</span></p>
+Use it to rent an apartment to a resident NPC, trigger a tenant event and read the rent income.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -111,15 +113,15 @@ public static class Tenants
 
 | Method | Returns | What it does |
 |---|---|---|
-| `CanRent(int npcId)` | `bool` | `true` when the NPC is not a tenant yet and could be one. |
-| `Rent(string modId, int npcId, int apartmentId, float moveInHours, bool silent)` | `bool` | Moves an NPC into a flat. `true` when it is now the tenant. |
-| `TriggerEvent(string modId, int npcId, TenementEventKind kind)` | `bool` | Makes a tenant event happen. `true` when an event ran. |
-| `OpenRentScreen(string modId, int npcId)` | `bool` | Opens the rent screen for an NPC. `true` when it opened. |
+| `CanRent(npcId)` | `bool` | `true` when the NPC is not a tenant yet and could be one. |
+| `Rent(modId, npcId, apartmentId, moveInHours, silent)` | `bool` | Moves an NPC into a flat. `true` when it is now the tenant. |
+| `TriggerEvent(modId, npcId, kind)` | `bool` | Makes a tenant event happen. `true` when an event ran. |
+| `OpenRentScreen(modId, npcId)` | `bool` | Opens the rent screen for an NPC. `true` when it opened. |
 | `TotalIncome()` | `RentPayment` | The rent the tenement earns. `null` when the tenement is not loaded. |
 | `RawIncome()` | `RentPayment` | The same rent, before the game divides it into payments. `null` when the tenement is not loaded. |
-| `GeneralUpgrade(TenementController.GeneralUpgradeCategory category)` | `int` | The upgrade level of the building. `-1` when the tenement is not loaded. |
-| `ApartmentUpgrade(int apartmentId, TenementController.ApartmentUpgradeCategory category)` | `int` | The upgrade level of one flat. `-1` when it is unknown. |
-| `FurnitureClearPercent(int apartmentId)` | `int` | How much of a flat has been cleared of furniture. `-1` when it is unknown. |
+| `GeneralUpgrade(category)` | `int` | The upgrade level of the building. `-1` when the tenement is not loaded. |
+| `ApartmentUpgrade(apartmentId, category)` | `int` | The upgrade level of one flat. `-1` when it is unknown. |
+| `FurnitureClearPercent(apartmentId)` | `int` | How much of a flat has been cleared of furniture. `-1` when it is unknown. |
 
 </div>
 </div>

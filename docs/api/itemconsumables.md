@@ -77,7 +77,35 @@ ItemConsumables.Clear("example.strongapples");
 This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
 
 <div class="api-type" markdown="1">
+<p class="api-type-head"><code>ItemConsumables</code> <span>read, change and undo item effects</span></p>
+
+This is the class you start from. `Get` reads an item's effect numbers, `Set` writes changed numbers under your mod's id, and `Clear` undoes every change that id made.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class ItemConsumables
+{
+    public static ConsumableInfo Get(int itemId);
+    public static bool Set(string modId, int itemId, ConsumableInfo info);
+    public static bool Clear(string modId);
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `Get(itemId)` | `ConsumableInfo` | A copy of the item's numbers. `null` when the item has no consumable action. |
+| `Set(modId, itemId, info)` | `bool` | Writes the numbers. `true` when they were written. |
+| `Clear(modId)` | `bool` | Undoes every change your mod made. `true` when it undid at least one. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
 <p class="api-type-head"><code>ConsumableInfo</code> <span>the effect numbers of one item's consumable action</span></p>
+
+`Get` gives you this, a copy of one item's numbers. Change its fields, then pass it to `Set`, because changing the copy alone does nothing.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -118,28 +146,6 @@ public sealed class ConsumableInfo
 | `AlcoholAddiction` | `float` | How much it adds to alcohol addiction. |
 | `MushroomAddiction` | `float` | How much it adds to mushroom addiction. |
 | `SmokingAddiction` | `float` | How much it adds to smoking addiction. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>ItemConsumables</code> <span>read, change and undo item effects</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static class ItemConsumables
-{
-    public static ConsumableInfo Get(int itemId);
-    public static bool Set(string modId, int itemId, ConsumableInfo info);
-    public static bool Clear(string modId);
-}
-```
-
-| Method | Returns | What it does |
-|---|---|---|
-| `Get(int itemId)` | `ConsumableInfo` | A copy of the item's numbers. `null` when the item has no consumable action. |
-| `Set(string modId, int itemId, ConsumableInfo info)` | `bool` | Writes the numbers. `true` when they were written. |
-| `Clear(string modId)` | `bool` | Undoes every change your mod made. `true` when it undid at least one. |
 
 </div>
 </div>

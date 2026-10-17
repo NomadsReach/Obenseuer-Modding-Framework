@@ -10,7 +10,31 @@ nav_order: 3
 `FuelBought` tells your mod when the player has paid for fuel at a station.
 
 <div class="api-type" markdown="1">
+<p class="api-type-head"><code>FuelStations</code> <span>fuel purchase event</span></p>
+
+`FuelBought` is the event on this class. `FuelStations.All()` lists the stations, and it is covered on the [gas stations](gas-stations.md) page.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class FuelStations
+{
+    public static event Action<FuelBoughtArgs> FuelBought;
+}
+```
+
+| Event | Gives you | When it fires |
+|---|---|---|
+| `FuelBought` | `FuelBoughtArgs` | The player has paid for fuel. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
 <p class="api-type-head"><code>FuelBoughtArgs</code> <span>what FuelBought tells you</span></p>
+
+`FuelBought` gives you this. The framework builds it from a hook on the game's `GasStation.PayFuelOc` payment, so it is the framework's own type.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -29,24 +53,6 @@ public sealed class FuelBoughtArgs
 | `Amount` | `float` | How many units of fuel were paid for, over all pumps. |
 | `Cost` | `int` | The money paid. |
 | `Currency` | `MoneyCurrency` | The money the cost is in. OC for now. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>FuelStations</code> <span>fuel purchase event</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static class FuelStations
-{
-    public static event Action<FuelBoughtArgs> FuelBought;
-}
-```
-
-| Event | Gives you | When it fires |
-|---|---|---|
-| `FuelBought` | `FuelBoughtArgs` | The player has paid for fuel. |
 
 </div>
 </div>

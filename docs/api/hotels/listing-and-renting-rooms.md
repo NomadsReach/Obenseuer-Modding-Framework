@@ -13,6 +13,9 @@ This is the full list of what the API gives you. Text in brackets at the end of 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Hotels</code> <span>list, price, rent and watch hotel rooms</span></p>
+
+This is the class you start from. `All()` and `Get` find rooms, `Price` says what a stay costs, and `Rent` rents a room to the player.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -35,9 +38,9 @@ public static class Hotels
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<HotelRoomInfo>` | Every room of every hotel in the scene you are in, free or not. |
-| `Get(string roomId)` | `HotelRoomInfo` | The room with this id. It is `null` when there is none. |
-| `Price(string roomId, int days)` | `RentPayment` | What a stay costs. It is `null` when no price is offered. |
-| `Rent(string roomId, int days)` | `bool` | Rents the room to the player. It is `false` when the room was not rented. |
+| `Get(roomId)` | `HotelRoomInfo` | The room with this id. It is `null` when there is none. |
+| `Price(roomId, days)` | `RentPayment` | What a stay costs. It is `null` when no price is offered. |
+| `Rent(roomId, days)` | `bool` | Rents the room to the player. It is `false` when the room was not rented. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -54,6 +57,9 @@ public static class Hotels
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>HotelRoomInfo</code> <span>a snapshot of one hotel room</span></p>
+
+`All()` and `Get(roomId)` give you this, one per room. It is a copy of the game's hotel room when you asked, so ask again for a current `Rented` or `DaysLeft`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -82,6 +88,9 @@ public sealed class HotelRoomInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>RoomRentedArgs</code> <span>what RoomRented gives you</span></p>
+
+`RoomRented` gives you this. The framework builds it when the game accepts a rental by the player, whether that came from your `Rent` call or from the game's own hotel menu.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -104,6 +113,9 @@ public sealed class RoomRentedArgs
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>RoomExpiredArgs</code> <span>what RoomExpired gives you</span></p>
+
+`RoomExpired` gives you this when the player's stay runs out. It is the framework's own type.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

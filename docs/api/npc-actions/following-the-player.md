@@ -11,6 +11,9 @@ These two calls start and stop an NPC walking after the player.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>NpcActions</code> <span>following the player</span></p>
+
+Call `FollowPlayer` to make the NPC follow the player, and `StopFollowing` to end it.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -23,8 +26,8 @@ public static class NpcActions
 
 | Method | Returns | What it does |
 |---|---|---|
-| `FollowPlayer(int npcId, bool run, bool untilStopped)` | `bool` | Makes the NPC follow the player. |
-| `StopFollowing(int npcId)` | `bool` | Makes the NPC stop following. |
+| `FollowPlayer(npcId, run, untilStopped)` | `bool` | Makes the NPC follow the player. |
+| `StopFollowing(npcId)` | `bool` | Makes the NPC stop following. |
 
 </div>
 </div>

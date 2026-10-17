@@ -13,6 +13,9 @@ A `modId` is your mod's id (see [Owner](../../glossary.md#owner) in the glossary
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>CustomSkills</code> <span>register, read and change your skills</span></p>
+
+You call `Register` for each skill, then `Get`, `Set` and `Add` to read and change its value.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -36,13 +39,13 @@ public static class CustomSkills
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Register(string modId, string skillId, string displayName, float maxValue)` | `bool` | Declares a skill. Returns `false` only when the mod already has 64 skills. |
-| `Clear(string modId)` | `bool` | Unregisters all of this mod's skills for this session. Returns `true` when any were removed. |
-| `Get(string modId, string skillId)` | `float` | The skill's value. `0` when it is not registered. |
-| `Level(string modId, string skillId)` | `int` | The value rounded down. `0` when it is not registered. |
-| `Set(string modId, string skillId, float value)` | `bool` | Sets the value. Returns `true` when it changed. |
-| `Add(string modId, string skillId, float amount)` | `bool` | Adds to the value. A negative amount lowers it. Returns `true` when it changed. |
-| `QueueBanner(string text)` | `bool` | Queues a message in the skill banner. Returns `true` when it was queued. |
+| `Register(modId, skillId, displayName, maxValue)` | `bool` | Declares a skill. Returns `false` only when the mod already has 64 skills. |
+| `Clear(modId)` | `bool` | Unregisters all of this mod's skills for this session. Returns `true` when any were removed. |
+| `Get(modId, skillId)` | `float` | The skill's value. `0` when it is not registered. |
+| `Level(modId, skillId)` | `int` | The value rounded down. `0` when it is not registered. |
+| `Set(modId, skillId, value)` | `bool` | Sets the value. Returns `true` when it changed. |
+| `Add(modId, skillId, amount)` | `bool` | Adds to the value. A negative amount lowers it. Returns `true` when it changed. |
+| `QueueBanner(text)` | `bool` | Queues a message in the skill banner. Returns `true` when it was queued. |
 
 | Event | Gives you | When it fires |
 |---|---|---|
@@ -53,6 +56,9 @@ public static class CustomSkills
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>CustomSkillArgs</code> <span>what LevelChanged tells you</span></p>
+
+`LevelChanged` gives you one of these when a skill's whole-number level goes up or down. `ModId` and `SkillId` say which skill it was.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

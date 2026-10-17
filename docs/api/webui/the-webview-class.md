@@ -11,6 +11,8 @@ A `WebView` is one open page. You get it from `WebUi.Open`.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WebView</code> <span>one open page</span></p>
+[`WebUi.Open`](the-webui-class.md) gives you one of these for each page. Use `Show`, `Hide`, `SetBounds` or `Close` to control it, and `Post` to send it a JSON string.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -51,13 +53,13 @@ public sealed class WebView
 |---|---|---|
 | `Show()` | `bool` | Shows the view at its place. |
 | `Hide()` | `bool` | Hides the view. |
-| `SetBounds(int x, int y, int width, int height)` | `bool` | Places the view at a spot on the screen, in pixels of the game window. It stops the view from covering the whole window. |
+| `SetBounds(x, y, width, height)` | `bool` | Places the view at a spot on the screen, in pixels of the game window. It stops the view from covering the whole window. |
 | `FullWindow()` | `bool` | Makes the view cover the whole game window. |
-| `PinTo(RectTransform target)` | `bool` | Makes the view cover a `RectTransform` on the screen, such as a monitor. `null` lets go and goes back to the whole window. |
-| `Navigate(string page)` | `bool` | Loads another page from your folder. |
-| `MapFolder(string name, string folder)` | `bool` | Makes another folder of yours available at its own web address. |
-| `AllowFrameHost(string host)` | `bool` | Lets frames in your page load one live website. |
-| `Post(string json)` | `bool` | Sends a JSON object to the page. |
+| `PinTo(target)` | `bool` | Makes the view cover a `RectTransform` on the screen, such as a monitor. `null` lets go and goes back to the whole window. |
+| `Navigate(page)` | `bool` | Loads another page from your folder. |
+| `MapFolder(name, folder)` | `bool` | Makes another folder of yours available at its own web address. |
+| `AllowFrameHost(host)` | `bool` | Lets frames in your page load one live website. |
+| `Post(json)` | `bool` | Sends a JSON object to the page. |
 | `Close()` | `void` | Closes the view for good. |
 
 | Event | Gives you | When it fires |

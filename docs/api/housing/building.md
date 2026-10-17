@@ -7,10 +7,16 @@ nav_order: 4
 
 # Building
 
+This page uses `Vector3`, `Quaternion`, `GameObject`, `Transform` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 `Building` works with furniture the player placed in the world. A building area is one room, shop or other space where furniture can be placed, and the functions that take an `areaId` use its id. `AllAreaIds()` gives all of them.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Building</code> <span>furniture the player places</span></p>
+
+This is the class you start from. It lists the building areas and the furniture placed in them, and `Place`, `Remove` and `Move` change that furniture.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -42,19 +48,19 @@ public static class Building
 | Method | Returns | What it does |
 |---|---|---|
 | `AllAreaIds()` | `List<string>` | The id of every building area. |
-| `GetPlacedFurniture(string areaId)` | `List<FurnitureItem>` | The furniture the player placed in an area. |
-| `Managers(string sceneName)` | `List<FurnitureManagerInfo>` | The building areas in one scene, or in all loaded scenes. |
+| `GetPlacedFurniture(areaId)` | `List<FurnitureItem>` | The furniture the player placed in an area. |
+| `Managers(sceneName)` | `List<FurnitureManagerInfo>` | The building areas in one scene, or in all loaded scenes. |
 | `AllBlueprints()` | `List<BlueprintInfo>` | Every furniture blueprint the game knows, known or not. |
-| `IsBlueprintKnown(string name)` | `bool` | `true` when the player has this blueprint. |
-| `UnlockBlueprint(string name)` | `bool` | Gives the blueprint with the game's "new item" message. |
-| `UnlockBlueprint(string name, bool silent)` | `bool` | Gives the blueprint. `silent` set to `true` skips the message. |
-| `Place(string managerGuid, string furnitureId, Vector3 position, Quaternion rotation, Quaternion childRotation, int skin, int altPrefab)` | `FurnitureItem` | Places a piece. `null` when refused. |
-| `Place(string managerGuid, string furnitureId, Vector3 position, Quaternion rotation, Quaternion childRotation, int skin, int altPrefab, bool requireKnown)` | `FurnitureItem` | The same, and refuses unknown furniture when `requireKnown` is `true`. |
-| `Remove(string guid)` | `bool` | Takes a placed piece out of the world. `true` when removed. |
-| `Remove(FurnitureItem item)` | `bool` | The same for a piece you hold. |
-| `Find(string guid)` | `FurnitureItem` | The placed piece with this `Guid`. `null` when none. |
-| `Move(string guid, Vector3 position, Quaternion rotation)` | `bool` | Moves a placed piece. `true` when moved. |
-| `Move(FurnitureItem item, Vector3 position, Quaternion rotation)` | `bool` | The same for a piece you hold. |
+| `IsBlueprintKnown(name)` | `bool` | `true` when the player has this blueprint. |
+| `UnlockBlueprint(name)` | `bool` | Gives the blueprint with the game's "new item" message. |
+| `UnlockBlueprint(name, silent)` | `bool` | Gives the blueprint. `silent` set to `true` skips the message. |
+| `Place(managerGuid, furnitureId, position, rotation, childRotation, skin, altPrefab)` | `FurnitureItem` | Places a piece. `null` when refused. |
+| `Place(managerGuid, furnitureId, position, rotation, childRotation, skin, altPrefab, requireKnown)` | `FurnitureItem` | The same, and refuses unknown furniture when `requireKnown` is `true`. |
+| `Remove(guid)` | `bool` | Takes a placed piece out of the world. `true` when removed. |
+| `Remove(item)` | `bool` | The same for a piece you hold. |
+| `Find(guid)` | `FurnitureItem` | The placed piece with this `Guid`. `null` when none. |
+| `Move(guid, position, rotation)` | `bool` | Moves a placed piece. `true` when moved. |
+| `Move(item, position, rotation)` | `bool` | The same for a piece you hold. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -72,6 +78,9 @@ public static class Building
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>FurnitureItem</code> <span>one placed piece of furniture</span></p>
+
+`GetPlacedFurniture`, `Find`, `Place` and the furniture events give you this, one per placed piece. Its `Guid` is only good until the next save, so do not keep it as a permanent key.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -120,6 +129,9 @@ public sealed class FurnitureItem
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>FurnitureManagerInfo</code> <span>one building area</span></p>
+
+`Managers(sceneName)` gives you one of these for each building area. Its `Guid` is the same value as an id from `AllAreaIds`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -140,6 +152,9 @@ public sealed class FurnitureManagerInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>BlueprintInfo</code> <span>one furniture blueprint</span></p>
+
+`AllBlueprints()` gives you one of these for each furniture blueprint the game knows. Pass its `Name` to `UnlockBlueprint` to give the player that blueprint.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

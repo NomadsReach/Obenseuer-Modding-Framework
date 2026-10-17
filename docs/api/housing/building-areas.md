@@ -11,6 +11,9 @@ A building area is the space the player is building in. These tell you which are
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Building</code> <span>which building area the player is in</span></p>
+
+This is the class you start from. `CurrentArea` tells you which building area the player is in, and `AreaEntered` and `AreaExited` tell you when that changes.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -36,6 +39,9 @@ public static class Building
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>BuildAreaInfo</code> <span>a snapshot of one building area</span></p>
+
+`CurrentArea` and the two area events give you this. `CurrentArea` is read again each time you ask, while an event carries a snapshot taken at the moment of the change. <span class="tech">(It is filled from the game's `FurnitureManager` of the active area.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp

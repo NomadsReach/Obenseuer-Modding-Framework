@@ -11,6 +11,9 @@ These calls blur the 3D picture, the same effect the game uses behind its menus.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ScreenFx</code> <span>blur the 3D picture</span></p>
+
+`ScreenFx.Blur` blurs the 3D picture with an `amount` from 0 to 1, and `ClearBlur(owner)` removes your mod's blur.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -21,9 +24,9 @@ public static bool ClearBlur(string owner);
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Blur(string owner, float amount)` | `bool` | Blurs the picture. `amount` runs from 0 (no blur) to 1 (strongest). |
-| `Blur(string owner, float amount, float fadeSeconds)` | `bool` | The same blur, changing over `fadeSeconds` seconds. |
-| `ClearBlur(string owner)` | `bool` | Removes your blur. It returns `true` when it removed one and `false` when your mod had none. It always runs. |
+| `Blur(owner, amount)` | `bool` | Blurs the picture. `amount` runs from 0 (no blur) to 1 (strongest). |
+| `Blur(owner, amount, fadeSeconds)` | `bool` | The same blur, changing over `fadeSeconds` seconds. |
+| `ClearBlur(owner)` | `bool` | Removes your blur. It returns `true` when it removed one and `false` when your mod had none. It always runs. |
 
 </div>
 </div>

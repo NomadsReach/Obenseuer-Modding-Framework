@@ -7,6 +7,9 @@ nav_order: 7
 
 # Limits
 
+This page uses `Mesh` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 - The face keeps its neutral shape. The look's face shapes are not applied yet.
 - Only `Bip001` looks can use the retarget path. The body-part map is for `Bip001` only, so a look with another kind of skeleton uses the name path or is refused.
 - Materials are opaque only. Transparency is not copied, because the settings that go with it are not copied either. <span class="tech">(`_Mode` is not copied, because its keywords and the matching render queue are not copied)</span>

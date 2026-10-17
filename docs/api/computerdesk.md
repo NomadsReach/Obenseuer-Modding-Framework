@@ -7,6 +7,9 @@ nav_order: 2
 
 # Computer desk
 
+This page uses `Texture2D`, `Sprite` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 Status: experimental.
 
 ## What it is
@@ -67,6 +70,9 @@ This is the full list of what the API gives you. Text in brackets at the end of 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ComputerDesk</code> <span>changes a computer's wallpaper</span></p>
+
+Call `SetWallpaper` with your mod id, a computer id from `ComputerContents.All()` or `ComputerContents.IdOf`, and the picture. It returns `false` when the change did not happen.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -78,7 +84,7 @@ public static class ComputerDesk
 
 | Method | Returns | What it does |
 |---|---|---|
-| `SetWallpaper(string modId, string computerId, Sprite wallpaper)` | `bool` | Changes the wallpaper of one computer right away. `modId` is your mod's id. `computerId` comes from `ComputerContents.All()` or `ComputerContents.IdOf`. Returns `true` when the wallpaper was changed, `false` when it was not. |
+| `SetWallpaper(modId, computerId, wallpaper)` | `bool` | Changes the wallpaper of one computer right away. `modId` is your mod's id. `computerId` comes from `ComputerContents.All()` or `ComputerContents.IdOf`. Returns `true` when the wallpaper was changed, `false` when it was not. |
 
 </div>
 </div>

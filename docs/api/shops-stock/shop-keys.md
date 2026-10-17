@@ -7,10 +7,16 @@ nav_order: 2
 
 # Shop keys
 
+This page uses `GameObject` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ShopStock</code> <span>add and place stock in shops</span></p>
+
+This is the class to start from. `AddTraderStock` and `Place` add stock to a trader's shop, `AddVendingEntry` adds an item for sale in a vending machine, and `Remove` takes back what your mod added for an item.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -26,10 +32,10 @@ public static class ShopStock
 
 | Method | Returns | What it does |
 |---|---|---|
-| `AddTraderStock(string modId, string shopKey, int itemId, int amount)` | `bool` | Keeps this many of the item in a trader's shop. |
-| `AddVendingEntry(string modId, string shopKey, int itemId, int stock, float price, MoneyCurrency currency)` | `bool` | Adds the item for sale in a vending machine. |
-| `Remove(string modId, string shopKey, int itemId)` | `bool` | Takes back what your mod added for this item in this shop. |
-| `Place(string modId, string shopKey, int itemId, int amount)` | `bool` | Puts a one-time stack in a trader's shop. |
+| `AddTraderStock(modId, shopKey, itemId, amount)` | `bool` | Keeps this many of the item in a trader's shop. |
+| `AddVendingEntry(modId, shopKey, itemId, stock, price, currency)` | `bool` | Adds the item for sale in a vending machine. |
+| `Remove(modId, shopKey, itemId)` | `bool` | Takes back what your mod added for this item in this shop. |
+| `Place(modId, shopKey, itemId, amount)` | `bool` | Puts a one-time stack in a trader's shop. |
 
 | Property | Type | What it means |
 |---|---|---|

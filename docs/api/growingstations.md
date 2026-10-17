@@ -7,6 +7,9 @@ nav_order: 5
 
 # Growing stations
 
+This page uses `Vector3` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 ## What it is
 
 A growing station is a machine in the game that grows plants. It has several growing spots, and each spot holds one plant. This API lets your mod list the stations in the scene, see which spots hold a plant, and pause or rot all the plants in a station at once.
@@ -95,6 +98,9 @@ This is the full list of what the API gives you. Text in brackets at the end of 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>GrowingStations</code> <span>list and change growing stations</span></p>
+
+This is the class you start from. `All()` and `Get(id)` list and find stations, and `SetPaused` and `SetRotting` act on a whole station.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -110,15 +116,18 @@ public static class GrowingStations
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<GrowingStationInfo>` | Every growing station in the scene the player is in. |
-| `Get(string id)` | `GrowingStationInfo` | The station with this id. `null` when none has it. |
-| `SetPaused(string modId, string id, bool paused)` | `bool` | Pauses or unpauses a whole station. |
-| `SetRotting(string modId, string id, bool rotting)` | `bool` | Starts or stops rot in a whole station. |
+| `Get(id)` | `GrowingStationInfo` | The station with this id. `null` when none has it. |
+| `SetPaused(modId, id, paused)` | `bool` | Pauses or unpauses a whole station. |
+| `SetRotting(modId, id, rotting)` | `bool` | Starts or stops rot in a whole station. |
 
 </div>
 </div>
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>GrowingStationInfo</code> <span>a snapshot of one station</span></p>
+
+`All()` and `Get(id)` give you this, one per station. It is a copy of the station when you asked, so ask again for a current `Paused`. <span class="tech">(It is filled from the game's `Growing` component on each station.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -147,6 +156,9 @@ public sealed class GrowingStationInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>GrowingSlotInfo</code> <span>one growing spot that holds a plant</span></p>
+
+`Slots` on a `GrowingStationInfo` gives you one of these for each spot that holds a plant. When `Collectible` is `true`, pass its `SpotId` to `PlantActions.HarvestSpot` to harvest the plant.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

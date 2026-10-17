@@ -70,6 +70,9 @@ Each elevator is addressed by an id. `Elevators.All()` and `Elevators.Get(id)` g
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Elevators</code> <span>find elevators and read their floors</span></p>
+
+Call `All()` or `Get(id)` to read elevators, and `Floor(id)` or `Moving(id)` to check one car.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -86,9 +89,9 @@ public static class Elevators
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<ElevatorInfo>` | Every elevator in the scene you are in that has an id. |
-| `Get(string id)` | `ElevatorInfo` | One elevator. `null` when the id is not known. |
-| `Floor(string id)` | `int` | The floor the car is on. `0` when the id is not known. |
-| `Moving(string id)` | `bool` | `true` while the car is moving. `false` when the id is not known. |
+| `Get(id)` | `ElevatorInfo` | One elevator. `null` when the id is not known. |
+| `Floor(id)` | `int` | The floor the car is on. `0` when the id is not known. |
+| `Moving(id)` | `bool` | `true` while the car is moving. `false` when the id is not known. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -99,6 +102,9 @@ public static class Elevators
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ElevatorInfo</code> <span>a snapshot of one elevator</span></p>
+
+`Elevators.All()` and `Get(id)` give you these, one for each elevator that has an id. <span class="tech">(It is built from the game's `Elevator` object.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -132,6 +138,9 @@ public sealed class ElevatorInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Elevators</code> <span>send a car to a floor</span></p>
+
+Call `GoToFloor` with the car's id and the floor you want. It returns `false` when the game does not take the call.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -143,7 +152,7 @@ public static class Elevators
 
 | Method | Returns | What it does |
 |---|---|---|
-| `GoToFloor(string id, int floor)` | `bool` | Asks the car to go to a floor. `true` when the game took the call. |
+| `GoToFloor(id, floor)` | `bool` | Asks the car to go to a floor. `true` when the game took the call. |
 
 </div>
 </div>
@@ -165,6 +174,9 @@ public static class Elevators
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Elevators</code> <span>the arrival event</span></p>
+
+Subscribe to `Arrived` to hear when a car stops at a floor.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -183,6 +195,9 @@ public static class Elevators
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ElevatorArrivedArgs</code> <span>what happened</span></p>
+
+`Arrived` gives you one of these with the car's `Id` and the `Floor` it stopped at.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

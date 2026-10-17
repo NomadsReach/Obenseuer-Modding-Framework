@@ -7,6 +7,9 @@ nav_order: 1
 
 # Common tasks
 
+This page uses `Vector3`, `GameObject` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 The snippets below use a source character number (`sourceId`), a body character number (`bodyId`) and a position (`spot`) you already have. Add a person who comes back after every load, then look up their character number and list all the people your mod has added.
 
 ```csharp

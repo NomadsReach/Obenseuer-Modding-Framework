@@ -11,6 +11,9 @@ These calls fade the screen to black and back. Each call comes in a version with
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ScreenFx</code> <span>fade the screen to black and back</span></p>
+
+`ScreenFx.FadeToBlack` fades the screen to black and `FadeIn` fades it back. Use the versions with an `owner` so your mod's hold is counted and cannot lift another mod's black screen.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -22,10 +25,10 @@ public static bool FadeIn(string owner, float speed);
 
 | Method | Returns | What it does |
 |---|---|---|
-| `FadeToBlack(float speed = 0.1f)` | `bool` | Fades the screen to black, with no owner. |
-| `FadeIn(float speed = 0.1f)` | `bool` | Fades back in, with no owner. |
-| `FadeToBlack(string owner, float speed)` | `bool` | Fades the screen to black, as your mod. |
-| `FadeIn(string owner, float speed)` | `bool` | Lets go of your fade. It fades in when no mod still holds the screen black. |
+| `FadeToBlack(speed)` | `bool` | Fades the screen to black, with no owner. |
+| `FadeIn(speed)` | `bool` | Fades back in, with no owner. |
+| `FadeToBlack(owner, speed)` | `bool` | Fades the screen to black, as your mod. |
+| `FadeIn(owner, speed)` | `bool` | Lets go of your fade. It fades in when no mod still holds the screen black. |
 
 </div>
 </div>

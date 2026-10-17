@@ -7,6 +7,9 @@ nav_order: 1
 
 # Crafting sources
 
+This page uses `Vector3`, `Transform` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 Status: experimental.
 
 ## What it is
@@ -86,6 +89,9 @@ Text in brackets at the end of a note is extra detail for experienced modders, a
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>CraftingSources</code> <span>adding and removing your containers</span></p>
+
+Call `Register` with your mod id and a function that gives the containers near a station, and `Unregister` to remove it.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -98,8 +104,8 @@ public static class CraftingSources
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Register(string modId, Func<CraftingStationInfo, IEnumerable<Storage>> provider)` | `bool` | Adds your function. It is `true` when it was added. |
-| `Unregister(string modId)` | `bool` | Removes your function. It is `false` when your mod had none. |
+| `Register(modId, provider)` | `bool` | Adds your function. It is `true` when it was added. |
+| `Unregister(modId)` | `bool` | Removes your function. It is `false` when your mod had none. |
 
 </div>
 </div>

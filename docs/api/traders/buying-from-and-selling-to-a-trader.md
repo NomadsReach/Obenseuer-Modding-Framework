@@ -11,6 +11,8 @@ nav_order: 5
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Traders</code> <span>buys and sells for the player</span></p>
+Use `Buy` and `Sell` to make one trade for the player.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -23,14 +25,16 @@ public static class Traders
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Buy(string modId, string traderId, int itemId, int count, out TraderTradeRefusal refusal)` | `bool` | The player buys `count` of an item. Returns `true` when done. |
-| `Sell(string modId, string traderId, int itemId, int count, out TraderTradeRefusal refusal)` | `bool` | The player sells `count` of an item. Returns `true` when done. |
+| `Buy(modId, traderId, itemId, count, out refusal)` | `bool` | The player buys `count` of an item. Returns `true` when done. |
+| `Sell(modId, traderId, itemId, count, out refusal)` | `bool` | The player sells `count` of an item. Returns `true` when done. |
 
 </div>
 </div>
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TraderTradeRefusal</code> <span>why a trade was refused</span></p>
+`Buy` and `Sell` give you this through `out refusal`. It is `None` when the trade went through, and otherwise says why it did not, such as `OutOfStock`. The game has no such list; the framework sets these values, with `Failed` when nothing more specific applies.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -58,21 +62,21 @@ public enum TraderTradeRefusal
 | Value | Meaning |
 |---|---|
 | `None` | The trade was done. |
-| `NotReady` | The framework, the money or the inventory is not loaded yet. |
-| `BadInput` | The mod id is not valid, the count is below 1, or the item id is unknown. |
-| `SaveBusy` | A save is being written or loaded. |
+| `NotReady` | <details>{::nomarkdown}<summary>{:/nomarkdown}The game is not loaded far enough yet.{::nomarkdown}</summary>{:/nomarkdown}Trade once a save has loaded, for example from Events.WhenReady. Nothing was bought or sold.</details> |
+| `BadInput` | <details>{::nomarkdown}<summary>{:/nomarkdown}Something you passed is not allowed.{::nomarkdown}</summary>{:/nomarkdown}Check the mod id, a count of at least 1, and an item id the game knows. Nothing was traded.</details> |
+| `SaveBusy` | <details>{::nomarkdown}<summary>{:/nomarkdown}A save is being written or loaded.{::nomarkdown}</summary>{:/nomarkdown}Try the trade again once the save finishes. Nothing was traded.</details> |
 | `UnknownTrader` | No trader has that shop id. |
 | `Closed` | The trader is closed. |
-| `OutOfStock` | The trader has fewer than `count` units that `Buy` can take. |
-| `NoRoom` | The player has no room for the items (buy), or the trader has no room for them (sell). |
-| `PlayerCannotAfford` | The player can't pay the price (buy). |
-| `TraderCannotAfford` | The trader can't pay the price (sell). |
-| `NotEnoughItems` | The player holds fewer than `count` units that `Sell` can take. |
-| `NotAccepted` | The trader's categories rule out items the player holds, so too few can be sold. |
-| `Failed` | Something went wrong in the middle, and the trade was undone. |
+| `OutOfStock` | <details>{::nomarkdown}<summary>{:/nomarkdown}The trader does not have that many.{::nomarkdown}</summary>{:/nomarkdown}Ask for fewer, or read the stock first. Nothing was bought.</details> |
+| `NoRoom` | <details>{::nomarkdown}<summary>{:/nomarkdown}There is no room for the items.{::nomarkdown}</summary>{:/nomarkdown}Buying needs room in the player inventory, selling needs room on the trader. Free some space and try again. Nothing was traded.</details> |
+| `PlayerCannotAfford` | <details>{::nomarkdown}<summary>{:/nomarkdown}The player cannot pay.{::nomarkdown}</summary>{:/nomarkdown}Ask for a quote before buying. No money moved.</details> |
+| `TraderCannotAfford` | <details>{::nomarkdown}<summary>{:/nomarkdown}The trader cannot pay.{::nomarkdown}</summary>{:/nomarkdown}Traders carry limited money. Sell fewer units, or sell to another trader. Nothing was sold.</details> |
+| `NotEnoughItems` | <details>{::nomarkdown}<summary>{:/nomarkdown}The player does not hold that many.{::nomarkdown}</summary>{:/nomarkdown}Some units cannot be sold, for example owned or witnessed stock, so count what the trader will take rather than what the player holds.</details> |
+| `NotAccepted` | <details>{::nomarkdown}<summary>{:/nomarkdown}The trader does not deal in that item.{::nomarkdown}</summary>{:/nomarkdown}Each trader takes only certain categories. Check what it buys before offering. Nothing was sold.</details> |
+| `Failed` | <details>{::nomarkdown}<summary>{:/nomarkdown}Something went wrong part way through.{::nomarkdown}</summary>{:/nomarkdown}The framework undoes the steps it had taken and logs the error once, so the player keeps their money and items.</details> |
 | `SpecialTrader` | The trader gives and takes certificates. The framework does not trade with it. |
 | `LiquidItem` | The item is a liquid, or holds one. |
-| `TradeBusy` | Another trade is running, or the call came from a `Shops.PriceQuery` handler. |
+| `TradeBusy` | <details>{::nomarkdown}<summary>{:/nomarkdown}Another trade is already running.{::nomarkdown}</summary>{:/nomarkdown}Do not trade from inside a price handler or from another trade. Wait for the first one to finish.</details> |
 
 </div>
 </div>

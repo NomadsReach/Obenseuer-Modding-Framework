@@ -78,6 +78,9 @@ This is the full list of what the API gives you, one section for each part. Text
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Pursuit</code> <span>what the police are doing</span></p>
+
+Use `IsPursued` to check for a chase now, and `ActivePolice()` to list the officers who are out on the map.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -108,6 +111,9 @@ public static class Pursuit
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Pursuit</code> <span>calls the police and stops chases</span></p>
+
+`CallPolice` makes the police react to the player, and `StopAll` ends every chase and every questioning.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -120,7 +126,7 @@ public static class Pursuit
 
 | Method | Returns | What it does |
 |---|---|---|
-| `CallPolice(bool severe, bool anyDistance)` | `bool` | Makes the police react to the player. `true` when at least one officer reacted. |
+| `CallPolice(severe, anyDistance)` | `bool` | Makes the police react to the player. `true` when at least one officer reacted. |
 | `StopAll()` | `bool` | Stops every chase and every questioning. `true` when the call ran. |
 
 </div>
@@ -138,6 +144,9 @@ public static class Pursuit
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Pursuit</code> <span>chase start and end</span></p>
+
+`Started` and `Ended` tell you when a chase begins and when it ends.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

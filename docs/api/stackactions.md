@@ -92,6 +92,9 @@ This is the full list of what the API gives you. `StackSpec` describes the extra
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>StackSpec</code> <span>the extras for one stack</span></p>
+
+Pass one of these to the give and drop calls to set a stack's `Quality`, `OwnerId` or liquid. Leave a field alone to keep the normal value.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -116,6 +119,9 @@ public sealed class StackSpec
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>StackActions</code> <span>give, drop and pour stacks</span></p>
+
+This is the class to start from. `Give`, `GiveOrDrop` and `Drop` add or drop a stack with a `StackSpec`, `AddLiquid` pours liquid into the containers the player carries, and `StolenStacks()` lists the stolen stacks they carry.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -133,10 +139,10 @@ These calls change what the player carries. Each takes your mod's id first.
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Give(string modId, int itemId, int count, StackSpec spec)` | `bool` | Adds the whole stack, or nothing. `true` when added. |
-| `GiveOrDrop(string modId, int itemId, int count, StackSpec spec)` | `bool` | Adds what fits and drops the rest on the floor. `true` when done. |
-| `Drop(string modId, int itemId, int count, StackSpec spec)` | `bool` | Drops the stack at the player's feet. `true` when dropped. |
-| `AddLiquid(string modId, int liquidItemId, float amount)` | `float` | Pours liquid into the containers the player carries. Returns how much went in. |
+| `Give(modId, itemId, count, spec)` | `bool` | Adds the whole stack, or nothing. `true` when added. |
+| `GiveOrDrop(modId, itemId, count, spec)` | `bool` | Adds what fits and drops the rest on the floor. `true` when done. |
+| `Drop(modId, itemId, count, spec)` | `bool` | Drops the stack at the player's feet. `true` when dropped. |
+| `AddLiquid(modId, liquidItemId, amount)` | `float` | Pours liquid into the containers the player carries. Returns how much went in. |
 | `StolenStacks()` | `List<ItemStackInfo>` | The stacks the player carries that count as stolen. Each entry is an `ItemStackInfo` (see [Inventory](inventory.md)). |
 
 </div>

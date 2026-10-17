@@ -10,37 +10,42 @@ nav_order: 6
 The game has difficulty settings the player picks when starting: how fast needs run down, what prices are, and so on. `GameDifficulty.Current()` lets you read them. `GameDifficulty.SetFactor` lets your mod make one of them stronger or weaker for the session, whatever difficulty the player chose.
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>DifficultyLevel</code> <span>the difficulty the player chose</span></p>
+<p class="api-type-head"><code>GameDifficulty</code> <span>read the difficulty and set factors</span></p>
+
+This is the class you start from. `Current()` reads the player's difficulty, and `SetFactor` changes one setting for the session, whatever difficulty the player chose.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
-public enum DifficultyLevel
+public static class GameDifficulty
 {
-    Default,
-    Casual,
-    Easy,
-    Hard,
-    Brutal,
-    Creative,
-    Custom
+    public static DifficultySettings Current();
+    public static bool SetFactor(string modId, DifficultyMultiplier multiplier, float factor);
+    public static bool Clear(string modId);
+    public static float FactorOf(DifficultyMultiplier multiplier);
+    public static bool FactorsAvailable { get; }
 }
 ```
 
-| Value | Meaning |
-|---|---|
-| `Default` | The game's normal difficulty. |
-| `Casual` | The Casual preset. |
-| `Easy` | The Easy preset. |
-| `Hard` | The Hard preset. |
-| `Brutal` | The Brutal preset. |
-| `Creative` | The Creative preset. |
-| `Custom` | The player chose their own values. |
+| Method | Returns | What it does |
+|---|---|---|
+| `Current()` | `DifficultySettings` | The player's difficulty. `null` when the game has not loaded it yet. |
+| `SetFactor(modId, multiplier, factor)` | `bool` | Sets a factor from 0 to 4. `true` when it was set. |
+| `Clear(modId)` | `bool` | Removes every factor this mod set. |
+| `FactorOf(multiplier)` | `float` | The factor now in force. `1` when none. |
+
+| Property | Type | What it means |
+|---|---|---|
+| `FactorsAvailable` | `bool` | `false` when the difficulty setup failed. |
 
 </div>
 </div>
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>DifficultySettings</code> <span>the player's difficulty at the moment you asked</span></p>
+
+`GameDifficulty.Current()` gives you this, the player's difficulty at the moment you asked. It only reads, so changing a value here does nothing.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -93,6 +98,9 @@ public sealed class DifficultySettings
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>DifficultyMultiplier</code> <span>the settings SetFactor can change</span></p>
+
+`SetFactor` and `FactorOf` take one of these to pick the setting. Its values are the settings you can change, and they match fields of `DifficultySettings`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -130,30 +138,34 @@ public enum DifficultyMultiplier
 </div>
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>GameDifficulty</code> <span>read the difficulty and set factors</span></p>
+<p class="api-type-head"><code>DifficultyLevel</code> <span>the difficulty the player chose</span></p>
+
+`DifficultySettings.Level` holds one of these: the preset the player chose, or `Custom` when they set their own values.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
-public static class GameDifficulty
+public enum DifficultyLevel
 {
-    public static DifficultySettings Current();
-    public static bool SetFactor(string modId, DifficultyMultiplier multiplier, float factor);
-    public static bool Clear(string modId);
-    public static float FactorOf(DifficultyMultiplier multiplier);
-    public static bool FactorsAvailable { get; }
+    Default,
+    Casual,
+    Easy,
+    Hard,
+    Brutal,
+    Creative,
+    Custom
 }
 ```
 
-| Method | Returns | What it does |
-|---|---|---|
-| `Current()` | `DifficultySettings` | The player's difficulty. `null` when the game has not loaded it yet. |
-| `SetFactor(string modId, DifficultyMultiplier multiplier, float factor)` | `bool` | Sets a factor from 0 to 4. `true` when it was set. |
-| `Clear(string modId)` | `bool` | Removes every factor this mod set. |
-| `FactorOf(DifficultyMultiplier multiplier)` | `float` | The factor now in force. `1` when none. |
-
-| Property | Type | What it means |
-|---|---|---|
-| `FactorsAvailable` | `bool` | `false` when the difficulty setup failed. |
+| Value | Meaning |
+|---|---|
+| `Default` | The game's normal difficulty. |
+| `Casual` | The Casual preset. |
+| `Easy` | The Easy preset. |
+| `Hard` | The Hard preset. |
+| `Brutal` | The Brutal preset. |
+| `Creative` | The Creative preset. |
+| `Custom` | The player chose their own values. |
 
 </div>
 </div>

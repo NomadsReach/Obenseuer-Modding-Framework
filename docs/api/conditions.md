@@ -73,7 +73,47 @@ while (Conditions.Has(name) && Conditions.Remove(name)) { }
 This is the full list of what the API gives you. A condition is named by its `Name`, the game's internal name for it. That name is the key you pass to `Has`, `Add` and `Remove`.
 
 <div class="api-type" markdown="1">
+<p class="api-type-head"><code>Conditions</code> <span>list, check, add and remove conditions</span></p>
+
+Use `Has`, `Add` and `Remove` with the game's internal name for a condition, which `ConditionInfo.Name` gives you. Subscribe to `Changed` to hear each change.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class Conditions
+{
+    public static bool IsAvailable { get; }
+    public static List<ConditionInfo> All();
+    public static bool Has(string name);
+    public static bool Add(string name);
+    public static bool Remove(string name);
+    public static event Action<ConditionChangedArgs> Changed;
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `IsAvailable` | `bool` | `false` when the change event could not be set up. |
+
+| Method | Returns | What it does |
+|---|---|---|
+| `All()` | `List<ConditionInfo>` | Every condition the framework knows, active or not. |
+| `Has(name)` | `bool` | `true` when the player has this condition. |
+| `Add(name)` | `bool` | Gives the player the condition. `true` when it started or got stronger. |
+| `Remove(name)` | `bool` | Takes away one stack of the condition. `true` when one stack was removed. |
+
+| Event | Gives you | When it fires |
+|---|---|---|
+| `Changed` | `ConditionChangedArgs` | A condition started, stopped or changed strength. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
 <p class="api-type-head"><code>ConditionInfo</code> <span>one condition and its state</span></p>
+
+`Conditions.All()` gives you one of these for each condition the framework knows. `Name` is the key for `Has`, `Add` and `Remove`, and `DisplayName` is the text for the player. <span class="tech">(It is built from the game's `BaseHealthCondition` objects.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -98,6 +138,9 @@ public sealed class ConditionInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ConditionChangedArgs</code> <span>what changed</span></p>
+
+`Conditions.Changed` hands you one of these each time a condition starts, stops or changes strength.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -114,40 +157,6 @@ public sealed class ConditionChangedArgs
 | `Name` | `string` | The game's internal name of the condition. |
 | `Active` | `bool` | `true` when the player has the condition after the change. |
 | `Severity` | `float` | How strong it is after the change. `0` when it was removed. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>Conditions</code> <span>list, check, add and remove conditions</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static class Conditions
-{
-    public static bool IsAvailable { get; }
-    public static List<ConditionInfo> All();
-    public static bool Has(string name);
-    public static bool Add(string name);
-    public static bool Remove(string name);
-    public static event Action<ConditionChangedArgs> Changed;
-}
-```
-
-| Property | Type | What it means |
-|---|---|---|
-| `IsAvailable` | `bool` | `false` when the change event could not be set up. |
-
-| Method | Returns | What it does |
-|---|---|---|
-| `All()` | `List<ConditionInfo>` | Every condition the framework knows, active or not. |
-| `Has(string name)` | `bool` | `true` when the player has this condition. |
-| `Add(string name)` | `bool` | Gives the player the condition. `true` when it started or got stronger. |
-| `Remove(string name)` | `bool` | Takes away one stack of the condition. `true` when one stack was removed. |
-
-| Event | Gives you | When it fires |
-|---|---|---|
-| `Changed` | `ConditionChangedArgs` | A condition started, stopped or changed strength. |
 
 </div>
 </div>

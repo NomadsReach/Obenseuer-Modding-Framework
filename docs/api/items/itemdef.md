@@ -11,6 +11,9 @@ nav_order: 3
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ItemDef</code> <span>identity and names</span></p>
+
+You get these from the calls on the [lookup page](lookup.md), such as `Items.Get(id)`. This group tells you what the item is called and which categories it is in. <span class="tech">(It is built from the game's `Item` class each time you ask.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -43,6 +46,9 @@ public sealed class ItemDef
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ItemDef</code> <span>price and stacking</span></p>
+
+Use these to show a price or to check how many fit in one stack. `Price` and `MaxStack` include the difficulty setting, and the base values do not.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -69,6 +75,9 @@ public sealed class ItemDef
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ItemDef</code> <span>spoiling, liquids and consumables</span></p>
+
+Check `Perishable` or `LiquidContainer` before you use the values beside them. An item without that game data gets the empty values from the table, such as `-1` or `0`, and no error.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -101,6 +110,9 @@ public sealed class ItemDef
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ItemDef</code> <span>equipment, ammo, fuel and devices</span></p>
+
+`EquipSlot` and `EquipType` tell you where the item is worn or held. The ammo, fuel and device fields only have values for items that carry the matching game data.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

@@ -9,28 +9,12 @@ nav_order: 2
 
 This is the full list of what the API gives you, one section for each part. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
 
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>PowerDeviceKind</code> <span>whether a device gives or uses power</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public enum PowerDeviceKind
-{
-    Source,
-    Consumer
-}
-```
-
-| Value | Meaning |
-|---|---|
-| `Source` | The device gives power to others: a generator, a battery, or furniture that produces power. |
-| `Consumer` | The device uses power, including a stove that burns its own fuel. |
-
-</div>
-</div>
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>PowerDevices</code> <span>list, read and switch power devices</span></p>
+
+Use it to list the power devices in the scene, read one by its `Id`, or switch one on or off with `SetOn`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -54,8 +38,8 @@ public static class PowerDevices
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<PowerDeviceInfo>` | Every power device in the scene you are in. |
-| `Get(string id)` | `PowerDeviceInfo` | The device with this id. `null` when none has it. |
-| `SetOn(string id, bool on)` | `bool` | Switches a device on or off. Returns `true` when it is now in that state. |
+| `Get(id)` | `PowerDeviceInfo` | The device with this id. `null` when none has it. |
+| `SetOn(id, on)` | `bool` | Switches a device on or off. Returns `true` when it is now in that state. |
 
 | Event | Gives you | When it fires |
 |---|---|---|
@@ -67,6 +51,9 @@ public static class PowerDevices
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>PowerDeviceInfo</code> <span>a snapshot of one device</span></p>
+
+`PowerDevices.All()` and `PowerDevices.Get(id)` give you these, one for each device. Check `IsPowered`, not `IsOn`, to see whether a device is really running.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -101,6 +88,29 @@ public sealed class PowerDeviceInfo
 | `FuelItemIds` | `List<int>` | The item numbers of the fuel it accepts. Empty when it burns no fuel. |
 | `IsBurning` | `bool` | Fuel burners only: `true` while fuel is burning. |
 | `BurnTimeFactor` | `float` | Fuel burners only: how fast it burns fuel. `0` for everything else. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>PowerDeviceKind</code> <span>whether a device gives or uses power</span></p>
+
+This is the value of `PowerDeviceInfo.Kind`. `Source` devices feed power to others, and `Consumer` devices use it.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public enum PowerDeviceKind
+{
+    Source,
+    Consumer
+}
+```
+
+| Value | Meaning |
+|---|---|
+| `Source` | The device gives power to others: a generator, a battery, or furniture that produces power. |
+| `Consumer` | The device uses power, including a stove that burns its own fuel. |
 
 </div>
 </div>

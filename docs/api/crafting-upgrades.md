@@ -76,6 +76,9 @@ This is the full list of what the API gives you.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>CraftingUpgrades</code> <span>list and switch crafting upgrades</span></p>
+
+Call `All()` to find the upgrades in the scene, then `SetOn` with an upgrade's `Id` to switch it on or off.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -90,14 +93,17 @@ public static class CraftingUpgrades
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<CraftingUpgradeInfo>` | Every upgrade in the scene you are in. |
-| `Get(string id)` | `CraftingUpgradeInfo` | The upgrade with this id. `null` when none has it. |
-| `SetOn(string id, bool on)` | `bool` | Switches an upgrade on or off. `true` when it ended up in that state. |
+| `Get(id)` | `CraftingUpgradeInfo` | The upgrade with this id. `null` when none has it. |
+| `SetOn(id, on)` | `bool` | Switches an upgrade on or off. `true` when it ended up in that state. |
 
 </div>
 </div>
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>CraftingUpgradeInfo</code> <span>a snapshot of one upgrade</span></p>
+
+`CraftingUpgrades.All()` and `Get(id)` give you these. Use `Id` with `Get` and `SetOn`, and `Connected` to see which stations the upgrade is attached to. <span class="tech">(It is built from the game's `CraftingUpgrade` objects.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp

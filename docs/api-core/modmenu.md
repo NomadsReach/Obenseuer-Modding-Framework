@@ -11,6 +11,9 @@ The Mods menu is the framework's menu for mods, opened from the pause menu or th
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ModMenu</code> <span>add a page to the Mods menu</span></p>
+
+Call `AddPage` with your mod id, a title and a build function to add your own page. `WidgetsFor` is an older helper, and new pages should use `ModUi` instead.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -23,8 +26,8 @@ public static class ModMenu
 
 | Method | Returns | What it does |
 |---|---|---|
-| `AddPage(string modId, string title, Action<RectTransform> build)` | `void` | Adds a page. `build` gets the empty area to fill, and runs each time the page is opened. |
-| `WidgetsFor(RectTransform content)` | `ModMenuWidgets` | An older helper for building rows on a page. Returns `null` when the content is not a page's build area. |
+| `AddPage(modId, title, build)` | `void` | Adds a page. `build` gets the empty area to fill, and runs each time the page is opened. |
+| `WidgetsFor(content)` | `ModMenuWidgets` | An older helper for building rows on a page. Returns `null` when the content is not a page's build area. |
 
 </div>
 </div>

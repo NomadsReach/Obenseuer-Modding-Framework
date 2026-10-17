@@ -11,6 +11,9 @@ nav_order: 2
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Renovations</code> <span>read the renovations</span></p>
+
+Use `All()` or `Get` to read the renovations, `Progress` to see how far a build has got, and `Cost` for the first payment.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -27,9 +30,9 @@ public static class Renovations
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<RenovationInfo>` | Every renovation the game has, ordered or not. |
-| `Get(string id)` | `RenovationInfo` | One renovation. `null` when the id is not found. |
-| `Progress(string id)` | `float` | How far the build has got, from 0 to 1. |
-| `Cost(string id)` | `int` | The first payment in OC. `0` when the id is not found. |
+| `Get(id)` | `RenovationInfo` | One renovation. `null` when the id is not found. |
+| `Progress(id)` | `float` | How far the build has got, from 0 to 1. |
+| `Cost(id)` | `int` | The first payment in OC. `0` when the id is not found. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -38,34 +41,12 @@ public static class Renovations
 </div>
 </div>
 
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>RenovationState</code> <span>where a renovation stands</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public enum RenovationState
-{
-    Locked,
-    Available,
-    InProgress,
-    AwaitingFinalPayment,
-    Installed
-}
-```
-
-| Value | Meaning |
-|---|---|
-| `Locked` | The player cannot order it yet. |
-| `Available` | The player can order it now. |
-| `InProgress` | It is ordered and the contractor is building it. |
-| `AwaitingFinalPayment` | The work is done and the player has to pay the final payment. |
-| `Installed` | It is finished and in the building. |
-
-</div>
-</div>
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>RenovationInfo</code> <span>a snapshot of one renovation</span></p>
+
+`Renovations.All()` and `Renovations.Get` give you these. `Cost` is the first payment in OC, and `FinalCost` is the final payment in RM.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -88,6 +69,35 @@ public sealed class RenovationInfo
 | `Cost` | `int` | The first payment, in OC. |
 | `FinalCost` | `int` | The final payment, in RM (Real Money). |
 | `State` | `RenovationState` | Where the renovation stands. See [The states](the-states.md). |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>RenovationState</code> <span>where a renovation stands</span></p>
+
+This is the value of `RenovationInfo.State`. `Available` is the state in which the player can order the renovation now.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public enum RenovationState
+{
+    Locked,
+    Available,
+    InProgress,
+    AwaitingFinalPayment,
+    Installed
+}
+```
+
+| Value | Meaning |
+|---|---|
+| `Locked` | The player cannot order it yet. |
+| `Available` | The player can order it now. |
+| `InProgress` | It is ordered and the contractor is building it. |
+| `AwaitingFinalPayment` | The work is done and the player has to pay the final payment. |
+| `Installed` | It is finished and in the building. |
 
 </div>
 </div>

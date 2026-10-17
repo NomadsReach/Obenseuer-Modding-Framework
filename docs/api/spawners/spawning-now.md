@@ -11,6 +11,9 @@ This call makes a spawner spawn once, right away.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Spawners</code> <span>spawn once, now</span></p>
+
+`TriggerNow(id)` asks a spawner to spawn once, right away. It returns `true` when the game says it spawned.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -22,7 +25,7 @@ public static class Spawners
 
 | Method | Returns | What it does |
 |---|---|---|
-| `TriggerNow(string id)` | `bool` | Asks the spawner to spawn once. `true` when the game says it spawned. |
+| `TriggerNow(id)` | `bool` | Asks the spawner to spawn once. `true` when the game says it spawned. |
 
 </div>
 </div>

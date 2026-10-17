@@ -7,49 +7,16 @@ nav_order: 4
 
 # Dialogue
 
+This page uses `Transform` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 The game's conversations are run by a dialogue system that keeps variables and runs small scripts written in Lua (a scripting language). `Dialogue` lets your mod read and set those variables, start and stop a conversation, redirect or cancel a conversation when it starts, add answer lines, and add your own functions that conversation scripts can call.
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>ConversationHandler</code> <span>your code that runs before a conversation starts</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public delegate void ConversationHandler(ConversationArgs args);
-```
-
-| Parameter | Type | What it means |
-|---|---|---|
-| `args` | `ConversationArgs` | The conversation about to start. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>ConversationArgs</code> <span>a conversation that is about to start</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public sealed class ConversationArgs
-{
-    public string Title { get; set; }
-    public Transform Actor { get; }
-    public Transform Conversant { get; }
-    public bool Cancel { get; set; }
-}
-```
-
-| Property | Type | What it means |
-|---|---|---|
-| `Title` | `string` | The conversation's title. Set it to send the player to a different conversation. |
-| `Actor` | `Transform` | The person who starts the conversation. |
-| `Conversant` | `Transform` | The person who is spoken to. |
-| `Cancel` | `bool` | `true` stops the conversation (experimental). |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
 <p class="api-type-head"><code>Dialogue</code> <span>variables, conversations and answer lines</span></p>
+
+Use `Start` to begin a conversation, `SetVariable` and the `GetVariable` calls to work with the Lua variables, and `Intercept` to run your code before each conversation starts.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -108,6 +75,51 @@ public static class Dialogue
 |---|---|---|
 | `Started` | `DialogueArgs` | A conversation started. `args.Title` is its title. |
 | `Ended` | `DialogueArgs` | A conversation ended. `args.Title` is its title. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>ConversationHandler</code> <span>your code that runs before a conversation starts</span></p>
+
+This is the delegate you pass to `Dialogue.Intercept`. The framework calls it before each conversation starts, with the `ConversationArgs` for that conversation.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public delegate void ConversationHandler(ConversationArgs args);
+```
+
+| Parameter | Type | What it means |
+|---|---|---|
+| `args` | `ConversationArgs` | The conversation about to start. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>ConversationArgs</code> <span>a conversation that is about to start</span></p>
+
+`Intercept` hands you this before a conversation starts. Set `Title` to send the player to another conversation. Setting `Cancel` stops it, and that is experimental.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class ConversationArgs
+{
+    public string Title { get; set; }
+    public Transform Actor { get; }
+    public Transform Conversant { get; }
+    public bool Cancel { get; set; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Title` | `string` | The conversation's title. Set it to send the player to a different conversation. |
+| `Actor` | `Transform` | The person who starts the conversation. |
+| `Conversant` | `Transform` | The person who is spoken to. |
+| `Cancel` | `bool` | `true` stops the conversation (experimental). |
 
 </div>
 </div>

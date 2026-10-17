@@ -7,10 +7,16 @@ nav_order: 2
 
 # CoreMod
 
+This page uses `KeyCode` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 `CoreMod` is a handle for one mod. It remembers your mod id and passes it on to the framework's save data, keybind, log and patch calls. One handle belongs to one mod id.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>CoreMod</code> <span>a handle for one mod</span></p>
+
+Call `CoreMod.For` once with your plugin, then use the handle for `Save`, `Key`, `Log` and the patch calls.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -32,15 +38,15 @@ public sealed class CoreMod
 
 | Method | Returns | What it does |
 |---|---|---|
-| `For(BaseUnityPlugin plugin)` | `CoreMod` | The handle for a BepInEx plugin. |
-| `Save<T>(string key, Func<T> save, Action<T> load)` | `void` | Registers something to save in the player's save. |
-| `Key(string id, string displayName, KeyCode defaultKey)` | `ModKeybind` | Registers a keybind. |
-| `Prefix(Type target, string method, Type handlerType, string handlerName)` | `bool` | Runs your method before a game method. |
-| `Prefix(Type target, string method, Type[] args, Type handlerType, string handlerName)` | `bool` | The same, for a game method with several versions. |
-| `Postfix(Type target, string method, Type handlerType, string handlerName)` | `bool` | Runs your method after a game method. |
-| `Postfix(Type target, string method, Type[] args, Type handlerType, string handlerName)` | `bool` | The same, for a game method with several versions. |
-| `Finalizer(Type target, string method, Type handlerType, string handlerName)` | `bool` | Runs your method when a game method throws an error. |
-| `Finalizer(Type target, string method, Type[] args, Type handlerType, string handlerName)` | `bool` | The same, for a game method with several versions. |
+| `For(plugin)` | `CoreMod` | The handle for a BepInEx plugin. |
+| `Save<T>(key, save, load)` | `void` | Registers something to save in the player's save. |
+| `Key(id, displayName, defaultKey)` | `ModKeybind` | Registers a keybind. |
+| `Prefix(target, method, handlerType, handlerName)` | `bool` | Runs your method before a game method. |
+| `Prefix(target, method, args, handlerType, handlerName)` | `bool` | The same, for a game method with several versions. |
+| `Postfix(target, method, handlerType, handlerName)` | `bool` | Runs your method after a game method. |
+| `Postfix(target, method, args, handlerType, handlerName)` | `bool` | The same, for a game method with several versions. |
+| `Finalizer(target, method, handlerType, handlerName)` | `bool` | Runs your method when a game method throws an error. |
+| `Finalizer(target, method, args, handlerType, handlerName)` | `bool` | The same, for a game method with several versions. |
 
 | Property | Type | What it means |
 |---|---|---|

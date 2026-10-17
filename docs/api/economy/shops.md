@@ -10,27 +10,51 @@ nav_order: 4
 `Shops` is for the NPC traders (shops run by a character) and the vending machines. You can list them, read their stock and prices, change what they charge, and get told about trades. Each shop is a `ShopInfo`, a snapshot taken when you asked.
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>ShopKind</code> <span>a trader or a vending machine</span></p>
+<p class="api-type-head"><code>Shops</code> <span>list shops, read prices, and hear about trades</span></p>
+
+Call `All()` to list the shops, `Stock(shopId)` for what one has, and `PriceOf` for a price. Subscribe to `Bought`, `Sold` or `PriceQuery` to hear about trades.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
-public enum ShopKind
+public static class Shops
 {
-    Trader = 0,
-    Vending = 1
+    public static event Action<TradeArgs> Bought;
+    public static event Action<TradeArgs> Sold;
+    public static event Action<PriceQueryArgs> PriceQuery;
+    public static bool IsAvailable { get; }
+    public static List<ShopInfo> All();
+    public static ShopInfo Open();
+    public static List<StockItem> Stock(string shopId);
+    public static float PriceOf(string shopId, int itemId, int count, bool playerBuys, out MoneyCurrency currency);
 }
 ```
 
-| Value | Meaning |
-|---|---|
-| `Trader` | A shop run by an NPC. |
-| `Vending` | A vending machine. |
+| Method | Returns | What it does |
+|---|---|---|
+| `All()` | `List<ShopInfo>` | Every trader and vending machine in the scene you are in. |
+| `Open()` | `ShopInfo` | The trader whose trade screen is open. `null` when none. |
+| `Stock(shopId)` | `List<StockItem>` | What the shop has for sale. |
+| `PriceOf(shopId, itemId, count, playerBuys, out currency)` | `float` | The price for a stack. |
+
+| Property | Type | What it means |
+|---|---|---|
+| `IsAvailable` | `bool` | `false` when a shop event could not be set up. |
+
+| Event | Gives you | When it fires |
+|---|---|---|
+| `Bought` | `TradeArgs` | The player bought something. |
+| `Sold` | `TradeArgs` | The player sold something. |
+| `PriceQuery` | `PriceQueryArgs` | The game is working out a trader's price. |
 
 </div>
 </div>
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ShopInfo</code> <span>one shop</span></p>
+
+`Shops.All()` gives you one of these for each shop. Pass its `Id` to `Stock` and `PriceOf`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -53,6 +77,9 @@ public sealed class ShopInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>StockItem</code> <span>one line of a shop's stock</span></p>
+
+`Shops.Stock(shopId)` returns one of these for each line of a shop's stock. `UnitPrice` is the price of one.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -79,6 +106,9 @@ public sealed class StockItem
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TradeArgs</code> <span>what you get when a trade happens</span></p>
+
+`Bought` and `Sold` pass you one of these. `Price` is the money that really moved, and `Shop` says where it happened.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -105,6 +135,9 @@ public sealed class TradeArgs
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>PriceQueryArgs</code> <span>what you get when the game asks for a trader's price</span></p>
+
+`PriceQuery` gives you one of these while the game works out a trader's price. Set `Price` in your handler to change it.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -132,39 +165,24 @@ public sealed class PriceQueryArgs
 </div>
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>Shops</code> <span>list shops, read prices, and hear about trades</span></p>
+<p class="api-type-head"><code>ShopKind</code> <span>a trader or a vending machine</span></p>
+
+`ShopInfo.Kind` holds one of these: `Trader` for a shop run by an NPC, and `Vending` for a vending machine.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
-public static class Shops
+public enum ShopKind
 {
-    public static event Action<TradeArgs> Bought;
-    public static event Action<TradeArgs> Sold;
-    public static event Action<PriceQueryArgs> PriceQuery;
-    public static bool IsAvailable { get; }
-    public static List<ShopInfo> All();
-    public static ShopInfo Open();
-    public static List<StockItem> Stock(string shopId);
-    public static float PriceOf(string shopId, int itemId, int count, bool playerBuys, out MoneyCurrency currency);
+    Trader = 0,
+    Vending = 1
 }
 ```
 
-| Method | Returns | What it does |
-|---|---|---|
-| `All()` | `List<ShopInfo>` | Every trader and vending machine in the scene you are in. |
-| `Open()` | `ShopInfo` | The trader whose trade screen is open. `null` when none. |
-| `Stock(string shopId)` | `List<StockItem>` | What the shop has for sale. |
-| `PriceOf(string shopId, int itemId, int count, bool playerBuys, out MoneyCurrency currency)` | `float` | The price for a stack. |
-
-| Property | Type | What it means |
-|---|---|---|
-| `IsAvailable` | `bool` | `false` when a shop event could not be set up. |
-
-| Event | Gives you | When it fires |
-|---|---|---|
-| `Bought` | `TradeArgs` | The player bought something. |
-| `Sold` | `TradeArgs` | The player sold something. |
-| `PriceQuery` | `PriceQueryArgs` | The game is working out a trader's price. |
+| Value | Meaning |
+|---|---|
+| `Trader` | A shop run by an NPC. |
+| `Vending` | A vending machine. |
 
 </div>
 </div>

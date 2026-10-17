@@ -11,6 +11,9 @@ A blob is a larger piece of data, such as a file, sent to one player. The framew
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>NetBlob</code> <span>sends and receives large data</span></p>
+
+Call `Send` with a player, your mod's id and a name to send a blob. Subscribe to `Received` to get one, and to `Finished` to hear whether your send arrived.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -27,10 +30,10 @@ public static class NetBlob
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Send(ulong peer, string modId, string name, byte[] data)` | `int` | Starts sending data to one player. Returns the transfer id, or `-1` when it could not start. |
-| `Progress(int id)` | `float` | For a blob you are sending: how much was acknowledged, from 0 to 1. `-1` when not active. |
-| `Progress(ulong peer, int id)` | `float` | For a blob you are receiving: how much has arrived, from 0 to 1. `-1` when not active. |
-| `Cancel(int id)` | `bool` | Stops a blob you are sending. Returns `false` when it is not active. |
+| `Send(peer, modId, name, data)` | `int` | Starts sending data to one player. Returns the transfer id, or `-1` when it could not start. |
+| `Progress(id)` | `float` | For a blob you are sending: how much was acknowledged, from 0 to 1. `-1` when not active. |
+| `Progress(peer, id)` | `float` | For a blob you are receiving: how much has arrived, from 0 to 1. `-1` when not active. |
+| `Cancel(id)` | `bool` | Stops a blob you are sending. Returns `false` when it is not active. |
 
 | Event | Gives you | When it fires |
 |---|---|---|

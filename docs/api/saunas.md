@@ -64,6 +64,9 @@ Each sauna is a `SaunaInfo`, a snapshot of its state at the moment you asked. Th
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Saunas</code> <span>list, switch and watch saunas</span></p>
+
+This is the class to start from: `All()` and `Get(id)` read saunas, `SetOn` switches one on or off, and `TurnedOn` and `TurnedOff` tell you when a switch happens.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -81,8 +84,8 @@ public static class Saunas
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<SaunaInfo>` | Every sauna that is switched on in the scene you are in. |
-| `Get(string id)` | `SaunaInfo` | The sauna with this id. `null` when none has it. |
-| `SetOn(string id, bool on)` | `bool` | Switches a sauna on or off. `true` when it ends up as you asked. |
+| `Get(id)` | `SaunaInfo` | The sauna with this id. `null` when none has it. |
+| `SetOn(id, on)` | `bool` | Switches a sauna on or off. `true` when it ends up as you asked. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -98,6 +101,9 @@ public static class Saunas
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SaunaInfo</code> <span>a snapshot of one sauna</span></p>
+
+`All()` and `Get(id)` give you one of these. It is a copy of the sauna at the moment you asked, so ask again for fresh values. <span class="tech">(It is built from the game's `Sauna` object, and `Loyly` is its `löyly` field.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -122,6 +128,9 @@ public sealed class SaunaInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SaunaChangedArgs</code> <span>what you get when a sauna is switched on or off</span></p>
+
+The `TurnedOn` and `TurnedOff` events give you one of these. It holds the sauna's state after the switch, so `On` is the state it has now.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

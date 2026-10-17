@@ -11,6 +11,9 @@ The developer console is a text box the player opens with F1 to type commands. `
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ConsoleCommands</code> <span>the developer console</span></p>
+
+This is the class you start from. `Register` adds a command to the console, `Print` writes a line into it, and `Open` opens it, as F1 does.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -26,8 +29,8 @@ public static class ConsoleCommands
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Register(string modId, string name, string help, Action<string[]> run)` | `bool` | Adds a command to the developer console. `true` when added. |
-| `Print(string text)` | `bool` | Writes a line into the console. `true` when written. |
+| `Register(modId, name, help, run)` | `bool` | Adds a command to the developer console. `true` when added. |
+| `Print(text)` | `bool` | Writes a line into the console. `true` when written. |
 | `Open()` | `bool` | Opens the console, as F1 does. `true` when opened. |
 
 | Property | Type | What it means |

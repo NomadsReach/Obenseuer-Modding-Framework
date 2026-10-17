@@ -8,6 +8,9 @@ nav_order: 4
 
 # Framework helpers
 
+This page uses `KeyCode` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 Status: experimental.
 
 ## What it is

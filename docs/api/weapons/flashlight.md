@@ -11,6 +11,8 @@ The flashlight is a hand item. These calls look at the right hand first and then
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Weapons</code> <span>the flashlight calls</span></p>
+Use `FlashlightOn` and `SetFlashlightOn` to read and switch the flashlight in your hand, and `FlashlightCharge` to read its charge.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -26,7 +28,7 @@ public static class Weapons
 |---|---|---|
 | `FlashlightOn()` | `bool?` | `true` when the beam is lit, `false` when it is not, and `null` when no flashlight is held. |
 | `FlashlightCharge()` | `float?` | The battery, from `0` (empty) to `1` (full). `null` when no flashlight is held. |
-| `SetFlashlightOn(bool on)` | `bool` | Switches the flashlight. `true` when the beam is as you asked. |
+| `SetFlashlightOn(on)` | `bool` | Switches the flashlight. `true` when the beam is as you asked. |
 
 </div>
 </div>

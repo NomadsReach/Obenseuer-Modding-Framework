@@ -12,29 +12,10 @@ This is the full list of what the API gives you. Text in brackets at the end of 
 `FuelStations.All()` lists the gas stations in the scene you are in. Each one is a `FuelStationInfo`, a snapshot of the station at the moment you asked. The snapshot does not update by itself, so ask again for fresh values.
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>FuelStationInfo</code> <span>a snapshot of one gas station</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public sealed class FuelStationInfo
-{
-    public string Id { get; }
-    public int Price { get; }
-    public MoneyCurrency Currency { get; }
-}
-```
-
-| Property | Type | What it means |
-|---|---|---|
-| `Id` | `string` | Its save id. When it has none, a text path of where it sits in the scene. |
-| `Price` | `int` | The price of one unit of fuel, as the game stores it. |
-| `Currency` | `MoneyCurrency` | The money the price is in. OC or RM. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
 <p class="api-type-head"><code>FuelStations</code> <span>list the gas stations</span></p>
+
+This is the class you start from. `All()` lists the gas stations, and `IsAvailable` tells you whether the purchase event works. The purchase event is on the [buying fuel](buying-fuel.md) page.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -52,6 +33,31 @@ public static class FuelStations
 | Property | Type | What it means |
 |---|---|---|
 | `IsAvailable` | `bool` | `false` when the purchase event could not be set up. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>FuelStationInfo</code> <span>a snapshot of one gas station</span></p>
+
+`FuelStations.All()` gives you this, one per gas station in the scene. It is a copy of the station when you asked, so ask again for a current `Price`. <span class="tech">(It is filled from the game's `GasStation` fields `currentFuelPrice` and `currency`.)</span>
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class FuelStationInfo
+{
+    public string Id { get; }
+    public int Price { get; }
+    public MoneyCurrency Currency { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Id` | `string` | Its save id. When it has none, a text path of where it sits in the scene. |
+| `Price` | `int` | The price of one unit of fuel, as the game stores it. |
+| `Currency` | `MoneyCurrency` | The money the price is in. OC or RM. |
 
 </div>
 </div>

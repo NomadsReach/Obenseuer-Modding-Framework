@@ -11,6 +11,9 @@ A phone line is one phone in the scene. `PhoneLines` lists them, rings them, sta
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>PhoneLines</code> <span>rings, calls and events</span></p>
+
+Use it to list the phones in the scene, ring one, start a call from one, answer or decline a ring, and listen for call events.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -34,13 +37,13 @@ public static class PhoneLines
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<PhoneLineInfo>` | Every phone that is switched on in the scene you are in. |
-| `Ring(string phoneId, string number, int hangupSeconds, Action<bool> answered)` | `bool` | Makes a phone ring, as if the number were calling. Returns `true` when the phone rings. |
-| `StartCall(string phoneId, string number)` | `bool` | Starts a call from a phone, as if the player had dialled the number. Returns `true` when the call started. |
-| `IsBusy(string phoneId)` | `bool` | `true` when the phone cannot take a new ring. |
-| `IsRinging(string phoneId)` | `bool` | `true` when the phone is ringing and nobody has answered. |
-| `RingingNumber(string phoneId)` | `string` | The digits of the number that is ringing. `null` when it is not ringing. |
-| `Answer(string phoneId)` | `bool` | Picks up a ringing phone. Returns `true` when the ring is gone. |
-| `Decline(string phoneId)` | `bool` | Turns a ring down without answering. Returns `true` when it worked. |
+| `Ring(phoneId, number, hangupSeconds, answered)` | `bool` | Makes a phone ring, as if the number were calling. Returns `true` when the phone rings. |
+| `StartCall(phoneId, number)` | `bool` | Starts a call from a phone, as if the player had dialled the number. Returns `true` when the call started. |
+| `IsBusy(phoneId)` | `bool` | `true` when the phone cannot take a new ring. |
+| `IsRinging(phoneId)` | `bool` | `true` when the phone is ringing and nobody has answered. |
+| `RingingNumber(phoneId)` | `string` | The digits of the number that is ringing. `null` when it is not ringing. |
+| `Answer(phoneId)` | `bool` | Picks up a ringing phone. Returns `true` when the ring is gone. |
+| `Decline(phoneId)` | `bool` | Turns a ring down without answering. Returns `true` when it worked. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -57,6 +60,9 @@ public static class PhoneLines
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>PhoneLineInfo</code> <span>a snapshot of one phone</span></p>
+
+`PhoneLines.All()` gives you one of these for each phone that is switched on. Its `Id` is the `phoneId` you pass to the other `PhoneLines` calls. <span class="tech">(It is built from the game's `Phone` object.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -79,6 +85,9 @@ public sealed class PhoneLineInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>PhoneCallArgs</code> <span>what the three events tell you</span></p>
+
+`CallStarted`, `CallEnded` and `Ringing` hand you one of these. `Id` says which phone it was, and `Number` is the number that was dialled or is ringing.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

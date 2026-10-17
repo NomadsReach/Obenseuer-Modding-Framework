@@ -7,10 +7,16 @@ nav_order: 2
 
 # Interactions
 
+This page uses `Vector3`, `GameObject` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 An interaction is the prompt the game shows when the player looks at something they can use. `Interactions` lets you add your own prompt to an object, listen for the player using any object, and read what they are looking at.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Interactions</code> <span>prompts on objects, and what the player uses</span></p>
+
+This is the class you start from. `Add` gives an object a prompt, `Looking()` reads what the crosshair is pointing at, and the `Used` event tells you when the player uses any object.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -30,10 +36,10 @@ public static class Interactions
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Add(GameObject target, string modId, string label, Action use)` | `bool` | Gives an object a prompt that reads `label (Use)`. It is `true` when it worked. |
-| `Add(GameObject target, string modId, string label, string verb, Action use)` | `bool` | The same, but the word in brackets is `verb` instead of `Use`. |
-| `SetReason(GameObject target, string modId, Func<string> reason)` | `bool` | Sets a red reason shown instead of the verb. The function returns the text, or `null` for no reason. |
-| `Remove(GameObject target, string modId)` | `bool` | Takes your prompt off the object. It is `true` when it was removed. |
+| `Add(target, modId, label, use)` | `bool` | Gives an object a prompt that reads `label (Use)`. It is `true` when it worked. |
+| `Add(target, modId, label, verb, use)` | `bool` | The same, but the word in brackets is `verb` instead of `Use`. |
+| `SetReason(target, modId, reason)` | `bool` | Sets a red reason shown instead of the verb. The function returns the text, or `null` for no reason. |
+| `Remove(target, modId)` | `bool` | Takes your prompt off the object. It is `true` when it was removed. |
 | `Looking()` | `InteractionArgs` | What the crosshair is pointing at right now. It is `null` when it is pointing at nothing usable. |
 
 | Property | Type | What it means |
@@ -49,6 +55,9 @@ public static class Interactions
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>InteractionArgs</code> <span>one object the player used or is looking at</span></p>
+
+`Used` gives you this, and `Looking()` returns one too. `Kind` is `ModInteraction` for a prompt you made with `Add`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

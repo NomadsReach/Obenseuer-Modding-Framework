@@ -10,85 +10,10 @@ nav_order: 2
 Each card table is a `CardTableInfo`, a snapshot of the table at the moment you asked. The snapshot does not update by itself, so ask again for fresh values. When a game ends you get a `CardGameEndedArgs` that describes how it went. Money amounts use the game's currencies: OC is Open Sewer Coins and RM is Real Money (see the [glossary](../../glossary.md#oc)).
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>CardGameKind</code> <span>which card game was played</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public enum CardGameKind
-{
-    Unknown = 0,
-    ChinaHand = 1,
-    Ristiseiska = 2
-}
-```
-
-| Value | Meaning |
-|---|---|
-| `Unknown` | A card game the framework has no name for. |
-| `ChinaHand` | The game players call Shittypants. |
-| `Ristiseiska` | The game players call Crosseven. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>CardTableInfo</code> <span>a snapshot of one card table</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public sealed class CardTableInfo
-{
-    public string Id { get; }
-    public CardGameKind Kind { get; }
-    public int Players { get; }
-    public int Stake { get; }
-    public bool Active { get; }
-}
-```
-
-| Property | Type | What it means |
-|---|---|---|
-| `Id` | `string` | A name for this table. Use it to tell tables apart. |
-| `Kind` | `CardGameKind` | The game chosen at the table. `Unknown` when none is chosen. |
-| `Players` | `int` | How many play, NPC opponents included. |
-| `Stake` | `int` | What the player bet: coins, or a number of items for an item bet. `0` between games. |
-| `Active` | `bool` | `true` while a game is running at the table. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>CardGameEndedArgs</code> <span>how one finished game went</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public sealed class CardGameEndedArgs
-{
-    public string TableId { get; }
-    public CardGameKind Kind { get; }
-    public bool PlayerWon { get; }
-    public int Stake { get; }
-    public int Payout { get; }
-    public bool ItemBet { get; }
-    public MoneyCurrency Currency { get; }
-}
-```
-
-| Property | Type | What it means |
-|---|---|---|
-| `TableId` | `string` | The same value as `CardTableInfo.Id` for that table. |
-| `Kind` | `CardGameKind` | Which game was played. |
-| `PlayerWon` | `bool` | `true` when the player came first. |
-| `Stake` | `int` | What the player bet. |
-| `Payout` | `int` | What the game pays back for the player's place. This is not the profit. |
-| `ItemBet` | `bool` | `true` when `Stake` and `Payout` count items, not coins. |
-| `Currency` | `MoneyCurrency` | OC or RM, the coins that were bet. Ignore it when `ItemBet` is `true`. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
 <p class="api-type-head"><code>CardGames</code> <span>the static class for card games</span></p>
+
+Use `Tables` to list the card tables in the scene and `Active` to find the one with a game running. `Started` and `Ended` tell you when a game begins and finishes.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -114,13 +39,100 @@ public static class CardGames
 |---|---|---|
 | `Tables()` | `List<CardTableInfo>` | Every card table in the scene you are in. |
 | `Active()` | `CardTableInfo` | The first table with a running game. `null` when none is running. |
-| `SetPayoutFactor(string modId, CardGameKind kind, float factor)` | `bool` | Sets how much your mod scales the payout of one game. Returns `true` when it was set. `factor` runs from 0 to 4, and `1` is the game's normal payout. See [Payout factors](payout-factors.md). |
-| `Clear(string modId)` | `bool` | Takes back every payout factor your mod set. Returns `true` when there was something to remove. See [Payout factors](payout-factors.md). |
+| `SetPayoutFactor(modId, kind, factor)` | `bool` | Sets how much your mod scales the payout of one game. Returns `true` when it was set. `factor` runs from 0 to 4, and `1` is the game's normal payout. See [Payout factors](payout-factors.md). |
+| `Clear(modId)` | `bool` | Takes back every payout factor your mod set. Returns `true` when there was something to remove. See [Payout factors](payout-factors.md). |
 
 | Event | Gives you | When it fires |
 |---|---|---|
 | `Started` | `CardTableInfo` | A game has just started. |
 | `Ended` | `CardGameEndedArgs` | A game has just finished. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>CardTableInfo</code> <span>a snapshot of one card table</span></p>
+
+`Tables` and `Active` give you one of these for each table. It is a snapshot, so ask again for fresh values.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class CardTableInfo
+{
+    public string Id { get; }
+    public CardGameKind Kind { get; }
+    public int Players { get; }
+    public int Stake { get; }
+    public bool Active { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Id` | `string` | A name for this table. Use it to tell tables apart. |
+| `Kind` | `CardGameKind` | The game chosen at the table. `Unknown` when none is chosen. |
+| `Players` | `int` | How many play, NPC opponents included. |
+| `Stake` | `int` | What the player bet: coins, or a number of items for an item bet. `0` between games. |
+| `Active` | `bool` | `true` while a game is running at the table. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>CardGameKind</code> <span>which card game was played</span></p>
+
+`CardTableInfo.Kind` and `CardGameEndedArgs.Kind` hold this, and `SetPayoutFactor` takes it. Each value is a card game the framework knows, and `Unknown` covers the rest.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public enum CardGameKind
+{
+    Unknown = 0,
+    ChinaHand = 1,
+    Ristiseiska = 2
+}
+```
+
+| Value | Meaning |
+|---|---|
+| `Unknown` | A card game the framework has no name for. |
+| `ChinaHand` | The game players call Shittypants. |
+| `Ristiseiska` | The game players call Crosseven. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>CardGameEndedArgs</code> <span>how one finished game went</span></p>
+
+`Ended` hands you this when a game finishes normally. `Payout` is what the game pays back for the player's place, not the profit.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class CardGameEndedArgs
+{
+    public string TableId { get; }
+    public CardGameKind Kind { get; }
+    public bool PlayerWon { get; }
+    public int Stake { get; }
+    public int Payout { get; }
+    public bool ItemBet { get; }
+    public MoneyCurrency Currency { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `TableId` | `string` | The same value as `CardTableInfo.Id` for that table. |
+| `Kind` | `CardGameKind` | Which game was played. |
+| `PlayerWon` | `bool` | `true` when the player came first. |
+| `Stake` | `int` | What the player bet. |
+| `Payout` | `int` | What the game pays back for the player's place. This is not the profit. |
+| `ItemBet` | `bool` | `true` when `Stake` and `Payout` count items, not coins. |
+| `Currency` | `MoneyCurrency` | OC or RM, the coins that were bet. Ignore it when `ItemBet` is `true`. |
 
 </div>
 </div>

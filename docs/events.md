@@ -57,12 +57,14 @@ These are all the events the framework offers, grouped by the part of the game t
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `Autofarms.Replanted` | `Action<ReplantedArgs>` | [Autofarms](api/autofarms.md) |
+{: .events-table}
 
 ### BankLedger
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `BankLedger.Added` | `Action<BankLedgerEntry>` | [Economy](api/economy.md) |
+{: .events-table}
 
 ### BaseShops
 
@@ -70,18 +72,21 @@ These are all the events the framework offers, grouped by the part of the game t
 | --- | --- | --- |
 | `BaseShops.Bought` | `Action<BaseShopBoughtArgs>` | [Base shops](api/baseshops.md) |
 | `BaseShops.Sold` | `Action<BaseShopSoldArgs>` | [Base shops](api/baseshops.md) |
+{: .events-table}
 
 ### BlastSites
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `BlastSites.Detonated` | `Action<string>` | [Blast sites](api/blastsites.md) |
+{: .events-table}
 
 ### Books
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `Books.Read` | `Action<BookReadArgs>` | [Books](api/books.md) |
+{: .events-table}
 
 ### Breakables
 
@@ -91,6 +96,7 @@ These are all the events the framework offers, grouped by the part of the game t
 | `Breakables.LockBroken` | `Action<BreakableArgs>` | [Breakables](api/breakables.md) |
 | `Breakables.Repaired` | `Action<BreakableArgs>` | [Breakables](api/breakables.md) |
 | `Breakables.Smashed` | `Action<SmashedArgs>` | [Breakables](api/breakables.md) |
+{: .events-table}
 
 ### Breeding
 
@@ -98,6 +104,7 @@ These are all the events the framework offers, grouped by the part of the game t
 | --- | --- | --- |
 | `Breeding.Bred` | `Action<BredArgs>` | [Breeding](api/breeding.md) |
 | `Breeding.TrapSprung` | `Action<TrapSprungArgs>` | [Breeding](api/breeding.md) |
+{: .events-table}
 
 ### Building
 
@@ -108,12 +115,14 @@ These are all the events the framework offers, grouped by the part of the game t
 | `Building.FurnitureLoaded` | `Action<FurnitureItem>` | [Housing and building](api/housing.md) |
 | `Building.FurniturePlaced` | `Action<FurnitureItem>` | [Housing and building](api/housing.md) |
 | `Building.FurnitureRemoved` | `Action<FurnitureItem>` | [Housing and building](api/housing.md) |
+{: .events-table}
 
 ### CameraView
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `CameraView.ModeChanged` | `Action<bool>` | [Framework core classes](api-core.md) |
+{: .events-table}
 
 ### CardGames
 
@@ -121,12 +130,14 @@ These are all the events the framework offers, grouped by the part of the game t
 | --- | --- | --- |
 | `CardGames.Ended` | `Action<CardGameEndedArgs>` | [Card games](api/cardgames.md) |
 | `CardGames.Started` | `Action<CardTableInfo>` | [Card games](api/cardgames.md) |
+{: .events-table}
 
 ### Cash
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `Cash.MoneyChanged` | `Action<MoneyChangedArgs>` | [Economy: cash, shops, banking, player shops and mail](api/economy.md) |
+{: .events-table}
 
 ### Casino
 
@@ -137,6 +148,7 @@ These are all the events the framework offers, grouped by the part of the game t
 | `Casino.Played` | `Action<CasinoPlayedArgs>` | [Casino](api/casino.md) |
 | `Casino.Scratched` | `Action<ScratchcardArgs>` | [Casino](api/casino.md) |
 | `Casino.Won` | `Action<CasinoWonArgs>` | [Casino](api/casino.md) |
+{: .events-table}
 
 ### ComputerApps
 
@@ -144,18 +156,21 @@ These are all the events the framework offers, grouped by the part of the game t
 | --- | --- | --- |
 | `ComputerApps.AppClosed` | `Action<ComputerAppClosedArgs>` | [Framework core classes](api-core.md) |
 | `ComputerApps.ScreenChanged` | `Action<RectTransform>` | [Framework core classes](api-core.md) |
+{: .events-table}
 
 ### Conditions
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `Conditions.Changed` | `Action<ConditionChangedArgs>` | [Conditions](api/conditions.md) |
+{: .events-table}
 
 ### Consumables
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `Consumables.Consumed` | `Action<ConsumedArgs>` | [Framework core classes](api-core.md) |
+{: .events-table}
 
 ### Containers
 
@@ -163,6 +178,7 @@ These are all the events the framework offers, grouped by the part of the game t
 | --- | --- | --- |
 | `Containers.Closed` | `Action<ContainerInfo>` | [Inventory and containers](api/inventory.md) |
 | `Containers.Opened` | `Action<ContainerInfo>` | [Inventory and containers](api/inventory.md) |
+{: .events-table}
 
 ### Contests
 
@@ -170,6 +186,7 @@ These are all the events the framework offers, grouped by the part of the game t
 | --- | --- | --- |
 | `Contests.Finished` | `Action<ContestResultInfo>` | [Contests](api/contests.md) |
 | `Contests.Started` | `Action<ContestInfo>` | [Contests](api/contests.md) |
+{: .events-table}
 
 ### Crafting
 
@@ -177,12 +194,14 @@ These are all the events the framework offers, grouped by the part of the game t
 | --- | --- | --- |
 | `Crafting.CraftStarted` | `Action<CraftStartArgs>` | [Recipes, crafting and growing](api/recipes.md) |
 | `Crafting.Crafted` | `Action<CraftedArgs>` | [Recipes, crafting and growing](api/recipes.md) |
+{: .events-table}
 
 ### CustomSkills
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `CustomSkills.LevelChanged` | `Action<CustomSkillArgs>` | [Custom skills](api/customskills.md) |
+{: .events-table}
 
 ### Dialogue
 
@@ -190,12 +209,14 @@ These are all the events the framework offers, grouped by the part of the game t
 | --- | --- | --- |
 | `Dialogue.Ended` | `Action<DialogueArgs>` | [Story: quests, dialogue and law](api-story.md) |
 | `Dialogue.Started` | `Action<DialogueArgs>` | [Story: quests, dialogue and law](api-story.md) |
+{: .events-table}
 
 ### Dishwashers
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `Dishwashers.Finished` | `Action<DishwasherInfo>` | [Dishwashers](api/dishwashers.md) |
+{: .events-table}
 
 ### Doors
 
@@ -203,6 +224,7 @@ These are all the events the framework offers, grouped by the part of the game t
 | --- | --- | --- |
 | `Doors.Closed` | `Action<DoorChangedArgs>` | [Doors](api/doors.md) |
 | `Doors.Opened` | `Action<DoorChangedArgs>` | [Doors](api/doors.md) |
+{: .events-table}
 
 ### Drones
 
@@ -210,18 +232,21 @@ These are all the events the framework offers, grouped by the part of the game t
 | --- | --- | --- |
 | `Drones.Changed` | `Action<DroneChangedArgs>` | [Drones](api/drones.md) |
 | `Drones.NodePassed` | `Action<DroneNodePassedArgs>` | [Drones](api/drones.md) |
+{: .events-table}
 
 ### Effects
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `Effects.Changed` | `Action<EffectChangedArgs>` | [Player, skills, effects, subscriptions and travel](api/player.md) |
+{: .events-table}
 
 ### Elevators
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `Elevators.Arrived` | `Action<ElevatorArrivedArgs>` | [Elevators](api/elevators.md) |
+{: .events-table}
 
 ### Events
 
@@ -232,48 +257,56 @@ These are all the events the framework offers, grouped by the part of the game t
 | `Events.Loaded` | `Action` | [Framework helpers](api/core-helpers.md) |
 | `Events.Saved` | `Action` | [Framework helpers](api/core-helpers.md) |
 | `Events.SceneLoaded` | `Action<string>` | [Framework helpers](api/core-helpers.md) |
+{: .events-table}
 
 ### Extractables
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `Extractables.Extracted` | `Action<ExtractedArgs>` | [Extractables](api/extractables.md) |
+{: .events-table}
 
 ### FloodGates
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `FloodGates.Changed` | `Action<FloodGateChangedArgs>` | [Flood gates](api/floodgates.md) |
+{: .events-table}
 
 ### FuelStations
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `FuelStations.FuelBought` | `Action<FuelBoughtArgs>` | [Fuel stations](api/fuel.md) |
+{: .events-table}
 
 ### FurnitureRegistry
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `FurnitureRegistry.Loaded` | `Action` | [Custom furniture](api/furniture.md) |
+{: .events-table}
 
 ### GameSettings
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `GameSettings.Changed` | `Action` | [Settings, keybinds and localization](api/settings.md) |
+{: .events-table}
 
 ### GlobalFlags
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `GlobalFlags.Changed` | `Action<GlobalFlagChangedArgs>` | [Global flags](api/global-flags.md) |
+{: .events-table}
 
 ### Hazards
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `Hazards.Entered` | `Action<HazardEnteredArgs>` | [Hazards](api/hazards.md) |
+{: .events-table}
 
 ### Hotels
 
@@ -281,6 +314,7 @@ These are all the events the framework offers, grouped by the part of the game t
 | --- | --- | --- |
 | `Hotels.RoomExpired` | `Action<RoomExpiredArgs>` | [Hotels](api/hotels.md) |
 | `Hotels.RoomRented` | `Action<RoomRentedArgs>` | [Hotels](api/hotels.md) |
+{: .events-table}
 
 ### Housing
 
@@ -292,6 +326,7 @@ These are all the events the framework offers, grouped by the part of the game t
 | `Housing.TenantMovedIn` | `Action<TenantArgs>` | [Housing and building](api/housing.md) |
 | `Housing.TenantMovedOut` | `Action<TenantArgs>` | [Housing and building](api/housing.md) |
 | `Housing.TenementEventStarted` | `Action<TenementEventArgs>` | [Housing and building](api/housing.md) |
+{: .events-table}
 
 ### Instruments
 
@@ -299,12 +334,14 @@ These are all the events the framework offers, grouped by the part of the game t
 | --- | --- | --- |
 | `Instruments.GuitarCommented` | `Action<GuitarCommentArgs>` | [Instruments](api/instruments.md) |
 | `Instruments.GuitarPlayed` | `Action<GuitarPlayedArgs>` | [Instruments](api/instruments.md) |
+{: .events-table}
 
 ### Interactions
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `Interactions.Used` | `Action<InteractionArgs>` | [Interaction and locks](api/interaction.md) |
+{: .events-table}
 
 ### Invoices
 
@@ -313,42 +350,49 @@ These are all the events the framework offers, grouped by the part of the game t
 | `Invoices.Cancelled` | `Action<InvoiceArgs>` | [Invoices](api/invoices.md) |
 | `Invoices.Issued` | `Action<InvoiceArgs>` | [Invoices](api/invoices.md) |
 | `Invoices.Paid` | `Action<InvoiceArgs>` | [Invoices](api/invoices.md) |
+{: .events-table}
 
 ### ItemGivers
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `ItemGivers.Gave` | `Action<ItemGiverArgs>` | [Item givers](api/itemgivers.md) |
+{: .events-table}
 
 ### ItemRegistry
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `ItemRegistry.Loaded` | `Action` | [Item and recipe registry](api/registry.md) |
+{: .events-table}
 
 ### Janitors
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `Janitors.Acted` | `Action<JanitorActedArgs>` | [Janitors](api/janitors.md) |
+{: .events-table}
 
 ### Jobs
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `Jobs.Worked` | `Action<WorkedArgs>` | [Jobs](api/jobs.md) |
+{: .events-table}
 
 ### Landmarks
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `Landmarks.Added` | `Action<LandmarkArgs>` | [Landmarks](api/landmarks.md) |
+{: .events-table}
 
 ### Lanterns
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `Lanterns.CandleBurntOut` | `Action<CandleBurntOutArgs>` | [Lanterns](api/lanterns.md) |
+{: .events-table}
 
 ### Law
 
@@ -359,6 +403,7 @@ These are all the events the framework offers, grouped by the part of the game t
 | `Law.Fined` | `Action<FineArgs>` | [Story: quests, dialogue and law](api-story.md) |
 | `Law.Released` | `Action` | [Story: quests, dialogue and law](api-story.md) |
 | `Law.Spotted` | `Action` | [Story: quests, dialogue and law](api-story.md) |
+{: .events-table}
 
 ### LegalServices
 
@@ -366,12 +411,14 @@ These are all the events the framework offers, grouped by the part of the game t
 | --- | --- | --- |
 | `LegalServices.Completed` | `Action<LegalActionArgs>` |  |
 | `LegalServices.Queued` | `Action<LegalActionArgs>` |  |
+{: .events-table}
 
 ### Levels
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `Levels.Changing` | `Action<LevelChangeArgs>` | [Levels](api/levels.md) |
+{: .events-table}
 
 ### Lights
 
@@ -379,6 +426,7 @@ These are all the events the framework offers, grouped by the part of the game t
 | --- | --- | --- |
 | `Lights.StateChanged` | `Action<LightStateArgs>` | [Lights](api/lights.md) |
 | `Lights.Toggled` | `Action<LightToggledArgs>` | [Lights](api/lights.md) |
+{: .events-table}
 
 ### Lobby
 
@@ -388,6 +436,7 @@ These are all the events the framework offers, grouped by the part of the game t
 | `Lobby.MemberJoined` | `Action<ulong>` | [Net: Steam, channels, lobby, presence and blobs](api/net.md) |
 | `Lobby.MemberLeft` | `Action<ulong>` | [Net: Steam, channels, lobby, presence and blobs](api/net.md) |
 | `Lobby.OwnerChanged` | `Action<ulong, ulong>` | [Net: Steam, channels, lobby, presence and blobs](api/net.md) |
+{: .events-table}
 
 ### Locks
 
@@ -397,12 +446,14 @@ These are all the events the framework offers, grouped by the part of the game t
 | `Locks.LockpickFailed` | `Action<LockArgs>` | [Interaction and locks](api/interaction.md) |
 | `Locks.LockpickSucceeded` | `Action<LockArgs>` | [Interaction and locks](api/interaction.md) |
 | `Locks.Unlocked` | `Action<LockArgs>` | [Interaction and locks](api/interaction.md) |
+{: .events-table}
 
 ### LootPools
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `LootPools.ContainerFilled` | `Action<ContainerFilledArgs>` | [Loot pools](api/loot.md) |
+{: .events-table}
 
 ### Mail
 
@@ -411,30 +462,35 @@ These are all the events the framework offers, grouped by the part of the game t
 | `Mail.PackageReceived` | `Action<MailReceivedArgs>` | [Economy: cash, shops, banking, player shops and mail](api/economy.md) |
 | `Mail.Received` | `Action<MailReceivedArgs>` | [Economy: cash, shops, banking, player shops and mail](api/economy.md) |
 | `Mail.Sent` | `Action<MailSentArgs>` | [Economy: cash, shops, banking, player shops and mail](api/economy.md) |
+{: .events-table}
 
 ### Mailboxes
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `Mailboxes.Used` | `Action<MailboxUsedArgs>` | [Mailboxes](api/mailboxes.md) |
+{: .events-table}
 
 ### MarketShops
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `MarketShops.Paid` | `Action<MarketPayArgs>` | [Market shops](api/marketshops.md) |
+{: .events-table}
 
 ### Medical
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `Medical.Treated` | `Action<MedicalTreatedArgs>` | [Medical](api/medical.md) |
+{: .events-table}
 
 ### ModNpcRoutines
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `ModNpcRoutines.StepChanged` | `Action<NpcStepArgs>` | [Mod NPC routines](api/modnpc-routines.md) |
+{: .events-table}
 
 ### NetBlob
 
@@ -442,18 +498,21 @@ These are all the events the framework offers, grouped by the part of the game t
 | --- | --- | --- |
 | `NetBlob.Finished` | `Action<int, bool>` |  |
 | `NetBlob.Received` | `Action<ulong, string, string, byte[]>` |  |
+{: .events-table}
 
 ### Notes
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `Notes.Collected` | `Action<NoteCollectedArgs>` | [Notes](api/notes.md) |
+{: .events-table}
 
 ### NpcSchedules
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `NpcSchedules.ActivityChanged` | `Action<ActivityChangedArgs>` | [NPC schedules](api/npc-schedules.md) |
+{: .events-table}
 
 ### Npcs
 
@@ -462,6 +521,7 @@ These are all the events the framework offers, grouped by the part of the game t
 | `Npcs.Despawned` | `Action<NpcInfo>` | [NPCs](api/npcs.md) |
 | `Npcs.Died` | `Action<NpcInfo>` | [NPCs](api/npcs.md) |
 | `Npcs.Spawned` | `Action<NpcInfo>` | [NPCs](api/npcs.md) |
+{: .events-table}
 
 ### PhoneLines
 
@@ -470,6 +530,7 @@ These are all the events the framework offers, grouped by the part of the game t
 | `PhoneLines.CallEnded` | `Action<PhoneCallArgs>` | [Phone lines](api/phone-lines.md) |
 | `PhoneLines.CallStarted` | `Action<PhoneCallArgs>` | [Phone lines](api/phone-lines.md) |
 | `PhoneLines.Ringing` | `Action<PhoneCallArgs>` | [Phone lines](api/phone-lines.md) |
+{: .events-table}
 
 ### Plants
 
@@ -477,6 +538,7 @@ These are all the events the framework offers, grouped by the part of the game t
 | --- | --- | --- |
 | `Plants.Harvested` | `Action<PlantHarvestArgs>` | [Recipes, crafting and growing](api/recipes.md) |
 | `Plants.Picked` | `Action<PlantPickArgs>` | [Recipes, crafting and growing](api/recipes.md) |
+{: .events-table}
 
 ### PlayerInventory
 
@@ -484,18 +546,21 @@ These are all the events the framework offers, grouped by the part of the game t
 | --- | --- | --- |
 | `PlayerInventory.ItemAdded` | `Action<ItemChangedArgs>` | [Inventory and containers](api/inventory.md) |
 | `PlayerInventory.ItemRemoved` | `Action<ItemChangedArgs>` | [Inventory and containers](api/inventory.md) |
+{: .events-table}
 
 ### PlayerLook
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `PlayerLook.Changed` | `Action<Look>` | [Framework core classes](api-core.md) |
+{: .events-table}
 
 ### PlayerShops
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `PlayerShops.Sold` | `Action<SoldArgs>` | [Economy: cash, shops, banking, player shops and mail](api/economy.md) |
+{: .events-table}
 
 ### PlayerState
 
@@ -504,6 +569,7 @@ These are all the events the framework offers, grouped by the part of the game t
 | `PlayerState.SleepStarted` | `Action<SleepStartedArgs>` | [Player, skills, effects, subscriptions and travel](api/player.md) |
 | `PlayerState.WaitStarted` | `Action<WaitKind>` | [Player, skills, effects, subscriptions and travel](api/player.md) |
 | `PlayerState.WokeUp` | `Action` | [Player, skills, effects, subscriptions and travel](api/player.md) |
+{: .events-table}
 
 ### PowerDevices
 
@@ -511,6 +577,7 @@ These are all the events the framework offers, grouped by the part of the game t
 | --- | --- | --- |
 | `PowerDevices.FuelRanOut` | `Action<FuelRanOutArgs>` | [Power devices](api/power-devices.md) |
 | `PowerDevices.PoweredChanged` | `Action<PoweredChangedArgs>` | [Power devices](api/power-devices.md) |
+{: .events-table}
 
 ### Pursuit
 
@@ -518,6 +585,7 @@ These are all the events the framework offers, grouped by the part of the game t
 | --- | --- | --- |
 | `Pursuit.Ended` | `Action` | [Pursuit](api/pursuit.md) |
 | `Pursuit.Started` | `Action` | [Pursuit](api/pursuit.md) |
+{: .events-table}
 
 ### Quests
 
@@ -525,30 +593,35 @@ These are all the events the framework offers, grouped by the part of the game t
 | --- | --- | --- |
 | `Quests.ObjectiveChanged` | `Action<ObjectiveChangedArgs>` | [Story: quests, dialogue and law](api-story.md) |
 | `Quests.TaskChanged` | `Action<TaskChangedArgs>` | [Story: quests, dialogue and law](api-story.md) |
+{: .events-table}
 
 ### Recipes
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `Recipes.Unlocked` | `Action<RecipeUnlockedArgs>` | [Recipes, crafting and growing](api/recipes.md) |
+{: .events-table}
 
 ### Recycling
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `Recycling.Recycled` | `Action<RecycledArgs>` | [Recycling](api/recycling.md) |
+{: .events-table}
 
 ### Relationships
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `Relationships.RelationshipChanged` | `Action<RelationshipChange>` | [Relationships](api/relationships.md) |
+{: .events-table}
 
 ### Renovations
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `Renovations.Finished` | `Action<RenovationInfo>` | [Renovations](api/renovations.md) |
+{: .events-table}
 
 ### ResourceNodes
 
@@ -556,12 +629,14 @@ These are all the events the framework offers, grouped by the part of the game t
 | --- | --- | --- |
 | `ResourceNodes.Depleted` | `Action<ResourceDepletedArgs>` | [Resource nodes](api/resources.md) |
 | `ResourceNodes.Hit` | `Action<ResourceHitArgs>` | [Resource nodes](api/resources.md) |
+{: .events-table}
 
 ### Robbers
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `Robbers.Robbed` | `Action<int>` | [Robbers](api/robbers.md) |
+{: .events-table}
 
 ### Saunas
 
@@ -569,12 +644,14 @@ These are all the events the framework offers, grouped by the part of the game t
 | --- | --- | --- |
 | `Saunas.TurnedOff` | `Action<SaunaChangedArgs>` | [Saunas](api/saunas.md) |
 | `Saunas.TurnedOn` | `Action<SaunaChangedArgs>` | [Saunas](api/saunas.md) |
+{: .events-table}
 
 ### SceneLogic
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `SceneLogic.Fired` | `Action<RelayArgs>` | [Scene logic](api/scenelogic.md) |
+{: .events-table}
 
 ### Seats
 
@@ -582,6 +659,7 @@ These are all the events the framework offers, grouped by the part of the game t
 | --- | --- | --- |
 | `Seats.Left` | `Action<SeatArgs>` | [Seats](api/seats.md) |
 | `Seats.Sat` | `Action<SeatArgs>` | [Seats](api/seats.md) |
+{: .events-table}
 
 ### Shops
 
@@ -590,24 +668,28 @@ These are all the events the framework offers, grouped by the part of the game t
 | `Shops.Bought` | `Action<TradeArgs>` |  |
 | `Shops.PriceQuery` | `Action<PriceQueryArgs>` |  |
 | `Shops.Sold` | `Action<TradeArgs>` |  |
+{: .events-table}
 
 ### Showers
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `Showers.Changed` | `Action<ShowerChangedArgs>` | [Showers](api/showers.md) |
+{: .events-table}
 
 ### Signs
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `Signs.TextChanged` | `Action<SignTextChangedArgs>` | [Signs](api/signs.md) |
+{: .events-table}
 
 ### Skills
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `Skills.SkillIncreased` | `Action<SkillIncreasedArgs>` | [Player, skills, effects, subscriptions and travel](api/player.md) |
+{: .events-table}
 
 ### SleepEvents
 
@@ -615,24 +697,28 @@ These are all the events the framework offers, grouped by the part of the game t
 | --- | --- | --- |
 | `SleepEvents.Intercept` | `Action<SleepEventInterceptArgs>` | [Sleep events](api/sleep-events.md) |
 | `SleepEvents.Occurred` | `Action<SleepEventOccurredArgs>` | [Sleep events](api/sleep-events.md) |
+{: .events-table}
 
 ### Spawners
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `Spawners.Spawned` | `Action<SpawnerArgs>` | [Spawners](api/spawners.md) |
+{: .events-table}
 
 ### StartChoices
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `StartChoices.Chosen` | `Action<StartChoiceArgs>` | [Start choices (new-game picks)](api/start-choices.md) |
+{: .events-table}
 
 ### Surfaces
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `Surfaces.Changed` | `Action<SurfaceArgs>` | [Surfaces](api/surfaces.md) |
+{: .events-table}
 
 ### Surveillance
 
@@ -641,6 +727,7 @@ These are all the events the framework offers, grouped by the part of the game t
 | `Surveillance.PlayerSpotted` | `Action<PlayerSpottedArgs>` | [Surveillance](api/surveillance.md) |
 | `Surveillance.TrespassEntered` | `Action<TrespassArgs>` | [Surveillance](api/surveillance.md) |
 | `Surveillance.TrespassLeft` | `Action<TrespassArgs>` | [Surveillance](api/surveillance.md) |
+{: .events-table}
 
 ### Survival
 
@@ -650,30 +737,35 @@ These are all the events the framework offers, grouped by the part of the game t
 | `Survival.Damaged` | `Action<float, DamageTypeNames>` | [Player](api/player.md) |
 | `Survival.PassedOut` | `Action` | [Player](api/player.md) |
 | `Survival.PlayerDied` | `Action<DamageTypeNames>` | [Player](api/player.md) |
+{: .events-table}
 
 ### Tanks
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `Tanks.Changed` | `Action<TankChangedArgs>` | [Tanks](api/tanks.md) |
+{: .events-table}
 
 ### TarpDoors
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `TarpDoors.Changed` | `Action<TarpDoorChangedArgs>` | [Tarp doors](api/tarpdoors.md) |
+{: .events-table}
 
 ### TaskItems
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `TaskItems.Changed` | `Action<TaskItemChangedArgs>` |  |
+{: .events-table}
 
 ### Televisions
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `Televisions.Changed` | `Action<TelevisionChangedArgs>` | [Televisions](api/televisions.md) |
+{: .events-table}
 
 ### TimeControl
 
@@ -681,6 +773,7 @@ These are all the events the framework offers, grouped by the part of the game t
 | --- | --- | --- |
 | `TimeControl.MinutePassed` | `Action` | [Time control](api/timecontrol.md) |
 | `TimeControl.SecondsPassed` | `Action<int>` | [Time control](api/timecontrol.md) |
+{: .events-table}
 
 ### TrainTickets
 
@@ -688,6 +781,7 @@ These are all the events the framework offers, grouped by the part of the game t
 | --- | --- | --- |
 | `TrainTickets.Bought` | `Action<TicketBoughtArgs>` | [Train tickets](api/traintickets.md) |
 | `TrainTickets.Taken` | `Action<TicketTakenArgs>` | [Train tickets](api/traintickets.md) |
+{: .events-table}
 
 ### Trains
 
@@ -696,12 +790,14 @@ These are all the events the framework offers, grouped by the part of the game t
 | `Trains.Arrived` | `Action<TrainArgs>` | [Trains](api/trains.md) |
 | `Trains.Crashed` | `Action<TrainCrashArgs>` | [Trains](api/trains.md) |
 | `Trains.Departed` | `Action<TrainArgs>` | [Trains](api/trains.md) |
+{: .events-table}
 
 ### TutorialGuide
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `TutorialGuide.StepChanged` | `Action<TutorialStepArgs>` | [Tutorial guide](api/tutorial.md) |
+{: .events-table}
 
 ### UiState
 
@@ -709,18 +805,21 @@ These are all the events the framework offers, grouped by the part of the game t
 | --- | --- | --- |
 | `UiState.PauseClosed` | `Action` | [UI state](api/ui-state.md) |
 | `UiState.PauseOpened` | `Action<bool>` | [UI state](api/ui-state.md) |
+{: .events-table}
 
 ### WaitStations
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `WaitStations.Finished` | `Action<WaitStationDoneArgs>` |  |
+{: .events-table}
 
 ### Wardrobe
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `Wardrobe.Changed` | `Action<WardrobeChangedArgs>` | [Wardrobe](api/wardrobe.md) |
+{: .events-table}
 
 ### Weapons
 
@@ -730,6 +829,7 @@ These are all the events the framework offers, grouped by the part of the game t
 | `Weapons.Hit` | `Action<HitArgs>` | [Weapons](api/weapons.md) |
 | `Weapons.MeleeSwung` | `Action<WeaponInfo>` | [Weapons](api/weapons.md) |
 | `Weapons.Reloaded` | `Action<WeaponInfo>` | [Weapons](api/weapons.md) |
+{: .events-table}
 
 ### WorldItems
 
@@ -738,6 +838,7 @@ These are all the events the framework offers, grouped by the part of the game t
 | `WorldItems.Dropped` | `Action<DroppedArgs>` | [World items](api/worlditems.md) |
 | `WorldItems.PickedUp` | `Action<PickedUpArgs>` | [World items](api/worlditems.md) |
 | `WorldItems.Used` | `Action<UsedArgs>` | [World items](api/worlditems.md) |
+{: .events-table}
 
 ### WorldPower
 
@@ -745,6 +846,7 @@ These are all the events the framework offers, grouped by the part of the game t
 | --- | --- | --- |
 | `WorldPower.BlackoutStarted` | `Action` |  |
 | `WorldPower.GeneratorToggled` | `Action<bool>` |  |
+{: .events-table}
 
 ### WorldWater
 
@@ -752,12 +854,14 @@ These are all the events the framework offers, grouped by the part of the game t
 | --- | --- | --- |
 | `WorldWater.PlayerSubmerged` | `Action` | [World: weather, power, water, radiation, location and clock](api/world.md) |
 | `WorldWater.PlayerSurfaced` | `Action` | [World: weather, power, water, radiation, location and clock](api/world.md) |
+{: .events-table}
 
 ### WorldWeather
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `WorldWeather.WeatherChanged` | `Action<WeatherChangedArgs>` | [World: weather, power, water, radiation, location and clock](api/world.md) |
+{: .events-table}
 
 ### Instance events
 
@@ -767,6 +871,7 @@ These belong to one object, not to the class itself. For example, each `ModSetti
 | --- | --- | --- |
 | `ModSetting.Changed` | `Action` |  |
 | `ModWindow.Closed` | `Action` | [UI kit](api/ui.md) |
+{: .events-table}
 
 ## Details
 

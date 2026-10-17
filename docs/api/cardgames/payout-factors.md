@@ -11,6 +11,9 @@ A payout factor is a number that your mod multiplies a card game's payout by. `1
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>CardGames</code> <span>payout factors</span></p>
+
+Call `SetPayoutFactor` to scale one card game's payout for your mod, and `Clear` to take your factors back. Set them again after each load.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -28,8 +31,8 @@ public static class CardGames
 
 | Method | Returns | What it does |
 |---|---|---|
-| `SetPayoutFactor(string modId, CardGameKind kind, float factor)` | `bool` | Sets how much your mod scales the payout of one game. The factor runs from 0 to 4, and 1 is the game's normal payout. `true` when it was set. |
-| `Clear(string modId)` | `bool` | Takes back every payout factor your mod set. `true` when there was something to remove. |
+| `SetPayoutFactor(modId, kind, factor)` | `bool` | Sets how much your mod scales the payout of one game. The factor runs from 0 to 4, and 1 is the game's normal payout. `true` when it was set. |
+| `Clear(modId)` | `bool` | Takes back every payout factor your mod set. `true` when there was something to remove. |
 
 </div>
 </div>

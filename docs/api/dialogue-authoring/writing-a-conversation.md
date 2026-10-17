@@ -10,7 +10,62 @@ nav_order: 2
 This is the full list of what the API gives you, one section for each part. Lua is the small scripting language the game's dialogue system uses for conditions and scripts. You do not need to learn much of it: a condition such as `not mymod_asked` or a script such as `Variable["mymod_cellar"] = true` is enough for most conversations.
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>ConversationRefusal</code> <span>why Add refused a conversation</span></p>
+<p class="api-type-head"><code>DialogueAuthoring</code> <span>add, remove and title your conversations</span></p>
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class DialogueAuthoring
+{
+    public static string TitleOf(string modId, string key);
+    public static string Add(string modId, ConversationDefinition definition, out ConversationRefusal refusal);
+    public static bool Remove(string modId, string key);
+    public static int Clear(string modId);
+}
+```
+
+You call `DialogueAuthoring.Add` to put a conversation in the game, `Remove` to take one of yours out, and `TitleOf` to work out the title it will get.
+{: .api-desc}
+
+| Method | Returns | What it does |
+|---|---|---|
+| `TitleOf(modId, key)` | `string` | The title a conversation gets. `null` when either part is not valid. |
+| `Add(modId, definition, out refusal)` | `string` | <details>{::nomarkdown}<summary>{:/nomarkdown}Adds a conversation. Gives its title, or `null` and the reason.{::nomarkdown}</summary>{:/nomarkdown}When it returns `null`, read `refusal` to see why. The reasons are listed in `ConversationRefusal` below.</details> |
+| `Remove(modId, key)` | `bool` | Removes one of your conversations. |
+| `Clear(modId)` | `int` | Removes everything your mod added, and returns how many. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>ConversationDefinition</code> <span>a whole conversation</span></p>
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class ConversationDefinition
+{
+    public string Key { get; set; }
+    public string Speaker { get; set; }
+    public List<ConversationLine> Lines { get; set; }
+}
+```
+
+You fill one in and pass it to `DialogueAuthoring.Add`, or to `Dialogue.AddBranch` for a branch. The game has no such type: the framework builds the game's own conversation from it when you add it.
+{: .api-desc}
+
+| Property | Type | What it means |
+|---|---|---|
+| `Key` | `string` | The conversation's name. |
+| `Speaker` | `string` | <details>{::nomarkdown}<summary>{:/nomarkdown}The name of the game character who speaks the NPC lines. May be `null`.{::nomarkdown}</summary>{:/nomarkdown}Use the name of a game character, not the player. A name the game does not have, or the player's name, is refused with `UnknownSpeaker`. See `ConversationRefusal` below.</details> |
+| `Lines` | `List<ConversationLine>` | The lines. The first one is where the conversation starts. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>ConversationRefusal</code> <span>why your conversation was not added</span></p>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -28,23 +83,27 @@ public enum ConversationRefusal
 }
 ```
 
+This tells you why your conversation was not added to the game. `Add` gives it to you through its `out refusal` parameter: when `Add` returns `null`, read it to see what went wrong; when `Add` works it is `None`. It has nothing to do with a character refusing to talk to the player. The game has no refusal codes of its own: the framework makes these checks itself while it adds the conversation.
+{: .api-desc}
+
 | Value | Meaning |
 |---|---|
 | `None` | Nothing was refused. |
-| `NotReady` | The dialogue system is not running yet, for example on the title screen. |
-| `SaveBusy` | A save is loading or being written. |
-| `BadInput` | The conversation is not valid. See the rules below. |
-| `AlreadyExists` | A conversation with this title is already in the game. |
-| `UnknownSpeaker` | The speaker is not a character in the game, or is the player. |
-| `NoPlayerActor` | The game has no character marked as the player. |
-| `Failed` | The game failed while adding it. |
-| `ReservedKey` | The key is `"narration"`, which the framework keeps for itself. |
+| `NotReady` | <details>{::nomarkdown}<summary>{:/nomarkdown}The dialogue system is not running yet, for example on the title screen.{::nomarkdown}</summary>{:/nomarkdown}The game's dialogue database is not loaded yet. Add your conversation again later, for example from `Events.WhenReady`, which runs your code once a save has loaded (see [Events.WhenReady](../core-helpers/events-whenready.md)).</details> |
+| `SaveBusy` | <details>{::nomarkdown}<summary>{:/nomarkdown}A save is loading or being written.{::nomarkdown}</summary>{:/nomarkdown}Add the conversation again after the save finishes.</details> |
+| `BadInput` | <details>{::nomarkdown}<summary>{:/nomarkdown}The conversation is not valid.{::nomarkdown}</summary>{:/nomarkdown}See the [rules on this page](#things-to-know). The main ones: keys use letters, digits, `_` and `-`, up to 48 characters, and each line key is used once. Text is up to 1000 characters per line, and a condition or script up to 500. A conversation has 1 to 200 lines. Each `Next` must name a line in the same conversation.</details> |
+| `AlreadyExists` | <details>{::nomarkdown}<summary>{:/nomarkdown}A conversation with this title is already in the game.{::nomarkdown}</summary>{:/nomarkdown}You added it already, or the game has one with this title. Call `Remove` with your key first, or use another key. If you add it on every scene load, check `Dialogue.Exists(title)` first.</details> |
+| `UnknownSpeaker` | <details>{::nomarkdown}<summary>{:/nomarkdown}The speaker is not a character in the game, or is the player.{::nomarkdown}</summary>{:/nomarkdown}Set `Speaker` to the name of a game character, not the player. See `ConversationDefinition` above.</details> |
+| `NoPlayerActor` | <details>{::nomarkdown}<summary>{:/nomarkdown}The game has no character marked as the player.{::nomarkdown}</summary>{:/nomarkdown}This is rare. The game's dialogue database has no character marked as the player, so the framework cannot build the conversation.</details> |
+| `Failed` | <details>{::nomarkdown}<summary>{:/nomarkdown}The game failed while adding it.{::nomarkdown}</summary>{:/nomarkdown}The game threw an error or did not take the conversation. The framework logs the error once.</details> |
+| `ReservedKey` | <details>{::nomarkdown}<summary>{:/nomarkdown}The key is `"narration"`, which the framework keeps for itself.{::nomarkdown}</summary>{:/nomarkdown}Pick another key.</details> |
 
 </div>
 </div>
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ConversationLine</code> <span>one line of a conversation</span></p>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -60,61 +119,18 @@ public sealed class ConversationLine
 }
 ```
 
+You put these in a `ConversationDefinition`'s `Lines` list. `Player` is `false` for a line the character speaks and `true` for a choice the player picks, and `Next` names the lines that follow it. <span class="tech">(Each line becomes a `DialogueEntry` in the game's Dialogue System conversation.)</span>
+{: .api-desc}
+
 | Property | Type | What it means |
 |---|---|---|
 | `Key` | `string` | This line's name. Other lines use it to point at this line. |
 | `Player` | `bool` | `true` for a choice the player picks, `false` for a line the character speaks. |
-| `Text` | `string` | What the line says. May be `null` when `TextCallback` is set. |
+| `Text` | `string` | <details>{::nomarkdown}<summary>{:/nomarkdown}What the line says. May be `null` when `TextCallback` is set.{::nomarkdown}</summary>{:/nomarkdown}A line needs text unless it has a `TextCallback`. Blank text, or text over 1000 characters, is refused with `BadInput`.</details> |
 | `Condition` | `string` | A Lua test. The line is offered only when it is true. May be `null`. |
 | `Script` | `string` | Lua that runs when the line is reached. May be `null`. |
-| `Next` | `string[]` | The keys of the lines that follow. May be `null`. |
+| `Next` | `string[]` | <details>{::nomarkdown}<summary>{:/nomarkdown}The keys of the lines that follow. May be `null`.{::nomarkdown}</summary>{:/nomarkdown}Each key must be the `Key` of another line in the same conversation. Any other key is refused with `BadInput`.</details> |
 | `TextCallback` | `Func<string>` | A function that gives the text each time the line shows. May be `null`. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>ConversationDefinition</code> <span>a whole conversation</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public sealed class ConversationDefinition
-{
-    public string Key { get; set; }
-    public string Speaker { get; set; }
-    public List<ConversationLine> Lines { get; set; }
-}
-```
-
-| Property | Type | What it means |
-|---|---|---|
-| `Key` | `string` | The conversation's name. |
-| `Speaker` | `string` | The name of the game character who speaks the NPC lines. May be `null`. |
-| `Lines` | `List<ConversationLine>` | The lines. The first one is where the conversation starts. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>DialogueAuthoring</code> <span>add, remove and title your conversations</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static class DialogueAuthoring
-{
-    public static string TitleOf(string modId, string key);
-    public static string Add(string modId, ConversationDefinition definition, out ConversationRefusal refusal);
-    public static bool Remove(string modId, string key);
-    public static int Clear(string modId);
-}
-```
-
-| Method | Returns | What it does |
-|---|---|---|
-| `TitleOf(string modId, string key)` | `string` | The title a conversation gets. `null` when either part is not valid. |
-| `Add(string modId, ConversationDefinition definition, out ConversationRefusal refusal)` | `string` | Adds a conversation. Gives its title, or `null` and the reason. |
-| `Remove(string modId, string key)` | `bool` | Removes one of your conversations. |
-| `Clear(string modId)` | `int` | Removes everything your mod added, and returns how many. |
 
 </div>
 </div>

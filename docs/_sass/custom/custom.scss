@@ -23,29 +23,62 @@
 }
 
 .main-content .api-pair {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 1.5rem;
-  align-items: start;
+  display: flow-root;
   margin-bottom: 1rem;
 
-  > * {
+  > :first-child {
+    float: left;
+    width: calc(50% - 0.75rem);
     margin: 0;
   }
 
-  > :first-child {
-    grid-column: 1;
+  > .api-desc {
+    float: left;
+    clear: left;
+    width: calc(50% - 0.75rem);
+    margin: 0.75rem 0 0;
+    padding: 0.75rem 1rem;
+    background: #121215;
+    border: 1px solid #3a3a44;
+    border-radius: 8px;
   }
 
-  > :not(:first-child) {
-    grid-column: 2;
+  > :not(:first-child):not(.api-desc) {
+    width: auto;
+    margin: 0 0 1.25rem calc(50% + 0.75rem);
+  }
+
+  details {
+    color: #a9a4b0;
+
+    summary {
+      color: #e6e1e8;
+      cursor: pointer;
+    }
+
+    &[open] summary {
+      margin-bottom: 0.4rem;
+    }
+  }
+
+  td:first-child,
+  td code {
+    white-space: normal;
   }
 
   @media (max-width: 999px) {
-    display: block;
+    > :first-child {
+      float: none;
+      width: auto;
+    }
 
-    > * + * {
-      margin-top: 1rem;
+    > .api-desc {
+      float: none;
+      width: auto;
+    }
+
+    > :not(:first-child):not(.api-desc) {
+      margin: 1rem 0 0;
     }
   }
 }
@@ -109,6 +142,7 @@
   background: transparent;
   border-left: 0;
   border-bottom: 1px solid #3a3a44 !important;
+  overflow-wrap: anywhere;
 }
 
 .main-content th {
@@ -144,6 +178,7 @@
 .main-content .highlight pre,
 .main-content pre.highlight {
   font-size: 0.95rem !important;
+  white-space: pre-wrap;
 }
 .main-content .highlight code {
   font-size: inherit !important;
@@ -243,4 +278,38 @@ a {
 
 .prev-next .next-link {
   margin-left: auto;
+}
+
+.events-table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.events-table th:nth-child(1),
+.events-table td:nth-child(1) {
+  width: 34%;
+}
+
+.events-table th:nth-child(2),
+.events-table td:nth-child(2) {
+  width: 33%;
+}
+
+.events-table th:nth-child(3),
+.events-table td:nth-child(3) {
+  width: 33%;
+}
+
+.events-table td {
+  overflow-wrap: anywhere;
+}
+
+.unity-types {
+  margin: 0 0 1.25rem;
+  padding: 0.6rem 0.9rem;
+  background: #121215;
+  border-left: 3px solid #4a4a56;
+  border-radius: 6px;
+  color: #a9a4b0;
+  font-size: 0.85rem;
 }

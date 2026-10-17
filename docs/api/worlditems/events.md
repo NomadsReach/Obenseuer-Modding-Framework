@@ -7,10 +7,15 @@ nav_order: 2
 
 # Events
 
+This page uses `Vector3` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 Item ids are the game's whole-number item ids, and a world item's id is different: it is a piece of text (see "World item ids"). Each event gives you a small object with the facts about what happened. They tell you about something after it happened, and you cannot cancel or change what the player did.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WorldItems</code> <span>world item events</span></p>
+Use these events to hear when an item is picked up, dropped or used in the world.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -38,6 +43,8 @@ public static class WorldItems
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>PickedUpArgs</code> <span>what PickedUp tells you</span></p>
+`PickedUp` gives you this when the player picks up a world item. `Amount` is how many, and `Position` is where it was.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -60,6 +67,8 @@ public sealed class PickedUpArgs
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>DroppedArgs</code> <span>what Dropped tells you</span></p>
+`Dropped` gives you this when the player drops an item into the world. `Amount` is how many, and `Position` is where it landed.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -82,6 +91,8 @@ public sealed class DroppedArgs
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>UsedArgs</code> <span>what Used tells you</span></p>
+`Used` gives you this when an item action runs. `ItemId` is the id of the item.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

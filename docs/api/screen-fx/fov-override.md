@@ -11,6 +11,9 @@ FOV is the field of view: how wide the camera's view is, in degrees. The overrid
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ScreenFx</code> <span>the field of view override</span></p>
+
+`ScreenFx.SetFovOverride` sets the camera's field of view in degrees, and `ClearFovOverride` gives the player's own value back. This is how you make a zoom.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -22,10 +25,10 @@ public static bool ClearFovOverride(string owner);
 
 | Method | Returns | What it does |
 |---|---|---|
-| `SetFovOverride(float fov)` | `bool` | Sets the field of view, with no owner. |
+| `SetFovOverride(fov)` | `bool` | Sets the field of view, with no owner. |
 | `ClearFovOverride()` | `bool` | Removes that value. |
-| `SetFovOverride(string owner, float fov)` | `bool` | Sets the field of view, as your mod. |
-| `ClearFovOverride(string owner)` | `bool` | Removes your value. |
+| `SetFovOverride(owner, fov)` | `bool` | Sets the field of view, as your mod. |
+| `ClearFovOverride(owner)` | `bool` | Removes your value. |
 
 </div>
 </div>

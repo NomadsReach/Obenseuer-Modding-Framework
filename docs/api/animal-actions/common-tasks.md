@@ -7,6 +7,9 @@ nav_order: 1
 
 # Common tasks
 
+This page uses `GameObject`, `Transform` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 Make an animal sit.
 
 ```csharp

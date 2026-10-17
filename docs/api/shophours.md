@@ -79,6 +79,9 @@ This is the full list of what the API gives you. Text in brackets at the end of 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ShopHours</code> <span>reads opening hours and whether a shop is open</span></p>
+
+This is the class to start from. `Hours(shopId)` gives the opening hours for each day, and `IsOpen` and `IsScheduledOpen` tell you whether a trader is open to the player now and whether its clock says it should be.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -92,15 +95,18 @@ public static class ShopHours
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Hours(string shopId)` | `List<ShopDayInfo>` | The opening hours for seven days, Monday first. Empty when the shop is not found. |
-| `IsOpen(string shopId)` | `bool` | `true` when the trader is open to the player now. `false` when not found. |
-| `IsScheduledOpen(string shopId)` | `bool` | `true` when the opening hours say open at the current game time. `false` when not found. |
+| `Hours(shopId)` | `List<ShopDayInfo>` | The opening hours for seven days, Monday first. Empty when the shop is not found. |
+| `IsOpen(shopId)` | `bool` | `true` when the trader is open to the player now. `false` when not found. |
+| `IsScheduledOpen(shopId)` | `bool` | `true` when the opening hours say open at the current game time. `false` when not found. |
 
 </div>
 </div>
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ShopDayInfo</code> <span>the opening hours for one day</span></p>
+
+`ShopHours.Hours(shopId)` gives you seven of these, Monday first. `Opens` and `Closes` are the hours, and the shop is closed all day when they are the same.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

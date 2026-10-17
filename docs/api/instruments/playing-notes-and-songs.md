@@ -11,6 +11,9 @@ These calls make a guitar sound. The first argument is your mod's id (`Mod.Id`),
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Instruments</code> <span>play and hold guitar notes and songs</span></p>
+
+This is the class you start from. `PlayNote` plays one strum, `PlaySong` plays a timed run, and `HoldNote` starts a long note. Each call takes your mod's id, so `Clear` and `StopSong` stop only your own sounds.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -28,13 +31,13 @@ public static class Instruments
 
 | Method | Returns | What it does |
 |---|---|---|
-| `PlayNote(string modId, string guitarId)` | `bool` | Plays one strum, as the player pressing the Primary Use key does. `true` when it sounded. |
-| `PlaySong(string modId, string guitarId, IList<float> delays)` | `bool` | Plays a timed run of strums. `true` when the song is set. |
-| `StopSong(string modId, string guitarId)` | `bool` | Stops your song on this guitar. `true` when one was stopped. |
-| `HoldNote(string modId, string guitarId, int index)` | `bool` | Starts one of the guitar's long notes. `true` when the sound started. |
-| `StopHold(string modId, string guitarId)` | `bool` | Stops your long note. `true` when one was stopped. |
-| `HoldCount(string guitarId)` | `int` | How many long notes this guitar has. |
-| `Clear(string modId)` | `bool` | Stops all your songs and long notes. `true` when any was stopped. |
+| `PlayNote(modId, guitarId)` | `bool` | Plays one strum, as the player pressing the Primary Use key does. `true` when it sounded. |
+| `PlaySong(modId, guitarId, delays)` | `bool` | Plays a timed run of strums. `true` when the song is set. |
+| `StopSong(modId, guitarId)` | `bool` | Stops your song on this guitar. `true` when one was stopped. |
+| `HoldNote(modId, guitarId, index)` | `bool` | Starts one of the guitar's long notes. `true` when the sound started. |
+| `StopHold(modId, guitarId)` | `bool` | Stops your long note. `true` when one was stopped. |
+| `HoldCount(guitarId)` | `int` | How many long notes this guitar has. |
+| `Clear(modId)` | `bool` | Stops all your songs and long notes. `true` when any was stopped. |
 
 </div>
 </div>

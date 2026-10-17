@@ -11,6 +11,8 @@ nav_order: 4
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WorldWater</code> <span>the water supply, swimming and breath</span></p>
+Use these to read the water supply and the player's breath, and `SetVolume` to change a water volume.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -45,7 +47,7 @@ public static class WorldWater
 | Method | Returns | What it does |
 |---|---|---|
 | `Volumes()` | `List<WaterVolumeInfo>` | Every water volume in the active scene. |
-| `SetVolume(string id, float density, float drag, float drownDamage, int swimHygiene)` | `bool` | Changes one volume. Returns `true` when it did. |
+| `SetVolume(id, density, drag, drownDamage, swimHygiene)` | `bool` | Changes one volume. Returns `true` when it did. |
 | `ResetBreath()` | `bool` | Gives the player a full breath. Returns `true` when it did. |
 
 | Event | Gives you | When it fires |
@@ -58,6 +60,8 @@ public static class WorldWater
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WaterVolumeInfo</code> <span>a snapshot of one water volume</span></p>
+`WorldWater.Volumes()` gives you one of these for each water volume. Its four values are the ones `SetVolume` changes.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

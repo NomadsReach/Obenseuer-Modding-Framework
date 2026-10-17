@@ -10,7 +10,33 @@ nav_order: 4
 `FuelTypes` lists the items that the game's machines burn as fuel and says how each one burns. Each one is a `FuelTypeInfo`.
 
 <div class="api-type" markdown="1">
+<p class="api-type-head"><code>FuelTypes</code> <span>the fuel data of each item</span></p>
+
+This is the class you start from. `All()` lists every item with fuel data, and `Get(itemId)` looks one up by its item number.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class FuelTypes
+{
+    public static List<FuelTypeInfo> All();
+    public static FuelTypeInfo Get(int itemId);
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `All()` | `List<FuelTypeInfo>` | Every item that has fuel data. |
+| `Get(itemId)` | `FuelTypeInfo` | One item's fuel data. `null` when it has none. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
 <p class="api-type-head"><code>FuelTypeInfo</code> <span>how one item behaves as fuel</span></p>
+
+`All()` and `Get(itemId)` on `FuelTypes` give you this, one per item that has fuel data. It is filled from the `ItemFueldata` metadata on each item in the game's item database. <span class="tech">(It reads `ItemDatabase.database`.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -29,26 +55,6 @@ public sealed class FuelTypeInfo
 | `BurnSeconds` | `int` | How many seconds one unit burns, before a machine's own speed factor. |
 | `BurntItemId` | `int` | The item left behind when it burns. `-1` when it leaves nothing. |
 | `BurntItemAmount` | `float` | How many of that leftover item one unit leaves. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>FuelTypes</code> <span>the fuel data of each item</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public static class FuelTypes
-{
-    public static List<FuelTypeInfo> All();
-    public static FuelTypeInfo Get(int itemId);
-}
-```
-
-| Method | Returns | What it does |
-|---|---|---|
-| `All()` | `List<FuelTypeInfo>` | Every item that has fuel data. |
-| `Get(int itemId)` | `FuelTypeInfo` | One item's fuel data. `null` when it has none. |
 
 </div>
 </div>

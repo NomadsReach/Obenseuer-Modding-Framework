@@ -11,6 +11,9 @@ A vignette darkens the edges of the screen with a colour. Each mod has its own v
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ScreenFx</code> <span>darken the screen edges</span></p>
+
+`ScreenFx.Vignette` darkens the screen edges with a colour, and `ClearVignette(owner)` removes your mod's vignette.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -21,9 +24,9 @@ public static bool ClearVignette(string owner);
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Vignette(string owner, Color color, float strength)` | `bool` | Darkens the screen edges with a colour. |
-| `Vignette(string owner, Color color, float strength, float fadeSeconds)` | `bool` | The same, changing over `fadeSeconds` seconds. |
-| `ClearVignette(string owner)` | `bool` | Removes your vignette. It returns `true` when it removed one and `false` when your mod had none. It always runs. |
+| `Vignette(owner, color, strength)` | `bool` | Darkens the screen edges with a colour. |
+| `Vignette(owner, color, strength, fadeSeconds)` | `bool` | The same, changing over `fadeSeconds` seconds. |
+| `ClearVignette(owner)` | `bool` | Removes your vignette. It returns `true` when it removed one and `false` when your mod had none. It always runs. |
 
 </div>
 </div>

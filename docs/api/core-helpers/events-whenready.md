@@ -11,6 +11,9 @@ nav_order: 4
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Events</code> <span>run code when a save is ready</span></p>
+
+Call `WhenReady` with your code. It runs at once when a save is already ready.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -22,7 +25,7 @@ public static class Events
 
 | Method | Returns | What it does |
 |---|---|---|
-| `WhenReady(Action action)` | `void` | Runs your code when a save is ready, or now if it already is. |
+| `WhenReady(action)` | `void` | Runs your code when a save is ready, or now if it already is. |
 
 </div>
 </div>

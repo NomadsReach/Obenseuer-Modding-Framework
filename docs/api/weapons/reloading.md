@@ -9,6 +9,8 @@ nav_order: 3
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Weapons</code> <span>the reload call</span></p>
+Use `Reload` to reload the weapon in your hand.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

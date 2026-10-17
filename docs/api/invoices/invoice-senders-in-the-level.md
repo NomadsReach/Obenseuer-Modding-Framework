@@ -11,6 +11,9 @@ Some levels have an invoice sender: a trigger that sends a bill when the player 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Invoices</code> <span>set off a level's invoice sender</span></p>
+
+This is the class you start from. `FireSender` sets off the invoice sender with that save id in the level, and returns `true` when it adds a new invoice. The bill it sends is a normal one, listed by `Invoices.All()` on the [listing and sending bills](listing-and-sending-bills.md) page.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -22,7 +25,7 @@ public static class Invoices
 
 | Method | Returns | What it does |
 |---|---|---|
-| `FireSender(string id)` | `bool` | Sets off the invoice sender with this id. `true` when a new invoice was issued. |
+| `FireSender(id)` | `bool` | Sets off the invoice sender with this id. `true` when a new invoice was issued. |
 
 </div>
 </div>

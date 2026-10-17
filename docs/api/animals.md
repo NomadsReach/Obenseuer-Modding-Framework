@@ -7,6 +7,9 @@ nav_order: 2
 
 # Animals
 
+This page uses `Vector3` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 ## What it is
 
 This API finds, reads and hurts cats, chicks, chickens, pigs and rats. The osrat is [on the weapons page](weapons/osrat-signal-detector.md#osrat-signal-detector), not an animal.
@@ -17,6 +20,9 @@ Animal spawners are on [Spawners](spawners.md).
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Animals</code> <span>finds and hurts animals</span></p>
+
+Use `All` to list the animals in the scene, `Count` for the number the game counts as alive, and `Damage` to hurt one by its `Id`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -31,7 +37,7 @@ public static class Animals
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<AnimalInfo>` | Lists the animals in the scene, leaving out destroyed ones. |
-| `Damage(int animalId, float amount)` | `bool` | Hurts the animal. It returns `true` when the hit was made. |
+| `Damage(animalId, amount)` | `bool` | Hurts the animal. It returns `true` when the hit was made. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -42,6 +48,9 @@ public static class Animals
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>AnimalInfo</code> <span>one animal snapshot</span></p>
+
+`All` gives you one of these for each animal. It is a snapshot, so ask again for fresh values, and `Id` is only valid for this session.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -84,6 +93,9 @@ public sealed class AnimalInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>AnimalKind</code> <span>animal kinds</span></p>
+
+`AnimalInfo.Kind` holds this. Each value is one of the named kinds, and `Other` covers any animal that is not one of them.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

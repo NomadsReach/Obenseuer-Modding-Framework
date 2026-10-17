@@ -7,10 +7,16 @@ nav_order: 15
 
 # ComputerApps
 
+This page uses `GameObject`, `Sprite` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 The game has computer desks the player can sit at. `ComputerApps` lets your mod put an app on them, which is an icon on each desk's screen that opens your own interface. It can also open an app in a full-screen window, and give any object in the world a use prompt like the game's own ("Use", "Read" and so on). You draw the interface yourself, with the help of the [UI kit](../api/ui.md) page.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ComputerApps</code> <span>apps on the desk computers</span></p>
+
+Call `Register` to put an app icon on every desk, and `AddInteraction` to give a world object a use prompt. `OpenStandalone` opens an app in a full-screen window.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -30,11 +36,11 @@ public static class ComputerApps
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Register(string modId, string appId, string title, Sprite icon, Action<RectTransform> open)` | `bool` | Adds an app icon to every desk, the ones that exist now and the ones made later. |
-| `Close(string appId)` | `void` | Hides the app on every desk, and closes its full-screen window if it shows that app. |
-| `RemoveAll(string modId)` | `void` | Removes all of your mod's apps, icons, windows and use prompts. |
-| `OpenStandalone(string modId, string appId)` | `bool` | Opens an app in a full-screen window over the game. |
-| `AddInteraction(GameObject target, string modId, string title, string message, Action onUse)` | `bool` | Gives an object a use prompt. |
+| `Register(modId, appId, title, icon, open)` | `bool` | Adds an app icon to every desk, the ones that exist now and the ones made later. |
+| `Close(appId)` | `void` | Hides the app on every desk, and closes its full-screen window if it shows that app. |
+| `RemoveAll(modId)` | `void` | Removes all of your mod's apps, icons, windows and use prompts. |
+| `OpenStandalone(modId, appId)` | `bool` | Opens an app in a full-screen window over the game. |
+| `AddInteraction(target, modId, title, message, onUse)` | `bool` | Gives an object a use prompt. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -51,6 +57,9 @@ public static class ComputerApps
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ComputerAppClosedArgs</code> <span>what AppClosed tells you</span></p>
+
+`AppClosed` hands you this when an app view closes. `ModId` and `AppId` tell you which mod and app it was.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

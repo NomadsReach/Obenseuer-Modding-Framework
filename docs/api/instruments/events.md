@@ -9,6 +9,9 @@ nav_order: 4
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Instruments</code> <span>the guitar events</span></p>
+
+`GuitarPlayed` and `GuitarCommented` are the events on this class. The calls that play a guitar are on the [Playing notes and songs](playing-notes-and-songs.md) page.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -29,6 +32,9 @@ public static class Instruments
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>GuitarPlayedArgs</code> <span>a strum that was played</span></p>
+
+`GuitarPlayed` gives you this, once for each strum. `GuitarId` is the guitar that played.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -47,6 +53,9 @@ public sealed class GuitarPlayedArgs
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>GuitarCommentArgs</code> <span>a comment on the playing</span></p>
+
+`GuitarCommented` gives you this, for a person nearby who comments on the player's long note. `Positive` is `true` for a nice comment.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

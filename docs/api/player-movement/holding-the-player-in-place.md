@@ -7,10 +7,16 @@ nav_order: 4
 
 # Holding the player in place
 
+This page uses `GameObject`, `Transform` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 A lock holds the player's controls, the way the game does in a cutscene. The player cannot walk, look or use keys while it is held. The calls are counted for each mod id: if your mod calls `Lock` twice, it must call `Unlock` twice.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>PlayerMovement</code> <span>hold the player and release the hold</span></p>
+
+Call `Lock` or `LockLookAt` to hold the player, and `Unlock` to let go of your newest lock.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -24,9 +30,9 @@ public static class PlayerMovement
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Lock(string modId)` | `bool` | Holds the player. `false` if it could not. |
-| `LockLookAt(string modId, Transform target, bool instantly)` | `bool` | Holds the player and turns the camera to a target. |
-| `Unlock(string modId)` | `bool` | Lets go of your newest lock. `false` if you hold none. |
+| `Lock(modId)` | `bool` | Holds the player. `false` if it could not. |
+| `LockLookAt(modId, target, instantly)` | `bool` | Holds the player and turns the camera to a target. |
+| `Unlock(modId)` | `bool` | Lets go of your newest lock. `false` if you hold none. |
 
 </div>
 </div>

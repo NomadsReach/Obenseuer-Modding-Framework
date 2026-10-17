@@ -11,6 +11,8 @@ This is the full list of what the API gives you. Every call that changes somethi
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TimeControl</code> <span>clock speed, timers and the minute event</span></p>
+Use it to change how fast the game clock runs, to call your code at a later in-game minute, and to hear each minute and second pass.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -30,10 +32,10 @@ public static class TimeControl
 
 | Method | Returns | What it does |
 |---|---|---|
-| `SetTimeScale(string modId, float scale)` | `bool` | Runs the clock at this speed. Returns `false` if refused. |
-| `ClearTimeScale(string modId)` | `bool` | Gives back your speed. Returns `true` if you had one set. |
-| `In(string modId, int inGameMinutes, Action action)` | `int` | Runs a method after this many in-game minutes. Returns a handle above `0`, or `0` if refused. |
-| `Cancel(string modId, int handle)` | `bool` | Cancels a timer. Returns `true` if it was yours and still waiting. |
+| `SetTimeScale(modId, scale)` | `bool` | Runs the clock at this speed. Returns `false` if refused. |
+| `ClearTimeScale(modId)` | `bool` | Gives back your speed. Returns `true` if you had one set. |
+| `In(modId, inGameMinutes, action)` | `int` | Runs a method after this many in-game minutes. Returns a handle above `0`, or `0` if refused. |
+| `Cancel(modId, handle)` | `bool` | Cancels a timer. Returns `true` if it was yours and still waiting. |
 
 | Property | Type | What it means |
 |---|---|---|

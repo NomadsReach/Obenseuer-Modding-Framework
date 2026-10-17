@@ -73,6 +73,8 @@ This is the full list of what the API gives you. Text in brackets at the end of 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>UiState</code> <span>menu, pause and input flags</span></p>
+Use these flags to check whether a menu is open, the game is paused, or input is blocked. `PauseOpened` tells you the pause screen opened, and its flag says whether the player died.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

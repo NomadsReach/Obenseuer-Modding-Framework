@@ -75,6 +75,9 @@ A relay is named by an id, a text name for that relay in the scene. You get the 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SceneLogic</code> <span>lists, fires and switches relays</span></p>
+
+This is the class to start from: `Relays()` lists the relays in the scene, and `Fire` and `SetEnabled` act on one by its id. Firing a relay runs everything it is wired to, so be careful with it.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -91,8 +94,8 @@ public static class SceneLogic
 | Method | Returns | What it does |
 |---|---|---|
 | `Relays()` | `List<RelayInfo>` | Every relay in the scene you are in. |
-| `Fire(string id)` | `bool` | Triggers a relay. Returns `true` when it was triggered. |
-| `SetEnabled(string id, bool enabled)` | `bool` | Switches a relay or trigger volume on or off. Returns `true` when it is now in that state. |
+| `Fire(id)` | `bool` | Triggers a relay. Returns `true` when it was triggered. |
+| `SetEnabled(id, enabled)` | `bool` | Switches a relay or trigger volume on or off. Returns `true` when it is now in that state. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -107,6 +110,9 @@ public static class SceneLogic
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>RelayInfo</code> <span>one relay</span></p>
+
+`Relays()` gives you one of these for each relay in the scene. Pass `Id` to `Fire` and `SetEnabled`, and use `FireOnce` and `Fired` to see whether it can still fire.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -131,6 +137,9 @@ public sealed class RelayInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>RelayArgs</code> <span>a relay that just fired</span></p>
+
+The `Fired` event gives you one of these. It holds the relay's `Id`, `FireOnce` and `Enabled` as they were when it fired.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

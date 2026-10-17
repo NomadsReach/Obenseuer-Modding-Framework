@@ -7,6 +7,9 @@ nav_order: 1
 
 # Common tasks
 
+This page uses `Vector3` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 Walk an NPC to a point, turn it to face a direction, and find out when it has arrived. The last argument is called once with `true` if the NPC arrived and `false` if not.
 
 ```csharp

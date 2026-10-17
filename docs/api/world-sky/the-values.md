@@ -11,6 +11,8 @@ nav_order: 3
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SkyOverride</code> <span>the values your mod wants to change</span></p>
+[`WorldSky.Set`](setting-and-clearing.md) takes one of these, with only the values you want to change filled in.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -53,6 +55,8 @@ public sealed class SkyOverride
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SkyState</code> <span>what the sky looks like now</span></p>
+[`WorldSky.Current`](setting-and-clearing.md) gives you one of these, which is the sky as it looks at that moment.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

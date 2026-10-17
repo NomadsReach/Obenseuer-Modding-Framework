@@ -7,6 +7,9 @@ nav_order: 7
 
 # Hazards
 
+This page uses `Vector3` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 ## What it is
 
 Hazards are the dangerous places in the game world: zones that give the player a radiation dose, zones that hurt the player, glowing radiation sources, and the detectors that measure that radiation. This API lets your mod list them, see whether each one is switched on, switch one on or off, and get told when the player walks into one. It covers the zones. The radiation dose the player has collected is on the [World](world/worldradiation.md#worldradiation) page.
@@ -79,31 +82,10 @@ This is the full list of what the API gives you. Text in brackets at the end of 
 Each hazard is a `HazardInfo`, a snapshot of its state when you asked. The `Kind` says what sort of hazard it is.
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>HazardKind</code> <span>what sort of hazard it is</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public enum HazardKind
-{
-    Radiation = 0,
-    Hurt = 1,
-    PointRadiation = 2,
-    Detector = 3
-}
-```
-
-| Value | Meaning |
-|---|---|
-| `Radiation` | An area that adds to the player's radiation dose while the player stands in it. |
-| `Hurt` | An area that damages the player while the player stands in it. |
-| `PointRadiation` | A glowing source that gives off radiation that gets weaker with distance. |
-| `Detector` | A scene radiation detector that fires a signal when the radiation passes a limit. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
 <p class="api-type-head"><code>Hazards</code> <span>lists hazards and switches them</span></p>
+
+This is the class you start from. `All()` lists the hazards, `SetEnabled` switches one on or off, and `Entered` tells you when the player walks into a radiation or hurt zone.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -119,7 +101,7 @@ public static class Hazards
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<HazardInfo>` | Every hazard in the scene you are in, switched on or off. Hazards on objects that are switched off in the scene are not listed. |
-| `SetEnabled(string id, bool enabled)` | `bool` | Switches a hazard on (`true`) or off (`false`). Returns `true` when the hazard is now in that state. |
+| `SetEnabled(id, enabled)` | `bool` | Switches a hazard on (`true`) or off (`false`). Returns `true` when the hazard is now in that state. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -134,6 +116,9 @@ public static class Hazards
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>HazardInfo</code> <span>a snapshot of one hazard</span></p>
+
+`All()` gives you this, one per hazard in the scene. It is a copy of the hazard when you asked, so ask again for a current `Enabled`. <span class="tech">(It is filled from the game's `TriggerRadiation`, `TriggerHurt`, `point_radiation` or `point_radiation_detector` component.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -157,7 +142,37 @@ public sealed class HazardInfo
 </div>
 
 <div class="api-type" markdown="1">
+<p class="api-type-head"><code>HazardKind</code> <span>what sort of hazard it is</span></p>
+
+`HazardInfo.Kind` holds one of these for each hazard, and `HazardEnteredArgs.Kind` is `Radiation` or `Hurt`. Each value stands for one kind of game component, so it is the framework's own enum.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public enum HazardKind
+{
+    Radiation = 0,
+    Hurt = 1,
+    PointRadiation = 2,
+    Detector = 3
+}
+```
+
+| Value | Meaning |
+|---|---|
+| `Radiation` | An area that adds to the player's radiation dose while the player stands in it. |
+| `Hurt` | An area that damages the player while the player stands in it. |
+| `PointRadiation` | A glowing source that gives off radiation that gets weaker with distance. |
+| `Detector` | A scene radiation detector that fires a signal when the radiation passes a limit. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
 <p class="api-type-head"><code>HazardEnteredArgs</code> <span>what the Entered event tells you</span></p>
+
+`Entered` gives you this. The framework builds it when the player walks into a radiation or hurt zone, so it is the framework's own type.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

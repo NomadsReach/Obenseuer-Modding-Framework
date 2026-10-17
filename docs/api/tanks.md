@@ -79,6 +79,9 @@ Each tank is a `TankInfo`, a snapshot of its state at the moment you asked. Ask 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Tanks</code> <span>read the tanks</span></p>
+
+This is the class to start from. `All()` and `Get(id)` read the tanks, and `Set`, `Empty` and `SetLocked` change them.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -93,7 +96,7 @@ public static class Tanks
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<TankInfo>` | Every tank in the scene you are in. |
-| `Get(string id)` | `TankInfo` | The tank with this id. `null` when there is none. |
+| `Get(id)` | `TankInfo` | The tank with this id. `null` when there is none. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -104,6 +107,9 @@ public static class Tanks
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TankInfo</code> <span>a snapshot of one tank</span></p>
+
+`All()` and `Get(id)` give you one of these. `Amount` is how much liquid is in the tank and `Capacity` is the most it holds, and a `Capacity` below 0 means the tank is infinite.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -132,6 +138,9 @@ public sealed class TankInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Tanks</code> <span>change a tank</span></p>
+
+`Set` fills a tank with a liquid, `Empty` empties it, and `SetLocked` locks or unlocks it. Each returns `false` when it could not make the change.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -145,15 +154,18 @@ public static class Tanks
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Set(string id, int itemId, float amount)` | `bool` | Puts the liquid in the tank at that amount. |
-| `Empty(string id)` | `bool` | Empties the tank. `true` when the tank holds no liquid afterwards, including when it was already empty. |
-| `SetLocked(string id, bool locked)` | `bool` | Locks or unlocks the tank. `false` when the tank has no lock. Otherwise `true` when the lock now matches `locked`. |
+| `Set(id, itemId, amount)` | `bool` | Puts the liquid in the tank at that amount. |
+| `Empty(id)` | `bool` | Empties the tank. `true` when the tank holds no liquid afterwards, including when it was already empty. |
+| `SetLocked(id, locked)` | `bool` | Locks or unlocks the tank. `false` when the tank has no lock. Otherwise `true` when the lock now matches `locked`. |
 
 </div>
 </div>
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Tanks</code> <span>your mod changed a tank</span></p>
+
+The `Changed` event fires after your mod's `Set`, `Empty` or `SetLocked` changes a tank. It does not tell you about changes that the player or the game makes.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -172,6 +184,9 @@ public static class Tanks
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TankChangedArgs</code> <span>what you get when a tank is changed</span></p>
+
+The `Changed` event gives you one of these, with the tank's liquid, `Amount` and `Locked` as they are now.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

@@ -15,6 +15,9 @@ This API reads the phone book, the numbers the player can dial. Calls are on [Ph
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Phones</code> <span>the phone book</span></p>
+
+Call `All()` to list the numbers the player can dial. Pass one of those numbers to `PhoneLines.Ring` or `PhoneLines.StartCall`.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -33,6 +36,9 @@ public static class Phones
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>PhoneContact</code> <span>one phone entry</span></p>
+
+`Phones.All()` gives you one of these for each number. `Number` is the number to pass to `PhoneLines.Ring` or `PhoneLines.StartCall`, and `Network` says which networks it is on. <span class="tech">(It is built from the game's `PhoneNumber` phone book entries.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -57,6 +63,9 @@ public sealed class PhoneContact
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>PhoneNetwork</code> <span>which networks a number is on</span></p>
+
+These are the values of `PhoneContact.Network` and `PhoneLineInfo.Network`. It is a set of flags, so a number can be on more than one network. <span class="tech">(It mirrors the game's `PhoneNumber.Network`.)</span>
+
 <div class="api-pair" markdown="1">
 
 ```csharp

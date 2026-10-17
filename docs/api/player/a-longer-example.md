@@ -7,6 +7,9 @@ nav_order: 10
 
 # A longer example
 
+This page uses `KeyCode` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 Run with a save loaded. The output goes to the mod's log, `BepInEx\logs\example.playersmoke.log`. It reads the player's position, health and a skill, adds half a skill level, and counts the active effects and the level's spawn points when you press F9.
 
 ```csharp

@@ -69,27 +69,9 @@ TrainActions.SetEngine(Mod.Id, frontCarId, false);
 This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>TrainEnd</code> <span>the two ends of a car</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public enum TrainEnd
-{
-    Front = 0,
-    Back = 1
-}
-```
-
-| Value | Meaning |
-|---|---|
-| `Front` | The front end of a car. |
-| `Back` | The back end of a car. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
 <p class="api-type-head"><code>TrainActions</code> <span>drive trains and join or split cars</span></p>
+Use these calls to switch a train's engine, set its target speed, brake it, and couple two trains or release a coupling at one end.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -105,11 +87,33 @@ public static class TrainActions
 
 | Method | Returns | What it does |
 |---|---|---|
-| `SetEngine(string modId, string trainId, bool on)` | `bool` | Turns the engine on or off. `true` once the request is made. |
-| `SetTargetSpeed(string modId, string trainId, float speed)` | `bool` | Sets how fast the train should go. `true` when it was set. |
-| `Brake(string modId, string trainId, bool on)` | `bool` | Applies or releases the brakes. `true` when the brakes are now in the state you asked for. |
-| `Couple(string modId, string trainId, TrainEnd end, string otherTrainId, TrainEnd otherEnd)` | `bool` | Joins one end of a car to one end of another car. `true` when they are joined. |
-| `Release(string modId, string trainId, TrainEnd end)` | `bool` | Separates a car at one end. `true` when that end is free afterwards. |
+| `SetEngine(modId, trainId, on)` | `bool` | Turns the engine on or off. `true` once the request is made. |
+| `SetTargetSpeed(modId, trainId, speed)` | `bool` | Sets how fast the train should go. `true` when it was set. |
+| `Brake(modId, trainId, on)` | `bool` | Applies or releases the brakes. `true` when the brakes are now in the state you asked for. |
+| `Couple(modId, trainId, end, otherTrainId, otherEnd)` | `bool` | Joins one end of a car to one end of another car. `true` when they are joined. |
+| `Release(modId, trainId, end)` | `bool` | Separates a car at one end. `true` when that end is free afterwards. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>TrainEnd</code> <span>the two ends of a car</span></p>
+`Couple` and `Release` take this to pick the end of a car to use. `Front` and `Back` are the framework's own values, and they select the game's `frontCoupler` or `backCoupler`.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public enum TrainEnd
+{
+    Front = 0,
+    Back = 1
+}
+```
+
+| Value | Meaning |
+|---|---|
+| `Front` | The front end of a car. |
+| `Back` | The back end of a car. |
 
 </div>
 </div>

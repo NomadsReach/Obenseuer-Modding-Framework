@@ -11,6 +11,8 @@ New items in the world have a timer after which they go away. This part lets you
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WorldItems</code> <span>the expiry timer for new items</span></p>
+Use `SetExpiryOverride` to change the timer for new items, `ExpiryMinutes` to read it, and `ClearExpiryOverride` to take your change back off.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -26,10 +28,10 @@ public static class WorldItems
 
 | Method | Returns | What it does |
 |---|---|---|
-| `SetExpiryOverride(int minutes)` | `bool` | Sets the timer for new items, in the shared slot that older mods use. `true` when it was set. |
-| `SetExpiryOverride(string owner, int minutes)` | `bool` | The same, for your own mod id. |
+| `SetExpiryOverride(minutes)` | `bool` | Sets the timer for new items, in the shared slot that older mods use. `true` when it was set. |
+| `SetExpiryOverride(owner, minutes)` | `bool` | The same, for your own mod id. |
 | `ClearExpiryOverride()` | `void` | Puts back the game's timer (the shared slot). |
-| `ClearExpiryOverride(string owner)` | `bool` | Removes your mod's timer. `true` when it had one. |
+| `ClearExpiryOverride(owner)` | `bool` | Removes your mod's timer. `true` when it had one. |
 
 | Property | Type | What it means |
 |---|---|---|

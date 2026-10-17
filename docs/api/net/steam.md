@@ -13,6 +13,9 @@ A few words used on this page. A SteamID64 is the long number that identifies on
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Steam</code> <span>Steam status and friends</span></p>
+
+Check `IsReady` first, since hosting and joining a lobby do not work until it is `true`. `Name(steamId)` and `FriendsPlaying(appId)` give you the names and friends to show.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -28,8 +31,8 @@ public static class Steam
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Name(ulong steamId)` | `string` | A player's Steam name. `""` when unknown or not ready. |
-| `FriendsPlaying(uint appId)` | `List<ulong>` | Friends who are playing this game right now. |
+| `Name(steamId)` | `string` | A player's Steam name. `""` when unknown or not ready. |
+| `FriendsPlaying(appId)` | `List<ulong>` | Friends who are playing this game right now. |
 
 | Property | Type | What it means |
 |---|---|---|

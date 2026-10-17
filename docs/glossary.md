@@ -136,3 +136,55 @@ The small scripting language the game's dialogue system uses. A dialogue line ca
 ## Template
 
 An existing game item, recipe or piece of furniture that a new mod item is copied from. The copy starts with the template's look and behaviour, and your mod then changes what it needs. Furniture names its template with `TemplatePath`. See [Registry](api/registry.md) and [Furniture](api/furniture.md).
+
+## Types that come from Unity
+
+Some calls take or return a type the framework did not invent. They belong to Unity, the engine Obenseuer is built on, so they behave the same way they do in any Unity game. You do not need to learn Unity to use the framework, but here is what each one is when you meet it in a signature.
+
+## KeyCode
+
+A single key or mouse button on the keyboard, written as a name: `KeyCode.F`, `KeyCode.Escape`, `KeyCode.Mouse0`, `KeyCode.None` for nothing. The framework uses it for keybinds. Full list: [UnityEngine.KeyCode](https://docs.unity3d.com/ScriptReference/KeyCode.html).
+
+## Vector3
+
+A point or a direction in the world, as three numbers: x across, y up, z forward. `new Vector3(10f, 2f, 5f)` is a place, `Vector3.up` is a direction, `Vector3.zero` is the origin. Distances are in metres. Full reference: [UnityEngine.Vector3](https://docs.unity3d.com/ScriptReference/Vector3.html).
+
+## Quaternion
+
+A rotation. You rarely build one by hand: use `Quaternion.identity` for no rotation, or `Quaternion.Euler(0f, 90f, 0f)` to turn 90 degrees around the up axis. Full reference: [UnityEngine.Quaternion](https://docs.unity3d.com/ScriptReference/Quaternion.html).
+
+## GameObject
+
+One thing in the scene: an item, a door, an NPC, a light. Everything the player can see is a `GameObject`, and each one carries components that give it behaviour. Full reference: [UnityEngine.GameObject](https://docs.unity3d.com/ScriptReference/GameObject.html).
+
+## Transform
+
+Where a `GameObject` is: its position, rotation and scale, and its parent and children. `go.transform.position` reads a world position. Full reference: [UnityEngine.Transform](https://docs.unity3d.com/ScriptReference/Transform.html).
+
+## Component
+
+A piece of behaviour attached to a `GameObject`, such as a collider, a light or one of the game's own scripts. You get one with `GetComponent<T>()`. Full reference: [UnityEngine.Component](https://docs.unity3d.com/ScriptReference/Component.html).
+
+## Color
+
+A colour as four numbers from 0 to 1: red, green, blue and alpha, where alpha is how solid it is. `Color.white`, or `new Color(1f, 0f, 0f, 1f)` for solid red. Full reference: [UnityEngine.Color](https://docs.unity3d.com/ScriptReference/Color.html).
+
+## Sprite and Texture2D
+
+A `Texture2D` is an image in memory. A `Sprite` is an image prepared for drawing in the interface. The framework loads both from a file for you where it offers that. References: [Texture2D](https://docs.unity3d.com/ScriptReference/Texture2D.html) and [Sprite](https://docs.unity3d.com/ScriptReference/Sprite.html).
+
+## AudioClip
+
+A sound the game can play. Full reference: [UnityEngine.AudioClip](https://docs.unity3d.com/ScriptReference/AudioClip.html).
+
+## Mesh
+
+The shape of a model: its points and the triangles between them. `ModelHandle.CreateMesh()` gives you one from a loaded model file. Full reference: [UnityEngine.Mesh](https://docs.unity3d.com/ScriptReference/Mesh.html).
+
+## Scene
+
+One loaded area of the game, such as an apartment interior or the sewer. Scenes have names, and the framework uses those names in its scene events and in world placement. Full reference: [UnityEngine.SceneManagement.Scene](https://docs.unity3d.com/ScriptReference/SceneManagement.Scene.html).
+
+## Action and Action&lt;T&gt;
+
+Not Unity but plain C#: a method you hand to something else so it can call it back. `Action` takes nothing, `Action<int>` takes one number, `Action<MoneyChangedArgs>` takes one argument object. Every event on the [events page](events.md) says which one it hands your handler.

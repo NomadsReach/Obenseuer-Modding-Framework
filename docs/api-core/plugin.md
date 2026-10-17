@@ -13,6 +13,9 @@ The framework is itself a BepInEx plugin, a class named `Core`. It checks which 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Core</code> <span>the framework's own plugin class</span></p>
+
+Read `IsSupportedBuild` or `GameBuild` to see whether this is the game build the framework supports. `PatchingAllowed` tells you whether the framework will change game methods.
+
 <div class="api-pair" markdown="1">
 
 ```csharp

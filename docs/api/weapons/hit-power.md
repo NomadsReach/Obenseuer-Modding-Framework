@@ -7,10 +7,15 @@ nav_order: 5
 
 # Hit power
 
+This page uses `GameObject` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 Melee hits can be made stronger or weaker for each kind of target. The game picks the target kind from the thing that was hit, as the table shows. The factors are kept only for the session. They are not saved.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>HitTarget</code> <span>the kinds of target a hit can land on</span></p>
+`HitArgs.Target` holds one of these. The framework picks it from the thing that was hit, as the table below shows.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -37,6 +42,8 @@ public enum HitTarget
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>HitArgs</code> <span>what you get when a melee hit lands</span></p>
+[`Weapons.Hit`](events.md) gives you this when a melee hit lands. `Receiver` is the object that was hit.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -63,6 +70,8 @@ public sealed class HitArgs
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Weapons</code> <span>the hit factors</span></p>
+Use `SetHitFactor` to scale melee damage on one kind of `HitTarget`, and `ClearHitFactors` to remove your mod's factors.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -76,9 +85,9 @@ public static class Weapons
 
 | Method | Returns | What it does |
 |---|---|---|
-| `SetHitFactor(string modId, HitTarget target, float factor)` | `bool` | Scales hits on a target. Rounds to the nearest whole number. |
-| `SetHitFactor(string modId, HitTarget target, float factor, bool chanceRounding)` | `bool` | The same, with the choice of keeping the fraction as a chance. |
-| `ClearHitFactors(string modId)` | `bool` | Removes all of your mod's factors. |
+| `SetHitFactor(modId, target, factor)` | `bool` | Scales hits on a target. Rounds to the nearest whole number. |
+| `SetHitFactor(modId, target, factor, chanceRounding)` | `bool` | The same, with the choice of keeping the fraction as a chance. |
+| `ClearHitFactors(modId)` | `bool` | Removes all of your mod's factors. |
 
 </div>
 </div>

@@ -7,6 +7,9 @@ nav_order: 2
 
 # Meshes and materials
 
+This page uses `Mesh` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
 
 A character's number is the game's character id. For a character from the game, get it from [Npcs](../npcs.md) or [Characters](../characters.md). For a character your mod added, use the `CharacterId` from [Mod NPCs](../modnpcs.md). The character must be in the scene that is loaded.
@@ -14,29 +17,10 @@ A character's number is the game's character id. For a character from the game, 
 A mesh is one visible part of a character, such as a body, a head, an eye or a piece of clothing. A material is the surface look of a part (its colour and texture). Each part can have several material slots.
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>NpcMeshInfo</code> <span>one part of a character</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public sealed class NpcMeshInfo
-{
-    public string Mesh { get; }
-    public bool Active { get; }
-    public List<string> Materials { get; }
-}
-```
-
-| Property | Type | What it means |
-|---|---|---|
-| `Mesh` | `string` | The part's name. |
-| `Active` | `bool` | `true` when the part is switched on. |
-| `Materials` | `List<string>` | One material name for each slot. It is `null` for an empty slot. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
 <p class="api-type-head"><code>NpcAppearance</code> <span>mesh and material calls</span></p>
+
+Call `Meshes(npcId)` to see the parts, then `SetMeshActive` to show or hide one, or `SetMaterials` to give it other materials.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -53,12 +37,37 @@ public static partial class NpcAppearance
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Meshes(int npcId)` | `List<NpcMeshInfo>` | Every part of the character, switched on or off. |
+| `Meshes(npcId)` | `List<NpcMeshInfo>` | Every part of the character, switched on or off. |
 | `MaterialNames()` | `List<string>` | The names of the materials the game has loaded, in alphabetical order. |
-| `SetMeshActive(string modId, int npcId, string mesh, bool active)` | `bool` | Shows or hides a part. |
-| `SetMaterials(string modId, int npcId, string mesh, IList<string> materialNames)` | `bool` | Gives a part other materials, by name, one for each slot. |
-| `Restore(string modId, int npcId)` | `bool` | Undoes your changes to one character. Returns `true` when it undid something. |
-| `Clear(string modId)` | `bool` | Undoes your changes to every character. Returns `true` when it undid something. |
+| `SetMeshActive(modId, npcId, mesh, active)` | `bool` | Shows or hides a part. |
+| `SetMaterials(modId, npcId, mesh, materialNames)` | `bool` | Gives a part other materials, by name, one for each slot. |
+| `Restore(modId, npcId)` | `bool` | Undoes your changes to one character. Returns `true` when it undid something. |
+| `Clear(modId)` | `bool` | Undoes your changes to every character. Returns `true` when it undid something. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>NpcMeshInfo</code> <span>one part of a character</span></p>
+
+`Meshes(npcId)` gives you one of these for each part of the character. Use its `Mesh` name when you call `SetMeshActive` or `SetMaterials`.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class NpcMeshInfo
+{
+    public string Mesh { get; }
+    public bool Active { get; }
+    public List<string> Materials { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Mesh` | `string` | The part's name. |
+| `Active` | `bool` | `true` when the part is switched on. |
+| `Materials` | `List<string>` | One material name for each slot. It is `null` for an empty slot. |
 
 </div>
 </div>

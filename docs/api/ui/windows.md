@@ -7,10 +7,65 @@ nav_order: 3
 
 # Windows
 
+This page uses `GameObject` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+{: .unity-types}
+
 A window is a screen the player sees over the game, with its own areas to fill. You open one with `ModWindow.Open` and give it your code to fill it. The controls can also be built in other places, not only in a window (see the next section).
 
 <div class="api-type" markdown="1">
+<p class="api-type-head"><code>ModWindow</code> <span>a screen over the game</span></p>
+Use `Open` to show a window, `Find` to get one back by its mod id and title, and `Close` to close it.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class ModWindow : MonoBehaviour
+{
+    public static ModWindow Open(string modId, string title, WindowDock dock, Action<ModWindow> build);
+    public static ModWindow Find(string modId, string title);
+    public void Close();
+    public void Run(Action action);
+    public string ModId { get; }
+    public string Title { get; }
+    public WindowDock Dock { get; }
+    public bool Faulted { get; }
+    public WindowCloseReason CloseReason { get; }
+    public RectTransform Body { get; }
+    public RectTransform Side { get; }
+    public RectTransform Footer { get; }
+    public event Action Closed;
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `Open(modId, title, dock, build)` | `ModWindow` | Opens a window. Your build code fills it. |
+| `Find(modId, title)` | `ModWindow` | Gives the open window with this mod id and title, or `null` if none. |
+| `Close()` | `void` | Closes the window. |
+| `Run(action)` | `void` | Runs your code safely inside the window. |
+
+| Property | Type | What it means |
+|---|---|---|
+| `ModId` | `string` | The mod id the window was opened with. |
+| `Title` | `string` | The window's title. |
+| `Dock` | `WindowDock` | Where the window sits. |
+| `Faulted` | `bool` | `true` when your code threw an error and the window closed. |
+| `CloseReason` | `WindowCloseReason` | Why the window closed. |
+| `Body` | `RectTransform` | The main area. Put your controls here. |
+| `Side` | `RectTransform` | The left column of a Full window. |
+| `Footer` | `RectTransform` | A bar along the bottom of the window. |
+
+| Event | Gives you | When it fires |
+|---|---|---|
+| `Closed` | Nothing, it carries no value. | The window has closed. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
 <p class="api-type-head"><code>WindowDock</code> <span>where a window sits</span></p>
+`ModWindow.Open` takes one of these to choose where the window sits on screen.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -35,6 +90,8 @@ public enum WindowDock
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WindowCloseReason</code> <span>why a window closed</span></p>
+`CloseReason` holds one of these once the window has closed. `Requested` means your code called `Close`, and `Fault` means your code threw an error in the window.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -57,54 +114,6 @@ public enum WindowCloseReason
 | `SceneUnload` | The scene the window was opened in was unloaded. |
 | `Destroyed` | The window's object was destroyed. |
 | `Fault` | Your code threw an error. |
-
-</div>
-</div>
-
-<div class="api-type" markdown="1">
-<p class="api-type-head"><code>ModWindow</code> <span>a screen over the game</span></p>
-<div class="api-pair" markdown="1">
-
-```csharp
-public sealed class ModWindow : MonoBehaviour
-{
-    public static ModWindow Open(string modId, string title, WindowDock dock, Action<ModWindow> build);
-    public static ModWindow Find(string modId, string title);
-    public void Close();
-    public void Run(Action action);
-    public string ModId { get; }
-    public string Title { get; }
-    public WindowDock Dock { get; }
-    public bool Faulted { get; }
-    public WindowCloseReason CloseReason { get; }
-    public RectTransform Body { get; }
-    public RectTransform Side { get; }
-    public RectTransform Footer { get; }
-    public event Action Closed;
-}
-```
-
-| Method | Returns | What it does |
-|---|---|---|
-| `Open(string modId, string title, WindowDock dock, Action<ModWindow> build)` | `ModWindow` | Opens a window. Your build code fills it. |
-| `Find(string modId, string title)` | `ModWindow` | Gives the open window with this mod id and title, or `null` if none. |
-| `Close()` | `void` | Closes the window. |
-| `Run(Action action)` | `void` | Runs your code safely inside the window. |
-
-| Property | Type | What it means |
-|---|---|---|
-| `ModId` | `string` | The mod id the window was opened with. |
-| `Title` | `string` | The window's title. |
-| `Dock` | `WindowDock` | Where the window sits. |
-| `Faulted` | `bool` | `true` when your code threw an error and the window closed. |
-| `CloseReason` | `WindowCloseReason` | Why the window closed. |
-| `Body` | `RectTransform` | The main area. Put your controls here. |
-| `Side` | `RectTransform` | The left column of a Full window. |
-| `Footer` | `RectTransform` | A bar along the bottom of the window. |
-
-| Event | Gives you | When it fires |
-|---|---|---|
-| `Closed` | Nothing, it carries no value. | The window has closed. |
 
 </div>
 </div>

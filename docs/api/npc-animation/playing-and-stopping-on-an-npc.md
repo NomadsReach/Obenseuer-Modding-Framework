@@ -11,6 +11,9 @@ This is the full list of what the API gives you. In these calls, `modId` is the 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>NpcAnimation</code> <span>clips on scene NPCs</span></p>
+
+Call `Play` to start a clip on a scene NPC and `Stop` to fade it out. `IsPlaying` tells you whether one is running.
+
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -25,10 +28,10 @@ public static class NpcAnimation
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Play(string modId, int npcId, AnimationClip clip, bool loop, float fadeSeconds = 0.2f)` | `bool` | Starts a clip on an NPC. |
-| `Stop(string modId, int npcId, float fadeSeconds = 0.2f)` | `bool` | Fades the clip out. |
-| `IsPlaying(int npcId)` | `bool` | `true` while a clip runs on the NPC. |
-| `StopAll(string modId)` | `int` | Ends all clips of your mod, and returns how many. |
+| `Play(modId, npcId, clip, loop, fadeSeconds)` | `bool` | Starts a clip on an NPC. |
+| `Stop(modId, npcId, fadeSeconds)` | `bool` | Fades the clip out. |
+| `IsPlaying(npcId)` | `bool` | `true` while a clip runs on the NPC. |
+| `StopAll(modId)` | `int` | Ends all clips of your mod, and returns how many. |
 
 </div>
 </div>
