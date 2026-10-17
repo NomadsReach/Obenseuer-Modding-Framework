@@ -1,90 +1,47 @@
 ---
-title: Renovations API
-parent: API reference
-nav_order: 62
+title: Renovations
+parent: Places and travel
+grand_parent: API reference
+has_children: true
+nav_order: 9
 ---
 
-# Renovations API
+# Renovations
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
-Namespace: `ObenseuerCore`. Patch owner: `obenseuer.moddingframework.renovations`.
-Files: `src/Api/Renovations.cs`, `src/Api/RenovationsPatches.cs`.
+## What it is
 
-Everything not listed here is internal. Renovation cost and build-time tweaks stay in `TweaksRenovations`. Housing's tenement rules are in [housing page](housing.md).
+The player's building can be upgraded by contractors: new electricity, water, heating, walls, a kitchen and more. Some upgrades are for the whole building and some are for one apartment. Each upgrade is called a renovation in this API. It lets your mod list the renovations, see what state each is in, read the price and the build progress, order one, and get told when one is finished. Renovation cost and build-time tweaks are in `TweaksRenovations`. The rules for the building and its tenants are on the [Housing page](housing.md).
 
-## If a hook cannot be installed
+## When to use it
 
-The framework installs one hook, `TenementUpgradeProgress.FinishUpgrade`. If it is missing, the owner is disabled and one warning is logged to `BepInEx\logs\obenseuer.moddingframework.renovations.log`. The reads and `Start` keep working; only `Finished` stops.
+- Show which renovations the player can order and what they cost.
+- Show how far an ordered renovation has got.
+- Run code when a renovation is finished.
+- Order a renovation for the player from your mod, while the contractor menu is open.
 
-## Threading and safety
+## Quick example
 
-- Main thread only.
-- `Renovations.IsAvailable` is false when the hook was not installed or the owner was disabled.
-- Every member is safe at any time. With no save loaded, or on the main menu, `All` returns an empty list and the other reads return `0`.
-- `Start` returns `false`, and logs once, for a null or empty id. It also returns `false` while a save loads or saves (`SaveData.Busy`). Every other failure returns `false`.
-- `Finished` is raised synchronously after the game's own `FinishUpgrade` has run. A handler that throws is logged and the other handlers still run.
-
-## Ids
-
-A renovation id is `"<apartmentNumber>/<upgrade id>"`. `0` means a building-wide upgrade (the game's general upgrades, `TenementGeneral`). Apartment upgrades use the apartment number (`TenementApartment.apartmentNumber`). Read ids from `All`; the upgrade id is `TenementUpgrade.Id`.
-
-## API
+This mod writes a log line when a renovation is finished. Once a save is loaded, it also logs the renovations the player can order now, with their price.
 
 ```csharp
-public static class Renovations
-{
-    public static List<RenovationInfo> All();
-    public static RenovationInfo Get(string id);
-    public static float Progress(string id);
-    public static int Cost(string id);
-    public static bool Start(string id);
+using ObenseuerCore;
 
-    public static bool IsAvailable { get; }
-    public static event Action<RenovationInfo> Finished;
-}
-
-public enum RenovationState
+[ModInfo("example.renowatch", "Renovation Watch", "0.1.0")]
+[ModDependency("obenseuer.moddingframework", "0.11.0")]
+public sealed class RenoWatch : FrameworkMod
 {
-    Locked, Available, InProgress, AwaitingFinalPayment, Installed
-}
-
-public sealed class RenovationInfo
-{
-    public string Id { get; }              // "<apartmentNumber>/<upgrade id>"
-    public string Name { get; }            // TenementUpgrade.GetName, the game's label
-    public int ApartmentId { get; }        // apartment number, 0 for building-wide
-    public int Cost { get; }               // OC first payment (TenementUpgrade.GetPriceStartOC)
-    public int FinalCost { get; }          // RM final payment (TenementUpgrade.GetPriceFinalRM)
-    public RenovationState State { get; }
+    protected override void OnLoad()
+    {
+        Renovations.Finished += info => Log.Info(info.Name + " is finished (apartment " + info.ApartmentId + ").");
+        Events.WhenReady(() =>
+        {
+            foreach (RenovationInfo info in Renovations.All())
+            {
+                if (info.State == RenovationState.Available) Log.Info(info.Name + " can be ordered for " + info.Cost + " OC.");
+            }
+        });
+    }
 }
 ```
 
-- `All` lists every renovation the game defines for the building and for each apartment: the general upgrade groups and each apartment type's groups (`TenementUpgradeGroup.updateGroup`). Duplicates in one scope are dropped. A renovation is listed whether or not it is available. An upgrade that throws while it is described is skipped and logged once; the rest of the list is still returned.
-- `Get(id)` returns one entry of `All`, or `null` when the id is not found.
-- `State`:
-  - `Installed`: `TenementUpgrade.IsUpgraded` is true.
-  - `InProgress`: an order is being built.
-  - `AwaitingFinalPayment`: the building work is done (`upgradeReady`). The player pays the RM final payment in the game's upgrade panel. This API does not pay it.
-  - `Available`: the upgrade's required upgrades are installed (`TenementUpgrade.CanUpgrade` without items) and no other upgrade in the same line (the same `TenementUpgradeGroup`, for example electricity of one apartment) is `InProgress` or `AwaitingFinalPayment`. The game's upgrade panel locks a line the same way.
-  - `Locked`: anything else. This includes an upgrade whose line has another upgrade ordered or awaiting its final payment.
-- `Progress` is `0` when not ordered, the game's build progress (`TenementUpgradeProgress.GetCurrentProgress`) while `InProgress`, and `1` when `Installed` or `AwaitingFinalPayment`.
-- `Cost` is the OC first payment after any `TweaksRenovations.CostMultiplier`, because the game's own `GetPriceStartOC` is what the tweak patches.
-- `Start` orders a renovation through the game's own order path, `TenementApartment.StartUpdate` or `TenementGeneral.StartUpdate`. The game charges the OC first payment and the required items inside that call (`TenementUpgrade.TakeRequiredItemsAndMoney`). It returns `false` without calling the game unless all of these hold:
-  - the contractor menu is open (`TenementController.contractorOpen`) and a contractor is set;
-  - the renovation is `Available`;
-  - the contractor offers the upgrade for that apartment size (`TenementContractor.CanUpgrade`);
-  - unless `TenementController.ignoreUpgradePricesAndItems` is set: the player can pay the OC first payment (`Money.CheckMoney`) and holds the required items (`TenementUpgrade.CanUpgrade` with items).
-- After a successful order `Start` does what the upgrade panel does around the order: it removes the started upgrade and the lower upgrades of its line from the marked list (`TenementController.RemoveSupersededMarkedUpgrades`), closes the upgrade panel if it is open, and refreshes the floor buttons (`BlueprintManager.UpdateAll`), so a panel opened before the call cannot order the same upgrade a second time. `Start` does not do the developer "complete instantly" path.
-- `Start` returns `true` only when the game returned the new order. The OC first payment and the items are taken by the game inside that call; a failed `Start` that returned `false` before the game call has charged nothing.
-- `Finished` fires after `TenementUpgradeProgress.FinishUpgrade`, which applies the upgrade to the building. It runs for the player's final payment. It does not run for silent orders (`TenementUpgradeProgress.FinishUpgrade(true)`, used by scene set-up through `TenementUpgradeStart`), which have no payment, task or achievement. The payload is the renovation as `Installed`.
-
-## Not wrapped
-
-- The final RM payment and the act of finishing an upgrade by hand. That is the player's action in the upgrade panel (`UpgradeUI.OnPressed`). No public call is exposed.
-- Requested build-time overrides and silent orders (`TenementUpgradeStart.Upgrade`). Only the game's default order is made.
-- Marking an upgrade with the star (`TenementController.MarkUpgrade`).
-- Apartment condition and cleaning: see [cleaning page](cleaning.md).
-
-## Save loads
-
-The framework does not gate this event on a save load. A handler that should ignore events raised while a save loads can check `SaveData.Busy`, which is true while a save is loading or being written.
+`Finished` is an event: the framework calls your code each time it happens. OC is Open Sewer Coins, the game's everyday money, and RM is Real Money, its second currency (see the glossary entries [OC](../glossary.md#oc) and [RM](../glossary.md#rm)). See [Using events](../guides/getting-started/using-events.md) for more on events and `WhenReady`.

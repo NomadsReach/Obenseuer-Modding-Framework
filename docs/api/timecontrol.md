@@ -1,72 +1,40 @@
 ---
-title: TimeControl API
-parent: API reference
-nav_order: 95.2
+title: Time control
+parent: Places and travel
+grand_parent: API reference
+has_children: true
+nav_order: 14
 ---
 
-# TimeControl API
+# Time control
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
-Namespace: `ObenseuerCore`. Patch owner: `obenseuer.moddingframework.timecontrol`.
-Files: `src/Api/TimeControl.cs`, `src/Api/TimeControlPatches.cs`.
+## What it is
 
-This area changes how fast the in-game clock runs. It also gives in-game minute timers and a minute event. It does not change the date.
+The game has a clock that runs through the day and night. This API lets your mod make that clock run faster or slower, run a piece of code after a number of in-game minutes, and get told each time an in-game minute passes. It does not change the date or the time of day. To set those, see [World](world.md).
 
-## If a hook cannot be installed
+## When to use it
 
-The framework installs one prefix on `AzureTimeController.SetNewDayLength(float)`. If it fails, `TimeControl.IsAvailable` is `false` and `TimeScale` stays at `1`. `In`, `Cancel`, `MinutePassed` and `SecondsPassed` keep working, because they do not use the prefix.
+- Speed time up or slow it down for a while, for example during an event.
+- Run something "in 30 minutes" of game time, such as a delivery arriving.
+- Do something every in-game minute, such as a small clock or a counter.
 
-## API
+## Quick example
 
-```csharp
-public static bool IsAvailable { get; }
-public static float TimeScale { get; }
-public static float DayLengthMinutes { get; }
-public static bool SetTimeScale(string modId, float scale);
-public static bool ClearTimeScale(string modId);
-public static int In(string modId, int inGameMinutes, Action action);
-public static bool Cancel(string modId, int handle);
-public static event Action MinutePassed;
-public static event Action<int> SecondsPassed;
-```
-
-- `TimeScale` is the value in effect: the newest scale any mod set, or `1` when none is set.
-- `DayLengthMinutes` is the game's own day length, read only. It is `0` when no time controller exists.
-- `SetTimeScale` returns `false` for an empty mod id, a scale that is not above zero or an unavailable hook. `SetTimeScale`, `ClearTimeScale`, `In` and `Cancel` work inside `Events.SceneLoaded` and while a save loads or saves, because nothing they set is saved. A call made while a save loads can still be dropped (see Save loads). The scale is clamped to 0.01 to 100.
-- `In` returns a handle above zero, or `0` when refused. `Cancel` returns `true` only when the handle belongs to the same mod id.
-- `SecondsPassed` gives the number of in-game seconds the clock moved in that frame.
-
-## Example
+This mod runs the clock twice as fast. It also logs a line when 30 in-game minutes have passed since the mod started. The first argument to each call is your mod's id.
 
 ```csharp
-TimeControl.SetTimeScale("com.example.mymod", 2f);
-int handle = TimeControl.In("com.example.mymod", 30, () => CoreLog.For("com.example.mymod").Info("30 in-game minutes passed"));
-TimeControl.ClearTimeScale("com.example.mymod");
+using ObenseuerCore;
+
+[ModInfo("example.timewatch", "Time Watch", "0.1.0")]
+[ModDependency("obenseuer.moddingframework", "0.11.0")]
+public sealed class TimeWatch : FrameworkMod
+{
+    protected override void OnLoad()
+    {
+        TimeControl.SetTimeScale(Mod.Id, 2f);
+        TimeControl.In(Mod.Id, 30, () => Log.Info("30 in-game minutes passed."));
+    }
+}
 ```
 
-## Behaviour
-
-- The scale multiplies the day length that the game passes to its time controller every frame. A scale of 2 makes the clock run twice as fast. The game's own sleep, crafting and card game speed-ups still apply, multiplied by this scale.
-- The framework never writes `Time.timeScale` or the game's `timeSpeedOverrideFactor`. The game's pause sets `Time.timeScale` to 0 and back to 1, so the clock stops and starts with the pause and nothing needs restoring.
-- Newest call wins. Each mod keeps its own scale. When the newest mod clears, the scale set before it applies again.
-- The player's Tweaks time setting is a separate multiplier, and it multiplies with this scale.
-- Scales and `In` timers drop when a save is loaded from the menu or the pause menu, when the main menu loads, and when a new game starts. A level change keeps them, so a scale or timer set in one level still applies in the next. A call made while a save loads can be dropped by the load clear. Set it again from `Events.WhenReady`, which runs after the load.
-- `In` counts `MinutePassed` events, not game minutes. The game raises `MinutePassed` once each time the minute value changes. At a high time scale a frame can skip a minute, so the timer fires late by that minute. A tick that arrives while the game is saving or loading is dropped, so the timer also runs late by that tick.
-- A callback that throws is logged, and the other callbacks still run.
-- Events are not raised while a save loads or saves. Writes are not gated by `SaveData.Busy`, so a write during a load can be dropped by the load clear above.
-
-## Not exposed
-
-- Setting the date. Perishables, mail, invoices, subscriptions and other systems store absolute dates, and the day counter does not follow a jump. See [world.md](world.md).
-- The game's own timer list. The game saves timer callbacks by reference, so `In` keeps its own list.
-- The game's `timeSpeedOverrideFactor`. The game writes it in several places, so a mod write would be undone.
-- NPC path positions read the game's own day length, not this scale.
-
-## Ceilings and risks
-
-- At high scales `In` runs late, as described under Behaviour.
-- Timers are not saved. A timer set before a save is lost when that save is loaded from the main menu.
-
-## Save loads
-
-Scales and timers are kept in memory only, and nothing is written to the save.
+The framework forgets your speed and your timers when the player loads a save or starts a new game, so to keep a speed or timer you set it again after the load. See "When the framework forgets your settings" below. `Mod.Id` is your mod's id, the one in your `ModInfo`.

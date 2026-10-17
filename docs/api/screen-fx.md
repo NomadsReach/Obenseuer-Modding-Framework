@@ -1,143 +1,50 @@
 ---
-title: ScreenFx API
-parent: API reference
-nav_order: 68
+title: Screen effects
+parent: Screen and UI
+grand_parent: API reference
+has_children: true
+nav_order: 3
 ---
 
-# ScreenFx API
+# Screen effects
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
-Namespace: `ObenseuerCore`. Patch owners: `obenseuer.moddingframework.screenfx` for the FOV override, and `obenseuer.moddingframework.screenfx.blur` for the blur.
-Files: `src/Api/ScreenFx.cs`, `src/Api/ScreenFxPatches.cs`, `src/Api/ScreenFxVignette.cs`, `src/Api/ScreenFxBlur.cs`.
+## What it is
 
-Everything not listed here is internal.
+ScreenFx changes how the screen looks while the game runs. It can shake the camera, fade the screen to black and back, change the message shown when the player dies, change the camera's field of view (how wide the view is, which is how you make a zoom), darken the edges of the screen with a coloured vignette, and blur the picture. Effects that take an `owner` belong to your mod, so you clear them with the matching `Clear` call when you are done. The `owner` is your mod's id (see the [glossary](../glossary.md#owner)).
 
-Use `ScreenFx` for screen effects: camera shake, fade to black and back, the death message, a field of view override (for a zoom), a screen edge vignette and a blur. Effects that take an `owner` are tied to your mod id and are cleared with the matching `Clear` call.
+## When to use it
 
-## If a hook cannot be installed
+- Add a zoom key by narrowing the field of view while a key is held.
+- Shake the screen for an explosion or a hit, or fade to black for a scene change.
+- Tint the screen edges red when the player is hurt, or blur the picture while your own menu is open.
+- Change the text on the death screen to fit your mod.
 
-The framework installs the FOV override hooks (`Update` and `SetFOV` on `SetCameraFOV`) under one owner. If either is missing, the owner is removed and `ScreenFx.IsAvailable` becomes `false`. Shake, the fades and the death message do not depend on the hooks and keep working.
+## Quick example
 
-The blur hooks are on `EffectsController` (`EnableBlur`, `DisableBlur`, `ChangeBeautifyProfiles` and `ChangeBeautifyProfilesToDefault`) under their own owner. If one is missing, `Blur` returns `false`, and `ClearBlur` still runs. The FOV override is not affected.
-
-## ScreenFx
+This mod adds a zoom key. While the player holds Z, the view narrows to 30 degrees. When the key is let go, the player's normal view comes back.
 
 ```csharp
-public static class ScreenFx
-{
-    public static bool Shake(float duration, float amount);
-    public static bool FadeToBlack(float speed = 0.1f);
-    public static bool FadeIn(float speed = 0.1f);
-    public static bool FadeToBlack(string owner, float speed);
-    public static bool FadeIn(string owner, float speed);
-    public static bool SetDeathMessage(string text);
-    public static bool SetFovOverride(float fov);
-    public static bool ClearFovOverride();
-    public static bool SetFovOverride(string owner, float fov);
-    public static bool ClearFovOverride(string owner);
-    public static bool Vignette(string owner, Color color, float strength);
-    public static bool Vignette(string owner, Color color, float strength, float fadeSeconds);
-    public static bool ClearVignette(string owner);
-    public static bool Blur(string owner, float amount);
-    public static bool Blur(string owner, float amount, float fadeSeconds);
-    public static bool ClearBlur(string owner);
+using ObenseuerCore;
+using UnityEngine;
 
-    public static bool IsAvailable { get; }
+[ModInfo("example.zoom", "Zoom", "0.1.0")]
+[ModDependency("obenseuer.moddingframework", "0.11.0")]
+public sealed class ZoomMod : FrameworkMod
+{
+    private ModKeybind zoom;
+
+    protected override void OnLoad()
+    {
+        zoom = Mod.Key("Zoom", "Zoom in", KeyCode.Z);
+    }
+
+    private void Update()
+    {
+        if (zoom == null) return;
+        if (zoom.Down()) ScreenFx.SetFovOverride(Mod.Id, 30f);
+        if (zoom.Up()) ScreenFx.ClearFovOverride(Mod.Id);
+    }
 }
 ```
 
-- Each method returns `true` when the game call was made, and `false` when the game object is missing (`CameraShake.instance`, `BlackCanvas.instance`, `BlackCanvas.fadeCanvasGroup`, `DeathMessage.instance`), for example on the main menu or while loading. `Shake`, `FadeToBlack` and `SetDeathMessage` also return `false` while a save loads or saves (`SaveData.Busy`). `FadeIn` always runs, so the screen can clear during a save.
-- Invalid arguments throw `ArgumentException`: `duration` must be greater than 0 and finite, `amount` must not be negative and must be finite, `speed` must be greater than 0, and `text` must not be `null`. Nothing else throws to the caller.
-
-## Threading and safety
-
-- Main thread only.
-- Each call runs inside a try/catch that logs once and returns `false`.
-
-## Shake
-
-- `Shake(duration, amount)` calls the game's static `CameraShake.Shake`. `duration` is in seconds and `amount` is the maximum offset per frame, in world units.
-- A new shake replaces the one in progress. The game's `Shake` stops its own coroutine first, so a mod shake cancels a game shake and the reverse. Health hits use the same call.
-- The shake pauses while `PauseMenu.paused` is set.
-- A shake in progress is restored first. Before a new shake, the camera goes back to the base position from before the running shake, so an interrupted shake leaves no offset. This is done only while a shake is running, and it covers game shakes too.
-
-## FadeToBlack and FadeIn
-
-- `FadeToBlack(speed)` calls the game's `BlackCanvas.FadeIn`. It fades the black canvas up to full black and leaves it there until `FadeIn` runs. It does not change player controls. The fade's alpha is on the `CanvasGroup` inside `BlackCanvas.fadeCanvasGroup` (its private `canvasGroup` field). A mod that wants to know whether the screen is black should not read `BlackCanvas.canvasGroup`, which is the instant overlay.
-- `FadeIn(speed)` calls `fadeCanvasGroup.StartFadeOut(speed)` on the same canvas, the `fadeCanvasGroup` that `FadeToBlack` drives. That is what the game's `BlackCanvas.FadeOut` does, minus the call that switches player controls back on.
-- Why the facade skips `BlackCanvas.FadeOut`: `ControlsEnabled` removes only its own holder. It also resets the two camera look flags unconditionally (`ControlsEnabledMove`, which calls `ThirdPersonCameraController.EnableMovement` and `EnableFirstPersonMovement`). A fade from a mod during dialogue or a cutscene would free the camera that the cutscene locked. The facade does the same fade without that call. Do not call `BlackCanvas.ShowBlackCanvas` either: it disables movement and keys.
-- `speed` is the game's fade step per tick. The game's `StartFadeInAndOut` uses `0.1f` by default, and that is the default here. The game also uses `0.5f` for tenement fades. Smaller values are slower. Steps are paced by `WaitForSecondsRealtime`, and the canvas's `realTime` flag changes the step size.
-- A new fade on the same canvas stops the one in progress (`FadeCanvasGroup`). The game uses the same canvas for its own blackouts (`BlackoutTrigger`), treatment, dialogue and tenement fades. A mod's `FadeIn` can lift a black screen the game is holding, and a mod's `FadeToBlack` can cut off a game fade in progress.
-- Owners: `FadeToBlack(owner, speed)` counts per owner, and `FadeIn(owner, speed)` takes one count off. The screen fades back in only when no owner holds a count, so mod B's `FadeIn` does not lift mod A's black screen. `FadeIn(owner, speed)` returns `false` for an owner with no count, and `true` when the count was taken, even while another owner keeps the screen black. `owner` must be a valid mod id.
-- `FadeToBlack(speed)` and `FadeIn(speed)` with no owner use one shared entry that is held or not, never counted. `FadeIn(speed)` releases it and fades in only when no owner holds the screen, otherwise it returns `false`. With no owner at all it fades in as before, so it can still lift a game blackout.
-- A Single scene load drops every count. It does not fade in, so a game fade is not cut off.
-- Nothing is saved. Restore a faded screen with `FadeIn`.
-
-## SetDeathMessage
-
-- `SetDeathMessage(text)` calls `DeathMessage.ChangeDeathMessage`, which sets the reason text.
-- The text stays until the game calls `ChangeDeathMessage` again. The game does so in `PlayerStatsUI`. Set the text just before the death screen is shown (`Death`, `ShowDeathMessage`), or it may be replaced.
-- Nothing is saved.
-
-## FOV override
-
-- `SetFovOverride(fov)` stores the value in memory. While it is set, `SetCameraFOV.Update` and `SetCameraFOV.SetFOV` do not copy the saved display FOV. They write the override into the camera's `fieldOfView`. It returns `true` when the value is stored. It returns `false` when `IsAvailable` is `false`. It works inside `Events.SceneLoaded` and while a save loads or saves.
-- The value is clamped to 30 to 120 degrees. The clamp is not taken from the game's settings slider, because the slider's min and max are serialized on the UI slider and are not in the game code. A `NaN` or infinite value throws `ArgumentException`.
-- `ClearFovOverride()` removes the value. On the next frame `SetCameraFOV.Update` finds the camera different from `DisplaySave.fov` and writes the saved FOV back. It returns `true` when a value was cleared, and `false` when none was set.
-- `DisplaySave` is never written, so the player's saved FOV and the options screen are unchanged. The override is not saved. Only a `Single` scene load clears it, so an additive streaming load keeps it. The clear runs before the `SceneLoaded` event reaches any mod, so a mod that sets the override from its `Events.SceneLoaded` handler keeps it. Nothing clears it on a menu open or close, so it stays through the pause menu until the next single scene load or `ClearFovOverride`.
-- While the override is set, the options menu FOV slider still changes the saved display FOV and its number, but the camera does not follow it, because `SetCameraFOV.Update` is skipped. The slider looks as if it does nothing until the override is cleared or the scene loads.
-- `RadiationEffectUI` passes the saved `DisplaySave.fov` to `RadiationController.LookingAtRadiation`, not the camera FOV, so while the override is set its radiation check uses the saved FOV.
-- The override applies to every camera that has a `SetCameraFOV` component. If the hook throws, the error is logged once and the game's own code runs for that frame.
-- Owners: `SetFovOverride(owner, fov)` and `ClearFovOverride(owner)` keep one value per mod id, so two mods do not overwrite each other silently. The last owner to set a value is the one applied. When that owner clears, the value of the owner set before it applies again. `SetFovOverride(fov)` and `ClearFovOverride()` with no owner use one shared entry of their own, so they never remove an owner's value. A `Single` scene load clears every entry.
-- Per-frame reset, checked in the game code: `SetCameraFOV.Update` writes `fieldOfView` only when it differs from `DisplaySave.fov`, and `SetFOV` always writes it. The framework's FOV prefix returns `false` while an override is set, so the game's write does not run and the override holds through the reset.
-- Zoom: this facade is the zoom API. A zoom key calls `SetFovOverride(owner, fov)` on press and `ClearFovOverride(owner)` on release. See [player page](player.md) for the camera.
-
-Zoom example, from a mod's `Update`. The owner is the mod id. Clearing it restores the saved FOV on the next frame:
-
-```csharp
-ModKeybind zoom = Keybinds.Register("com.example.zoom", "zoom", "Zoom", KeyCode.Z);
-
-void Update()
-{
-    if (zoom.Down()) ScreenFx.SetFovOverride("com.example.zoom", 30f);
-    if (zoom.Up()) ScreenFx.ClearFovOverride("com.example.zoom");
-}
-```
-
-## Vignette
-
-- `Vignette(owner, color, strength)` draws a tinted darkening at the screen edges. It is an overlay on top of the game's picture. It does not change the game's own vignette, post-processing or camera.
-- `Vignette(owner, color, strength, fadeSeconds)` does the same, and moves the shown color and strength to the new values over `fadeSeconds`. A fade runs in real time, so it keeps going while the game is paused. `fadeSeconds` of 0 is the same as the three-argument overload. A new fade starts from the values on screen, so a change during a fade does not jump.
-- `color` is the tint. Its alpha multiplies the overlay alpha. Any `NaN` or infinite `r`, `g`, `b` or `a` throws `ArgumentException` with the name `color`.
-- `strength` is clamped to 0 to 1 and scales two things at once: how far the darkening reaches toward the centre, and how dark it is at the edge. Both go down together, so a strength of 0.5 looks much weaker than half of a strength of 1. A strength of 0 keeps the entry but shows nothing.
-- `ClearVignette(owner)` removes the owner's entry. It returns `true` when an entry was removed and `false` when the owner had none.
-- Owners work as the FOV override does: one entry per mod id, and the last owner to set a value is the one shown. When that owner clears, the entry set before it shows again, with the values it had.
-- At most 4 owners hold a vignette at once, the same cap `Hud.Bar` puts on bars. An owner beyond the cap is refused: `Vignette` returns `false` and logs once. An owner that already holds an entry can keep setting it.
-- `strength` that is `NaN` or infinite throws `ArgumentException`. `fadeSeconds` that is `NaN`, infinite or negative throws `ArgumentException`. `owner` must be a valid mod id.
-- Setting a vignette works while a save loads or saves, because it saves nothing. `ClearVignette` always runs.
-- The overlay does not depend on the FOV hook. It keeps working when `IsAvailable` is `false`.
-- A `Single` scene load removes every entry. An additive load keeps them.
-- The overlay is a screen-space canvas with its own object, kept across scenes. It does not block input.
-- It draws over the 3D image and under the game's own overlay canvases, such as the HUD, menus and the black fade. The framework's computer app overlay and mod windows also draw above it.
-- A game canvas in Screen Space Camera or World Space mode draws under the vignette whatever its sort order.
-- Nothing is saved.
-
-## Blur
-
-- `Blur(owner, amount)` blurs the 3D picture, the same effect as the game's menu blur. `Blur(owner, amount, fadeSeconds)` does the same, and moves the blur to the new amount over `fadeSeconds`. A fade runs in real time, so it keeps going while the game is paused. `fadeSeconds` of 0 is the same as the two-argument overload. A new fade starts from the amount on screen.
-- `amount` is clamped to 0 to 1. It maps onto the game's `Beautify.blurIntensity`, which runs from 0 to 4, so 1 is the strongest blur and 0 is no blur.
-- The blur is a camera effect. A Screen Space Overlay canvas is drawn after the cameras, so it is not blurred. A canvas in Screen Space Camera mode is drawn by its camera, so it is blurred.
-- The game turns its own blur on while a menu is open and off when it closes. While a mod holds a blur, the framework keeps it on through those changes. When the last owner clears, the game's state comes back: blur on while a menu is open, off otherwise. The game's intensity comes back too.
-- A game profile load (`ChangeBeautifyProfiles` or `ChangeBeautifyProfilesToDefault`) replaces the blur settings. The framework takes the new profile values as the game's state and holds the mod's blur again.
-- Owners work as the vignette does: one entry per mod id, and the last owner to set a value is the one shown. When that owner clears, the entry set before it shows again.
-- At most 4 owners hold a blur at once, as the vignette and `Hud.Bar` do. An owner beyond the cap is refused: `Blur` returns `false` and logs once. An owner that already holds an entry can keep setting it.
-- `ClearBlur(owner)` removes the owner's entry. It returns `true` when an entry was removed and `false` when the owner had none.
-- `amount` that is `NaN` or infinite throws `ArgumentException`. `fadeSeconds` that is `NaN`, infinite or negative throws `ArgumentException`. `owner` must be a valid mod id.
-- Setting a blur works while a save loads or saves, because it saves nothing. It returns `false` while the blur hooks are unavailable. `ClearBlur` always runs.
-- The blur does not depend on the FOV hook. It works when `ScreenFx.IsAvailable` is `false`.
-- A `Single` scene load removes every blur entry and returns the game's values. An additive load keeps the entries and applies them to any game camera it adds.
-- Nothing is saved.
-
-## Not included
-
-- The vignette does not change the game's own vignette, and it does not read or write the game's post-process settings.
+`Mod.Key` makes a key the player can see and change in the Mods menu. `Down()` is `true` on the frame the key is pressed and `Up()` on the frame it is let go. `Update` runs every frame. See [Keybinds](../guides/getting-started/keybinds.md) for more on keys. The first argument of `SetFovOverride` is `Mod.Id`, your mod's id.

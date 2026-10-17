@@ -1,77 +1,44 @@
 ---
-title: Flood Gates API
-parent: API reference
-nav_order: 22
+title: Flood gates
+parent: Objects and devices
+grand_parent: API reference
+has_children: true
+nav_order: 6
 ---
 
-# Flood Gates API
+# Flood gates
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
-Namespace: `ObenseuerCore`. Patch owner: `obenseuer.moddingframework.floodgates`.
-Files: `src/Api/FloodGates.cs`, `src/Api/FloodGatesPatches.cs`.
+## What it is
 
-Use this to read the flood gates in the scene, open, close or power one, and react when a gate changes.
+A flood gate is a big powered gate that slides open or shut. It has a green light for open and a red light for closed, and it usually takes about ten seconds to move. This API lets your mod list the flood gates in the scene, check whether each one is open and has power, open or close one, switch its power on or off, and get told when one is commanded open or closed.
 
-Everything not listed here is internal.
+## When to use it
 
-## If a hook cannot be installed
+- Open or close a gate as part of a quest or a puzzle.
+- Cut or restore a gate's power.
+- React when the player or the game opens or closes a gate.
 
-The framework installs the `OpenFloodGate` and `CloseFloodGate` hooks under one owner. If either is missing, both are removed, `FloodGates.IsAvailable` becomes false, and one warning is logged. The reads, `Open` and `Close` keep working; only the event stops.
+## Quick example
 
-## Threading and safety
-
-- Main thread only.
-- Every member is safe at any time. With no scene loaded, or on the main menu, reads return an empty list, `null` or `false`.
-- Writes return `bool`. Nothing throws to the caller. An unknown or empty id returns `false`.
-- `Open` and `Close` go through the game's `OpenFloodGate` and `CloseFloodGate`. They return `true` only when the gate's state actually changed. The game refuses while the gate is in an alarm, while it is powered off, or while it is moving with the press-on-blinking setting off, and then `Open` and `Close` return `false`.
-- `Changed` is raised synchronously. It is not raised while a save loads.
-- `Open` returns `false` while a save is loading or being written.
-- `Close` returns `false` while a save is loading or being written.
-
-## Flood gates
+This mod writes a log line whenever a flood gate is told to open or close. Once a save is loaded, it also logs every gate in the scene and whether it is open and powered.
 
 ```csharp
-public static class FloodGates
+using ObenseuerCore;
+
+[ModInfo("example.gatewatch", "Gate Watch", "0.1.0")]
+[ModDependency("obenseuer.moddingframework", "0.11.0")]
+public sealed class GateWatch : FrameworkMod
 {
-    public static List<FloodGateInfo> All();
-    public static FloodGateInfo Get(string id);
-    public static bool IsOpen(string id);
-    public static bool IsPowered(string id);
-    public static bool Open(string id);
-    public static bool Close(string id);
-    public static bool SetPowered(string id, bool on);
-
-    public static event Action<FloodGateChangedArgs> Changed;
-
-    public static bool IsAvailable { get; }
-}
-
-public sealed class FloodGateInfo
-{
-    public string Id { get; }              // the save GUID, or a scene path when it has none
-    public string Name { get; }            // the GameObject name
-    public bool IsOpen { get; }            // the gate is commanded open, including while it is still moving
-    public bool IsPowered { get; }         // false after the gate was turned off
-}
-
-public sealed class FloodGateChangedArgs
-{
-    public string Id { get; }              // the same id as FloodGateInfo.Id
-    public bool IsOpen { get; }            // the new open state
+    protected override void OnLoad()
+    {
+        FloodGates.Changed += args => Log.Info("Flood gate " + args.Id + (args.IsOpen ? " is opening." : " is closing."));
+        Events.WhenReady(() =>
+        {
+            foreach (FloodGateInfo gate in FloodGates.All())
+                Log.Info(gate.Name + " is " + (gate.IsOpen ? "open" : "closed") + (gate.IsPowered ? "" : " and has no power"));
+        });
+    }
 }
 ```
 
-## Notes
-
-- `IsOpen` reads the game's `open` flag. The flag changes when the gate is commanded, not when it reaches the end of its travel. A gate that is still closing reads as closed.
-- `IsPowered` reads the game's `powerOff` flag, inverted.
-- `Changed` fires only when `IsOpen` changes. A power change through `SetPowered` does not raise `Changed`, because `Changed` tracks `IsOpen` only. `SetPowered(id, true)` on a gate that is moving can still reverse it through the game's `OpenFloodGate` or `CloseFloodGate`, and that raises `Changed`.
-
-## Power
-
-- `SetPowered(id, on)` calls the game's `TurnOn` or `TurnOff`. It returns `true` when `IsPowered` now equals `on`. It returns `false` for an unknown or empty id, when the gate is already in that power state, and while `SaveData.Busy` is set. It refuses, like `Open` and `Close`, instead of repeating the state.
-- Power on after a power-off during travel has two results, by the game's `allowPressOnBlinking` (default true, `FloodGateControl`). Power off stops the travel and timer coroutines (`TurnOff` calls `StopCoroutines`), and the blinking flag stays set, so the next power-on takes the move's branch in `TurnOn`. With `allowPressOnBlinking` true the move reverses (`OpenFloodGate` or `CloseFloodGate`, which raise `Changed`). With it false, the gate snaps: `TurnOn` calls `FullyClosed` or `FullyOpen` (`FloodGateControl`, `FullyClosed`), which sets the rest light, fires the closed or open relay and clears the blinking flag, so the gate reads as at the end of the move in progress at once. No travel coroutine runs on that path. The physical position of the gate after the snap is not known.
-- Saved: the power flag is `powerOff`, a `[fsProperty]` field, written by `OnSavingGame`. A power state set through the API survives a save and load.
-- `TurnOn` fires the game's relay for the state the gate is in: `onClosed` for a closed gate, `onOpen` for an open one, and `onAlert` for an alarmed one, which also restarts the alarm.
-- `TurnOff` fires no relay. It stops the travel coroutines and turns the lights off.
-- Risk: `TurnOff` does not clear `isBlinking`. A gate turned off mid-travel stays marked as moving. A save made then restores the travel on load, and `OnLoadingGame` starts `Open()` or `Close()` without checking `powerOff`. So the gate can move while unpowered after a load. No game code calls `TurnOn` or `TurnOff`, so the game reaches them through scene wiring that is not in the code.
+`Changed` is an event: the framework calls your code each time it happens. `Events.WhenReady` waits until a save is loaded before it runs your code. See [Using events](../guides/getting-started/using-events.md).

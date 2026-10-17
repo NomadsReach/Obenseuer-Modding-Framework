@@ -1,59 +1,141 @@
 ---
-title: Obenseuer Modding Framework start choices API (new-game picks)
-parent: API reference
-nav_order: 77
+title: Start choices
+parent: Framework basics
+grand_parent: API reference
+nav_order: 11
 ---
 
-# Obenseuer Modding Framework start choices API (new-game picks)
+# Start choices
 
-Experimental.
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
-Namespace: `ObenseuerCore`. Log owner: `obenseuer.moddingframework.startchoices`. Logs go to `BepInEx\logs\obenseuer.moddingframework.startchoices.log`.
+Status: experimental.
 
-Everything not listed here is internal. Main thread only.
+## What it is
 
-Scope: the picks the player makes on the new-game start selection screen, such as a family, a partner or a police record. The game keeps them in `StartManager.selectedSelections` and saves them with the game.
+When the player starts a new game, the game shows a start selection screen where they pick how their character begins: a family, a partner, a police record and so on. This API lets your mod read those picks, check whether a certain pick was made, see whether the character starts married, in a relationship or single, and hear about each pick as the player makes it. It only reads. It cannot add, remove or change a pick.
 
-## Rules
+## When to use it
 
-- **Read-only.** No writes. The facade does not add, remove or change picks.
-- **Snapshot.** `Selected()` copies each pick into a new `StartChoiceInfo`. Changing the game's list later does not change a copy. `Chosen` gives copies too.
-- **Bad arguments.** `Has(null)` returns `false` and is logged once. A missing start manager gives empty results, not errors.
+- Change what your mod does based on how the player started, such as a different welcome message for a character with a police record.
+- Check whether the player picked a certain start with `Has`.
+- React the moment the player makes a pick on the start screen.
 
-## API
+## Quick example
+
+This mod writes a log line each time the player makes a pick on the start screen. Once a save is loaded, it also logs the picks so far and whether the character is married.
+
+```csharp
+using ObenseuerCore;
+
+[ModInfo("example.startwatch", "Start Watch", "0.1.0")]
+[ModDependency("obenseuer.moddingframework", "0.11.0")]
+public sealed class StartWatch : FrameworkMod
+{
+    protected override void OnLoad()
+    {
+        StartChoices.Chosen += args => Log.Info("The player picked " + args.Title + " (" + args.Id + ").");
+        Events.WhenReady(() =>
+        {
+            foreach (StartChoiceInfo pick in StartChoices.Selected())
+                Log.Info("Start pick: " + pick.Title);
+            Log.Info("Relationship: " + StartChoices.Relationship);
+        });
+    }
+}
+```
+
+`Chosen` is an event: the framework calls your code each time it happens. A game that is loaded from a save never fires it, which is why the example reads `Selected()` as well. See [Using events](../guides/getting-started/using-events.md).
+
+## Common tasks
+
+Check whether the player picked a certain start. The id is the pick's id in the game, for example `Police`.
+
+```csharp
+if (StartChoices.Has("Police")) Log.Info("This character has a police record.");
+```
+
+Add up the money the player's picks gave them.
+
+```csharp
+int oc = 0;
+int rm = 0;
+foreach (StartChoiceInfo pick in StartChoices.Selected())
+{
+    oc += pick.Oc;
+    rm += pick.Rm;
+}
+Log.Info("The picks gave " + oc + " OC and " + rm + " RM.");
+```
+
+Say what the character's relationship is.
+
+```csharp
+string relationship = StartChoices.Relationship;
+Log.Info(relationship == null ? "The start manager is not loaded yet." : "The character is: " + relationship);
+```
+
+## Reference
+
+This is the full list of what the API gives you. In every code block, the comments say what each member gives you or does. A line starting with `Technical:` holds extra detail for experienced modders. You can skip it on a first read.
+
+### Start picks
+
+A pick is one choice the player made on the start screen. Each pick you get is a `StartChoiceInfo`, a copy taken when you asked. Changing the game's list later does not change a copy you already hold.
 
 ```csharp
 public static class StartChoices
 {
-    public static bool IsAvailable { get; }
+    public static bool IsAvailable { get; }           // false when the framework could not set up the Chosen event
     public static List<StartChoiceInfo> Selected();   // the picks so far, in the order the player made them
     public static bool Has(string id);                // true when a pick has this id, for example "Police"
     public static string Relationship { get; }        // "Married", "In a relationship" or "Single"; null before the start manager exists
-    public static event Action<StartChoiceArgs> Chosen;
+    public static event Action<StartChoiceArgs> Chosen;   // the player has just made a pick
 }
 
-public sealed class StartChoiceInfo
+public sealed class StartChoiceInfo    // a copy of one pick
 {
-    public string Id { get; }
-    public string Title { get; }
-    public string Description { get; }                // the raw description text, without the addiction lines the start menu adds
-    public int Oc { get; }                            // money the pick gives, in OC
-    public int Rm { get; }                            // money the pick gives, in RM
+    public string Id { get; }            // the pick's id in the game
+    public string Title { get; }         // the name shown on the start screen
+    public string Description { get; }   // the pick's description text, without the addiction lines the start screen adds
+    public int Oc { get; }               // the money the pick gives, in OC (Open Sewer Coins)
+    public int Rm { get; }               // the money the pick gives, in RM (Real Money)
 }
 
-public sealed class StartChoiceArgs
+public sealed class StartChoiceArgs    // what Chosen tells you
 {
-    public string Id { get; }
-    public string Title { get; }
+    public string Id { get; }            // the pick's id
+    public string Title { get; }         // the name shown on the start screen
 }
 ```
 
-- `Selected()` returns an empty list before the start manager exists, when no pick was made, and it skips empty entries.
-- `Relationship` is `Married` when a pick has the id `Family`, `In a relationship` when a pick has the id `Girlfriend` or `Boyfriend`, and `Single` otherwise. The first matching pick in list order decides, as the game does. It is computed from the current list, so it is right straight after a pick. The game's own `StartManager.relationship` field is only set at start and on load, so it can be stale.
-- `IsAvailable` is `true` when the framework installed its hook and the owner `obenseuer.moddingframework.startchoices` is not disabled. `Selected`, `Has` and `Relationship` do not depend on it.
-- `Chosen` fires once per pick, after the game applies the pick (money, addictions, items, relationships) and records it. The game raises it only from the new-game start selection screen. If the screen is missing, the pick is recorded but `Chosen` does not fire for it.
-- A failing `Chosen` handler is logged once and the other handlers still run.
+- **This API only reads.** It does not add, remove or change picks. Each call gives you a copy.
+- **`Selected()` gives an empty list before the game's start manager exists, and when no pick was made.** Empty entries are left out.
+  - Technical: the start manager is `StartManager`. The picks are in its `selectedSelections` list, which the game saves with the game.
+- **`Has(id)` is `true` when any pick has that id.** Passing `null` gives back `false` and writes one line to the log.
+- **`Relationship` says how the character starts out.** It is `Married` when a pick has the id `Family`, `In a relationship` when a pick has the id `Girlfriend` or `Boyfriend`, and `Single` otherwise. The first matching pick in the list decides, as it does in the game. It is `null` before the start manager exists. It is worked out from the picks as they are now, so it is right straight after a pick.
+  - Technical: the game's own `StartManager.relationship` field is only set at the start and on load, so it can be out of date.
+- **`Chosen` fires once for each pick, after the game has applied the pick.** By then the game has given the money, addictions, items and relationships that go with it, and recorded the pick. It only fires from the new-game start screen. If that screen is missing, the pick is recorded but `Chosen` does not fire for it.
+  - Technical: it is a postfix on `StartManager.Next`.
+- **A game that is loaded from a save never fires `Chosen`.** The picks are saved with the game and read back on load, so `Selected`, `Has` and `Relationship` give the same answers after a load. To react to a loaded game, read `Selected()`.
+- **`IsAvailable` is `false` when the `Chosen` event could not be set up.** `Selected`, `Has` and `Relationship` do not depend on it. See [If something fails to set up](#if-something-fails-to-set-up).
 
-## Save loads
+## Details
 
-Loaded games never raise `Chosen`. The picks are saved with the game and read back on load, so `Selected`, `Has` and `Relationship` give the same answers after a load. To react to a loaded game, read `Selected()`.
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+Namespace: `ObenseuerCore`. Logs go to `BepInEx\logs\obenseuer.moddingframework.startchoices.log`.
+
+Everything not listed in this reference is internal and may change without notice. This page is experimental and may change too.
+
+The framework changes one of the game's methods when it starts, so it can tell your mod when a pick is made. This page calls that a feature group. Its name, the one you will see in the log, is `obenseuer.moddingframework.startchoices`.
+
+### When you can call it
+
+- **Call everything from your mod's normal code, not from a background thread you started.** The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)). That includes the code that handles `Chosen`.
+- **It is safe to call at any time.** If the game's start manager is missing, you get an empty list, `false` or `null` instead of an error.
+- **If one of your `Chosen` handlers throws an error, the framework logs it and still runs the other handlers.**
+
+### If something fails to set up
+
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+
+- **If the pick change cannot be made, the feature group is turned off and `Chosen` stops firing.** `StartChoices.IsAvailable` becomes `false`. `Selected`, `Has` and `Relationship` keep working.
+  - Technical: the game method involved is `StartManager.Next`. The log line reads "start choice events not installed, Chosen is disabled".

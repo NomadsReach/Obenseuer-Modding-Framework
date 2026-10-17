@@ -22,7 +22,7 @@ Documentation site: https://nomadsreach.github.io/Obenseuer-Modding-Framework/
 - Safe patching: patches go through a game build check, and a failed critical patch disables only its own mod's patches.
 - Story API (experimental): quests, dialogue and law.
 - Net (experimental): Steam, lobby and presence helpers for co-op.
-- Optional tweaks, off by default: drain multipliers, stack size, spoilage, crafting and renovation speed, camera toggle, game clock speed and more. Change them in the Mods menu or in the config file. The full list is in `docs/API.md`, section "Tweaks".
+- Optional tweaks, off by default: drain multipliers, stack size, spoilage, crafting and renovation speed, camera toggle, game clock speed and more. Change them in the Mods menu or in the config file. The full list is in [Tweaks](docs/api-core/tweaks.md).
 
 Mods add their own features on top. The game API areas and helpers were built from the game's code. Extensive testing has not been fully done yet. See the [status page](docs/status.md). Report problems with your log file, `BepInEx\logs\ObenseuerCore.log`.
 

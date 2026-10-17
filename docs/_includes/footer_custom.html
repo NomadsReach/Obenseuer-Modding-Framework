@@ -1,0 +1,18 @@
+{% if page.parent %}
+{% assign siblings = site.pages | where: "parent", page.parent %}
+{% if page.grand_parent %}{% assign siblings = siblings | where: "grand_parent", page.grand_parent %}{% endif %}
+{% assign siblings = siblings | sort: "nav_order" %}
+{% assign prev = nil %}
+{% assign next = nil %}
+{% assign found = false %}
+{% for s in siblings %}{% if s.url == page.url %}{% assign found = true %}{% elsif found %}{% assign next = s %}{% break %}{% else %}{% assign prev = s %}{% endif %}{% endfor %}
+{% unless prev %}{% assign prev = site.pages | where: "title", page.parent | first %}{% endunless %}
+{% if page.has_children %}{% assign kids = site.pages | where: "parent", page.title | sort: "nav_order" %}{% if kids.size > 0 %}{% assign next = kids | first %}{% endif %}{% endif %}
+{% unless next %}{% if page.parent %}{% assign up = site.pages | where: "title", page.parent | first %}{% if up.parent %}{% assign uncles = site.pages | where: "parent", up.parent %}{% if up.grand_parent %}{% assign uncles = uncles | where: "grand_parent", up.grand_parent %}{% endif %}{% assign uncles = uncles | sort: "nav_order" %}{% assign found = false %}{% for s in uncles %}{% if s.url == up.url %}{% assign found = true %}{% elsif found %}{% assign next = s %}{% break %}{% endif %}{% endfor %}{% endif %}{% endif %}{% endunless %}
+{% if prev or next %}
+<div class="prev-next">
+{% if prev %}<a class="prev-link" href="{{ prev.url | relative_url }}">Previous: {{ prev.title }}</a>{% endif %}
+{% if next %}<a class="next-link" href="{{ next.url | relative_url }}">Next: {{ next.title }}</a>{% endif %}
+</div>
+{% endif %}
+{% endif %}

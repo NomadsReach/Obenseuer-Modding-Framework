@@ -1,82 +1,138 @@
 ---
-title: TrainActions API
-parent: API reference
-nav_order: 96
+title: Train actions
+parent: Places and travel
+grand_parent: API reference
+nav_order: 15
 ---
 
-# TrainActions API
+# Train actions
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
-Namespace: `ObenseuerCore`. File: `src/Api/TrainActions.cs`.
+## What it is
 
-This area drives track trains from a mod: engine on or off, target speed, brakes, and joining or releasing one end of a car to one end of another. Trains are found by their id from `Trains.All()` (`TrackTrainInfo.Id`).
+The game has trains that run on tracks. This API lets your mod drive them: turn an engine on or off, set how fast the train should go, apply the brakes, and join or separate two cars. You pick a train with its id, which you get from `Trains.All()` (see the [Trains API](trains.md)).
 
-## If a hook cannot be installed
+## When to use it
 
-This facade has no hooks.
+- Start a train when something happens in your mod, such as the player buying a ticket.
+- Stop a train with the brakes, or send it off at a speed you choose.
+- Join two cars so they run together, or split them again.
 
-## API
+## Quick example
+
+This mod waits until a save is loaded. It then turns on the engine of every train and sets its target speed to 10. It writes to the log which trains started.
 
 ```csharp
-public enum TrainEnd { Front = 0, Back = 1 }
+using ObenseuerCore;
+
+[ModInfo("example.trainstart", "Train Start", "0.1.0")]
+[ModDependency("obenseuer.moddingframework", "0.11.0")]
+public sealed class TrainStart : FrameworkMod
+{
+    protected override void OnLoad()
+    {
+        Events.WhenReady(() =>
+        {
+            foreach (TrackTrainInfo train in Trains.All())
+            {
+                bool started = TrainActions.SetEngine(Mod.Id, train.Id, true);
+                TrainActions.SetTargetSpeed(Mod.Id, train.Id, 10f);
+                Log.Info("Train " + train.Id + (started ? " started" : " could not be started"));
+            }
+        });
+    }
+}
+```
+
+`WhenReady` waits until a save is loaded before it runs your code. See [Using events](../guides/getting-started/using-events.md) for more on it.
+
+## Common tasks
+
+The snippets below use the ids of two cars (`frontCarId` and `rearCarId`) that you got from `Trains.All()`. Apply the brakes and let them go again.
+
+```csharp
+TrainActions.Brake(Mod.Id, frontCarId, true);
+TrainActions.Brake(Mod.Id, frontCarId, false);
+```
+
+Join the back of one car to the front of another, and separate them again. `Couple` only works when the two cars are already touching.
+
+```csharp
+if (TrainActions.Couple(Mod.Id, frontCarId, TrainEnd.Back, rearCarId, TrainEnd.Front))
+    Log.Info("The cars are joined.");
+
+TrainActions.Release(Mod.Id, frontCarId, TrainEnd.Back);
+TrainActions.SetEngine(Mod.Id, frontCarId, false);
+```
+
+## Reference
+
+This is the full list of what the API gives you. In the code block, the comments say what each member gives you or does. A line starting with `Technical:` holds extra detail for experienced modders. You can skip it on a first read.
+
+```csharp
+public enum TrainEnd
+{
+    Front = 0,   // the front end of a car
+    Back = 1     // the back end of a car
+}
 
 public static class TrainActions
 {
+    // Turns the engine on or off. Returns true once the request is made.
     public static bool SetEngine(string modId, string trainId, bool on);
+    // Sets how fast the train should go. Returns true when it was set.
     public static bool SetTargetSpeed(string modId, string trainId, float speed);
+    // Applies or releases the brakes. Returns true when the brakes are now in the state you asked for.
     public static bool Brake(string modId, string trainId, bool on);
+    // Joins one end of a car to one end of another car. Returns true when they are joined.
     public static bool Couple(string modId, string trainId, TrainEnd end, string otherTrainId, TrainEnd otherEnd);
+    // Separates a car at one end. Returns true when that end is free afterwards.
     public static bool Release(string modId, string trainId, TrainEnd end);
 }
 ```
 
-- Each call returns `false` for an empty mod id, an unknown train, a destroyed train, a NaN or infinite speed, or `SaveData.Busy`. `SetEngine`, `SetTargetSpeed` and `Brake` accept any non-empty mod id. `Couple` and `Release` also require a valid mod id: 1 to 64 characters of letters, digits, `.`, `_` or `-`.
-- `SetEngine` returns `true` once the request is made. A train that belongs to a minitrain starts after the game's own start-up delay.
-- `SetTargetSpeed` is clamped to the train's own maximum forward and reverse speed.
-- `Brake` returns `true` only when the train's brake state is now the value asked for.
-- `Couple` joins one end of a train to one end of another train, and returns `true` when the two couplers are now joined. It calls the game's `TrainCoupler.Couple`, the call the coupler trigger makes when two couplers touch. It changes nothing and returns `false` unless all of these hold:
-  - the two trains are different trains, and they share no wagon;
-  - each end is a coupler the train has, and neither end is already joined to anything;
-  - both couplers' triggers are active and not in their crash cooldown;
-  - the two triggers' colliders have overlapping bounds, so the cars already touch;
-  - each train's absolute speed is at most its own coupler trigger's `maxSpeed`, when that is above 0.
-- `Release` ends the joint at `end` and returns `true` when that end is free. It calls the game's `TrainCoupler.Release`, which splits the train and plays the uncoupling sound. It returns `false` when nothing is joined at that end.
+- **Every call returns `false` and does nothing when it can't do its job.** That is for an empty mod id, an unknown or destroyed train, a speed that is not a real number, and while the game is loading or saving a save. `Couple` and `Release` also need a valid mod id: 1 to 64 characters of letters, digits, `.`, `_` or `-`. The other three accept any mod id that is not empty.
+  - Technical: the checks are `SaveData.Busy`, the train lookup in `TrainController.TrackTrains`, and for the speed `float.IsNaN` and `float.IsInfinity`.
+- **`SetEngine` turns an engine on or off.** It returns `true` once the request has been made. A train that belongs to a minitrain (the small train the player rides) starts only after the game's own start-up delay. The lights and the dashboard follow, as they do when the player starts it.
+  - Technical: for a minitrain it uses the game's own `StartMinitrain` and `StopMinitrain`. Other trains use `TrackTrain.Toggle`.
+- **`SetTargetSpeed` sets how fast the train should go, and it can't go faster than the train allows.** The speed is held between the train's own highest forward and highest reverse speed. A train without fuel reports a target speed of 0 in the game, so setting a speed does not move it.
+- **`Brake` applies or releases the brakes, and the game's brake outputs still fire.** It returns `true` only when the brakes are really in the state you asked for.
+  - Technical: it calls the game's `ApplyBrakes`, so the game's braking outputs still fire.
+- **`Couple` joins one end of a train to one end of another, and returns `true` when they are joined.** It does what the game does when two cars touch and their couplers meet. It changes nothing and returns `false` unless all of these are true:
+  - the two cars are different, and they do not already share a wagon;
+  - each end has a coupler, and neither end is already joined to something;
+  - both couplers are ready, which means they are switched on and not in their short pause after a crash;
+  - the two cars are already touching;
+  - each car is moving no faster than its own coupler allows, when the coupler has a limit.
+  - Technical: it calls the game's `TrainCoupler.Couple`. The couplers' triggers must be active and not in their crash cooldown. "Touching" means the bounds of the two triggers' colliders overlap. The speed limit is the absolute speed of each train against its own coupler trigger's `maxSpeed`, when that is above 0.
+- **`Release` separates a car at one end, and returns `true` when that end is free.** It splits the train and plays the uncoupling sound. It returns `false` when nothing is joined at that end.
+  - Technical: it calls the game's `TrainCoupler.Release`.
+- **The game finishes the join after `Couple`.** The wagon list, the engine that drives the string, and the way the cars face are all worked out by the game's own join and split. After a join, the game moves the car that is not driving until the ends meet. `Couple` only joins cars that are already touching, so that gap is small. A join made by your mod is saved the same way as one the player makes.
+- **`Couple` returning `true` does not mean the join lasts.** The game can release it on a later update if the gap is over the coupler's allowed distance. Read `FrontCoupledTo` or `BackCoupledTo` from `Trains.All()` to see whether the join is still there.
+  - Technical: the distance is the coupler's `maxDistance`, when that is above 0.
+- **`Couple` can say yes to cars that only look close.** The test uses a box around each coupler, so two boxes can overlap when the shapes inside them do not touch. The game then decides, as it does for its own couplers.
+  - Technical: it uses `Collider.bounds`, which are axis-aligned boxes.
+- **`Couple` is a little stricter than the game.** It checks each car against its own coupler's speed limit, using the absolute speed, so it refuses some joins the game allows, such as a train moving backward.
+  - Technical: the game's trigger tests the signed speed.
+- **Your mod can interfere with a train the player is driving.** It can start or stop that train, and it can join or separate a joint the player made. The framework keeps no record of who changed a train, so there is no owner to check.
 
-## Example
+### What you can't do (yet)
 
-```csharp
-foreach (TrackTrainInfo train in Trains.All())
-{
-    TrainActions.SetEngine("com.example.mymod", train.Id, true);
-    TrainActions.SetTargetSpeed("com.example.mymod", train.Id, 10f);
-    TrainActions.Brake("com.example.mymod", train.Id, false);
-}
+- **You can't add a car to a train.** The train shop does that. `Couple` only joins two cars that are already in the world.
+- **You can't slide a car toward another one.** `Couple` does not move a car. The game's own correction does that, and only over a gap that is already small.
+- **You can't handle a crash from this page.** Use `Trains.Crashed` (see the [Trains API](trains.md)).
 
-TrainActions.Couple("com.example.mymod", frontCarId, TrainEnd.Back, rearCarId, TrainEnd.Front);
-TrainActions.Release("com.example.mymod", frontCarId, TrainEnd.Back);
-```
+## Details
 
-## Behaviour
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+Namespace: `ObenseuerCore`. Logs go to `BepInEx\logs\obenseuer.moddingframework.trainactions.log`.
 
-- `SetEngine` uses the game's own minitrain start and stop when the train belongs to a minitrain, so the lights and the dashboard follow. Other trains use the game's `TrackTrain.Toggle`.
-- A train without fuel reports a target speed of 0 in the game, so `SetTargetSpeed` does not move it.
-- `Brake` uses the game's `ApplyBrakes`, so the game's braking outputs still fire.
-- `Couple` and `Release` call the game's own `TrainCoupler` methods, so the wagon list, the driving locomotive and the orientation are the game's own merge and split.
-- After a joint is made, the game moves the car that is not driving until the ends meet. `Couple` only joins cars whose triggers overlap, so the gap is small when it is made. A joint made here is saved the same way as one the player makes.
+Everything not listed in this reference is internal and may change without notice.
 
-## Not exposed
+### When you can call it
 
-- Adding a car to a train. The train shop does that, and `Couple` only joins two cars that are already in the world.
-- Moving a car toward another. `Couple` does not slide a car. The game's own correction does that, and only over a gap that is already small.
-- Crash handling. Use `Trains.Crashed` (see Trains).
+- **Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started.** The game only works safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
+- **Train state belongs to the game, and the game saves it.** The framework keeps nothing of its own.
 
-## Ceilings and risks
+### If something fails to set up
 
-- A mod can start or stop a train that a player is driving, and it can join or release a joint a player made. No owner is kept, as with `SetEngine`.
-- `Couple` returns `true` when the joint is made. The game can release it on a later update if the gap is over the coupler's `maxDistance` (when that is above 0). Read `TrackTrainInfo.FrontCoupledTo` or `BackCoupledTo` from `Trains.All()` to see whether the joint is still there.
-- The touching test uses the trigger colliders' axis-aligned bounds (`Collider.bounds`). Two colliders whose boxes overlap but whose shapes do not touch pass it. The game then decides, as it does for its own triggers.
-- `Couple` is slightly stricter than the game's own coupling. Its speed test uses each train's absolute speed, and it checks each train against its own coupler trigger's `maxSpeed`, not the other train's. The game's trigger tests the signed speed, so this refuses some couplings the game allows, such as a train moving backward.
-
-## Save loads
-
-Nothing is kept by the framework. Train state is the game's own and is saved by the game.
+This API does not change any game method, so there is no feature group to turn off, and nothing for the framework to set up. If the game fails while one of the calls runs, the framework writes one error to the log and the call returns `false`.

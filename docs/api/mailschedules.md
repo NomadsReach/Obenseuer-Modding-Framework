@@ -1,60 +1,124 @@
 ---
-title: MailSchedules API
-parent: API reference
-nav_order: 98
+title: Mail schedules
+parent: Phones, mail and media
+grand_parent: API reference
+nav_order: 4
 ---
 
-# MailSchedules API
+# Mail schedules
+
+Status: experimental.
+
+## What it is
+
+Every day the game posts a little random mail to the player: items, notes, recipes and parcels. The part of the game that does this is a random mail sender. This API lets your mod list the random mail senders in the scene you are in and make one send its mail right now, instead of waiting for its daily time.
+
+## When to use it
+
+- Send the player a batch of the game's own random mail when something happens in your mod, for example after a quest step.
+- Find out what kinds of mail a sender can send.
+- Test how your mod reacts to new mail without waiting for the next day.
+
+## Quick example
+
+This mod waits until a save is loaded, then makes every random mail sender in the scene send one mail.
+
+```csharp
+using ObenseuerCore;
+
+[ModInfo("example.mailnow", "Mail Now", "0.1.0")]
+[ModDependency("obenseuer.moddingframework", "0.11.0")]
+public sealed class MailNow : FrameworkMod
+{
+    protected override void OnLoad()
+    {
+        Events.WhenReady(() =>
+        {
+            foreach (MailSenderInfo sender in MailSchedules.Senders())
+            {
+                bool sent = MailSchedules.SendRandom(Mod.Id, sender.Id, 1, 2);
+                Log.Info("Sender " + sender.Id + " has " + sender.Entries + " entries, sent: " + sent);
+            }
+        });
+    }
+}
+```
+
+`Mod.Id` is your mod's id, the first value in `ModInfo`. See the [glossary](../glossary.md#mod-id). `Events.WhenReady` runs your code once a save is loaded, or at once if one already is. See [Using events](../guides/getting-started/using-events.md).
+
+## Common tasks
+
+Make a sender send mail the way the game does each day. The sender uses its own smallest and largest amount, which in the game's files is 1 to 3 mails (so one or two). The call returns `true` when the mail was sent.
+
+```csharp
+foreach (MailSenderInfo sender in MailSchedules.Senders())
+    MailSchedules.SendNow(Mod.Id, sender.Id);
+```
+
+Send a number of mails you choose. The largest amount is not included, so `3, 6` sends 3, 4 or 5 mails.
+
+```csharp
+foreach (MailSenderInfo sender in MailSchedules.Senders())
+    MailSchedules.SendRandom(Mod.Id, sender.Id, 3, 6);
+```
+
+See what kinds of mail a sender can send.
+
+```csharp
+foreach (MailSenderInfo sender in MailSchedules.Senders())
+    Log.Info(sender.Id + ": " + string.Join(", ", sender.MailNames.ToArray()));
+```
+
+## Reference
+
+This is the full list of what the API gives you. In the code block, the comments say what each member gives you or does. A line starting with `Technical:` holds extra detail for experienced modders. You can skip it on a first read.
+
+```csharp
+public static class MailSchedules
+{
+    public static List<MailSenderInfo> Senders();                                     // the random mail senders in the scene you are in
+    public static bool SendNow(string modId, string senderId);                        // sends mail with the sender's own amounts; true when it was sent
+    public static bool SendRandom(string modId, string senderId, int min, int max);   // sends a number of mails from min up to, but not including, max; true when it was sent
+}
+
+public sealed class MailSenderInfo    // one random mail sender
+{
+    public string Id { get; }                 // the sender's id; pass it to SendNow and SendRandom
+    public int Entries { get; }               // how many kinds of mail the sender can choose from
+    public List<string> MailNames { get; }    // the names the mail can have, each listed once
+}
+```
+
+- **`Senders()` lists the random mail senders in the scene you are in.** For each one you get its id, how many kinds of mail it can choose from, and the names that mail can have.
+  - Technical: it lists the active `RandommailSender` objects of the active scene. `Entries` is the size of the sender's `randomMail` list. `MailNames` collects the `mailNames` of every entry, without repeats.
+- **Every sender has the same id, so you can only reach one sender in a scene.** If a scene has more than one sender, `SendNow` and `SendRandom` use the first one they find.
+  - Technical: the id is the game's constant `RandommailSender.GUID`, which is `RandomMail`, so every sender reports it.
+- **`SendNow` sends as many mails as the sender would on its own.** In the game files that is one or two mails, chosen at random each time.
+  - Technical: the sender's private `minAmount` and `maxAmount` are 1 and 3, and the game's `UnityEngine.Random.Range(int, int)` leaves out the top value.
+- **`SendRandom` sends a random number of mails from `min` up to, but not including, `max`.** So `SendRandom(id, sender, 1, 2)` always sends exactly one mail. If `min` and `max` are equal it sends `min` mails. Each mail picks one of the sender's kinds of mail at random, so two mails can be the same kind.
+- **`SendRandom` refuses amounts that make no sense.** It returns `false` when `min` is below 0 or `max` is below `min`. It throws an `ArgumentException` when `max` is above 100. Each mail is a separate send and the game waits for all of them, so a huge number would freeze the game.
+  - Technical: each mail is one `MailController.SendMail` call, made one after another on the main thread.
+- **Both send calls return `false` when they can't send.** That happens when your mod id is empty, when no sender has that id, and while a save is loading or saving.
+- **A `true` result means the framework asked the game to send, not that the mail arrived.** If the game fails while sending, for example because a kind of mail has nothing in it, the game writes the error to its own log and the call still returns `true`.
+  - Technical: `RandommailSender.SendRandomMail` catches every exception itself and logs it with `Debug.LogException`.
+- **Sending mail now does not change the sender's own daily schedule.** The game still sends its usual mail on its usual day, so the player gets both.
+- **You can't read when the next scheduled mail comes, and you can't reach the game's fake bills.** The game keeps the time of the last send in a field that mods can't see, and it makes its fake bills inside the sender where nothing outside can call them.
+  - Technical: `lastSend` is a protected field and `SendFakeInvoice` is private.
+- **The framework keeps no data of its own for this API.** The game saves its own sender state.
+
+## Details
 
 Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. File: `src/Api/MailSchedules.cs`.
 
-This area lists the scene's random mail senders and sends their mail on demand. A sender is a `RandommailSender` in a scene. It sends a random mix of letters, notes, recipes and parcels to the player.
+Everything not listed in this reference is internal and may change without notice. Items marked experimental may change too.
 
-## API
+### When you can call it
 
-```csharp
-public static List<MailSenderInfo> Senders();
-public static bool SendNow(string modId, string senderId);
-public static bool SendRandom(string modId, string senderId, int min, int max);
+- **Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started.** The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
 
-public sealed class MailSenderInfo
-{
-    public string Id { get; }
-    public int Entries { get; }
-    public List<string> MailNames { get; }
-}
-```
+### What to check for and what comes back
 
-- `Senders` gives each sender's id, how many entries it has, and the mail names its entries use.
-- `SendNow` sends with the sender's own minimum and maximum amounts.
-- `SendRandom` sends a random number of mails between `min` (inclusive) and `max` (exclusive), as the game's own call does. It refuses `min` below 0 or `max` below `min`. It throws `ArgumentException` for a `max` above 100, because each mail is a separate send on the main thread.
-- Both send calls return `false` for an empty mod id, an unknown sender, a save that is loading or saving, or bad amounts.
-
-## Example
-
-```csharp
-foreach (MailSenderInfo sender in MailSchedules.Senders())
-{
-    MailSchedules.SendRandom("com.example.mymod", sender.Id, 1, 2);
-}
-```
-
-## Behaviour
-
-- A send uses the game's own random mail call, which sends each mail through the game's `MailController`.
-- A send does not move the sender's own daily schedule. The game still sends its daily mail on its own day.
-- Every sender uses the same id, the game's constant `RandomMail`. When a scene has more than one sender, the first one is used.
-
-## Not exposed
-
-- The next scheduled send time. The game keeps the last send time as a protected field.
-- The game's fake invoices. They are private to the sender.
-
-## Ceilings and risks
-
-- A `max` of up to 100 sends up to 99 mails at once.
-
-## Save loads
-
-Nothing is kept by the framework. The game saves its own sender state.
+- **This API changes no game method, so it has no `IsAvailable` and no feature group.** It only calls the game's own mail sender.
+- **`Senders()` gives an empty list when there is no sender.** That is normal on the main menu, or in a scene without one.
+- **If the game itself fails while the framework works, you get `false` or an empty list instead of an error.** The first failure of each call goes to the log, filed under your mod id. Later failures of the same call are not logged again.

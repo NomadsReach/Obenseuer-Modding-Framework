@@ -1,61 +1,145 @@
 ---
-title: Cleaning API
-parent: API reference
-nav_order: 11
+title: Cleaning
+parent: Objects and devices
+grand_parent: API reference
+nav_order: 3
 ---
 
-# Cleaning API
+# Cleaning
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
-Namespace: `ObenseuerCore`. No patches, so no owner.
-Files: `src/Api/Cleaning.cs`.
+## What it is
 
-Everything not listed here is internal. Housing's apartment rules are in [housing](housing.md), which lists the cleaning timer as not wrapped. This area wraps it.
+The tenement's apartments get dirty. The game keeps a cleaning timer for each apartment: a number of days that must pass before the apartment is ready. While the timer runs, the game shows a timer marker in the apartment. When the timer ends, the game takes away the thing that was blocking the apartment. This API lets your mod read that timer for any apartment. It also lists the piles of trash lying around in the scene you are in, and what is inside each pile.
 
-## Threading and safety
+The API only reads. It never starts a timer and never cleans anything. The apartment rules (tenants, rent, evictions) are on the [Housing](housing.md) page.
 
-- Main thread only.
-- Every member is safe at any time. With no save loaded, or on the main menu, `Timer` returns `null` and `TrashItems` returns an empty list.
-- Nothing throws. There are no writes.
+## When to use it
 
-## API
+- Show or log whether an apartment is waiting on its cleaning timer, and on which day it ends.
+- Count the trash piles in the scene, or look inside them for a particular item.
+- Find out where the trash is, so your mod can point the player to it.
+
+## Quick example
+
+This mod waits for a save to load. Then it logs the cleaning timer of every apartment and counts the trash piles in the scene.
 
 ```csharp
-public static class Cleaning
-{
-    public static CleaningTimerInfo Timer(int apartmentId);
-    public static List<TrashInfo> TrashItems();
-}
+using ObenseuerCore;
 
-public enum CleaningTimerState
+[ModInfo("example.cleaningwatch", "Cleaning Watch", "0.1.0")]
+[ModDependency("obenseuer.moddingframework", "0.11.0")]
+public sealed class CleaningWatch : FrameworkMod
 {
-    NotStarted, Running, Done
-}
-
-public sealed class CleaningTimerInfo
-{
-    public int ApartmentId { get; }
-    public CleaningTimerState State { get; }
-    public int CompleteDay { get; }        // game day the timer ends, 0 unless Running
-}
-
-public sealed class TrashInfo
-{
-    public string Id { get; }              // FurnitureTrash.GUID, may be null
-    public Vector3 Position { get; }       // world position of the trash pile
-    public List<ItemStackInfo> Items { get; }
+    protected override void OnLoad()
+    {
+        Events.WhenReady(() =>
+        {
+            foreach (ApartmentInfo apartment in Housing.AllApartments())
+            {
+                CleaningTimerInfo timer = Cleaning.Timer(apartment.Id);
+                if (timer != null) Log.Info("Apartment " + apartment.Id + ": " + timer.State);
+            }
+            Log.Info("There are " + Cleaning.TrashItems().Count + " trash piles in this scene.");
+        });
+    }
 }
 ```
 
-- `Timer(apartmentId)` reads the apartment's `cleaningTimerCompleteDay` (the game's `TenementApartment` class). The game's own marker has three values:
-  - `-1`: `NotStarted`. No cleaning timer has been started for this apartment.
-  - a day number above `0`: `Running`. `CompleteDay` is that day.
-  - `0`: `Done`. The game has finished the timer and removed its blocker (the game's `TenementController.OnCleaningTimerDayChanged`).
-  - It returns `null` for an apartment number the building does not have.
-- `TrashItems` lists every `FurnitureTrash` object in the active scene (the game's `FurnitureTrash` class). Each pile lists its items, skipping empty stacks, the same way `Containers.GetItems` does. The list does not say which apartment a pile is in. Use `Position` for that.
+`Housing.AllApartments()` gives you the apartment numbers to ask about. `Timer` returns `null` for a number the building does not have, which is why the example checks for it. See [Using events](../guides/getting-started/using-events.md) for more on `WhenReady`.
 
-## Not wrapped
+## Common tasks
 
-- `Clean(apartmentId)`. The game has no whole-apartment clean method. Cleaning mode removes one object at a time (the game's `BuildingSystemMenu.GetButtonInfoCleaning`). Taking trash is `FurniturePlaceable.Take`, which takes one object and has no apartment argument. The player triggers it with the Place Take key. Nothing is exposed.
-- Starting a cleaning timer. The only game entry point is `TenementController.StartApartmentCleaningTimer`, which the game registers for its own Lua scripts. It is not wrapped, because it is a write the game drives through Lua.
-- Furniture clear percent (the game's `TenementApartment.FurnitureClearPercent`). It is a separate measure from the timer and is not part of this surface.
+Check whether one apartment is still waiting on its timer, and when the timer ends:
+
+```csharp
+CleaningTimerInfo timer = Cleaning.Timer(1);
+if (timer != null && timer.State == CleaningTimerState.Running)
+    Log.Info("The timer ends on day " + timer.CompleteDay);
+```
+
+Log what is in every trash pile, and where the pile is:
+
+```csharp
+foreach (TrashInfo pile in Cleaning.TrashItems())
+    foreach (ItemStackInfo stack in pile.Items)
+        Log.Info("item " + stack.ItemId + " x" + stack.Count + " at " + pile.Position);
+```
+
+## Reference
+
+This is the full list of what the API gives you. In every code block, the comments say what each member gives you or does. A line starting with `Technical:` holds extra detail for experienced modders. You can skip it on a first read.
+
+### Cleaning timers
+
+`Cleaning.Timer(apartmentId)` tells you where an apartment is in its cleaning timer. The answer is a `CleaningTimerInfo`, a snapshot of the timer at the moment you asked. The snapshot does not update by itself, so ask again for fresh values.
+
+```csharp
+public enum CleaningTimerState
+{
+    NotStarted,   // no cleaning timer has been started for this apartment
+    Running,      // the timer is counting down the days
+    Done          // the timer has ended and the game has removed what was blocking the apartment
+}
+
+public sealed class CleaningTimerInfo    // a snapshot of one apartment's cleaning timer
+{
+    public int ApartmentId { get; }          // the apartment number you asked about
+    public CleaningTimerState State { get; } // where the timer is
+    public int CompleteDay { get; }          // the game day the timer ends; 0 unless State is Running
+}
+
+public static class Cleaning
+{
+    public static CleaningTimerInfo Timer(int apartmentId);   // the timer for this apartment; null when the building has no such apartment
+}
+```
+
+- **`Timer` gives you one of three states for the apartment.** `NotStarted` means nobody has started a timer. `Running` means the timer is counting and `CompleteDay` is the game day it ends. `Done` means it has ended.
+  - Technical: the value is the apartment's `cleaningTimerCompleteDay` (on the game's `TenementApartment`). `-1` is `NotStarted`. A day number above `0` is `Running`, and `CompleteDay` is that day. `0` is `Done`: the game's `TenementController.OnCleaningTimerDayChanged` sets it when the day arrives and removes the blocker.
+- **`Timer` returns `null` for an apartment number the building does not have.** It also returns `null` when no save is loaded, for example on the main menu.
+- **You can't start a cleaning timer.** The game only starts one from its own story scripts, and it does not give mods a safe way to start one. For now you can only read the timer.
+  - Technical: the only game entry point is `TenementController.StartApartmentCleaningTimer`, which the game registers for its Lua scripts. The framework does not call it, because it is a write that the game drives through Lua.
+- **You can't read how much of an apartment's furniture has been cleared.** The game keeps that as a separate measure from the timer, and this page does not cover it.
+  - Technical: the game's `TenementApartment.FurnitureClearPercent`.
+
+### Trash piles
+
+`Cleaning.TrashItems()` lists the piles of trash in the scene you are in. Each pile is a `TrashInfo`, a snapshot of the pile and the items inside it.
+
+```csharp
+public sealed class TrashInfo    // one pile of trash in the scene
+{
+    public string Id { get; }                  // the pile's save id; can be null
+    public Vector3 Position { get; }           // where the pile is, in world coordinates
+    public List<ItemStackInfo> Items { get; }  // what is in the pile; empty stacks are left out
+}
+
+public static class Cleaning
+{
+    public static List<TrashInfo> TrashItems();   // every trash pile in the active scene
+}
+```
+
+- **`TrashItems()` only lists piles in the scene you are standing in.** Piles in other scenes are not listed. It returns an empty list when no save is loaded.
+  - Technical: it lists every `FurnitureTrash` object in the active scene. Objects that are switched off are not included.
+- **A pile does not say which apartment it is in.** The game does not link a pile to an apartment. Use `Position` to work out where it is.
+- **Each pile lists its items the same way `Containers.GetItems` does.** Empty stacks are left out, so a pile with nothing in it has an empty `Items` list. `Slot` on these stacks is `-1`, so do not pass them to a call that takes a slot.
+- **You can't clean up or take trash with this API.** The game removes trash one object at a time, when the player uses its cleaning mode. There is no call that cleans a whole apartment.
+  - Technical: cleaning mode is `BuildingSystemMenu.GetButtonInfoCleaning`. Taking trash is `FurniturePlaceable.Take`, which takes one object and has no apartment argument. The player triggers it with the Place Take key.
+- **`Id` can be `null`.** Not every pile has a save id. Do not use it as a key unless you check for `null` first.
+  - Technical: it is the object's `FurnitureTrash.GUID`.
+
+## Details
+
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+Namespace: `ObenseuerCore`.
+
+Everything not listed in this reference is internal and may change without notice.
+
+This page changes none of the game's methods, so it has no feature group and nothing here can turn off after a game update.
+
+### When you can call it
+
+- **Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started.** The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
+- **It is safe to call at any time, even on the main menu.** With no save loaded, `Timer` returns `null` and `TrashItems` returns an empty list.
+- **Nothing here throws an error to your code, and nothing changes the game.** If the game itself fails while the framework reads, you get `null` or an empty list, and the first failure of each member goes to the log.

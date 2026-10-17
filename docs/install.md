@@ -8,9 +8,9 @@ nav_order: 2
 ## What you need
 
 1. Obenseuer 0.5.08 (Steam build 25969064).
-2. [BepInEx](glossary.md#bepinex) 5.4.23 or later (Mono, x64), or BepInEx 6 Unity.Mono, x64, [be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build. Newer BepInEx 6 builds usually work, but BepInEx 6 is a pre-release and a new build can break mods. If something breaks, use be.788. Get BepInEx 5 from the [BepInEx releases page](https://github.com/BepInEx/BepInEx/releases). Get BepInEx 6 from [builds.bepinex.dev](https://builds.bepinex.dev/projects/bepinex_be).
+2. [BepInEx](glossary.md#bepinex), the free tool that loads mods into the game. Get 5.4.23 or later (Mono, x64), or BepInEx 6 Unity.Mono, x64, [be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build. Newer BepInEx 6 builds usually work, but BepInEx 6 is a pre-release and a new build can break mods. If something breaks, use be.788. Get BepInEx 5 from the [BepInEx releases page](https://github.com/BepInEx/BepInEx/releases): download the zip whose name starts with `BepInEx_win_x64_5.4`. Get BepInEx 6 from [builds.bepinex.dev](https://builds.bepinex.dev/projects/bepinex_be). "Mono" and "x64" are the right choices for this game, which is a 64-bit Windows game that runs on Unity's Mono. Do not pick the IL2CPP or x86 files.
 3. The framework zip from the [GitHub releases page](https://github.com/NomadsReach/Obenseuer-Modding-Framework/releases). It holds a BepInEx 6 build and a BepInEx 5 build.
-4. Only if you make mods: the [.NET 10 SDK](https://dotnet.microsoft.com/download). Players do not need it.
+4. Only if you make mods: the [.NET 10 SDK](https://dotnet.microsoft.com/download), the free tool that builds your code into a mod. Players do not need it.
 
 Use either BepInEx version. The framework zip works with both.
 
@@ -18,7 +18,7 @@ Use either BepInEx version. The framework zip works with both.
 
 1. Close the game.
 2. In the game folder, the folder that holds `Obenseuer.exe`, extract the BepInEx zip, so that the `BepInEx` folder and `winhttp.dll` sit next to `Obenseuer.exe`. The default Steam path is `C:\Program Files (x86)\Steam\steamapps\common\Obenseuer`. In Steam, right-click the game, choose Manage, then Browse local files, to open it.
-3. Start the game once, so BepInEx creates its folders. Then close it.
+3. Start the game once, so BepInEx creates its folders. Then close it. If it worked, the game folder now has a `BepInEx\plugins` folder and a `BepInEx\LogOutput.log` file. If it did not, check that `winhttp.dll` sits next to `Obenseuer.exe` and not one folder deeper.
 4. Extract the framework zip into the game folder. The zip contains a `BepInEx` folder, so its files land in `BepInEx\plugins\ObenseuerCore\`. The zip holds a BepInEx 6 build (`ObenseuerCore.dll`) and a BepInEx 5 build (`ObenseuerCore.BepInEx5.dll`), and BepInEx loads the one that matches. `ObenseuerCore` is the framework's file and code name.
 5. Start the game. The framework adds a "MODS" button to the main menu.
 
@@ -38,4 +38,8 @@ Open `BepInEx\logs\ObenseuerCore.log`. The first line names the framework versio
 
 ## Make mods
 
-Go to [Your first mod](guides/getting-started/first-mod.md). It starts from the `Starter` folder in the repository, which builds on its own. The framework does not ship a `build.cmd`. Build your mod with `dotnet build`.
+Do the steps above first, including the framework zip, because a mod project builds against the framework files in your game folder. Then go to [Your first mod](guides/getting-started/first-mod.md). It starts from the `Starter` folder in the repository, which builds on its own once the game, BepInEx and the framework are installed. The framework does not ship a `build.cmd`. Build your mod with `dotnet build`.
+
+## Where to go next
+
+Next: [Your first mod](guides/getting-started/first-mod.md).
