@@ -12,7 +12,7 @@ A starter mod for Obenseuer. It logs one line when it loads, and shows a hint on
 
 1. Copy this `Starter` folder anywhere, for example `C:\Mods\MyMod`.
 2. Rename the folder and `MyFirstMod.csproj` to your mod's name. Give your mod its own id in `Plugin.cs`.
-3. Close the game, then run `dotnet build -c Release -p:DeployToGame=true` in the folder.
+3. Close the game. Open a terminal in the folder: open it in File Explorer, click the address bar, type `cmd` and press Enter. Then run `dotnet build -c Release -p:DeployToGame=true`. The last lines should say `Build succeeded.` and `0 Error(s)`. If the game is not in the default Steam folder, add `-p:GameDir="D:\Games\Obenseuer"` with your own path. A build error that names the game, BepInEx or the framework says which piece is missing.
 4. The build writes `bin\Release\net472\<name>.dll`. With `-p:DeployToGame=true` and a `BepInEx\plugins` folder in the game, it also copies the file to `<game>\BepInEx\plugins\<name>\<name>.dll`. Start the game and load a save: a hint appears. It is the game's card game rules box, so press the Hints key (K by default) if you do not see it.
 5. The log is `<game>\BepInEx\logs\<your id>.log`, so `example.myfirstmod.log` until you change the id.
 
@@ -24,4 +24,8 @@ If the mod needs a BepInEx API, use a BepInEx plugin instead. The packaging guid
 
 ## Game folder
 
-The build looks for the game in this order: `-p:GameDir=<folder>`, the `OBENSEUER_DIR` environment variable, `GameDir.user.props` next to `Directory.Build.props`, the default Steam path, then the other Steam libraries. The build does not copy into the game unless you add `-p:DeployToGame=true`.
+The build needs to find your game folder, the one with `Obenseuer.exe`. It looks in this order: `-p:GameDir=<folder>`, the `OBENSEUER_DIR` environment variable, `GameDir.user.props` next to `Directory.Build.props`, the default Steam path, then the other Steam libraries. The build does not copy into the game unless you add `-p:DeployToGame=true`.
+
+## Where to go next
+
+The full walkthrough, with every step explained, is [Your first mod](https://github.com/NomadsReach/Obenseuer-Modding-Framework/blob/main/docs/guides/getting-started/first-mod.md). After that, the [Getting started](https://github.com/NomadsReach/Obenseuer-Modding-Framework/blob/main/docs/guides/getting-started.md) pages add one feature at a time.

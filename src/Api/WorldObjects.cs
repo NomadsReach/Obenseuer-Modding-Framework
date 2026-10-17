@@ -192,7 +192,8 @@ namespace ObenseuerCore
                 StoryPump.Clear();
                 SaveData.ResetAll();
                 Reset();
-                Events.NewGameStarted();
+                NewGameOptions.CapturePending();
+                Events.RaiseNewGameStarted();
             }
             catch (Exception e)
             {

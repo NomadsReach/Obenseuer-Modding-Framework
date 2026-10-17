@@ -9,10 +9,12 @@ namespace ObenseuerCore
         private static readonly List<Registered> responses = new List<Registered>();
         private static bool hooked;
 
-        internal static string Add(string modId, string conversationTitle, string anchorText, int anchorId, string playerText, string npcReply, string luaCondition, Action onPicked)
+        internal static string Add(string modId, string conversationTitle, string anchorText, int anchorId, string playerText, string npcReply, string luaCondition, Action onPicked, int insertAt, int priority)
         {
             if (string.IsNullOrEmpty(conversationTitle)) throw new ArgumentException("conversationTitle must not be empty", "conversationTitle");
             if (string.IsNullOrEmpty(playerText)) throw new ArgumentException("playerText must not be empty", "playerText");
+            if (insertAt < -1) throw new ArgumentException("insertAt must be -1 or a link index", "insertAt");
+            if (!ValidPriority(priority)) throw new ArgumentException("priority must be -1 or 0 to 4", "priority");
             if (!Dialogue.IsAvailable) return Refused("the dialogue system is not installed");
             if (SaveGate.Busy) return Refused("a save or load is running");
             if (!DialogueAuthoring.ValidText(playerText, DialogueAuthoring.MaxText, true) || (npcReply != null && !DialogueAuthoring.ValidText(npcReply, DialogueAuthoring.MaxText, true)) || !DialogueAuthoring.ValidText(luaCondition, DialogueAuthoring.MaxLua, false)) return Refused("bad text or condition");
@@ -27,7 +29,7 @@ namespace ObenseuerCore
             Registered response = responses.Find(r => r.Key == key);
             if (response == null)
             {
-                response = new Registered { ModId = modId, Key = key, Title = conversationTitle, AnchorId = anchor.id, PlayerText = playerText, NpcReply = npcReply, Condition = luaCondition, Priority = PlayerPriority(master, anchor) };
+                response = new Registered { ModId = modId, Key = key, Title = conversationTitle, AnchorId = anchor.id, PlayerText = playerText, NpcReply = npcReply, Condition = luaCondition, InsertAt = insertAt, Priority = RequestedPriority(priority, PlayerPriority(master, anchor)) };
                 response.PlayerId = DialogueAuthoring.FreeIdFrom(DialogueAuthoring.StableId(key), id => conversation.GetDialogueEntry(id) != null);
                 response.NpcId = npcReply == null ? -1 : DialogueAuthoring.FreeIdFrom(response.PlayerId + 1, id => conversation.GetDialogueEntry(id) != null);
             }
@@ -82,13 +84,65 @@ namespace ObenseuerCore
             {
                 try
                 {
-                    Apply(master, response);
+                    if (Apply(master, response)) response.Retry.Clear();
+                    else response.Retry.Arm();
                 }
                 catch (Exception e)
                 {
+                    response.Retry.Arm();
                     ApiLog.Once(Dialogue.Owner, "re-apply response", e);
                 }
             }
+        }
+
+        internal static void Tick()
+        {
+            bool waiting = false;
+            foreach (Registered response in responses)
+            {
+                if (!response.Retry.Waiting) continue;
+                waiting = true;
+                break;
+            }
+            if (!waiting) return;
+            PCDS.DialogueDatabase master = DialogueAuthoring.Master();
+            if (master == null) return;
+            foreach (Registered response in new List<Registered>(responses))
+            {
+                if (!response.Retry.Waiting) continue;
+                bool applied = false;
+                try
+                {
+                    applied = Apply(master, response);
+                }
+                catch (Exception e)
+                {
+                    ApiLog.Once(Dialogue.Owner, "retry response " + response.Key, e);
+                }
+                if (applied)
+                {
+                    response.Retry.Clear();
+                    continue;
+                }
+                response.Retry.Try(false);
+                if (!response.Retry.Waiting) ApiLog.Once(Dialogue.Owner, "retry response " + response.Key, "the conversation or the anchor never appeared");
+            }
+        }
+
+        internal static int InsertIndex(int requested, int count)
+        {
+            if (requested < 0 || requested > count) return count;
+            return requested;
+        }
+
+        internal static bool ValidPriority(int priority)
+        {
+            return priority >= -1 && priority <= (int)PCDS.ConditionPriority.High;
+        }
+
+        internal static PCDS.ConditionPriority RequestedPriority(int priority, PCDS.ConditionPriority fallback)
+        {
+            return priority < 0 ? fallback : (PCDS.ConditionPriority)priority;
         }
 
         internal static PCDS.DialogueEntry FindAnchor(List<PCDS.DialogueEntry> entries, string text)
@@ -142,7 +196,7 @@ namespace ObenseuerCore
             player.conditionsString = response.Condition ?? "";
             player.userScript = PickScript(response.Key);
             conversation.dialogueEntries.Add(player);
-            anchor.outgoingLinks.Add(new PCDS.Link(conversation.id, anchor.id, conversation.id, response.PlayerId) { priority = response.Priority });
+            anchor.outgoingLinks.Insert(InsertIndex(response.InsertAt, anchor.outgoingLinks.Count), new PCDS.Link(conversation.id, anchor.id, conversation.id, response.PlayerId) { priority = response.Priority });
             if (response.NpcId < 0) return true;
             PCDS.DialogueEntry npc = template.CreateDialogueEntry(response.NpcId, conversation.id, response.Key + "_reply");
             npc.ActorID = anchor.ActorID;
@@ -229,8 +283,10 @@ namespace ObenseuerCore
             internal string PlayerText;
             internal string NpcReply;
             internal string Condition;
+            internal int InsertAt;
             internal PCDS.ConditionPriority Priority;
             internal Action OnPicked;
+            internal readonly RetryGate Retry = new RetryGate();
         }
     }
 }

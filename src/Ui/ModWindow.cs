@@ -54,6 +54,11 @@ namespace ObenseuerCore.Ui
 
         public static ModWindow Open(string modId, string title, WindowDock dock, Action<ModWindow> build)
         {
+            return Open(modId, title, dock, build, false);
+        }
+
+        internal static ModWindow Open(string modId, string title, WindowDock dock, Action<ModWindow> build, bool shareSide)
+        {
             ModWindow existing = Find(modId, title);
             if (existing != null)
             {
@@ -64,7 +69,7 @@ namespace ObenseuerCore.Ui
             ModWindow window = host.AddComponent<ModWindow>();
             try
             {
-                window.Initialise(modId, title, dock);
+                window.Initialise(modId, title, dock, shareSide);
             }
             catch (Exception e)
             {
@@ -137,7 +142,7 @@ namespace ObenseuerCore.Ui
             pending.Add(action);
         }
 
-        private void Initialise(string id, string name, WindowDock dock)
+        private void Initialise(string id, string name, WindowDock dock, bool shareSide)
         {
             ModId = id;
             Title = name;
@@ -150,7 +155,7 @@ namespace ObenseuerCore.Ui
             scaler.referenceResolution = new Vector2(1920f, 1080f);
             scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
             scaler.matchWidthOrHeight = 0.5f;
-            Panel(dock);
+            Panel(dock, shareSide);
             home = gameObject.scene;
             UiEvents.Acquire();
             acquired = true;
@@ -158,7 +163,7 @@ namespace ObenseuerCore.Ui
             SceneManager.sceneUnloaded += OnSceneUnloaded;
         }
 
-        private void Panel(WindowDock dock)
+        private void Panel(WindowDock dock, bool shareSide)
         {
             float inset = UiTheme.PanelInset;
             if (dock == WindowDock.Full)
@@ -198,12 +203,22 @@ namespace ObenseuerCore.Ui
             Body = body;
             if (dock == WindowDock.Full)
             {
-                body.offsetMin = new Vector2(UiTheme.SidePanelWidth + inset + UiTheme.Padding, inset + UiTheme.FooterHeight);
                 RectTransform side = ModUi.NewRect("Side", panel);
                 side.anchorMin = Vector2.zero;
-                side.anchorMax = new Vector2(0f, 1f);
                 side.offsetMin = new Vector2(inset, inset + UiTheme.FooterHeight);
-                side.offsetMax = new Vector2(UiTheme.SidePanelWidth + inset, -inset);
+                if (shareSide)
+                {
+                    body.anchorMin = new Vector2(UiTheme.SideShare, 0f);
+                    body.offsetMin = new Vector2(UiTheme.Padding, inset + UiTheme.FooterHeight);
+                    side.anchorMax = new Vector2(UiTheme.SideShare, 1f);
+                    side.offsetMax = new Vector2(0f, -inset);
+                }
+                else
+                {
+                    body.offsetMin = new Vector2(UiTheme.SidePanelWidth + inset + UiTheme.Padding, inset + UiTheme.FooterHeight);
+                    side.anchorMax = new Vector2(0f, 1f);
+                    side.offsetMax = new Vector2(UiTheme.SidePanelWidth + inset, -inset);
+                }
                 ModUi.Stack(side);
                 Side = side;
             }
@@ -399,6 +414,11 @@ namespace ObenseuerCore.Ui
         {
             InputManager input = InputManager.instance;
             return input != null ? input.GetKeyDown("Pause Menu") : Input.GetKeyDown(KeyCode.Escape);
+        }
+
+        internal static bool AnyOpen
+        {
+            get { return stack.Count > 0; }
         }
 
         public static ModWindow Find(string modId, string title)

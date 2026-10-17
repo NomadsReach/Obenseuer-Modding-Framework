@@ -1,8 +1,12 @@
 # Obenseuer Modding Framework
 
-The Obenseuer Modding Framework (the framework) is a [BepInEx](docs/glossary.md#bepinex) plugin for the game Obenseuer. It runs on BepInEx 5 (5.4.23 or later) and BepInEx 6 (Unity.Mono). It is a shared base for other mods. It gives them one settings menu, a computer app registry, per-save data, game events, game time and money helpers, and safe patching. It also has a few optional gameplay tweaks, all off by default.
+The Obenseuer Modding Framework (the framework) is a free add-on for the game Obenseuer. Other mods build on it, so they all share one settings menu, per-save data, game events and helpers for the game's items, NPCs, shops and more. It is a [BepInEx](docs/glossary.md#bepinex) plugin. BepInEx is the tool that loads mods into the game. The framework runs on BepInEx 5 (5.4.23 or later) and BepInEx 6 (Unity.Mono). It also has a few optional gameplay tweaks, all off by default.
 
-Version: 0.11.1-beta (plugin version 0.11.1, GUID `obenseuer.moddingframework`). License: MIT. This is a beta, see the [status page](docs/status.md).
+- **Playing with mods?** Go to [Install](#install).
+- **Making a mod?** Read [Your first mod](docs/guides/getting-started/first-mod.md), then the [API index](docs/API.md).
+- **Something not working?** See the [FAQ](docs/faq.md).
+
+Version: 0.12.0-beta (plugin version 0.12.0, GUID `obenseuer.moddingframework`). License: MIT. This is a beta, see the [status page](docs/status.md).
 
 Documentation site: https://nomadsreach.github.io/Obenseuer-Modding-Framework/
 
@@ -10,7 +14,7 @@ Documentation site: https://nomadsreach.github.io/Obenseuer-Modding-Framework/
 
 ### What the framework does
 
-- Game API: more than 70 areas over the game's systems, including players, NPCs and animals, items, inventory and containers, crafting, shops, banking, mail, housing, world objects, power, doors, trains, weather and time.
+- Game API: more than 100 areas over the game's systems, including players, NPCs and animals, items, inventory and containers, crafting, shops, banking, mail, housing, world objects, power, doors, trains, weather and time.
 - Custom items and recipes, with OBJ models and PNG icons.
 - Custom furniture: a mod furniture is a copy of a vanilla piece, and it can have its own OBJ model.
 - Shop stock for mod items in traders and vending machines, loot categories for mod spawn pools, and mail bundles that send several items as one letter or package after a delay.
@@ -19,10 +23,10 @@ Documentation site: https://nomadsreach.github.io/Obenseuer-Modding-Framework/
 - A shared Mods menu with every plugin's settings, including key bindings.
 - In-game computer apps: mods add icons to the desks and open full-screen app windows.
 - WebUi, an optional module that shows mod pages in HTML. It is Windows only. It has a shared theme in light and dark.
-- Safe patching: patches go through a game build check, and a failed critical patch disables only its own mod's patches.
+- Safe patching: if a game update breaks one of the framework's changes to the game, the framework turns off the whole feature group for that feature and writes error lines to that group's log file. The rest keeps working.
 - Story API (experimental): quests, dialogue and law.
 - Net (experimental): Steam, lobby and presence helpers for co-op.
-- Optional tweaks, off by default: drain multipliers, stack size, spoilage, crafting and renovation speed, camera toggle, game clock speed and more. Change them in the Mods menu or in the config file. The full list is in [Tweaks](docs/api-core/tweaks.md).
+- Optional tweaks, off by default: drain multipliers, stack size, spoilage, crafting and renovation speed, camera toggle, game clock speed and more. Change them in the Mods menu or in the config file. The full list is in [Framework core classes](docs/api-core/tweaks.md#tweaks).
 
 Mods add their own features on top. The game API areas and helpers were built from the game's code. Extensive testing has not been fully done yet. See the [status page](docs/status.md). Report problems with your log file, `BepInEx\logs\ObenseuerCore.log`.
 

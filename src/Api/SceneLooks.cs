@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
+using System.Text;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -295,6 +297,202 @@ namespace ObenseuerCore
             {
                 ApiLog.Once(Owner, what, e);
             }
+        }
+
+        public static bool SyncPose(string modId, GameObject body)
+        {
+            string reason;
+            return SyncPose(modId, body, out reason);
+        }
+
+        public static bool SyncPose(string modId, GameObject body, out string reason)
+        {
+            reason = null;
+            string what = "sync pose " + modId;
+            bool logged = false;
+            try
+            {
+                if (!ModIds.IsValid(modId)) reason = "invalid mod id";
+                else if (body == null) reason = "no body";
+                else if (SceneLookApply.SyncPose(modId, body, out reason)) return true;
+            }
+            catch (Exception e)
+            {
+                reason = e.Message;
+                ApiLog.Once(Owner, what, e);
+                logged = true;
+            }
+            if (!logged) ApiLog.Once(Owner, what, reason);
+            return false;
+        }
+
+        public static bool SetAutoPose(string modId, GameObject body, bool enabled)
+        {
+            string reason;
+            return SetAutoPose(modId, body, enabled, out reason);
+        }
+
+        public static bool SetAutoPose(string modId, GameObject body, bool enabled, out string reason)
+        {
+            reason = null;
+            string what = "auto pose " + modId + (enabled ? " on" : " off");
+            bool logged = false;
+            try
+            {
+                if (!ModIds.IsValid(modId)) reason = "invalid mod id";
+                else if (body == null) reason = "no body";
+                else if (SceneLookApply.AutoPose(modId, body, enabled, out reason)) return true;
+            }
+            catch (Exception e)
+            {
+                reason = e.Message;
+                ApiLog.Once(Owner, what, e);
+                logged = true;
+            }
+            if (!logged) ApiLog.Once(Owner, what, reason);
+            return false;
+        }
+
+        public static SceneLookRigView RigOf(string modId, GameObject body)
+        {
+            string reason;
+            return RigOf(modId, body, out reason);
+        }
+
+        public static SceneLookRigView RigOf(string modId, GameObject body, out string reason)
+        {
+            reason = null;
+            string what = "rig " + modId;
+            bool logged = false;
+            try
+            {
+                if (!ModIds.IsValid(modId)) reason = "invalid mod id";
+                else if (body == null) reason = "no body";
+                else
+                {
+                    SceneLookApplied state = SceneLookApply.State(body);
+                    if (state == null) reason = "the body has no applied look";
+                    else if (state.ModId != modId) reason = "the look on this body was applied by mod " + state.ModId;
+                    else
+                    {
+                        Avatar avatar = state.Avatar != null ? state.Avatar : SceneLookApplyRig.HumanAvatar(body);
+                        return new SceneLookRigView(state.Holder, avatar, avatar != null && avatar.isHuman);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                reason = e.Message;
+                ApiLog.Once(Owner, what, e);
+                logged = true;
+            }
+            if (!logged) ApiLog.Once(Owner, what, reason);
+            return null;
+        }
+
+        public static string Describe(SceneLook look)
+        {
+            GameObject body = look == null || look.Look == null ? null : SceneLookApply.BodyOf(look.Look);
+            return Describe(look, body);
+        }
+
+        public static string Describe(SceneLook look, GameObject body)
+        {
+            try
+            {
+                if (look == null) return "no look";
+                if (!look.Ready || look.Look == null) return "the look is not loaded: " + look.Reason;
+                SceneLookLook data = look.Look;
+                StringBuilder text = new StringBuilder();
+                text.AppendLine("look " + data.FileName + " " + look.Path + " in " + look.Scene);
+                text.AppendLine("nodes " + data.Nodes.Count + " | renderers " + data.Renderers.Count + " | bone names " + (look.BoneNames == null ? 0 : look.BoneNames.Length) + " | vertices " + look.VertexCount);
+                text.AppendLine("node tree, file TRS:");
+                Tree(text, data, "  ");
+                text.AppendLine("renderers, bind scale:");
+                Dictionary<long, SceneLookNode> byTransform = SceneLookFrame.ByTransform(data);
+                foreach (SceneLookLookRenderer renderer in data.Renderers)
+                {
+                    SceneLookNode node = SceneLookFrame.Node(data, renderer.Source.GameObject.PathId);
+                    string chain = node == null ? "0" : SceneLookApplyRig.Number(SceneLookFrame.Scale(SceneLookFrame.RelativeWithoutRoot(data, node, byTransform)));
+                    text.AppendLine("  " + renderer.Name + " | bones " + renderer.Bones.Count + " | bind poses " + Poses(renderer) + " | mesh frame scale " + chain + " | bind pose scale " + Bind(renderer));
+                }
+                if (body == null)
+                {
+                    text.AppendLine("path and avatar: no body is using this look, apply it first or pass a body");
+                }
+                else
+                {
+                    SceneLookRigPlan plan = SceneLookRig.Decide(data, SceneLookApplyRig.Names(body), body.name, SceneLookApplyRig.AvatarKind(body));
+                    text.AppendLine("path " + Label(plan.Path) + (plan.Reason == null ? string.Empty : ": " + plan.Reason));
+                    text.AppendLine("human roles " + plan.RequiredCovered + " of " + plan.RequiredBones + " | mapped bones " + plan.Bones.Count);
+                    SceneLookApplied state = SceneLookApply.State(body);
+                    Avatar avatar = state != null && state.Avatar != null ? state.Avatar : SceneLookApplyRig.HumanAvatar(body);
+                    if (avatar == null) text.AppendLine("avatar none");
+                    else text.AppendLine("avatar valid " + avatar.isValid + " | human " + avatar.isHuman + " | held by the look " + (state != null && state.Avatar != null));
+                }
+                return text.ToString();
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Owner, "describe", e);
+                return "describe failed: " + e.Message;
+            }
+        }
+
+        private static void Tree(StringBuilder text, SceneLookLook look, string indent)
+        {
+            Dictionary<long, SceneLookNode> byPath = new Dictionary<long, SceneLookNode>(look.Nodes.Count);
+            foreach (SceneLookNode node in look.Nodes) byPath[node.Transform] = node;
+            SceneLookNode root = null;
+            foreach (SceneLookNode node in look.Nodes)
+            {
+                if (node.GameObject == look.Root) root = node;
+            }
+            if (root == null) return;
+            Tree(text, root, byPath, indent, 0);
+        }
+
+        private static void Tree(StringBuilder text, SceneLookNode node, Dictionary<long, SceneLookNode> byPath, string indent, int depth)
+        {
+            if (node == null || depth > 64) return;
+            text.AppendLine(indent + node.Name + " | pos (" + Number(node.Position) + ") | rot (" + Number(node.Rotation) + ") | scale (" + Number(node.Scale) + ")");
+            if (node.Children == null) return;
+            foreach (SceneLookRef child in node.Children)
+            {
+                SceneLookNode found;
+                if (child.FileId != 0 || !byPath.TryGetValue(child.PathId, out found)) continue;
+                Tree(text, found, byPath, indent + "  ", depth + 1);
+            }
+        }
+
+        private static string Number(float[] values)
+        {
+            StringBuilder text = new StringBuilder();
+            for (int i = 0; i < values.Length; i++)
+            {
+                if (i > 0) text.Append(", ");
+                text.Append(values[i].ToString("0.###", CultureInfo.InvariantCulture));
+            }
+            return text.ToString();
+        }
+
+        private static int Poses(SceneLookLookRenderer renderer)
+        {
+            if (renderer.Mesh == null || renderer.Mesh.BindPoses == null) return 0;
+            return renderer.Mesh.BindPoses.Length;
+        }
+
+        private static string Bind(SceneLookLookRenderer renderer)
+        {
+            if (renderer.Mesh == null || renderer.Mesh.BindPoses == null || renderer.Mesh.BindPoses.Length == 0) return "none";
+            return SceneLookApplyRig.Number(SceneLookApplyRig.BindScale(renderer.Mesh.BindPoses[0]));
+        }
+
+        private static string Label(SceneLookRigPath path)
+        {
+            if (path == SceneLookRigPath.Name) return "name";
+            if (path == SceneLookRigPath.Retarget) return "retarget";
+            return "refuse";
         }
 
         private static void Hold(string modId, SceneLook look)

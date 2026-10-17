@@ -22,6 +22,7 @@ namespace ObenseuerCore
                 bool ok = Hook(typeof(TaskController), "EditTask", new[] { typeof(TaskInfo), typeof(TaskObjective), typeof(ObjectiveStatus), typeof(bool), typeof(bool), typeof(CurrentTaskStatus), typeof(bool), typeof(bool), typeof(bool) }, "EditTaskPrefix", "EditTaskPostfix");
                 ok &= Hook(typeof(TaskController), "EditTaskStatus", new[] { typeof(TaskStatusInfo), typeof(CurrentTaskStatus) }, "EditTaskStatusPrefix", "EditTaskStatusPostfix");
                 ok &= Hook(typeof(TaskController), "EditTaskObjective", new[] { typeof(TaskStatusInfo), typeof(ObjectiveStatusInfo), typeof(ObjectiveStatus) }, "EditTaskObjectivePrefix", "EditTaskObjectivePostfix");
+                ok &= Hook(typeof(TaskController), "EditTaskCounter", new[] { typeof(TaskInfo), typeof(TaskObjective), typeof(int), typeof(bool) }, "EditTaskCounterPrefix", "EditTaskCounterPostfix");
                 return ok;
             }
             catch (Exception e)
@@ -146,12 +147,64 @@ namespace ObenseuerCore
             try
             {
                 if (__state < 0 || (newStatus != ObjectiveStatus.Active && (int)objective.status == __state)) return;
-                StoryPump.Enqueue(new StoryEvent { Kind = StoryEventKind.ObjectiveChanged, Text = task.Id, Detail = objective.objective.Id, Number = (int)objective.status });
+                StoryPump.Enqueue(new StoryEvent { Kind = StoryEventKind.ObjectiveChanged, Text = task.Id, Detail = objective.objective.Id, Number = (int)objective.status, Current = objective.currentAmount, Target = objective.counterAmount });
             }
             catch (Exception e)
             {
                 ApiLog.Once(Quests.Owner, "EditTaskObjective postfix", e);
             }
+        }
+
+        private static void EditTaskCounterPrefix(TaskController __instance, TaskInfo task, TaskObjective objective, out int __state)
+        {
+            depth++;
+            __state = -1;
+            try
+            {
+                ObjectiveStatusInfo status = FindStatus(__instance, task, objective);
+                if (status != null) __state = status.currentAmount;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Quests.Owner, "EditTaskCounter prefix", e);
+            }
+        }
+
+        private static void EditTaskCounterPostfix(TaskController __instance, TaskInfo task, TaskObjective objective, int __state)
+        {
+            try
+            {
+                if (__state < 0 || task == null || objective == null) return;
+                ObjectiveStatusInfo status = FindStatus(__instance, task, objective);
+                if (status == null || !CounterMoved(__state, status.currentAmount, status.status)) return;
+                StoryPump.Enqueue(new StoryEvent { Kind = StoryEventKind.ObjectiveChanged, Text = task.Id, Detail = objective.Id, Number = (int)status.status, Current = status.currentAmount, Target = status.counterAmount });
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Quests.Owner, "EditTaskCounter postfix", e);
+            }
+        }
+
+        internal static ObjectiveStatusInfo FindStatus(TaskController controller, TaskInfo task, TaskObjective objective)
+        {
+            if (controller == null || task == null || objective == null) return null;
+            foreach (TaskStatusInfo entry in controller.allTasks)
+            {
+                if (entry == null || entry.task == null) continue;
+                if (entry.task != task && !entry.task.Compare(task)) continue;
+                foreach (ObjectiveStatusInfo status in entry.objectives)
+                {
+                    if (status == null || status.objective == null) continue;
+                    if (status.objective == objective || status.objective.Id == objective.Id) return status;
+                }
+                return null;
+            }
+            return null;
+        }
+
+        internal static bool CounterMoved(int before, int after, ObjectiveStatus status)
+        {
+            return after != before && (status == ObjectiveStatus.Active || status == ObjectiveStatus.Hidden);
         }
 
         private static TaskStatusInfo FindAdded(TaskController controller, TaskInfo task, int first)

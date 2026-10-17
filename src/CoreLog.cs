@@ -19,6 +19,8 @@ namespace ObenseuerCore
         private const int MaxErrorKeys = 256;
         private const long HardMaxBytes = 8L * 1024 * 1024;
         private const int MaxLinesPerSecond = 100;
+        private const int MinLinesPerSecond = 1;
+        private const int HardMaxLinesPerSecond = 100000;
         private static readonly Dictionary<string, CoreLog> loggers = new Dictionary<string, CoreLog>(StringComparer.OrdinalIgnoreCase);
         internal static CoreLog Mirror;
         private readonly Dictionary<string, string> lastByKey = new Dictionary<string, string>();
@@ -72,9 +74,22 @@ namespace ObenseuerCore
             return log;
         }
 
+        public int LineLimit
+        {
+            get { return lineLimit; }
+            set { lineLimit = ClampLines(value); }
+        }
+
         internal void SetLineLimit(int limit)
         {
-            lineLimit = limit;
+            lineLimit = ClampLines(limit);
+        }
+
+        private static int ClampLines(int limit)
+        {
+            if (limit < MinLinesPerSecond) return MinLinesPerSecond;
+            if (limit > HardMaxLinesPerSecond) return HardMaxLinesPerSecond;
+            return limit;
         }
 
         public void Info(string message)

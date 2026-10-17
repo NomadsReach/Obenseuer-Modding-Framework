@@ -10,15 +10,17 @@ namespace ObenseuerCore
         internal readonly string Section;
         internal readonly string Title;
         internal readonly string Description;
+        internal readonly bool Confirm;
         private readonly Func<string> run;
 
-        internal ModMenuAction(string modId, string name, string section, string title, string description, Func<string> run)
+        internal ModMenuAction(string modId, string name, string section, string title, string description, Func<string> run, bool confirm)
         {
             ModId = modId;
             Name = name;
             Section = string.IsNullOrEmpty(section) ? ModMenuActions.DefaultSection : section;
             Title = string.IsNullOrEmpty(title) ? name : title;
             Description = description ?? "";
+            Confirm = confirm;
             this.run = run;
         }
 
@@ -49,8 +51,13 @@ namespace ObenseuerCore
 
         internal static ModMenuAction Register(string modId, string name, string section, string title, string description, Func<string> run)
         {
+            return Register(modId, name, section, title, description, run, false);
+        }
+
+        internal static ModMenuAction Register(string modId, string name, string section, string title, string description, Func<string> run, bool confirm)
+        {
             if (string.IsNullOrEmpty(modId) || string.IsNullOrEmpty(name)) return null;
-            ModMenuAction action = new ModMenuAction(modId, name, section, title, description, run);
+            ModMenuAction action = new ModMenuAction(modId, name, section, title, description, run, confirm);
             for (int i = 0; i < actions.Count; i++)
             {
                 if (Same(actions[i], modId, name))
@@ -126,6 +133,7 @@ namespace ObenseuerCore
                 int before = actions.Count;
                 ModMenuAction first = Register(CheckMod, "one", "Checks", "Run one", "Read only.", One);
                 if (first == null || Find(CheckMod, "one") != first || first.Section != "Checks" || first.Title != "Run one") return "action registry add";
+                if (first.Confirm) return "action registry default confirm";
                 if (Run(first) != "one ran") return "action registry run";
                 ModMenuAction again = Register(CheckMod, "one", "Checks", "Run one again", "", Again);
                 if (again == null || again == first || Count != before + 1) return "action registry duplicate";
@@ -146,6 +154,11 @@ namespace ObenseuerCore
                 if (For(CheckMod).Count != 3) return "action registry list";
                 if (!Remove(CheckMod, "bare") || !Remove(CheckMod, "blank") || !Remove(CheckMod, "boom")) return "action registry cleanup";
                 if (For(CheckMod).Count != 0 || Count != before) return "action registry changed the menu";
+                ModMenuAction confirm = Register(CheckMod, "confirm", "Checks", "Run confirm", "Changes things.", One, true);
+                if (confirm == null || !confirm.Confirm || Find(CheckMod, "confirm") != confirm) return "action registry confirm";
+                ModMenuAction confirmed = Register(CheckMod, "confirm", "Checks", "Run confirm again", "Changes things.", One, true);
+                if (confirmed == confirm || !confirmed.Confirm || For(CheckMod).Count != 1) return "action registry confirm replace";
+                if (!Remove(CheckMod, "confirm") || For(CheckMod).Count != 0 || Count != before) return "action registry confirm cleanup";
                 return null;
             }
             catch (Exception e)

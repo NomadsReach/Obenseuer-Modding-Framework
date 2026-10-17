@@ -13,6 +13,7 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 DOCS = os.path.join(ROOT, "docs")
 LINK = re.compile(r"\]\(([^)\s]+)\)")
 HEADING = re.compile(r"^#{1,6}\s+(.*?)\s*$")
+EXPLICIT_ID = re.compile(r"\s*\{#([A-Za-z0-9_:.-]+)\}\s*$")
 
 
 def shipped(rels):
@@ -46,7 +47,11 @@ def anchors(path):
     for _, line in prose_lines(path):
         m = HEADING.match(line)
         if m:
-            found.add(slug(m.group(1)))
+            explicit = EXPLICIT_ID.search(m.group(1))
+            if explicit:
+                found.add(explicit.group(1))
+            else:
+                found.add(slug(m.group(1)))
     return found
 
 

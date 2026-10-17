@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace ObenseuerCore
 {
-    [BepInPlugin("obenseuer.moddingframework", "Obenseuer Modding Framework", "0.11.1")]
+    [BepInPlugin("obenseuer.moddingframework", "Obenseuer Modding Framework", "0.12.0")]
     public class Core : BaseUnityPlugin
     {
         private const string SupportedVersion = "0.5.08";
@@ -25,6 +25,7 @@ namespace ObenseuerCore
         public static bool RawAccessAvailable { get; internal set; }
         internal static bool Verbose;
         private static int mainThread;
+        private static float logFlushAt;
         internal static bool RefuseUnknownBuild { get; private set; }
 
         public static bool PatchingAllowed
@@ -39,6 +40,7 @@ namespace ObenseuerCore
             CarryOverSettings();
             RefuseUnknownBuild = Config.Bind("Safety", "RefuseUnknownBuild", false, "Refuse all patches on a game build other than 0.5.08 (buildid 25969064). Takes effect on the next start.").Value;
             Verbose = Config.Bind("Debug", "Verbose", false, "Write Debug(key, message) lines, changes only, to BepInEx\\logs\\<modId>.log.").Value;
+            Isolate("hint settings", () => HudHintSettings.Bind(Config));
             CoreLog log = CoreLog.For("ObenseuerCore");
             log.Info("Obenseuer Modding Framework " + Info.Metadata.Version + " on game " + GameBuild + ", supported " + IsSupportedBuild + ", patching " + PatchingAllowed + ", loader " + Loader.Name);
             if (!IsSupportedBuild)
@@ -79,6 +81,7 @@ namespace ObenseuerCore
             Isolate("interaction", Interactions.Init);
             Isolate("inventory", PlayerInventory.Init);
             Isolate("worldobjects", WorldObjects.Init);
+            Isolate("new game options", NewGameOptions.Init);
             Isolate("net", Net.Init);
             Isolate("settings", GameSettings.Init);
             Isolate("difficulty", GameDifficulty.Init);
@@ -133,6 +136,7 @@ namespace ObenseuerCore
             Isolate("janitors", Janitors.Init);
             Isolate("global flags", GlobalFlags.Init);
             Isolate("lights", Lights.Init);
+            Isolate("world props", WorldProps.Init);
             Isolate("landmarks", Landmarks.Init);
             Isolate("market shops", MarketShops.Init);
             Isolate("item givers", ItemGivers.Init);
@@ -151,6 +155,8 @@ namespace ObenseuerCore
             Isolate("world radiation", WorldRadiation.Init);
             Isolate("screen fx", ScreenFx.Init);
             Isolate("hud", Hud.Init);
+            Isolate("hud hints", HudHints.Init);
+            Isolate("hud hints probe", HudHintGame.ProbeReady);
             Isolate("flood gates", FloodGates.Init);
             Isolate("blast sites", BlastSites.Init);
             Isolate("extractables", Extractables.Init);
@@ -175,6 +181,7 @@ namespace ObenseuerCore
                 Events.Loaded += SaveData.OnLoaded;
                 Events.Loaded += BuildingLoaded.OnLoaded;
                 Events.SceneLoadedWithMode += SaveData.OnSceneLoaded;
+            Events.SceneLoaded += delegate { PhoneBook.Flush(); };
             });
             Isolate("survival", Survival.Init);
             Isolate("computer apps", ComputerApps.Init);
@@ -186,6 +193,14 @@ namespace ObenseuerCore
             Isolate("main menu", MainMenuButtons.Init);
             Isolate("main menu mods button", ModMenuMainMenu.Init);
             Isolate("config quit flush", ModMenuConfigList.InitQuitFlush);
+            Isolate("modmenu check", () =>
+            {
+                if (Config.Bind("Debug", "ModMenuSelfCheck", false, "Runs the classic Mods menu row, config list, action and navigation self-check at start and logs the result.").Value)
+                {
+                    string error = ModMenuSelfCheck.Run();
+                    log.Info(error == null ? "modmenu self-check ok" : "modmenu self-check failed: " + error);
+                }
+            });
             Isolate("access probe", () =>
             {
                 if (Config.Bind("Debug", "AccessProbe", false, "Run the L0 access probe at start and log the result.").Value)
@@ -229,6 +244,13 @@ namespace ObenseuerCore
                 if (Config.Bind("Debug", "KeyChordSelfCheck", false, "Runs the keybind chord self-check at start and logs the result.").Value)
                 {
                     log.Info(KeyChordSelfTest.Run());
+                }
+            });
+            Isolate("hud hints check", () =>
+            {
+                if (Config.Bind("Debug", "HudHintsSelfCheck", false, "Runs the mod hint queue, settings and refusal self-check at start and logs the result.").Value)
+                {
+                    log.Info(HudHintsSelfTest.Run());
                 }
             });
             Isolate("furniture check", () =>
@@ -279,6 +301,23 @@ namespace ObenseuerCore
                 if (Config.Bind("Debug", "ModNpcsSelfCheck", false, "Runs the saved mod NPC record self-check at start and logs the result.").Value)
                 {
                     log.Info(ModNpcsSelfTest.Run());
+                }
+            });
+            Isolate("world prop check", () =>
+            {
+                if (Config.Bind("Debug", "WorldPropsSelfCheck", false, "Runs the world prop record, save round trip and refusal self-check at start and logs the result.").Value)
+                {
+                    log.Info(WorldPropsSelfTest.Run());
+                }
+            });
+            Isolate("world prop command", () =>
+            {
+                if (Config.Bind("Debug", "WorldPropsCommand", false, "Registers the core_worldprops_check console command, which places, lists, moves and removes a prop of each kind in the current scene and logs the result. Use a scratch save.").Value)
+                {
+                    if (!ConsoleCommands.Register("obenseuer.moddingframework", "core_worldprops_check", "Places, lists, moves and removes test world props in the current scene and logs the result. Use a scratch save.", args => log.Info(WorldPropsSelfTest.Play())))
+                    {
+                        log.Info("core_worldprops_check not registered, the console is not available");
+                    }
                 }
             });
             Isolate("net queue check", () =>
@@ -382,6 +421,13 @@ namespace ObenseuerCore
                     log.Info(FrameworkModScan.SelfCheck());
                 }
             });
+            Isolate("new game options check", () =>
+            {
+                if (Config.Bind("Debug", "NewGameOptionsSelfCheck", false, "Runs the new game option registration and pending value self-check at start and logs the result.").Value)
+                {
+                    log.Info(NewGameOptionsSelfTest.Run());
+                }
+            });
             Isolate("guitar song check", () =>
             {
                 if (Config.Bind("Debug", "GuitarSongSelfCheck", false, "Runs the guitar song note timing self-check at start and logs the result.").Value)
@@ -404,6 +450,20 @@ namespace ObenseuerCore
                     {
                         log.Info("core_quests_check not registered, the console is not available");
                     }
+                }
+            });
+            Isolate("quests check", () =>
+            {
+                if (Config.Bind("Debug", "QuestsSelfCheck", false, "Runs the quest counter event and ready retry self-check at start and logs the result.").Value)
+                {
+                    log.Info(QuestsSelfTest.Run());
+                }
+            });
+            Isolate("inventory take check", () =>
+            {
+                if (Config.Bind("Debug", "InventoryTakeSelfCheck", false, "Runs the inventory Take accounting self-check at start and logs the result.").Value)
+                {
+                    log.Info(InventorySelfTest.Run());
                 }
             });
             Isolate("dialogue authoring check", () =>
@@ -498,6 +558,10 @@ namespace ObenseuerCore
         private static readonly Action tickModNpcOrders = () => ModNpcRoutines.TickOrders();
         private static readonly Action tickModNpcRoutines = () => ModNpcRoutines.TickRoutines();
         private static readonly Action tickHudBars = () => HudBars.Tick();
+        private static readonly Action tickHudHints = () => HudHints.Tick();
+        private static readonly Action flushLogs = FlushLogs;
+        private static readonly Action tickQuests = () => Quests.Tick();
+        private static readonly Action tickDialogue = () => Dialogue.Tick();
 
         private void Update()
         {
@@ -518,6 +582,17 @@ namespace ObenseuerCore
             Guard("ModNpcRoutines.TickOrders", tickModNpcOrders);
             Guard("ModNpcRoutines.TickRoutines", tickModNpcRoutines);
             Guard("HudBars.Tick", tickHudBars);
+            Guard("HudHints.Tick", tickHudHints);
+            Guard("CoreLog.FlushSuppressed", flushLogs);
+            Guard("Quests.Tick", tickQuests);
+            Guard("Dialogue.Tick", tickDialogue);
+        }
+
+        private static void FlushLogs()
+        {
+            if (Time.unscaledTime < logFlushAt) return;
+            logFlushAt = Time.unscaledTime + 1f;
+            CoreLog.FlushSuppressed();
         }
 
         private void LateUpdate()

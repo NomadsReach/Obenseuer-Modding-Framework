@@ -13,6 +13,7 @@
     <Compile Include="..\..\src\Api\SceneLookData.cs" Link="Core\SceneLookData.cs" />
     <Compile Include="..\..\src\Api\SceneLookFile.cs" Link="Core\SceneLookFile.cs" />
     <Compile Include="..\..\src\Api\SceneLookFiles.cs" Link="Core\SceneLookFiles.cs" />
+    <Compile Include="..\..\src\Api\SceneLookFrame.cs" Link="Core\SceneLookFrame.cs" />
     <Compile Include="..\..\src\Api\SceneLookIndex.cs" Link="Core\SceneLookIndex.cs" />
     <Compile Include="..\..\src\Api\SceneLookInfo.cs" Link="Core\SceneLookInfo.cs" />
     <Compile Include="..\..\src\Api\SceneLookLoad.cs" Link="Core\SceneLookLoad.cs" />

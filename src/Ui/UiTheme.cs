@@ -11,10 +11,17 @@ namespace ObenseuerCore.Ui
         internal const float MutedSize = 14f;
         internal const float RowHeight = 40f;
         internal const float FieldHeight = 52f;
+        internal const float HelpHeight = 20f;
+        internal const float HelpTextHeight = 18f;
+        internal const float HelpGap = 2f;
         internal const int FieldPadding = 6;
+        internal const float DotSize = 8f;
+        internal const int DotRadius = 4;
+        internal const float ScrollBarWidth = 10f;
         internal const int Padding = 16;
         internal const int CardPadding = 12;
         internal const float Gap = 8f;
+        internal const float HalfGap = 4f;
         internal const float LabelShare = 45f;
         internal const float ControlShare = 55f;
         internal const float ReadoutWidth = 48f;
@@ -31,6 +38,7 @@ namespace ObenseuerCore.Ui
         internal const float TopInset = 110f;
         internal const float PanelInset = 12f;
         internal const float SidePanelWidth = 440f;
+        internal const float SideShare = 0.235f;
         internal const float CenterWidth = 640f;
         internal const int WindowRadius = 12;
         internal const int CardRadius = 12;

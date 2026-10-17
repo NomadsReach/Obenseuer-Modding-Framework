@@ -85,6 +85,7 @@ public static class UiState
     public static bool IsInputBlocked { get; }
     public static bool CursorVisible { get; }
     public static bool InventoryDisabled { get; }
+    public static bool IsTyping { get; }
     public static bool PauseEventsAvailable { get; }
     public static event Action<bool> PauseOpened;
     public static event Action PauseClosed;
@@ -99,6 +100,14 @@ public static class UiState
 | `CursorVisible` | `bool` | `true` when the game shows the mouse cursor. |
 | `InventoryDisabled` | `bool` | `true` when something has locked the inventory. |
 | `PauseEventsAvailable` | `bool` | `false` when the pause events could not be set up. |
+- All flag members are read-only properties. Each returns `false` when `GameController.instance` or `GameUIController.instance` is missing (main menu, loading, no save).
+- `IsMenuOpen`: `GameUIController.IsMenuVisible`. It is also `true` while the wait or sleep timer is on screen. It does not cover the pause menu, shops or dialogue. Those are separate flags.
+- `IsPaused`: `GameController.GameIsPaused`. The pause menu, the saving screen and the load menu set it. Do not confuse it with `GameTime.IsPaused`, which reads `Time.timeScale == 0`: the pause menu and the saving screen set the time scale to 0 too, so `GameTime.IsPaused` is also `true` while either is open.
+- `IsInputBlocked`: `GameController.keysDisabled`. It is `true` while a `ControlsDisabled` call with the default `disableKeys` is active (cutscenes, dialogue, sleep and similar). An open game menu does not set it, because `ShowGameMenu` passes `disableKeys: false`. The framework's own input lock also sets it.
+- `CursorVisible`: `GameController.cursorVisible`. This is the game's cursor flag. It does not include the controller-input and computer-screen cases that `UpdateCursorVisibility` adds.
+- `InventoryDisabled`: `GameController.inventoryDisabled`. It stays `true` while any holder from `DisableInventory` has not called `EnableInventory`.
+- `IsTyping`: `true` while a text field has focus, so a mod's hotkey can stand down. It reads `EventSystem.current.currentSelectedGameObject` and accepts a `TMP_InputField` whose `isFocused` is true on that object or on one of its parents, so a selection that is an inner child of the field still counts; the framework's own text fields instead compare the selection to the field object itself. It also covers the developer console through `DeveloperConsole.Instance.consoleOpened` and `InputField.isFocused`. Any `TMP_InputField` that Unity focuses sets that selection, whether the player clicked it or the game called `ActivateInputField` or `Select`, which is how the in-game computer screens (including the framework's own app text fields), the notes editor, the editable signs, the new-game and character name fields, the virtual keyboard, the developer console and the framework's own Mods-menu text fields take the keyboard. It does not cover the WebUi module's HTML fields, which take the keyboard themselves, a field that holds focus while the event system selection is neither the field nor one of its parents, or a `UnityEngine.UI.InputField`, which the game does not ship. It is a read: it never changes focus, and it is safe on the main menu and with no save.
+- `PauseEventsAvailable` is `installed && !CorePatcher.IsDisabled(owner)`. It is `false` when the pause patches could not be installed, and then the two events never fire.
 
 | Event | Gives you | When it fires |
 |---|---|---|

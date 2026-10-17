@@ -9,10 +9,12 @@ namespace ObenseuerCore
         private static readonly List<Registered> branches = new List<Registered>();
         private static bool hooked;
 
-        internal static string Add(string modId, string conversationTitle, string anchorText, int anchorId, ConversationDefinition branch)
+        internal static string Add(string modId, string conversationTitle, string anchorText, int anchorId, ConversationDefinition branch, int insertAt, int priority)
         {
             if (string.IsNullOrEmpty(conversationTitle)) throw new ArgumentException("conversationTitle must not be empty", "conversationTitle");
             if (branch == null) throw new ArgumentNullException("branch");
+            if (insertAt < -1) throw new ArgumentException("insertAt must be -1 or a link index", "insertAt");
+            if (!DialogueResponses.ValidPriority(priority)) throw new ArgumentException("priority must be -1 or 0 to 4", "priority");
             if (!Dialogue.IsAvailable) return Refused("the dialogue system is not installed");
             if (SaveGate.Busy) return Refused("a save or load is running");
             if (branch.Key == Dialogue.NarrationKey) return Refused("the branch key narration is reserved for Dialogue.Narrate");
@@ -29,7 +31,7 @@ namespace ObenseuerCore
             if (branch.Speaker != null && !IsActor(master, branch.Speaker, anchor.ActorID)) return Refused("the branch speaker must be the NPC of the anchor");
             string key = DialogueAuthoring.HashedId(modId, conversationTitle + "\n" + anchor.id + "\n" + branch.Key);
             if (branches.Exists(r => r.Key == key)) return Refused("this branch is already added");
-            Registered record = new Registered { ModId = modId, Key = key, Title = conversationTitle, AnchorId = anchor.id, BranchKey = branch.Key, Priority = DialogueResponses.PlayerPriority(master, anchor) };
+            Registered record = new Registered { ModId = modId, Key = key, Title = conversationTitle, AnchorId = anchor.id, BranchKey = branch.Key, InsertAt = insertAt, Priority = DialogueResponses.RequestedPriority(priority, DialogueResponses.PlayerPriority(master, anchor)) };
             ConversationRefusal added;
             record.BranchTitle = DialogueAuthoring.AddWith(modId, branch, anchor.ActorID, out added);
             if (record.BranchTitle == null) return Refused("the branch conversation was refused: " + added);
@@ -101,12 +103,53 @@ namespace ObenseuerCore
             {
                 try
                 {
-                    if (!Apply(master, record)) ApiLog.Once(Dialogue.Owner, "re-apply branch", "a branch conversation or its anchor is missing");
+                    if (Apply(master, record)) record.Retry.Clear();
+                    else
+                    {
+                        record.Retry.Arm();
+                        ApiLog.Once(Dialogue.Owner, "re-apply branch", "a branch conversation or its anchor is missing");
+                    }
                 }
                 catch (Exception e)
                 {
+                    record.Retry.Arm();
                     ApiLog.Once(Dialogue.Owner, "re-apply branch", e);
                 }
+            }
+        }
+
+        internal static void Tick()
+        {
+            bool waiting = false;
+            foreach (Registered record in branches)
+            {
+                if (!record.Retry.Waiting) continue;
+                waiting = true;
+                break;
+            }
+            if (!waiting) return;
+            DialogueAuthoring.Restore();
+            PCDS.DialogueDatabase master = DialogueAuthoring.Master();
+            if (master == null) return;
+            foreach (Registered record in new List<Registered>(branches))
+            {
+                if (!record.Retry.Waiting) continue;
+                bool applied = false;
+                try
+                {
+                    applied = Apply(master, record);
+                }
+                catch (Exception e)
+                {
+                    ApiLog.Once(Dialogue.Owner, "retry branch " + record.Key, e);
+                }
+                if (applied)
+                {
+                    record.Retry.Clear();
+                    continue;
+                }
+                record.Retry.Try(false);
+                if (!record.Retry.Waiting) ApiLog.Once(Dialogue.Owner, "retry branch " + record.Key, "the conversation or the anchor never appeared");
             }
         }
 
@@ -119,11 +162,14 @@ namespace ObenseuerCore
             if (anchor == null || start == null) return false;
             if (record.BranchId >= 0 && branch.id != record.BranchId) return false;
             record.BranchId = branch.id;
+            int at = DialogueResponses.InsertIndex(record.InsertAt, anchor.outgoingLinks.Count);
             foreach (PCDS.Link link in start.outgoingLinks)
             {
                 int target = link.destinationDialogueID;
                 if (anchor.outgoingLinks.Exists(l => l.destinationConversationID == branch.id && l.destinationDialogueID == target)) continue;
-                anchor.outgoingLinks.Add(new PCDS.Link(conversation.id, anchor.id, branch.id, target) { priority = record.Priority });
+                at = DialogueResponses.InsertIndex(at, anchor.outgoingLinks.Count);
+                anchor.outgoingLinks.Insert(at, new PCDS.Link(conversation.id, anchor.id, branch.id, target) { priority = record.Priority });
+                at++;
             }
             return true;
         }
@@ -185,7 +231,9 @@ namespace ObenseuerCore
             internal string BranchKey;
             internal string BranchTitle;
             internal int BranchId = -1;
+            internal int InsertAt;
             internal PCDS.ConditionPriority Priority;
+            internal readonly RetryGate Retry = new RetryGate();
         }
     }
 }

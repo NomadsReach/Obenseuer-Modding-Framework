@@ -28,6 +28,9 @@ public static class Banking
     public static float ExchangeQuote(string bankId, float amount, bool toRm);
     public static float ExchangeRate(string bankId, bool toRm);
     public static bool Exchange(string bankId, int amount, bool toRm);
+    public static bool IsFrozen(string bankId);
+    public static BankResult Freeze(string bankId);
+    public static BankResult Unfreeze(string bankId);
 }
 ```
 
@@ -112,7 +115,11 @@ public sealed class BankAccount
 - `Exchange` returns `false` without moving money when it refuses. It refuses when a save is loading or being written, or when a handler is nested too deep.
 - `Exchange` also refuses an amount that is not 1 to 16,000,000, or that is above the wallet or the source supply. The credit must be at least 1, because the game cuts the credit to whole units. The worst-case credit must fit the game's storage limit.
 - An OC to RM exchange is also refused when the bank's OC supply would pass `int.MaxValue`. An RM to OC exchange is refused when the bank's OC supply is below its daily OC spending, because the game would then credit zero OC for the RM it takes.
-- You can't freeze an account. Freezing is the game's own enforcement and not something a mod needs.
+- You can freeze and unfreeze a bank account, and read whether it is frozen. `Freeze` and `Unfreeze` change the same flag the game uses, through the game's own setter, so anything the game hangs off it still runs. `IsFrozen` reads the live account record.
+- A frozen account is blocked where the game blocks it: the bank screen refuses deposits and withdrawals and shows `Account frozen`, and the game skips the account's credit interest. Debt interest still runs, and the game's own loan screen is not blocked, because it never checks the flag.
+- The flag is saved with the account, so an account your mod freezes stays frozen after your mod is removed. The player's way out is the legal services unfreeze action. Treat freezing as something you offer to undo, not something you leave behind.
+- The bank screen reads the flag when it refreshes rather than watching it, so a freeze made while the screen is open shows at the next refresh.
+- While an account is frozen, the game's scam letter handler adds a second account record with the same bank name <span class="tech">(`Economy/FakeInvoiceReceiver.cs:106` and its else branch)</span>.
 
 ### Online banking helpers
 

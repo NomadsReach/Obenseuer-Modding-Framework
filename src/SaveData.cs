@@ -340,6 +340,21 @@ namespace ObenseuerCore
             }
         }
 
+        internal static string WritePath(string modId)
+        {
+            if (string.IsNullOrEmpty(loadedFolder)) return null;
+            return ModFolder(false) + "/" + modId + ".json";
+        }
+
+        internal static void Flush(string modId)
+        {
+            string path = WritePath(modId);
+            if (path == null) return;
+            Action<string> save;
+            if (!savers.TryGetValue(modId, out save)) return;
+            save(path);
+        }
+
         internal static void MarkLoaded()
         {
             loadedFolder = SaveController.LastSaveFolderPath;
@@ -372,14 +387,45 @@ namespace ObenseuerCore
             return folder + "/" + id + ".json";
         }
 
-        private static string ModFolder(bool preferLoadedFolder)
+        private static bool Rooted(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return false;
+            if (path.Length > 1 && path[1] == ':') return true;
+            return path[0] == '/' || path[0] == '\\';
+        }
+        internal static string WrittenFolder
+        {
+            get
+            {
+                try
+                {
+                    return SaveFolderOf(false);
+                }
+                catch (Exception e)
+                {
+                    ApiLog.Once("ObenseuerCore", "save folder", e);
+                    return null;
+                }
+            }
+        }
+
+        private static string SaveFolderOf(bool preferLoadedFolder)
         {
             string saveFolder = preferLoadedFolder ? loadedFolder : null;
             if (string.IsNullOrEmpty(saveFolder))
             {
-                saveFolder = Application.persistentDataPath + "/Saves/" + (string)characterNameField.GetValue(null) + "/" + (string)saveNameField.GetValue(null);
+                string character = (string)characterNameField.GetValue(null);
+                string name = (string)saveNameField.GetValue(null);
+                if (Rooted(name)) saveFolder = name;
+                else if (Rooted(character)) saveFolder = character + "/" + name;
+                else saveFolder = Application.persistentDataPath + "/Saves/" + character + "/" + name;
             }
-            return saveFolder + "/mods";
+            return saveFolder;
+        }
+
+        private static string ModFolder(bool preferLoadedFolder)
+        {
+            return SaveFolderOf(preferLoadedFolder) + "/mods";
         }
 
         private static string RefuseReason(string json)

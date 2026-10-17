@@ -53,6 +53,10 @@
       <HintPath>$(ManagedDir)/UnityEngine.PhysicsModule.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <Reference Include="UnityEngine.ParticleSystemModule">
+      <HintPath>$(ManagedDir)/UnityEngine.ParticleSystemModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
     <Reference Include="UnityEngine.JSONSerializeModule">
       <HintPath>$(ManagedDir)/UnityEngine.JSONSerializeModule.dll</HintPath>
       <Private>false</Private>

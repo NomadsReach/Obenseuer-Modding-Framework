@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Stalburg Exchange</title>
+<link rel="stylesheet" href="obx-theme.css">
+<link rel="stylesheet" href="app.css">
+</head>
+<body data-tab="markets">
+<div class="scrim"></div>
+<main class="obx-window window" aria-label="Stalburg Exchange">
+  <div class="obx-titlebar">
+    <span class="obx-titlebar-text" id="title">Stalburg Exchange - Markets</span>
+    <button class="obx-sq" id="close" title="Close (Esc)" aria-label="Close">
+      <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 3l6 6M9 3l-6 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+  <div class="obx-chrome">
+    <span class="obx-sq" aria-hidden="true"><svg viewBox="0 0 12 12"><path d="M7.5 2.5L4 6l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    <span class="obx-sq" aria-hidden="true"><svg viewBox="0 0 12 12"><path d="M4.5 2.5L8 6 4.5 9.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    <span class="obx-sq" aria-hidden="true"><svg viewBox="0 0 12 12"><path d="M9.5 6a3.5 3.5 0 1 1-1.02-2.48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M9.6 1.9v2.3H7.3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    <div class="obx-urlbar" id="url">https://exchange.stalburg.com/markets</div>
+    <div class="obx-seg theme-toggle" role="group" aria-label="Theme">
+      <button type="button" data-theme-mode="light" aria-pressed="true">Light</button>
+      <button type="button" data-theme-mode="dark" aria-pressed="false">Dark</button>
+      <button type="button" data-theme-mode="system" aria-pressed="false">System</button>
+    </div>
+  </div>
+  <header class="site-head">
+    <div class="obx-brand"><span class="obx-brand-a">Stalburg</span><span class="obx-brand-b">EXCHANGE</span></div>
+    <nav class="obx-tabs" role="tablist">
+      <button class="obx-tab active" data-tab="markets" role="tab" aria-selected="true">Markets</button>
+      <button class="obx-tab" data-tab="portfolio" role="tab" aria-selected="false">Portfolio</button>
+      <button class="obx-tab" data-tab="news" role="tab" aria-selected="false">News</button>
+    </nav>
+    <input class="obx-input search" id="search" type="search" placeholder="Search symbol or company" autocomplete="off" spellcheck="false" aria-label="Search">
+    <div class="account">
+      <div class="stat"><span class="obx-label">Cash</span><span class="obx-value" id="cash">&mdash;</span></div>
+      <div class="stat"><span class="obx-label">Portfolio value</span><span class="obx-value" id="portfolio">&mdash;</span></div>
+      <div class="stat"><span class="obx-label">Day P/L</span><span class="obx-value" id="dayPl">&mdash;</span></div>
+    </div>
+  </header>
+  <div class="body">
+    <aside class="panel watchlist">
+      <div class="panel-head">Watchlist</div>
+      <div class="scroll watch-scroll">
+        <table class="obx-table watch-table">
+          <colgroup><col><col><col></colgroup>
+          <tbody id="watch"></tbody>
+        </table>
+      </div>
+    </aside>
+    <section class="center">
+      <div class="quote market">
+        <div class="quote-id">
+          <span class="sym" id="sym"></span>
+          <span class="company" id="name"></span>
+        </div>
+        <div class="quote-price">
+          <span class="price" id="price"></span>
+          <span class="change" id="change"></span>
+        </div>
+      </div>
+      <div class="chart-bar market">
+        <div class="obx-seg" id="chips"></div>
+      </div>
+      <div class="chart-wrap market">
+        <canvas id="chart"></canvas>
+        <div class="tip" id="tip"></div>
+      </div>
+      <div class="stats market" id="stats"></div>
+      <div class="soon" id="soon"></div>
+    </section>
+    <aside class="panel ticket">
+      <div class="ticket-body">
+        <div class="obx-seg side-toggle">
+          <button class="side" data-side="buy" aria-pressed="true">Buy</button>
+          <button class="side" data-side="sell" aria-pressed="false">Sell</button>
+        </div>
+        <div class="row order-type">
+          <span class="obx-label">Order type</span>
+          <div class="obx-seg mini">
+            <button type="button" aria-pressed="true">Market</button>
+            <button type="button" disabled>Limit</button>
+          </div>
+        </div>
+        <div class="field">
+          <span class="obx-label">Quantity</span>
+          <div class="qty-row">
+            <button class="obx-btn ghost step" id="minus" aria-label="Decrease">&minus;</button>
+            <input class="obx-input" id="qty" type="text" inputmode="numeric" value="1" autocomplete="off">
+            <button class="obx-btn ghost step" id="plus" aria-label="Increase">+</button>
+          </div>
+          <div class="presets">
+            <button class="obx-btn ghost sm" data-q="1">1</button>
+            <button class="obx-btn ghost sm" data-q="10">10</button>
+            <button class="obx-btn ghost sm" data-q="100">100</button>
+            <button class="obx-btn ghost sm" data-q="max">Max</button>
+          </div>
+        </div>
+        <div class="estimate">
+          <div class="row"><span class="obx-label">Est. cost</span><span class="obx-value" id="est">&mdash;</span></div>
+          <div class="row"><span class="obx-label">Buying power</span><span class="obx-value" id="power">&mdash;</span></div>
+        </div>
+        <button class="obx-btn primary block" id="submit">Buy GSH</button>
+        <div class="note" id="note"></div>
+      </div>
+      <div class="positions">
+        <div class="panel-head">Positions</div>
+        <div class="scroll pos-scroll">
+          <table class="obx-table pos-table">
+            <colgroup><col><col></colgroup>
+            <tbody id="positions"></tbody>
+          </table>
+        </div>
+      </div>
+    </aside>
+  </div>
+  <footer class="obx-statusbar">
+    <span>Connected to Stalburg Exchange</span>
+    <span class="obx-clock" id="clock"></span>
+  </footer>
+</main>
+<script src="app.js"></script>
+</body>
+</html>

@@ -16,7 +16,7 @@ namespace ObenseuerCore
         }
     }
 
-    public static class PlayerInventory
+    public static partial class PlayerInventory
     {
         internal const string Owner = "obenseuer.moddingframework.inventory";
         private static bool installed;
@@ -354,9 +354,52 @@ namespace ObenseuerCore
 
         private static bool TakeUnits(global::Inventory inventory, int itemId, int count)
         {
+            if (LiquidId(inventory, itemId))
+            {
+                ApiLog.Once(Owner, "Take " + itemId, "refused: the id is a liquid or a slot holds it as a liquid, and the game's remove can match that slot before a real stack, so a take could remove a whole container while the counted amount does not move. Take liquid units with Containers or StackActions instead");
+                return false;
+            }
             if (!inventory.CheckForItem(itemId, count)) return false;
+            int before = inventory.GetItemAmountInInventory(itemId);
             inventory.RemoveItemDialogueAmount(itemId, count);
-            return true;
+            int removed;
+            TakeResult result = Account(count, before, inventory.GetItemAmountInInventory(itemId), out removed);
+            if (result == TakeResult.Exact) return true;
+            if (removed > 0) GiveBack(inventory, itemId, before, removed);
+            return false;
+        }
+
+        private static bool LiquidId(global::Inventory inventory, int itemId)
+        {
+            Item item = ItemRegistry.FindInDatabase(itemId);
+            bool isLiquid = item != null && IsLiquidCategory(item.Categories);
+            return LiquidRisk(isLiquid, CarriesLiquidId(inventory, itemId));
+        }
+
+        private static bool CarriesLiquidId(global::Inventory inventory, int itemId)
+        {
+            foreach (SlotController slot in inventory.AllSlots(false, false))
+            {
+                if (slot == null) continue;
+                ItemLiquidData data = slot.itemStack.GetMetaOfType<ItemLiquidData>();
+                if (data != null && data.liquidItem != null && data.liquidItem.ID == itemId) return true;
+            }
+            return false;
+        }
+
+        private static void GiveBack(global::Inventory inventory, int itemId, int before, int removed)
+        {
+            try
+            {
+                bool added = inventory.AddItemDialogueAmount(itemId, removed);
+                int now = inventory.GetItemAmountInInventory(itemId);
+                if (added && now == before) return;
+                CoreLog.For(Owner).Error("Take could not give back " + removed + " of item " + itemId + ", the player holds " + now + " instead of " + before + ", those units are lost or duplicated");
+            }
+            catch (Exception e)
+            {
+                CoreLog.For(Owner).Error("Take could not give back " + removed + " of item " + itemId + ", the player items were lost: " + e.ToString());
+            }
         }
 
         private static List<ItemStackInfo> ItemStacks(global::Inventory inventory)

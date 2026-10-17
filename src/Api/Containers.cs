@@ -144,8 +144,19 @@ namespace ObenseuerCore
             return PlayerInventory.Guard(() => storage != null && storage.Slots != null ? new ContainerInfo(storage) : null, null, "Containers.Describe");
         }
 
-        internal static int ApartmentOf(Component component)
+        internal static bool IsNpcOwned(Storage storage)
         {
+            return storage != null && storage.StorageOwner != null && storage.StorageOwner.ID > 1;
+        }
+
+        public static bool IsNotNpcOwned(Storage storage)
+        {
+            return storage != null && !IsNpcOwned(storage);
+        }
+
+        public static int ApartmentOf(Component component)
+        {
+            if (component == null) return -1;
             TenementApartmentPrefabs prefabs = component.GetComponentInParent<TenementApartmentPrefabs>();
             if (prefabs == null)
             {
@@ -155,14 +166,9 @@ namespace ObenseuerCore
             return prefabs == null ? -1 : prefabs.apartmentNumber;
         }
 
-        internal static bool IsNpcOwned(Storage storage)
+        public static bool IsLocked(Storage storage)
         {
-            return storage.StorageOwner != null && storage.StorageOwner.ID > 1;
-        }
-
-        internal static bool IsLocked(Storage storage)
-        {
-            return storage._Lock != null && storage._Lock.Locked;
+            return storage != null && storage._Lock != null && storage._Lock.Locked;
         }
 
         private static bool GiveTo(Storage storage, int itemId, int count)

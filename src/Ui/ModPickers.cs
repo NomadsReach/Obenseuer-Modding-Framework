@@ -11,6 +11,8 @@ namespace ObenseuerCore.Ui
         private readonly TextMeshProUGUI value;
         private readonly Action stepBack;
         private readonly Action stepForward;
+        private readonly UnityEngine.UI.Button back;
+        private readonly UnityEngine.UI.Button forward;
         private string[] options = new string[0];
         private int current;
 
@@ -20,16 +22,23 @@ namespace ObenseuerCore.Ui
             changed = new Coalesce<int>(owner, onChange);
             stepBack = () => Step(-1);
             stepForward = () => Step(1);
-            Narrow(ModUi.Button(control, UiTheme.Glyph('\u2039', "<"), ButtonStyle.Secondary, stepBack));
+            back = ModUi.Button(control, UiTheme.Glyph('\u2039', "<"), ButtonStyle.Secondary, stepBack);
+            Narrow(back);
             value = ModUi.Label(control, "", UiTheme.BodySize, UiTheme.Text, TextAlignmentOptions.Center, false);
             LayoutElement share = ModUi.Sizing(value.gameObject);
             share.preferredWidth = 0f;
             share.flexibleWidth = 1f;
-            Narrow(ModUi.Button(control, UiTheme.Glyph('\u203A', ">"), ButtonStyle.Secondary, stepForward));
+            forward = ModUi.Button(control, UiTheme.Glyph('\u203A', ">"), ButtonStyle.Secondary, stepForward);
+            Narrow(forward);
             SetOptions(names, index);
         }
 
         public RectTransform Rect { get; private set; }
+
+        internal Selectable Focus
+        {
+            get { return back; }
+        }
 
         public void Set(int index)
         {
@@ -45,7 +54,7 @@ namespace ObenseuerCore.Ui
             Set(index);
         }
 
-        private void Step(int delta)
+        internal void Step(int delta)
         {
             int count = options.Length;
             if (count == 0) return;

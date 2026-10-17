@@ -9,12 +9,12 @@ This page says how finished the framework is. It then lists what 0.10.0-beta add
 
 ## In short
 
-- **This is a beta.** The latest release is 0.11.1-beta. A call can change before version 1.0, so a mod you build now may need small fixes later. The [API reference](API.md) lists the changes planned for 1.0.
+- **This is a beta.** The latest release is 0.12.0-beta. A call can change before version 1.0, so a mod you build now may need small fixes later. The [API reference](API.md) lists the changes planned for 1.0.
 - **Only Obenseuer 0.5.08 (Steam build 25969064) is supported.** On another game version the framework still starts and logs a warning, but a feature group that depends on changed game code can be turned off.
 - **Extensive testing has not been done yet.** The framework has been written against the game's own code, and each feature has had basic checks, but not long play sessions.
 - **Some parts are marked experimental.** They work, but expect rough edges: quests, dialogue and law (the Story API), Steam and lobby helpers for co-op (Net), mod NPCs, NPC appearance, the debug trace, the tutorial and computer files.
 
-What changed in 0.11.0-beta and 0.11.1-beta is in the [changelog](https://github.com/NomadsReach/Obenseuer-Modding-Framework/blob/main/CHANGELOG.md).
+What changed in 0.11.0-beta and 0.12.0-beta is in the [changelog](https://github.com/NomadsReach/Obenseuer-Modding-Framework/blob/main/CHANGELOG.md).
 
 ## What is new in 0.10.0-beta
 
@@ -121,9 +121,10 @@ Version 0.10.0-beta adds the calls below on top of 0.9.0-beta. Each line names t
 
 **Story, quests, dialogue and law**
 
-- Quests: `QuestAuthoring` creates quests with objectives through the game's task system, so they save with the game. See [Quest authoring](api/quest-authoring.md).
+- Quests: `QuestAuthoring` creates quests with objectives through the game's task system, so they save with the game. An objective can start hidden and be revealed later, and `Quests.Ready` is the place to create quests. A finished quest cannot be reopened. See [Quest authoring](api/quest-authoring.md).
 - Dialogue authoring: `DialogueAuthoring` adds conversations for the session. See [Dialogue authoring](api/dialogue-authoring.md).
 - Dialogue choices: `Dialogue.AddResponse`, `RemoveResponse` and `RemoveAll` add player choices to a game conversation. See [Story](api-story/dialogue.md#dialogue).
+- Dialogue choices: `Dialogue.AddResponse`, `RemoveResponse` and `RemoveAll` add player choices to a game conversation. A choice takes an insert position and a link priority. See [Story](api-story.md#dialogue).
 - Law: `Law.HasStolenGoods`, `StolenGoodsValue`, and `Law.Clear(CrimeKind)` to clear one kind of crime. `LawActions` pays fines, bribes and confiscates. See [Law actions](api/law-actions.md).
 - Police: `Pursuit.CallPolice`, which can be severe or ignore distance. See [Pursuit](api/pursuit.md).
 - Surveillance: `Surveillance.IsPlayerWitnessed` tells whether a camera or witness sees the player now. See [Surveillance](api/surveillance.md).

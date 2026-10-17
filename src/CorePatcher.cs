@@ -12,6 +12,9 @@ namespace ObenseuerCore
         private static readonly Dictionary<string, Harmony> harmonies = new Dictionary<string, Harmony>();
         private static readonly HashSet<string> disabled = new HashSet<string>();
         private const int Inherit = -1;
+        private const int InnerMaxChars = 512;
+        private const int InnerMaxDepth = 16;
+        private const int InnerMaxParts = 6;
         private static readonly List<MethodInfo> installedHandlers = new List<MethodInfo>();
 
         internal static event Action<string, string, MethodInfo[], bool> Installed;
@@ -206,10 +209,49 @@ namespace ObenseuerCore
 
         private static bool Fail(string owner, bool core, string what, Exception e)
         {
-            string reason = what + ": " + e.GetType().Name + ": " + e.Message;
+            string reason = what + ": " + e.GetType().Name + ": " + e.Message + Inner(e);
             CoreLog.For(owner).Error("patch failed on " + reason);
             if (core) DisableOwner(owner, reason);
             return false;
+        }
+
+        private static string Inner(Exception e)
+        {
+            List<string> parts = new List<string>();
+            int length = 0;
+            AggregateException group = e as AggregateException;
+            if (group != null)
+            {
+                foreach (Exception item in group.InnerExceptions) AddInner(parts, item, ref length);
+            }
+            else
+            {
+                AddInner(parts, e.InnerException, ref length);
+            }
+            if (parts.Count == 0) return string.Empty;
+            return " | inner: " + string.Join("; ", parts.ToArray());
+        }
+
+        private static void AddInner(List<string> parts, Exception e, ref int length)
+        {
+            int depth = 0;
+            while (e != null && depth < InnerMaxDepth && parts.Count < InnerMaxParts && length < InnerMaxChars)
+            {
+                string text = Flatten(e.GetType().Name + ": " + e.Message);
+                if (text.Length > InnerMaxChars - length) text = text.Substring(0, Math.Max(0, InnerMaxChars - length));
+                if (!parts.Contains(text))
+                {
+                    parts.Add(text);
+                    length += text.Length;
+                }
+                e = e.InnerException;
+                depth++;
+            }
+        }
+
+        private static string Flatten(string text)
+        {
+            return text.Replace("\r", " ").Replace("\n", " ").Replace("\t", " ");
         }
 
         internal static MethodInfo Handler(Type hooks, string name)

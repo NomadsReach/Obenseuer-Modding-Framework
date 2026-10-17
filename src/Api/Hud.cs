@@ -11,7 +11,7 @@ namespace ObenseuerCore
     {
         private const string NotifyType = "Notice";
         private const float SubtitleCharactersPerSecond = 20f;
-        private static readonly Dictionary<string, HintOwner> hintOwners = new Dictionary<string, HintOwner>();
+        internal static readonly Dictionary<string, HintOwner> hintOwners = new Dictionary<string, HintOwner>();
         private static readonly Dictionary<string, int> gameUiHides = new Dictionary<string, int>();
         private static readonly Dictionary<string, int> crosshairHides = new Dictionary<string, int>();
         private static GameObject gameUiKey;
@@ -52,6 +52,11 @@ namespace ObenseuerCore
 
         public static bool ShowHint(string modId, string title, string[] lines)
         {
+            return ShowHint(modId, title, lines, HintStyle.Framework);
+        }
+
+        public static bool ShowHint(string modId, string title, string[] lines, HintStyle style)
+        {
             ModIds.Require(modId, "modId");
             RequireText(title, "title");
             if (lines == null) throw new ArgumentNullException("lines");
@@ -59,26 +64,82 @@ namespace ObenseuerCore
             {
                 if (line == null) throw new ArgumentException("lines must not contain null", "lines");
             }
-            if (HintOverlay.instance == null) return false;
-            try
-            {
-                HintOverlay.Show(OwnerFor(modId), new HintContent(title).AddText(null, lines));
-                return true;
-            }
-            catch (Exception e)
-            {
-                ApiLog.Once(HudReport.Owner, "ShowHint", e);
-                return false;
-            }
+            return HudHints.Show(modId, title, lines, style);
         }
 
         public static bool HideHint(string modId)
         {
             ModIds.Require(modId, "modId");
+            bool removed = HudHints.Hide(modId);
             HintOwner owner;
-            if (!hintOwners.TryGetValue(modId, out owner)) return false;
-            HintOverlay.Hide(owner);
-            return true;
+            if (hintOwners.TryGetValue(modId, out owner))
+            {
+                HintOverlay.Hide(owner);
+                removed = true;
+            }
+            return removed;
+        }
+
+        public static bool IsHintShowing(string modId)
+        {
+            ModIds.Require(modId, "modId");
+            return HudHints.Showing(modId);
+        }
+
+        public static bool ShowPrompt(string modId, string text, string action)
+        {
+            return ShowPrompt(modId, text, action, PromptStyle.Framework);
+        }
+
+        public static bool ShowPrompt(string modId, string text, string action, float seconds)
+        {
+            return ShowPrompt(modId, text, action, seconds, PromptStyle.Framework);
+        }
+
+        public static bool ShowPrompt(string modId, string text, string action, PromptStyle style)
+        {
+            ModIds.Require(modId, "modId");
+            RequireText(text, "text");
+            RequireAction(action);
+            return HudHints.Prompt(modId, text, action, null, HudHintLogic.PersistentSeconds, style);
+        }
+
+        public static bool ShowPrompt(string modId, string text, string action, float seconds, PromptStyle style)
+        {
+            ModIds.Require(modId, "modId");
+            RequireText(text, "text");
+            RequireAction(action);
+            RequireSeconds(seconds);
+            return HudHints.Prompt(modId, text, action, null, seconds, style);
+        }
+
+        public static bool ShowPrompt(string modId, string text, ModKeybind bind)
+        {
+            ModIds.Require(modId, "modId");
+            RequireText(text, "text");
+            if (bind == null) throw new ArgumentException("bind must not be null", "bind");
+            return HudHints.Prompt(modId, text, null, bind, HudHintLogic.PersistentSeconds, PromptStyle.Framework);
+        }
+
+        public static bool ShowPrompt(string modId, string text, ModKeybind bind, float seconds)
+        {
+            ModIds.Require(modId, "modId");
+            RequireText(text, "text");
+            if (bind == null) throw new ArgumentException("bind must not be null", "bind");
+            RequireSeconds(seconds);
+            return HudHints.Prompt(modId, text, null, bind, seconds, PromptStyle.Framework);
+        }
+
+        public static bool HidePrompt(string modId)
+        {
+            ModIds.Require(modId, "modId");
+            return HudHints.HidePrompt(modId);
+        }
+
+        public static bool IsPromptShowing(string modId)
+        {
+            ModIds.Require(modId, "modId");
+            return HudHints.PromptShowing(modId);
         }
 
         public static bool ShowNote(string noteId)
@@ -284,6 +345,7 @@ namespace ObenseuerCore
             {
                 if (owner != null) HintOverlay.Hide(owner);
             }
+            HudHints.Clear();
             HudBars.ClearAll();
         }
 
@@ -313,7 +375,7 @@ namespace ObenseuerCore
             }
         }
 
-        private static HintOwner OwnerFor(string modId)
+        internal static HintOwner OwnerFor(string modId)
         {
             HintOwner owner;
             if (!hintOwners.TryGetValue(modId, out owner) || owner == null)
@@ -322,6 +384,16 @@ namespace ObenseuerCore
                 hintOwners[modId] = owner;
             }
             return owner;
+        }
+
+        internal static bool TryOwner(string modId, out HintOwner owner)
+        {
+            return hintOwners.TryGetValue(modId, out owner) && owner != null;
+        }
+
+        internal static IEnumerable<HintOwner> Owners()
+        {
+            return hintOwners.Values;
         }
 
         private static bool CreateNotification(string title, string body)
@@ -342,6 +414,19 @@ namespace ObenseuerCore
         private static void RequireText(string value, string name)
         {
             if (string.IsNullOrEmpty(value)) throw new ArgumentException(name + " must be non-empty", name);
+        }
+
+        private static void RequireSeconds(float seconds)
+        {
+            if (!HudHintLogic.ValidSeconds(seconds)) throw new ArgumentException("seconds must be above zero", "seconds");
+        }
+
+        private static void RequireAction(string action)
+        {
+            RequireText(action, "action");
+            ICollection<string> known = HudHintGame.KnownActions();
+            if (known == null) return;
+            if (!HudHintLogic.KnownAction(action, known)) throw new ArgumentException("action must be one of the game's input actions", "action");
         }
     }
 

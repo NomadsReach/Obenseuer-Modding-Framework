@@ -284,14 +284,24 @@ namespace ObenseuerCore
 
         public static string AddResponse(string modId, string conversationTitle, string anchorText, string playerText, string npcReply, string luaCondition, Action onPicked)
         {
+            return AddResponse(modId, conversationTitle, anchorText, playerText, npcReply, luaCondition, onPicked, -1, -1);
+        }
+
+        public static string AddResponse(string modId, string conversationTitle, string anchorText, string playerText, string npcReply, string luaCondition, Action onPicked, int insertAt = -1, int priority = -1)
+        {
             ModIds.Require(modId, "modId");
-            return DialogueResponses.Add(modId, conversationTitle, anchorText, -1, playerText, npcReply, luaCondition, onPicked);
+            return DialogueResponses.Add(modId, conversationTitle, anchorText, -1, playerText, npcReply, luaCondition, onPicked, insertAt, priority);
         }
 
         public static string AddResponse(string modId, string conversationTitle, int anchorId, string playerText, string npcReply, string luaCondition, Action onPicked)
         {
+            return AddResponse(modId, conversationTitle, anchorId, playerText, npcReply, luaCondition, onPicked, -1, -1);
+        }
+
+        public static string AddResponse(string modId, string conversationTitle, int anchorId, string playerText, string npcReply, string luaCondition, Action onPicked, int insertAt = -1, int priority = -1)
+        {
             ModIds.Require(modId, "modId");
-            return DialogueResponses.Add(modId, conversationTitle, null, anchorId, playerText, npcReply, luaCondition, onPicked);
+            return DialogueResponses.Add(modId, conversationTitle, null, anchorId, playerText, npcReply, luaCondition, onPicked, insertAt, priority);
         }
 
         public static bool RemoveResponse(string modId, string key)
@@ -302,20 +312,37 @@ namespace ObenseuerCore
 
         public static string AddBranch(string modId, string conversationTitle, string anchorText, ConversationDefinition branch)
         {
+            return AddBranch(modId, conversationTitle, anchorText, branch, -1, -1);
+        }
+
+        public static string AddBranch(string modId, string conversationTitle, string anchorText, ConversationDefinition branch, int insertAt = -1, int priority = -1)
+        {
             ModIds.Require(modId, "modId");
-            return DialogueBranches.Add(modId, conversationTitle, anchorText, -1, branch);
+            return DialogueBranches.Add(modId, conversationTitle, anchorText, -1, branch, insertAt, priority);
         }
 
         public static string AddBranch(string modId, string conversationTitle, int anchorId, ConversationDefinition branch)
         {
+            return AddBranch(modId, conversationTitle, anchorId, branch, -1, -1);
+        }
+
+        public static string AddBranch(string modId, string conversationTitle, int anchorId, ConversationDefinition branch, int insertAt = -1, int priority = -1)
+        {
             ModIds.Require(modId, "modId");
-            return DialogueBranches.Add(modId, conversationTitle, null, anchorId, branch);
+            return DialogueBranches.Add(modId, conversationTitle, null, anchorId, branch, insertAt, priority);
         }
 
         public static bool RemoveBranch(string modId, string key)
         {
             ModIds.Require(modId, "modId");
             return DialogueBranches.Remove(modId, key);
+        }
+
+        internal static void Tick()
+        {
+            if (!IsAvailable) return;
+            DialogueResponses.Tick();
+            DialogueBranches.Tick();
         }
 
         internal static void Init()

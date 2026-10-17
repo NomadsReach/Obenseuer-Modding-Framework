@@ -43,6 +43,7 @@ namespace ObenseuerCore
         {
             reason = null;
             string what = "apply " + modId;
+            SceneLookRigPath planPath = SceneLookRigPath.Refuse;
             SceneLookApplied state = null;
             SceneLookAssets assetsLeft = null;
             bool logged = false;
@@ -65,6 +66,7 @@ namespace ObenseuerCore
                 if (reason == null)
                 {
                     SceneLookRigPlan plan = SceneLookRig.Decide(look, SceneLookApplyRig.Names(body), body.name, SceneLookApplyRig.AvatarKind(body));
+                    planPath = plan.Path;
                     if (plan.Path == SceneLookRigPath.Refuse)
                     {
                         reason = plan.Reason;
@@ -102,8 +104,71 @@ namespace ObenseuerCore
                 if (assetsLeft.Bodies <= 0) Forget(look, assetsLeft);
             }
             if (reason == null) reason = "the look could not be applied";
-            if (!logged) ApiLog.Once(Owner, what, reason);
+            string note = look == null ? string.Empty : SceneLookApplyRig.ScaleNote(look);
+            if (note.Length > 0) reason += " | " + note;
+            if (!logged) ApiLog.Once(Owner, what, reason + Path(planPath));
             return false;
+        }
+
+        internal static SceneLookApplied State(GameObject body)
+        {
+            Prune();
+            if (body == null) return null;
+            SceneLookApplied state;
+            if (!bodies.TryGetValue(body, out state)) return null;
+            return state;
+        }
+
+        internal static GameObject BodyOf(SceneLookLook look)
+        {
+            Prune();
+            foreach (KeyValuePair<GameObject, SceneLookApplied> pair in bodies)
+            {
+                if (pair.Value.Look == look) return pair.Key;
+            }
+            return null;
+        }
+
+        internal static bool SyncPose(string modId, GameObject body, out string reason)
+        {
+            reason = null;
+            SceneLookPoseDriver driver;
+            if (!Driver(modId, body, out driver, out reason)) return false;
+            driver.Sync();
+            return true;
+        }
+
+        internal static bool AutoPose(string modId, GameObject body, bool enabled, out string reason)
+        {
+            reason = null;
+            SceneLookPoseDriver driver;
+            if (!Driver(modId, body, out driver, out reason)) return false;
+            driver.Auto = enabled;
+            return true;
+        }
+
+        private static bool Driver(string modId, GameObject body, out SceneLookPoseDriver driver, out string reason)
+        {
+            driver = null;
+            reason = null;
+            SceneLookApplied state = State(body);
+            if (state == null)
+            {
+                reason = "the body has no applied look";
+                return false;
+            }
+            if (state.ModId != modId)
+            {
+                reason = "the look on this body was applied by mod " + state.ModId;
+                return false;
+            }
+            if (state.Driver == null)
+            {
+                reason = "the look on this body has no pose driver";
+                return false;
+            }
+            driver = state.Driver;
+            return true;
         }
 
         private static string Occupied(GameObject body)
@@ -262,6 +327,13 @@ namespace ObenseuerCore
             state.Avatar = null;
             state.Driver = null;
             state.Holder = null;
+        }
+
+        private static string Path(SceneLookRigPath path)
+        {
+            if (path == SceneLookRigPath.Name) return " | path name";
+            if (path == SceneLookRigPath.Retarget) return " | path retarget";
+            return " | path refuse";
         }
 
         private static void Hide(GameObject body, SceneLookApplied state)

@@ -61,6 +61,11 @@ namespace ObenseuerCore.Ui
 
         public RectTransform Rect { get; private set; }
 
+        internal Selectable Focus
+        {
+            get { return slider; }
+        }
+
         public void Set(float value)
         {
             slider.SetValueWithoutNotify(value);
@@ -137,6 +142,11 @@ namespace ObenseuerCore.Ui
 
         public RectTransform Rect { get; private set; }
 
+        internal Selectable Focus
+        {
+            get { return toggle; }
+        }
+
         public void Set(bool on)
         {
             toggle.SetIsOnWithoutNotify(on);
@@ -175,6 +185,11 @@ namespace ObenseuerCore.Ui
 
         public RectTransform Rect { get; private set; }
 
+        internal Selectable Focus
+        {
+            get { return field; }
+        }
+
         public void Set(string text)
         {
             field.SetTextWithoutNotify(text ?? "");
@@ -189,14 +204,16 @@ namespace ObenseuerCore.Ui
     public sealed class ModKeyBinding
     {
         private static readonly KeyCode[] Modifiers = { KeyCode.LeftControl, KeyCode.RightControl, KeyCode.LeftShift, KeyCode.RightShift, KeyCode.LeftAlt, KeyCode.RightAlt };
+        private readonly UnityEngine.UI.Button button;
         private readonly TextMeshProUGUI label;
         private readonly UiScope owner;
         private readonly Action<KeyboardShortcut> onChange;
         private KeyboardShortcut value;
 
-        internal ModKeyBinding(RectTransform row, TextMeshProUGUI label, KeyboardShortcut value, UiScope owner, Action<KeyboardShortcut> onChange)
+        internal ModKeyBinding(RectTransform row, UnityEngine.UI.Button button, TextMeshProUGUI label, KeyboardShortcut value, UiScope owner, Action<KeyboardShortcut> onChange)
         {
             Rect = row;
+            this.button = button;
             this.label = label;
             this.value = value;
             this.owner = owner;
@@ -205,6 +222,11 @@ namespace ObenseuerCore.Ui
         }
 
         public RectTransform Rect { get; private set; }
+
+        internal Selectable Focus
+        {
+            get { return button; }
+        }
 
         public void Set(KeyboardShortcut shortcut)
         {

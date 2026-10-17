@@ -97,9 +97,15 @@ namespace ObenseuerCore.Ui
 
         public static ModSlider Slider(Transform parent, string text, float min, float max, float value, Action<float> onChange, int decimals)
         {
+            GameObject changed;
+            return Slider(parent, text, min, max, value, onChange, decimals, null, false, out changed);
+        }
+
+        internal static ModSlider Slider(Transform parent, string text, float min, float max, float value, Action<float> onChange, int decimals, string help, bool mark, out GameObject changed)
+        {
             UiScope owner = UiScope.For(parent);
             RectTransform control;
-            RectTransform row = Field(parent, text, out control);
+            RectTransform row = Field(parent, text, help, mark, out control, out changed);
             RectTransform bar = NewRect("Slider", control);
             UnityEngine.UI.Slider slider = bar.gameObject.AddComponent<UnityEngine.UI.Slider>();
             Height(bar.gameObject, UiTheme.RowHeight);
@@ -139,9 +145,15 @@ namespace ObenseuerCore.Ui
 
         public static ModToggle Toggle(Transform parent, string text, bool value, Action<bool> onChange)
         {
+            GameObject changed;
+            return Toggle(parent, text, value, onChange, null, false, out changed);
+        }
+
+        internal static ModToggle Toggle(Transform parent, string text, bool value, Action<bool> onChange, string help, bool mark, out GameObject changed)
+        {
             UiScope owner = UiScope.For(parent);
             RectTransform control;
-            RectTransform row = Field(parent, text, out control);
+            RectTransform row = Field(parent, text, help, mark, out control, out changed);
             control.GetComponent<HorizontalLayoutGroup>().childAlignment = TextAnchor.MiddleRight;
             RectTransform track = NewRect("Switch", control);
             Image back = Shape(track, UiTheme.ControlRadius);
@@ -171,9 +183,15 @@ namespace ObenseuerCore.Ui
 
         public static ModStepper Stepper(Transform parent, string text, string[] options, int index, Action<int> onChange)
         {
+            GameObject changed;
+            return Stepper(parent, text, options, index, onChange, null, false, out changed);
+        }
+
+        internal static ModStepper Stepper(Transform parent, string text, string[] options, int index, Action<int> onChange, string help, bool mark, out GameObject changed)
+        {
             UiScope owner = UiScope.For(parent);
             RectTransform control;
-            RectTransform row = Field(parent, text, out control);
+            RectTransform row = Field(parent, text, help, mark, out control, out changed);
             return new ModStepper(row, control, owner, options, index, onChange);
         }
 
@@ -184,9 +202,15 @@ namespace ObenseuerCore.Ui
 
         internal static ModTextField TextField(Transform parent, string label, string text, Action<string> onChange, bool onEnd)
         {
+            GameObject changed;
+            return TextField(parent, label, text, onChange, onEnd, null, false, out changed);
+        }
+
+        internal static ModTextField TextField(Transform parent, string label, string text, Action<string> onChange, bool onEnd, string help, bool mark, out GameObject changed)
+        {
             UiScope owner = UiScope.For(parent);
             RectTransform control;
-            RectTransform row = Field(parent, label, out control);
+            RectTransform row = Field(parent, label, help, mark, out control, out changed);
             RectTransform box = NewRect("Input", control);
             Image back = Shape(box, UiTheme.ControlRadius);
             back.color = UiTheme.Control;
@@ -209,11 +233,17 @@ namespace ObenseuerCore.Ui
 
         public static ModKeyBinding KeyBinding(Transform parent, string text, KeyboardShortcut value, Action<KeyboardShortcut> onChange)
         {
+            GameObject changed;
+            return KeyBinding(parent, text, value, onChange, null, false, out changed);
+        }
+
+        internal static ModKeyBinding KeyBinding(Transform parent, string text, KeyboardShortcut value, Action<KeyboardShortcut> onChange, string help, bool mark, out GameObject changed)
+        {
             UiScope owner = UiScope.For(parent);
             RectTransform control;
-            RectTransform row = Field(parent, text, out control);
+            RectTransform row = Field(parent, text, help, mark, out control, out changed);
             UnityEngine.UI.Button button = Button(control, value.ToString(), ButtonStyle.Secondary, null);
-            ModKeyBinding binding = new ModKeyBinding(row, button.GetComponentInChildren<TextMeshProUGUI>(), value, owner, onChange);
+            ModKeyBinding binding = new ModKeyBinding(row, button, button.GetComponentInChildren<TextMeshProUGUI>(), value, owner, onChange);
             KeyCapture capture = button.gameObject.AddComponent<KeyCapture>();
             capture.Binding = binding;
             button.onClick.AddListener(capture.Begin);
@@ -339,21 +369,57 @@ namespace ObenseuerCore.Ui
 
         internal static RectTransform Field(Transform parent, string text, out RectTransform control)
         {
+            GameObject changed;
+            return Field(parent, text, null, false, out control, out changed);
+        }
+
+        internal static RectTransform Field(Transform parent, string text, string help, bool mark, out RectTransform control, out GameObject changed)
+        {
             RectTransform row = NewRect("Field", parent);
             Surface(row, UiTheme.Card, UiTheme.CardRadius);
-            HorizontalLayoutGroup group = row.gameObject.AddComponent<HorizontalLayoutGroup>();
-            group.padding = new RectOffset(UiTheme.CardPadding, UiTheme.CardPadding, UiTheme.FieldPadding, UiTheme.FieldPadding);
+            VerticalLayoutGroup stack = row.gameObject.AddComponent<VerticalLayoutGroup>();
+            stack.padding = new RectOffset(UiTheme.CardPadding, UiTheme.CardPadding, UiTheme.FieldPadding, UiTheme.FieldPadding);
+            stack.spacing = UiTheme.HelpGap;
+            stack.childAlignment = TextAnchor.UpperLeft;
+            stack.childControlWidth = true;
+            stack.childControlHeight = true;
+            stack.childForceExpandWidth = true;
+            stack.childForceExpandHeight = false;
+            RectTransform line = NewRect("Line", row);
+            HorizontalLayoutGroup group = line.gameObject.AddComponent<HorizontalLayoutGroup>();
             group.spacing = UiTheme.Gap;
             group.childAlignment = TextAnchor.MiddleLeft;
             group.childControlWidth = true;
             group.childControlHeight = true;
             group.childForceExpandWidth = false;
             group.childForceExpandHeight = false;
-            Height(row.gameObject, UiTheme.FieldHeight);
-            LayoutElement labelSize = Sizing(Label(row, text, UiTheme.BodySize, UiTheme.Text, TextAlignmentOptions.MidlineLeft, false).gameObject);
+            Height(line.gameObject, UiTheme.FieldHeight - UiTheme.FieldPadding * 2);
+            RectTransform head = NewRect("Title", line);
+            HorizontalLayoutGroup title = head.gameObject.AddComponent<HorizontalLayoutGroup>();
+            title.spacing = UiTheme.HalfGap;
+            title.childAlignment = TextAnchor.MiddleLeft;
+            title.childControlWidth = true;
+            title.childControlHeight = true;
+            title.childForceExpandWidth = false;
+            title.childForceExpandHeight = false;
+            RectTransform dot = NewRect("Changed", head);
+            Image dotImage = Shape(dot, UiTheme.DotRadius);
+            dotImage.color = UiTheme.Accent;
+            dotImage.raycastTarget = false;
+            LayoutElement dotSize = Sizing(dot.gameObject);
+            dotSize.minWidth = UiTheme.DotSize;
+            dotSize.preferredWidth = UiTheme.DotSize;
+            dotSize.minHeight = UiTheme.DotSize;
+            dotSize.preferredHeight = UiTheme.DotSize;
+            dot.gameObject.SetActive(mark);
+            changed = dot.gameObject;
+            LayoutElement labelSize = Sizing(Label(head, text, UiTheme.BodySize, UiTheme.Text, TextAlignmentOptions.MidlineLeft, false).gameObject);
             labelSize.preferredWidth = 0f;
-            labelSize.flexibleWidth = UiTheme.LabelShare;
-            control = NewRect("Control", row);
+            labelSize.flexibleWidth = 1f;
+            LayoutElement headSize = Sizing(head.gameObject);
+            headSize.preferredWidth = 0f;
+            headSize.flexibleWidth = UiTheme.LabelShare;
+            control = NewRect("Control", line);
             HorizontalLayoutGroup inner = control.gameObject.AddComponent<HorizontalLayoutGroup>();
             inner.spacing = UiTheme.Gap;
             inner.childAlignment = TextAnchor.MiddleLeft;
@@ -364,6 +430,12 @@ namespace ObenseuerCore.Ui
             LayoutElement share = Sizing(control.gameObject);
             share.preferredWidth = 0f;
             share.flexibleWidth = UiTheme.ControlShare;
+            if (!string.IsNullOrEmpty(help))
+            {
+                TextMeshProUGUI note = Label(row, help, UiTheme.MutedSize, UiTheme.Muted, TextAlignmentOptions.TopLeft, false);
+                Height(note.gameObject, UiTheme.HelpTextHeight);
+            }
+            Height(row.gameObject, string.IsNullOrEmpty(help) ? UiTheme.FieldHeight : UiTheme.FieldHeight + UiTheme.HelpHeight);
             return row;
         }
 
@@ -440,12 +512,18 @@ namespace ObenseuerCore.Ui
             Place(view, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
             view.gameObject.AddComponent<Canvas>();
             view.gameObject.AddComponent<GraphicRaycaster>();
-            view.gameObject.AddComponent<RectMask2D>();
             Image surface = view.gameObject.AddComponent<Image>();
             surface.color = UiTheme.Clear;
+            surface.raycastTarget = false;
             Sizing(view.gameObject).flexibleHeight = 1f;
             ScrollRect scroll = view.gameObject.AddComponent<ScrollRect>();
-            content = NewRect("Content", view);
+            RectTransform viewport = NewRect("Viewport", view);
+            Place(viewport, Vector2.zero, Vector2.one, Vector2.zero, new Vector2(-UiTheme.ScrollBarWidth - UiTheme.Gap, 0f));
+            Image hit = viewport.gameObject.AddComponent<Image>();
+            hit.color = UiTheme.Clear;
+            hit.raycastTarget = true;
+            viewport.gameObject.AddComponent<RectMask2D>();
+            content = NewRect("Content", viewport);
             content.anchorMin = new Vector2(0f, 1f);
             content.anchorMax = Vector2.one;
             content.pivot = new Vector2(0.5f, 1f);
@@ -454,12 +532,64 @@ namespace ObenseuerCore.Ui
             Stack(content);
             content.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
             scroll.content = content;
-            scroll.viewport = view;
+            scroll.viewport = viewport;
             scroll.horizontal = false;
             scroll.vertical = true;
             scroll.movementType = ScrollRect.MovementType.Clamped;
             scroll.scrollSensitivity = 25f;
+            Scrollbar bar = Bar(view);
+            scroll.verticalScrollbar = bar;
+            scroll.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
+            scroll.verticalScrollbarSpacing = 0f;
             return view;
+        }
+
+        internal static ScrollRect ScrollOf(Transform content)
+        {
+            return content == null ? null : content.GetComponentInParent<ScrollRect>();
+        }
+
+        internal static UnityEngine.UI.Button FieldAction(RectTransform row, string text, Action onClick)
+        {
+            RectTransform line = row.Find("Line") as RectTransform;
+            return Button(line == null ? row : line, text, ButtonStyle.Ghost, onClick);
+        }
+
+        internal static void ScrollTo(ScrollRect scroll, RectTransform target)
+        {
+            if (scroll == null || scroll.content == null || scroll.viewport == null || target == null) return;
+            RectTransform content = scroll.content;
+            float top = scroll.viewport.rect.height;
+            if (top <= 0f || !target.IsChildOf(content)) return;
+            float y = content.InverseTransformPoint(target.TransformPoint(target.rect.center)).y;
+            float above = -(y + target.rect.height * 0.5f);
+            float below = -(y - target.rect.height * 0.5f);
+            float offset = content.anchoredPosition.y;
+            if (above < offset) content.anchoredPosition = new Vector2(content.anchoredPosition.x, Mathf.Max(0f, above));
+            else if (below > offset + top) content.anchoredPosition = new Vector2(content.anchoredPosition.x, below - top);
+        }
+
+        private static Scrollbar Bar(RectTransform view)
+        {
+            RectTransform track = NewRect("Scrollbar", view);
+            Place(track, new Vector2(1f, 0f), Vector2.one, new Vector2(-UiTheme.ScrollBarWidth, 0f), Vector2.zero);
+            Image back = Shape(track, UiTheme.TrackRadius);
+            back.color = UiTheme.Control;
+            Scrollbar bar = track.gameObject.AddComponent<Scrollbar>();
+            bar.direction = Scrollbar.Direction.BottomToTop;
+            RectTransform area = NewRect("Sliding Area", track);
+            Place(area, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            RectTransform handle = NewRect("Handle", area);
+            Place(handle, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            Image grip = Shape(handle, UiTheme.TrackRadius);
+            grip.color = UiTheme.Border;
+            bar.handleRect = handle;
+            bar.targetGraphic = grip;
+            Tint(bar, grip, UiTheme.Border, UiTheme.Hover, UiTheme.Muted);
+            Navigation none = new Navigation();
+            none.mode = Navigation.Mode.None;
+            bar.navigation = none;
+            return bar;
         }
     }
 }

@@ -14,8 +14,6 @@ using UnityEngine.UI;
 
 namespace ObenseuerCore
 {
-    internal enum ModMenuKind { Toggle, Cycle, Key, Slider, Input, ReadOnly }
-
     internal static class ModMenuConfigList
     {
         private const float SaveDelay = 0.25f;
@@ -31,7 +29,8 @@ namespace ObenseuerCore
             rows.Clear();
             groups.Clear();
             query = "";
-            ModUi.TextField(content, "Search", "", Filter);
+            ModTextField search = ModUi.TextField(content, "Search", "", Filter);
+            ModMenuWindow.Focus(search.Focus, ModMenuColumn.Body, "search", false);
             List<KeyValuePair<string, ConfigFile>> files = ConfigFiles();
             files.Sort(ByName);
             int failed = 0;
@@ -113,7 +112,7 @@ namespace ObenseuerCore
         {
             List<ConfigEntryBase> entries = new List<ConfigEntryBase>();
             foreach (KeyValuePair<ConfigDefinition, ConfigEntryBase> pair in file) entries.Add(pair.Value);
-            entries.RemoveAll(ModMenuRow.Hidden);
+            entries.RemoveAll(ModMenuRowValues.Hidden);
             entries.Sort(BySectionAndKey);
             return entries;
         }
@@ -197,6 +196,7 @@ namespace ObenseuerCore
             ModUi.Stack(group.Container).padding = new RectOffset();
             group.Container.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
             groups.Add(group);
+            ModMenuWindow.Focus(group.Header, ModMenuColumn.Body, name, false);
             return group;
         }
 
@@ -256,6 +256,7 @@ namespace ObenseuerCore
                     if (section.Header != null) section.Header.SetActive(shown);
                 }
             }
+            ModMenuWindow.Reorder();
         }
 
         private static void EnsureBuilt(Group group)
@@ -348,335 +349,6 @@ namespace ObenseuerCore
             {
                 Name = name;
             }
-        }
-    }
-
-    internal sealed class ModMenuRow
-    {
-        private const BindingFlags Members = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
-        internal readonly string Search;
-        private readonly ConfigEntryBase entry;
-        private readonly ModMenuKind kind;
-        private readonly Array values;
-        private readonly string[] names;
-        private readonly bool whole;
-        private RectTransform rect;
-        private bool attempted;
-        private ModToggle toggle;
-        private ModStepper stepper;
-        private ModKeyBinding binding;
-        private ModSlider slider;
-        private ModTextField input;
-        private GameObject invalid;
-        private TextMeshProUGUI readOnly;
-
-        private ModMenuRow(ConfigEntryBase entry, string plugin)
-        {
-            this.entry = entry;
-            kind = KindOf(entry);
-            if (kind == ModMenuKind.Cycle)
-            {
-                values = ChoicesOf(entry);
-                names = new string[values.Length];
-                for (int i = 0; i < values.Length; i++) names[i] = Convert.ToString(values.GetValue(i), CultureInfo.InvariantCulture);
-            }
-            whole = entry.SettingType == typeof(int);
-            Search = (plugin + " " + entry.Definition.Section + " " + entry.Definition.Key).ToLowerInvariant();
-        }
-
-        internal static ModMenuRow Create(ConfigEntryBase entry, string plugin)
-        {
-            try
-            {
-                return new ModMenuRow(entry, plugin);
-            }
-            catch (Exception e)
-            {
-                CoreLog.For(ModMenu.Owner).Warn("config row " + entry.Definition.Section + "." + entry.Definition.Key + " skipped: " + e.GetType().Name + ": " + e.Message);
-                return null;
-            }
-        }
-
-        internal static bool Hidden(ConfigEntryBase entry)
-        {
-            object[] tags = entry.Description.Tags;
-            if (tags == null) return false;
-            for (int i = 0; i < tags.Length; i++)
-            {
-                if (tags[i] == null) continue;
-                Type type = tags[i].GetType();
-                PropertyInfo property = type.GetProperty("Browsable", Members);
-                FieldInfo field = property == null ? type.GetField("Browsable", Members) : null;
-                if (property == null && field == null) continue;
-                object shown = property != null ? property.GetValue(tags[i], null) : field.GetValue(tags[i]);
-                return shown is bool && !(bool)shown;
-            }
-            return false;
-        }
-
-        internal void SetVisible(bool visible)
-        {
-            if (rect != null) rect.gameObject.SetActive(visible);
-        }
-
-        internal void Build(RectTransform content)
-        {
-            if (attempted) return;
-            attempted = true;
-            string title = entry.Definition.Key;
-            object value = entry.BoxedValue;
-            try
-            {
-                switch (kind)
-                {
-                    case ModMenuKind.Toggle:
-                        toggle = ModUi.Toggle(content, title, (bool)value, OnToggle);
-                        rect = toggle.Rect;
-                        break;
-                    case ModMenuKind.Cycle:
-                        stepper = ModUi.Stepper(content, title, names, Math.Max(0, Array.IndexOf(values, value)), OnStep);
-                        rect = stepper.Rect;
-                        break;
-                    case ModMenuKind.Key:
-                        binding = ModUi.KeyBinding(content, title, (KeyboardShortcut)value, OnBind);
-                        rect = binding.Rect;
-                        break;
-                    case ModMenuKind.Slider:
-                        float min;
-                        float max;
-                        Range(entry, out min, out max);
-                        slider = ModUi.Slider(content, title, min, max, Convert.ToSingle(value, CultureInfo.InvariantCulture), OnSlider, whole ? 0 : 2);
-                        rect = slider.Rect;
-                        break;
-                    case ModMenuKind.Input:
-                        input = ModUi.TextField(content, title, Plain(entry, value), OnText, true);
-                        rect = input.Rect;
-                        invalid = ModUi.Label(rect, "invalid", UiTheme.MutedSize, UiTheme.Muted, TextAlignmentOptions.MidlineRight, false).gameObject;
-                        ModUi.Sizing(invalid).preferredWidth = 64f;
-                        invalid.SetActive(false);
-                        break;
-                    default:
-                        RectTransform control;
-                        rect = ModUi.Field(content, title, out control);
-                        readOnly = ModUi.Label(control, Describe(value), UiTheme.BodySize, UiTheme.Muted, TextAlignmentOptions.MidlineRight, false);
-                        break;
-                }
-                if (kind != ModMenuKind.ReadOnly) ModUi.Button(rect, "Reset", ButtonStyle.Ghost, OnReset);
-                AddHover(title, entry.Description.Description);
-            }
-            catch (Exception e)
-            {
-                if (rect != null) UnityEngine.Object.DestroyImmediate(rect.gameObject);
-                rect = null;
-                CoreLog.For(ModMenu.Owner).Warn("config row " + entry.Definition.Section + "." + entry.Definition.Key + " skipped: " + e.GetType().Name + ": " + e.Message);
-            }
-        }
-
-        private void Show(object value)
-        {
-            switch (kind)
-            {
-                case ModMenuKind.Toggle:
-                    toggle.Set((bool)value);
-                    break;
-                case ModMenuKind.Cycle:
-                    stepper.Set(Math.Max(0, Array.IndexOf(values, value)));
-                    break;
-                case ModMenuKind.Key:
-                    binding.Set((KeyboardShortcut)value);
-                    break;
-                case ModMenuKind.Slider:
-                    slider.Set(Convert.ToSingle(value, CultureInfo.InvariantCulture));
-                    break;
-                case ModMenuKind.Input:
-                    input.Set(Plain(entry, value));
-                    invalid.SetActive(false);
-                    break;
-                default:
-                    readOnly.text = Describe(value);
-                    break;
-            }
-        }
-
-        private void Commit(object value)
-        {
-            ModMenuConfigList.Commit(entry, value);
-            Show(entry.BoxedValue);
-        }
-
-        private void OnToggle(bool on)
-        {
-            Commit(on);
-        }
-
-        private void OnStep(int index)
-        {
-            Commit(values.GetValue(index));
-        }
-
-        private void OnBind(KeyboardShortcut shortcut)
-        {
-            Commit(shortcut);
-        }
-
-        private void OnSlider(float value)
-        {
-            ModMenuConfigList.CommitLive(entry, whole ? (object)Mathf.RoundToInt(value) : (object)value);
-        }
-
-        private void OnText(string text)
-        {
-            object parsed;
-            try
-            {
-                parsed = entry.SettingType == typeof(string) ? (object)text : TomlTypeConverter.ConvertToValue(text, entry.SettingType);
-            }
-            catch (Exception)
-            {
-                invalid.SetActive(true);
-                input.Set(Plain(entry, entry.BoxedValue));
-                return;
-            }
-            Commit(parsed);
-        }
-
-        private void OnReset()
-        {
-            Commit(entry.DefaultValue);
-        }
-
-        internal static string Plain(ConfigEntryBase entry, object value)
-        {
-            return entry.SettingType == typeof(string) ? ((string)value ?? "") : TomlTypeConverter.ConvertToString(value, entry.SettingType);
-        }
-
-        private void AddHover(string title, string detail)
-        {
-            if (string.IsNullOrEmpty(detail)) return;
-            rect.GetComponent<Image>().raycastTarget = true;
-            EventTrigger trigger = rect.gameObject.AddComponent<EventTrigger>();
-            EventTrigger.Entry enter = new EventTrigger.Entry();
-            enter.eventID = EventTriggerType.PointerEnter;
-            enter.callback.AddListener((BaseEventData data) => Hint(title, detail));
-            EventTrigger.Entry exit = new EventTrigger.Entry();
-            exit.eventID = EventTriggerType.PointerExit;
-            exit.callback.AddListener((BaseEventData data) => Hint(null, null));
-            trigger.triggers.Add(enter);
-            trigger.triggers.Add(exit);
-        }
-
-        private static void Hint(string title, string detail)
-        {
-            if (ToolTip.instance == null) return;
-            if (title == null) ToolTip.instance.Deactivate();
-            else ToolTip.instance.Activate(title, detail);
-        }
-
-        internal static ModMenuKind KindOf(ConfigEntryBase entry)
-        {
-            Type type = entry.SettingType;
-            AcceptableValueBase range = entry.Description.AcceptableValues;
-            if (type == typeof(bool)) return ModMenuKind.Toggle;
-            if (ListOf(range) != null || (type.IsEnum && !type.IsDefined(typeof(FlagsAttribute), false))) return ModMenuKind.Cycle;
-            if (type == typeof(KeyboardShortcut)) return ModMenuKind.Key;
-            if (type == typeof(float) && range is AcceptableValueRange<float>) return ModMenuKind.Slider;
-            if (type == typeof(int) && range is AcceptableValueRange<int>) return ModMenuKind.Slider;
-            if (type == typeof(string) || Converts(entry)) return ModMenuKind.Input;
-            return ModMenuKind.ReadOnly;
-        }
-
-        internal static Array ChoicesOf(ConfigEntryBase entry)
-        {
-            return ListOf(entry.Description.AcceptableValues) ?? Enum.GetValues(entry.SettingType);
-        }
-
-        internal static Array ListOf(AcceptableValueBase range)
-        {
-            if (range == null || !range.GetType().IsGenericType || range.GetType().GetGenericTypeDefinition() != typeof(AcceptableValueList<>)) return null;
-            return (Array)range.GetType().GetProperty("AcceptableValues", Members).GetValue(range, null);
-        }
-
-        private static bool Converts(ConfigEntryBase entry)
-        {
-            try
-            {
-                TomlTypeConverter.ConvertToString(entry.BoxedValue, entry.SettingType);
-                return true;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-        }
-
-        internal static void Range(ConfigEntryBase entry, out float min, out float max)
-        {
-            if (entry.SettingType == typeof(float))
-            {
-                AcceptableValueRange<float> range = (AcceptableValueRange<float>)entry.Description.AcceptableValues;
-                min = range.MinValue;
-                max = range.MaxValue;
-            }
-            else
-            {
-                AcceptableValueRange<int> range = (AcceptableValueRange<int>)entry.Description.AcceptableValues;
-                min = range.MinValue;
-                max = range.MaxValue;
-            }
-        }
-
-        internal static string Describe(object value)
-        {
-            if (value is float) return ((float)value).ToString("0.##", CultureInfo.InvariantCulture);
-            return Convert.ToString(value, CultureInfo.InvariantCulture);
-        }
-    }
-
-    internal sealed class ModMenuActionRow
-    {
-        private readonly ModMenuAction action;
-        internal readonly string Search;
-        private RectTransform rect;
-        private TextMeshProUGUI status;
-        private bool attempted;
-
-        internal ModMenuActionRow(ModMenuAction action, string plugin)
-        {
-            this.action = action;
-            Search = ((plugin ?? "") + " " + action.Section + " " + action.Title).ToLowerInvariant();
-        }
-
-        internal void SetVisible(bool visible)
-        {
-            if (rect != null) rect.gameObject.SetActive(visible);
-        }
-
-        internal void Build(RectTransform content)
-        {
-            if (attempted) return;
-            attempted = true;
-            try
-            {
-                RectTransform control;
-                rect = ModUi.Field(content, action.Title, out control);
-                status = ModUi.Label(control, action.Description, UiTheme.MutedSize, UiTheme.Muted, TextAlignmentOptions.MidlineRight, false);
-                LayoutElement share = ModUi.Sizing(status.gameObject);
-                share.preferredWidth = 0f;
-                share.flexibleWidth = 1f;
-                ModUi.Button(control, ModMenuActions.ButtonText, ButtonStyle.Secondary, Run);
-            }
-            catch (Exception e)
-            {
-                if (rect != null) UnityEngine.Object.DestroyImmediate(rect.gameObject);
-                rect = null;
-                CoreLog.For(ModMenu.Owner).Warn("menu action " + action.ModId + " " + action.Name + " skipped: " + e.GetType().Name + ": " + e.Message);
-            }
-        }
-
-        private void Run()
-        {
-            string text = ModMenuActions.Run(action);
-            if (status != null) status.text = text;
         }
     }
 }

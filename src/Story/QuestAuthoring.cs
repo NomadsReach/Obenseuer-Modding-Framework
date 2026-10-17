@@ -24,6 +24,7 @@ namespace ObenseuerCore
         public string Description { get; set; }
         public int Target { get; set; }
         public bool Optional { get; set; }
+        public bool Hidden { get; set; }
     }
 
     public sealed class QuestDefinition
@@ -47,6 +48,7 @@ namespace ObenseuerCore
         internal const int MaxDescription = 1000;
         internal const int MaxObjectives = 12;
         internal const int MaxTarget = 9999;
+        internal const string PlaceholderTitle = "???";
 
         internal static bool Installed;
 
@@ -95,7 +97,8 @@ namespace ObenseuerCore
                 for (int i = 0; i < objectives.Count; i++)
                 {
                     handed = i + 1;
-                    bool ok = controller.EditTask(task, objectives[i], ObjectiveStatus.Active, definition.Objectives[i].Optional, i == 0, CurrentTaskStatus.Active);
+                    QuestObjectiveDefinition definitionItem = definition.Objectives[i];
+                    bool ok = controller.EditTask(task, objectives[i], definitionItem.Hidden ? ObjectiveStatus.Hidden : ObjectiveStatus.Active, definitionItem.Optional, i == 0, CurrentTaskStatus.Active);
                     added |= ok && i == 0;
                     if (ok) continue;
                     handed = i;
@@ -148,7 +151,7 @@ namespace ObenseuerCore
                     if (existing.objective.Id == objective.Key) return false;
                 }
                 TaskObjective built = Build(entry.task, objective);
-                if (controller.EditTask(entry.task, built, ObjectiveStatus.Active, objective.Optional, false, CurrentTaskStatus.Active)) return true;
+                if (controller.EditTask(entry.task, built, objective.Hidden ? ObjectiveStatus.Hidden : ObjectiveStatus.Active, objective.Optional, false, CurrentTaskStatus.Active)) return true;
                 UnityEngine.Object.Destroy(built);
                 return false;
             }
@@ -196,6 +199,66 @@ namespace ObenseuerCore
             return IsAvailable && Owns(modId, taskId) && Quests.SetTask(taskId, TaskState.Failed);
         }
 
+        public static bool Reveal(string modId, string taskId, string key, string title, string description)
+        {
+            if (!Owns(modId, taskId) || SaveGate.Busy) return false;
+            if (CheckRevealText(title, description) != QuestRefusal.None)
+            {
+                ApiLog.Once(Owner, "Reveal " + key, "refused: the title or the description is not valid");
+                return false;
+            }
+            TaskController controller = Writer("QuestAuthoring.Reveal");
+            if (controller == null) return false;
+            ObjectiveStatusInfo objective = null;
+            try
+            {
+                TaskStatusInfo entry = Quests.Resolve(controller, taskId);
+                objective = Quests.Unique(entry, key);
+                if (entry == null || entry.status != CurrentTaskStatus.Active || objective == null || !CanReveal((ObjectiveState)(int)objective.status)) return false;
+                objective.objective.title = title;
+                objective.objective.description = description ?? "";
+                controller.EditTaskObjective(entry, objective, ObjectiveStatus.Active);
+                if (objective.status != ObjectiveStatus.Active)
+                {
+                    Hide(objective);
+                    return false;
+                }
+                if (ShouldFinishOnReveal(objective.currentAmount, objective.counterAmount, objective.objective.dontSelfCompleteWithCounter))
+                {
+                    try
+                    {
+                        controller.EditTaskObjective(entry, objective, ObjectiveStatus.Finished);
+                        controller.FinishIfNoActiveObjectives(entry);
+                    }
+                    catch (Exception e)
+                    {
+                        ApiLog.Once(Owner, "Reveal finish " + key, e);
+                    }
+                }
+                try
+                {
+                    if (TaskPanel.instance != null) TaskPanel.instance.UpdateCurrentTaskInfo();
+                }
+                catch (Exception e)
+                {
+                    ApiLog.Once(Owner, "Reveal panel " + key, e);
+                }
+                return true;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Owner, "Reveal", e);
+                if (objective != null && (ObjectiveState)(int)objective.status != ObjectiveState.Active) Hide(objective);
+                return false;
+            }
+        }
+
+        private static void Hide(ObjectiveStatusInfo objective)
+        {
+            objective.objective.title = PlaceholderTitle;
+            objective.objective.description = "";
+        }
+
         internal static bool IsModTask(string id, string addressablePath)
         {
             if (string.IsNullOrEmpty(id) || !string.IsNullOrEmpty(addressablePath)) return false;
@@ -228,8 +291,35 @@ namespace ObenseuerCore
         internal static QuestRefusal CheckObjective(QuestObjectiveDefinition objective)
         {
             if (objective == null || !ValidKey(objective.Key)) return QuestRefusal.BadInput;
-            if (!ValidText(objective.Title, MaxTitle, true, false) || !ValidText(objective.Description, MaxDescription, false, true)) return QuestRefusal.BadInput;
+            if (!ValidText(objective.Title, MaxTitle, !objective.Hidden, false) || !ValidText(objective.Description, MaxDescription, false, true)) return QuestRefusal.BadInput;
             return objective.Target < 0 || objective.Target > MaxTarget ? QuestRefusal.BadInput : QuestRefusal.None;
+        }
+
+        internal static string StoredTitle(QuestObjectiveDefinition objective)
+        {
+            return objective.Hidden ? PlaceholderTitle : objective.Title;
+        }
+
+        internal static string StoredDescription(QuestObjectiveDefinition objective)
+        {
+            return objective.Hidden ? "" : (objective.Description ?? "");
+        }
+
+        internal static bool CanReveal(ObjectiveState state)
+        {
+            return state == ObjectiveState.Hidden;
+        }
+
+        internal static bool ShouldFinishOnReveal(int current, int target, bool skipSelfComplete)
+        {
+            return target > 0 && current >= target && !skipSelfComplete;
+        }
+
+        internal static QuestRefusal CheckRevealText(string title, string description)
+        {
+            if (!ValidText(title, MaxTitle, true, false)) return QuestRefusal.BadInput;
+            if (!ValidText(description, MaxDescription, false, true)) return QuestRefusal.BadInput;
+            return QuestRefusal.None;
         }
 
         private static TaskController Writer(string member)
@@ -279,8 +369,8 @@ namespace ObenseuerCore
         {
             TaskObjective objective = ScriptableObject.CreateInstance<TaskObjective>();
             objective.id = definition.Key;
-            objective.title = definition.Title;
-            objective.description = definition.Description ?? "";
+            objective.title = StoredTitle(definition);
+            objective.description = StoredDescription(definition);
             objective.counterAmount = definition.Target;
             objective.task = task;
             return objective;

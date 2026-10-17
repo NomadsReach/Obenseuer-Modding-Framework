@@ -26,6 +26,16 @@ namespace ObenseuerCore
                 if (DialogueAuthoring.FreeIdFrom(1999999, id => id == 1999999) != 1000000) return "id allocation did not wrap";
                 string key = DialogueResponses.KeyFor("a.b", "conv", 7, "Yes", "Sure", null);
                 if (key != DialogueResponses.KeyFor("a.b", "conv", 7, "Yes", "Sure", null) || key == DialogueResponses.KeyFor("a.b", "conv", 7, "No", "Sure", null) || !key.StartsWith("a.b.", StringComparison.Ordinal)) return "response key wrong";
+                if (DialogueResponses.InsertIndex(-1, 3) != 3) return "the default insert position was not the end";
+                if (DialogueResponses.InsertIndex(0, 3) != 0) return "the first insert position was not kept";
+                if (DialogueResponses.InsertIndex(2, 3) != 2) return "an inner insert position was not kept";
+                if (DialogueResponses.InsertIndex(3, 3) != 3) return "an insert at the end was not kept";
+                if (DialogueResponses.InsertIndex(9, 3) != 3) return "an insert past the end was not clamped";
+                if (DialogueResponses.InsertIndex(0, 0) != 0) return "an insert into an empty link list was wrong";
+                if (!DialogueResponses.ValidPriority(-1) || !DialogueResponses.ValidPriority(0) || !DialogueResponses.ValidPriority(4)) return "a valid priority was refused";
+                if (DialogueResponses.ValidPriority(-2) || DialogueResponses.ValidPriority(5)) return "an invalid priority was accepted";
+                if (DialogueResponses.RequestedPriority(-1, PCDS.ConditionPriority.High) != PCDS.ConditionPriority.High) return "the anchor priority was not the default";
+                if (DialogueResponses.RequestedPriority(0, PCDS.ConditionPriority.High) != PCDS.ConditionPriority.Low) return "a requested priority was not used";
             }
             catch (Exception e)
             {

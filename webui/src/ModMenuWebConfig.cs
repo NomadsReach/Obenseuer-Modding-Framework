@@ -78,7 +78,7 @@ namespace ObenseuerCore
         internal void Reset(string id)
         {
             ConfigEntryBase entry = Lookup(id);
-            if (closed || entry == null || ModMenuRow.KindOf(entry) == ModMenuKind.ReadOnly) return;
+            if (closed || entry == null || ModMenuRowValues.KindOf(entry) == ModMenuKind.ReadOnly) return;
             pending.Remove(id);
             Write(entry, entry.DefaultValue, false);
             echo[id] = false;
@@ -89,7 +89,7 @@ namespace ObenseuerCore
             ConfigEntryBase entry = Lookup(id);
             if (closed || entry == null) return;
             KeyboardShortcut shortcut;
-            if (ModMenuRow.KindOf(entry) != ModMenuKind.Key || !ModMenuWebKeys.TryShortcut(code, mods, out shortcut))
+            if (ModMenuRowValues.KindOf(entry) != ModMenuKind.Key || !ModMenuWebKeys.TryShortcut(code, mods, out shortcut))
             {
                 echo[id] = true;
                 return;
@@ -190,11 +190,11 @@ namespace ObenseuerCore
         {
             try
             {
-                ModMenuKind kind = ModMenuRow.KindOf(entry);
+                ModMenuKind kind = ModMenuRowValues.KindOf(entry);
                 WebRow row = new WebRow();
                 row.Id = IdFor(entry);
                 row.Kind = KindName(kind);
-                row.Label = entry.Definition.Key;
+                row.Label = ModMenuRow.TitleOf(entry);
                 row.Desc = entry.Description.Description;
                 row.Value = ValueText(entry, kind, entry.BoxedValue);
                 row.Default = ValueText(entry, kind, entry.DefaultValue);
@@ -203,14 +203,14 @@ namespace ObenseuerCore
                 {
                     float min;
                     float max;
-                    ModMenuRow.Range(entry, out min, out max);
+                    ModMenuRowValues.Range(entry, out min, out max);
                     bool whole = entry.SettingType == typeof(int);
                     row.Min = min;
                     row.Max = max;
                     row.Step = whole ? 1f : 0.01f;
                     row.Decimals = whole ? 0 : 2;
                 }
-                if (kind == ModMenuKind.Cycle) row.Options = Names(ModMenuRow.ChoicesOf(entry));
+                if (kind == ModMenuKind.Cycle) row.Options = Names(ModMenuRowValues.ChoicesOf(entry));
                 return row;
             }
             catch (Exception e)
@@ -263,7 +263,7 @@ namespace ObenseuerCore
             ConfigEntryBase entry = byId[id];
             ModMenuJson json = new ModMenuJson();
             json.Begin('{').Key("v").Num(1.0).Key("type").Str("row").Key("id").Str(id);
-            json.Key("value").Str(ValueText(entry, ModMenuRow.KindOf(entry), entry.BoxedValue));
+            json.Key("value").Str(ValueText(entry, ModMenuRowValues.KindOf(entry), entry.BoxedValue));
             json.Key("dirty").Bool(Modified(entry)).Key("invalid").Bool(invalid).End();
             return json.ToString();
         }
@@ -289,8 +289,8 @@ namespace ObenseuerCore
         private static string ValueText(ConfigEntryBase entry, ModMenuKind kind, object value)
         {
             if (kind == ModMenuKind.Key) return value.ToString();
-            if (kind == ModMenuKind.ReadOnly) return ModMenuRow.Describe(value);
-            return ModMenuRow.Plain(entry, value);
+            if (kind == ModMenuKind.ReadOnly) return ModMenuRowValues.Describe(value);
+            return ModMenuRowValues.Plain(entry, value);
         }
 
         private static bool TryParse(ConfigEntryBase entry, string text, out object value)
@@ -298,14 +298,14 @@ namespace ObenseuerCore
             value = null;
             try
             {
-                switch (ModMenuRow.KindOf(entry))
+                switch (ModMenuRowValues.KindOf(entry))
                 {
                     case ModMenuKind.Toggle:
                         if (text != "true" && text != "false") return false;
                         value = text == "true";
                         return true;
                     case ModMenuKind.Cycle:
-                        Array choices = ModMenuRow.ChoicesOf(entry);
+                        Array choices = ModMenuRowValues.ChoicesOf(entry);
                         int index = Array.IndexOf(Names(choices), text);
                         if (index < 0) return false;
                         value = choices.GetValue(index);

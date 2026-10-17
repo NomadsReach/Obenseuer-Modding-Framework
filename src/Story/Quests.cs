@@ -77,22 +77,31 @@ namespace ObenseuerCore
         public string TaskId { get; private set; }
         public string ObjectiveId { get; private set; }
         public ObjectiveState State { get; private set; }
+        public int Current { get; private set; }
+        public int Target { get; private set; }
 
-        internal ObjectiveChangedArgs(string taskId, string objectiveId, ObjectiveState state)
+        internal ObjectiveChangedArgs(string taskId, string objectiveId, ObjectiveState state, int current, int target)
         {
             TaskId = taskId;
             ObjectiveId = objectiveId;
             State = state;
+            Current = current;
+            Target = target;
         }
     }
 
     public static class Quests
     {
         internal const string Owner = "obenseuer.moddingframework.quests";
+        private static readonly RetryGate readyGate = new RetryGate();
+        private static readonly ReadySaveGate readySaves = new ReadySaveGate();
         private static bool installed;
 
         public static event Action<TaskChangedArgs> TaskChanged;
         public static event Action<ObjectiveChangedArgs> ObjectiveChanged;
+
+        /// <summary>Raised when the quest system can be written, once per load attempt: at each save load and at each new game. A level change reloads the level without rebuilding the save and does not raise it again, while loading the same save again, another save or a new game does. Create quests here, and make the handler safe to run more than once.</summary>
+        public static event Action Ready;
 
         public static bool IsAvailable
         {
@@ -135,6 +144,44 @@ namespace ObenseuerCore
             {
                 ApiLog.Once(Owner, "Get", e);
                 return null;
+            }
+        }
+
+        public static TaskState? State(string taskId)
+        {
+            TaskController controller = Readable();
+            if (controller == null || string.IsNullOrEmpty(taskId)) return null;
+            try
+            {
+                TaskStatusInfo entry = Resolve(controller, taskId);
+                if (entry == null) return null;
+                return (TaskState)(int)entry.status;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Owner, "State", e);
+                return null;
+            }
+        }
+
+        public static bool Counter(string taskId, string objectiveId, out int current, out int target)
+        {
+            current = 0;
+            target = 0;
+            TaskController controller = Readable();
+            if (controller == null || string.IsNullOrEmpty(taskId) || string.IsNullOrEmpty(objectiveId)) return false;
+            try
+            {
+                ObjectiveStatusInfo objective = Unique(Resolve(controller, taskId), objectiveId);
+                if (objective == null) return false;
+                current = objective.currentAmount;
+                target = objective.counterAmount;
+                return true;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Owner, "Counter", e);
+                return false;
             }
         }
 
@@ -228,6 +275,10 @@ namespace ObenseuerCore
             if (Core.PatchingAllowed && !installed) CorePatcher.DisableOwner(Owner);
             QuestAuthoring.Installed = Core.PatchingAllowed && QuestsPatches.InstallAuthoring();
             if (Core.PatchingAllowed && !QuestAuthoring.Installed) CorePatcher.DisableOwner(QuestAuthoring.Owner);
+            if (installed)
+            {
+                Events.SessionReady += SessionStarted;
+            }
             CoreLog.For(Owner).Info(installed ? "quests installed" : "quests not installed");
         }
 
@@ -237,10 +288,30 @@ namespace ObenseuerCore
             Events.Raise(TaskChanged, "Quests.TaskChanged", h => h(args));
         }
 
-        internal static void RaiseObjectiveChanged(string taskId, string objectiveId, ObjectiveState state)
+        internal static void RaiseObjectiveChanged(string taskId, string objectiveId, ObjectiveState state, int current, int target)
         {
-            ObjectiveChangedArgs args = new ObjectiveChangedArgs(taskId, objectiveId, state);
+            ObjectiveChangedArgs args = new ObjectiveChangedArgs(taskId, objectiveId, state, current, target);
             Events.Raise(ObjectiveChanged, "Quests.ObjectiveChanged", h => h(args));
+        }
+
+        internal static void Tick()
+        {
+            if (!IsAvailable || !readyGate.Waiting) return;
+            bool writable = !SaveGate.Busy && Writable("Ready") != null;
+            if (readyGate.Try(writable))
+            {
+                Events.Raise(Ready, "Quests.Ready", h => h());
+                return;
+            }
+            if (!readyGate.Waiting) ApiLog.Once(Owner, "Ready", "the quest ready event was not raised because the task panel or notifications never appeared");
+        }
+
+        private static void SessionStarted(SessionKind kind)
+        {
+            if (!IsAvailable) return;
+            if (!readySaves.ShouldArm(kind)) return;
+            readyGate.Reset();
+            readyGate.Arm();
         }
 
         internal static ObjectiveStatusInfo FindObjective(string taskId, string objectiveId)

@@ -203,6 +203,11 @@ namespace ObenseuerCore
             return parentWorld.Inverse().Multiply(world);
         }
 
+        internal static SceneLookMatrix BindFrame(SceneLookMatrix bodyWorld, SceneLookMatrix holderWorld)
+        {
+            return bodyWorld.Inverse().Multiply(holderWorld);
+        }
+
         internal static SceneLookMatrix BindPose(SceneLookMatrix boneWorldRest, SceneLookMatrix rendererWorld)
         {
             return boneWorldRest.Inverse().Multiply(rendererWorld);

@@ -4,15 +4,6 @@ using System.Text;
 
 namespace ObenseuerCore
 {
-    [Flags]
-    public enum PhoneNetwork
-    {
-        None = 0,
-        Obenseuer = 1,
-        Outside = 2,
-        Wasteland = 4
-    }
-
     public sealed class PhoneContact
     {
         public string Id { get; private set; }
@@ -29,7 +20,7 @@ namespace ObenseuerCore
         }
     }
 
-    public static class Phones
+    public static partial class Phones
     {
         public static List<PhoneContact> All()
         {
@@ -40,6 +31,11 @@ namespace ObenseuerCore
                 {
                     if (entry == null || entry.notIndexed || entry.number == null || entry.number.Length == 0) continue;
                     result.Add(new PhoneContact(entry.name, Digits(entry.number), (PhoneNetwork)(int)entry.network, entry.answerChance));
+                }
+                foreach (PhoneEntry pending in PhoneBook.Entries)
+                {
+                    if (pending.Asset != null) continue;
+                    result.Add(Contact(pending));
                 }
                 return result;
             }

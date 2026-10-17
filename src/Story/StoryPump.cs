@@ -23,6 +23,8 @@ namespace ObenseuerCore
         internal string Text;
         internal string Detail;
         internal int Number;
+        internal int Current;
+        internal int Target;
         internal CommittedArgs Crime;
     }
 
@@ -77,7 +79,7 @@ namespace ObenseuerCore
                     Quests.RaiseTaskChanged(e.Text, (TaskState)e.Number);
                     break;
                 case StoryEventKind.ObjectiveChanged:
-                    Quests.RaiseObjectiveChanged(e.Text, e.Detail, (ObjectiveState)e.Number);
+                    Quests.RaiseObjectiveChanged(e.Text, e.Detail, (ObjectiveState)e.Number, e.Current, e.Target);
                     break;
                 case StoryEventKind.DialogueStarted:
                     Dialogue.RaiseStarted(e.Text);

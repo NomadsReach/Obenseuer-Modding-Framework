@@ -10,6 +10,10 @@ namespace SceneLookHarness
         private const string LookScene = "level15";
         private const string LookPath = "Content/mr_duck/Wasteland Hide/mr_duck";
         private const string DefaultTarget = "Ville";
+        private const string SecondScene = "level122";
+        private const string SecondPath = "_NPC/Katriina Vermund/Katriina Vermund";
+        private const string MirrorScene = "level118";
+        private const string MirrorPath = "_NPC/Maximo/toilet_002_usable (3)/toilet_002_LOD1/Node/Maximo Utedass";
         private const float Tolerance = 0.0001f;
         private const float MeshMargin = 0.02f;
 
@@ -36,49 +40,23 @@ namespace SceneLookHarness
             SceneLookFiles files = new SceneLookFiles(dataDir);
             try
             {
+                if (string.IsNullOrEmpty(sceneArg) && string.IsNullOrEmpty(lookArg) && string.IsNullOrEmpty(targetArg))
+                {
+                    int suite = Case(files, LookScene, LookPath, DefaultTarget, true);
+                    Console.WriteLine();
+                    suite += Case(files, SecondScene, SecondPath, null, false);
+                    Console.WriteLine();
+                    suite += SceneLookHarnessBindPosesScale.Mirror(files, MirrorScene, MirrorPath);
+                    Console.WriteLine();
+                    suite += SceneLookHarnessBindPosesScale.Summary();
+                    Console.WriteLine();
+                    Console.WriteLine(suite == 0 ? "bindposes: PASS" : "bindposes: FAIL " + suite + " check(s)");
+                    return suite == 0 ? 0 : 1;
+                }
                 string scene = string.IsNullOrEmpty(sceneArg) ? LookScene : sceneArg;
                 string path = string.IsNullOrEmpty(lookArg) ? LookPath : lookArg;
                 string targetName = string.IsNullOrEmpty(targetArg) ? DefaultTarget : targetArg;
-                string reason;
-                SceneLookFileScan scan = SceneLookScan.ScanFile(files, scene);
-                if (scan.Error != null)
-                {
-                    Console.WriteLine("scene " + scene + " is not readable: " + scan.Error);
-                    return 1;
-                }
-                SceneLookFile file = files.Get(scene, out reason);
-                if (file == null)
-                {
-                    Console.WriteLine("scene " + scene + " is not readable: " + reason);
-                    return 1;
-                }
-                long lookRoot = FindRoot(file, scan.Roots, path, out reason);
-                if (lookRoot == 0)
-                {
-                    Console.WriteLine("look root " + path + " was not found in " + scene + ": " + reason);
-                    return 1;
-                }
-                SceneLookLook look = SceneLookLoad.Load(files, scene, lookRoot, out reason);
-                if (look == null)
-                {
-                    Console.WriteLine("look " + path + " was refused: " + reason);
-                    return 1;
-                }
-                Console.WriteLine("bindposes: look {0} in {1} (GameObject pid {2})", path, scene, lookRoot);
-                Console.WriteLine("look: {0} renderers | {1} nodes | {2} file bind poses over {3} look bones", look.Renderers.Count, look.Nodes.Count, PoseCount(look), BoneCount(look));
-                Dictionary<long, SceneLookNode> byTransform = ByTransform(look);
-                List<MeshPoses> meshes = LookMeshes(look);
-                List<SceneLookBindMesh<long>> bind = LookBindMeshes(meshes);
-                Dictionary<long, int> sources = new Dictionary<long, int>();
-                int unresolved;
-                Dictionary<long, SceneLookMatrix> rest = SceneLookBind.Rest(bind, sources, out unresolved);
-                Console.WriteLine("file bind poses: row 3 of {0} is {1}", meshes[0].Label, Row3(meshes[0].FilePoses[0]));
-                Console.WriteLine("look rest: {0} of {1} bones resolved from the file bind poses | {2} meshes | max mesh frame difference {3}", rest.Count, BoneCount(look), meshes.Count, Format(FrameMargin(meshes, bind, rest)));
-                Console.WriteLine("look renderer nodes at their own bind frame: {0} of {1} | worst position difference {2}", RendererFrame(look, byTransform, meshes, bind, rest, sources), meshes.Count, Format(WorstRendererFrame(look, byTransform, meshes, bind, rest, sources)));
-                Console.WriteLine();
-                int failures = Retarget(look, byTransform, meshes, bind, rest, sources);
-                Console.WriteLine();
-                failures += Name(files, file, scan, look, byTransform, meshes, targetName);
+                int failures = Case(files, scene, path, targetName, true);
                 Console.WriteLine();
                 Console.WriteLine(failures == 0 ? "bindposes: PASS" : "bindposes: FAIL " + failures + " check(s)");
                 return failures == 0 ? 0 : 1;
@@ -89,9 +67,67 @@ namespace SceneLookHarness
             }
         }
 
-        private static int Retarget(SceneLookLook look, Dictionary<long, SceneLookNode> byTransform, List<MeshPoses> meshes, List<SceneLookBindMesh<long>> bind, Dictionary<long, SceneLookMatrix> rest, Dictionary<long, int> sources)
+        private static int Case(SceneLookFiles files, string scene, string path, string targetName, bool namePath)
+        {
+            string reason;
+            SceneLookFileScan scan = SceneLookScan.ScanFile(files, scene);
+            if (scan.Error != null)
+            {
+                Console.WriteLine("scene " + scene + " is not readable: " + scan.Error);
+                return 1;
+            }
+            SceneLookFile file = files.Get(scene, out reason);
+            if (file == null)
+            {
+                Console.WriteLine("scene " + scene + " is not readable: " + reason);
+                return 1;
+            }
+            long lookRoot = FindRoot(file, scan.Roots, path, out reason);
+            if (lookRoot == 0)
+            {
+                Console.WriteLine("look root " + path + " was not found in " + scene + ": " + reason);
+                return 1;
+            }
+            SceneLookLook look = SceneLookLoad.Load(files, scene, lookRoot, out reason);
+            if (look == null)
+            {
+                Console.WriteLine("look " + path + " was refused: " + reason);
+                return 1;
+            }
+            Console.WriteLine("bindposes case: look {0} in {1} (GameObject pid {2})", path, scene, lookRoot);
+            Console.WriteLine("look: {0} renderers | {1} nodes | {2} file bind poses over {3} look bones", look.Renderers.Count, look.Nodes.Count, PoseCount(look), BoneCount(look));
+            Dictionary<long, SceneLookNode> byTransform = ByTransform(look);
+            List<SceneLookLookRenderer> restRenderers = SceneLookFrame.RestRenderers(look);
+            List<SceneLookBindMesh<long>> bind = SceneLookFrame.RestMeshes(look);
+            Dictionary<long, int> sources = new Dictionary<long, int>();
+            int unresolved;
+            Dictionary<long, SceneLookMatrix> rest = SceneLookBind.Rest(bind, sources, out unresolved);
+            List<MeshPoses> meshes = LookMeshes(restRenderers);
+            if (meshes.Count == 0)
+            {
+                Console.WriteLine("look " + path + " has no renderer node that resolves, so its rest skeleton is empty");
+                return 1;
+            }
+            Console.WriteLine("file bind poses: row 3 of {0} is {1}", meshes[0].Label, Row3(meshes[0].FilePoses[0]));
+            Console.WriteLine("look rest: {0} of {1} bones resolved from the file bind poses | {2} meshes | max mesh frame difference {3}", rest.Count, BoneCount(look), meshes.Count, Format(FrameMargin(meshes, bind, rest)));
+            Console.WriteLine("look renderer nodes at their own bind frame: {0} of {1} | worst position difference {2}", RendererFrame(look, restRenderers, byTransform, meshes, bind, rest, sources), meshes.Count, Format(WorstRendererFrame(look, restRenderers, byTransform, meshes, bind, rest, sources)));
+            Console.WriteLine();
+            float bodyScale = SceneLookHarnessBindPosesScale.BodyScale(file, scan.Roots, namePath ? targetName : null);
+            if (bodyScale < 0f) return 1;
+            int failures = Retarget(look, byTransform, restRenderers, meshes, bind, rest, sources, file, bodyScale);
+            if (namePath)
+            {
+                Console.WriteLine();
+                failures += Name(files, file, scan, look, byTransform, restRenderers, meshes, targetName);
+            }
+            Console.WriteLine();
+            return failures;
+        }
+
+        private static int Retarget(SceneLookLook look, Dictionary<long, SceneLookNode> byTransform, List<SceneLookLookRenderer> renderers, List<MeshPoses> meshes, List<SceneLookBindMesh<long>> bind, Dictionary<long, SceneLookMatrix> rest, Dictionary<long, int> sources, SceneLookFile file, float bodyScale)
         {
             Console.WriteLine("retarget path (the look skeleton rebuilt from the file bind poses)");
+            int rootFailures = SceneLookHarnessBindPosesRoot.Check(look, byTransform, rest, sources, renderers, file, bodyScale);
             float composition = 0f;
             float drift = 0f;
             Dictionary<long, SceneLookMatrix> worlds = new Dictionary<long, SceneLookMatrix>();
@@ -100,7 +136,7 @@ namespace SceneLookHarness
                 SceneLookMatrix world = Place(look, node, byTransform, rest, worlds, 0);
                 SceneLookMatrix bone;
                 if (rest.TryGetValue(node.Transform, out bone)) composition = Math.Max(composition, world.MaxDifference(bone));
-                drift = Math.Max(drift, SceneLookMatrix.Distance(world, Relative(look, node, byTransform)));
+                drift = Math.Max(drift, SceneLookMatrix.Distance(world, SceneLookFrame.RelativeWithoutRoot(look, node, byTransform)));
             }
             int fileBones = 0;
             int sceneNodes = 0;
@@ -109,10 +145,10 @@ namespace SceneLookHarness
                 if (rest.ContainsKey(node.Transform)) fileBones++;
                 else sceneNodes++;
             }
-            List<SceneLookMatrix[]> poses = new List<SceneLookMatrix[]>(look.Renderers.Count);
-            for (int r = 0; r < look.Renderers.Count; r++)
+            List<SceneLookMatrix[]> poses = new List<SceneLookMatrix[]>(renderers.Count);
+            for (int r = 0; r < renderers.Count; r++)
             {
-                SceneLookLookRenderer renderer = look.Renderers[r];
+                SceneLookLookRenderer renderer = renderers[r];
                 SceneLookMatrix rendererWorld = OwnFrame(bind[r], rest, sources, r);
                 SceneLookMatrix[] rendererPoses = new SceneLookMatrix[renderer.Bones.Count];
                 for (int i = 0; i < renderer.Bones.Count; i++) rendererPoses[i] = SceneLookBind.BindPose(rest[renderer.Bones[i].Transform.PathId], rendererWorld);
@@ -120,10 +156,10 @@ namespace SceneLookHarness
             }
             Console.WriteLine("  rest from the file bind poses: {0} bones | rest from the scene pose: {1} nodes | local composition difference {2}", fileBones, sceneNodes, Format(composition));
             Console.WriteLine("  derived rest vs the scene pose: max position difference {0}", Format(drift));
-            Measure own = Compare(look, byTransform, meshes, poses, sources, -2);
+            Measure own = Compare(renderers, byTransform, meshes, poses, sources, -2);
             Console.WriteLine("  computed bind pose vs file bind pose, bones anchored in their own mesh: {0} bone slots | {1} bone pairs | max bone length difference {2} | max matrix difference {3}", own.Bones, own.Pairs, Format(own.MaxLength), Format(own.MaxMatrix));
             int failures = Check(own, Tolerance);
-            Measure all = Compare(look, byTransform, meshes, poses, sources, -1);
+            Measure all = Compare(renderers, byTransform, meshes, poses, sources, -1);
             Console.WriteLine("  computed bind pose vs file bind pose, every mesh: {0} bone pairs | max bone length difference {1} | max matrix difference {2}", all.Pairs, Format(all.MaxLength), Format(all.MaxMatrix));
             float margin = FrameMargin(meshes, bind, rest);
             Console.WriteLine("  every mesh frame against the derived rest: max difference {0}", Format(margin));
@@ -136,7 +172,7 @@ namespace SceneLookHarness
             {
                 Console.WriteLine("  check: PASS the look's own meshes agree on one rest skeleton within " + Format(MeshMargin));
             }
-            Measure scene = SceneRule(look, byTransform, meshes);
+            Measure scene = SceneRule(look, byTransform, renderers, meshes);
             Console.WriteLine("  scene pose rule (the defect): {0} bone pairs | max bone length difference {1} | max matrix difference {2}", scene.Pairs, Format(scene.MaxLength), Format(scene.MaxMatrix));
             if (scene.MaxMatrix <= all.MaxMatrix)
             {
@@ -147,10 +183,10 @@ namespace SceneLookHarness
             {
                 Console.WriteLine("  check: PASS the rest pose rule is closer to the file than the scene pose rule ({0} against {1})", Format(all.MaxMatrix), Format(scene.MaxMatrix));
             }
-            return failures;
+            return failures + rootFailures;
         }
 
-        private static int Name(SceneLookFiles files, SceneLookFile file, SceneLookFileScan scan, SceneLookLook look, Dictionary<long, SceneLookNode> byTransform, List<MeshPoses> meshes, string targetName)
+        private static int Name(SceneLookFiles files, SceneLookFile file, SceneLookFileScan scan, SceneLookLook look, Dictionary<long, SceneLookNode> byTransform, List<SceneLookLookRenderer> renderers, List<MeshPoses> meshes, string targetName)
         {
             SceneLookRoot target = FindTarget(scan.Roots, targetName);
             if (target == null)
@@ -178,12 +214,12 @@ namespace SceneLookHarness
             int mapped = 0;
             int fallback = 0;
             float drift = 0f;
-            List<SceneLookMatrix[]> poses = new List<SceneLookMatrix[]>(look.Renderers.Count);
-            List<SceneLookMatrix[]> frames = new List<SceneLookMatrix[]>(look.Renderers.Count);
-            List<bool[]> falls = new List<bool[]>(look.Renderers.Count);
-            for (int r = 0; r < look.Renderers.Count; r++)
+            List<SceneLookMatrix[]> poses = new List<SceneLookMatrix[]>(renderers.Count);
+            List<SceneLookMatrix[]> frames = new List<SceneLookMatrix[]>(renderers.Count);
+            List<bool[]> falls = new List<bool[]>(renderers.Count);
+            for (int r = 0; r < renderers.Count; r++)
             {
-                SceneLookLookRenderer renderer = look.Renderers[r];
+                SceneLookLookRenderer renderer = renderers[r];
                 SceneLookNode node = Node(look, renderer.Source.GameObject.PathId);
                 SceneLookMatrix placement = node == null ? SceneLookMatrix.Identity() : Relative(look, node, byTransform);
                 SceneLookMatrix[] rendererPoses = new SceneLookMatrix[renderer.Bones.Count];
@@ -215,10 +251,10 @@ namespace SceneLookHarness
             }
             Console.WriteLine("  mapped bone slots: {0} | file bind pose fallbacks: {1}", mapped, fallback);
             Console.WriteLine("  target rest vs the target's scene pose: max position difference {0}", Format(drift));
-            Measure own = CompareTarget(look, byTransform, poses, targetBind, targetSources);
+            Measure own = CompareTarget(renderers, byTransform, poses, targetBind, targetSources);
             Console.WriteLine("  computed bind pose vs the target file bind pose, bones anchored in their own mesh: {0} bone slots | {1} bone pairs | max bone length difference {2} | max matrix difference {3}", own.Bones, own.Pairs, Format(own.MaxLength), Format(own.MaxMatrix));
             int failures = Check(own, Tolerance);
-            Measure frame = Frames(look, frames, falls);
+            Measure frame = Frames(renderers, frames, falls);
             Console.WriteLine("  computed bind pose holds the look placement: {0} bones | max spread {1}", frame.Bones, Format(frame.MaxSpread));
             if (frame.Bones == 0)
             {
@@ -234,8 +270,9 @@ namespace SceneLookHarness
             {
                 Console.WriteLine("  check: PASS every computed bind pose holds the look placement within " + Format(Tolerance));
             }
-            Measure all = Compare(look, byTransform, meshes, poses, sources: null, ownIndex: -1);
+            Measure all = Compare(renderers, byTransform, meshes, poses, sources: null, ownIndex: -1);
             Console.WriteLine("  computed bind pose vs the look file bind pose (the look keeps its own shape, the two rigs differ by design): {0} bone pairs | max bone length difference {1}", all.Pairs, Format(all.MaxLength));
+            failures += SceneLookHarnessPlacement.Run(look, map, rest);
             return failures;
         }
 
@@ -287,38 +324,38 @@ namespace SceneLookHarness
             return worst;
         }
 
-        private static int RendererFrame(SceneLookLook look, Dictionary<long, SceneLookNode> byTransform, List<MeshPoses> meshes, List<SceneLookBindMesh<long>> bind, Dictionary<long, SceneLookMatrix> rest, Dictionary<long, int> sources)
+        private static int RendererFrame(SceneLookLook look, List<SceneLookLookRenderer> renderers, Dictionary<long, SceneLookNode> byTransform, List<MeshPoses> meshes, List<SceneLookBindMesh<long>> bind, Dictionary<long, SceneLookMatrix> rest, Dictionary<long, int> sources)
         {
             int matching = 0;
-            for (int r = 0; r < look.Renderers.Count; r++)
+            for (int r = 0; r < renderers.Count; r++)
             {
-                if (RendererOffset(look, byTransform, r, bind, rest, sources) <= MeshMargin) matching++;
+                if (RendererOffset(look, renderers, byTransform, r, bind, rest, sources) <= MeshMargin) matching++;
             }
             return matching;
         }
 
-        private static float WorstRendererFrame(SceneLookLook look, Dictionary<long, SceneLookNode> byTransform, List<MeshPoses> meshes, List<SceneLookBindMesh<long>> bind, Dictionary<long, SceneLookMatrix> rest, Dictionary<long, int> sources)
+        private static float WorstRendererFrame(SceneLookLook look, List<SceneLookLookRenderer> renderers, Dictionary<long, SceneLookNode> byTransform, List<MeshPoses> meshes, List<SceneLookBindMesh<long>> bind, Dictionary<long, SceneLookMatrix> rest, Dictionary<long, int> sources)
         {
             float worst = 0f;
-            for (int r = 0; r < look.Renderers.Count; r++) worst = Math.Max(worst, RendererOffset(look, byTransform, r, bind, rest, sources));
+            for (int r = 0; r < renderers.Count; r++) worst = Math.Max(worst, RendererOffset(look, renderers, byTransform, r, bind, rest, sources));
             return worst;
         }
 
-        private static float RendererOffset(SceneLookLook look, Dictionary<long, SceneLookNode> byTransform, int renderer, List<SceneLookBindMesh<long>> bind, Dictionary<long, SceneLookMatrix> rest, Dictionary<long, int> sources)
+        private static float RendererOffset(SceneLookLook look, List<SceneLookLookRenderer> renderers, Dictionary<long, SceneLookNode> byTransform, int renderer, List<SceneLookBindMesh<long>> bind, Dictionary<long, SceneLookMatrix> rest, Dictionary<long, int> sources)
         {
-            SceneLookNode node = Node(look, look.Renderers[renderer].Source.GameObject.PathId);
+            SceneLookNode node = Node(look, renderers[renderer].Source.GameObject.PathId);
             if (node == null) return 0f;
             SceneLookMatrix scene = Relative(look, node, byTransform);
             SceneLookMatrix frame = OwnFrame(bind[renderer], rest, sources, renderer);
             return SceneLookMatrix.Distance(frame, scene);
         }
 
-        private static Measure Compare(SceneLookLook look, Dictionary<long, SceneLookNode> byTransform, List<MeshPoses> meshes, List<SceneLookMatrix[]> poses, Dictionary<long, int> sources, int ownIndex)
+        private static Measure Compare(List<SceneLookLookRenderer> renderers, Dictionary<long, SceneLookNode> byTransform, List<MeshPoses> meshes, List<SceneLookMatrix[]> poses, Dictionary<long, int> sources, int ownIndex)
         {
             Measure measure = new Measure();
-            for (int r = 0; r < look.Renderers.Count; r++)
+            for (int r = 0; r < renderers.Count; r++)
             {
-                SceneLookLookRenderer renderer = look.Renderers[r];
+                SceneLookLookRenderer renderer = renderers[r];
                 MeshPoses mesh = meshes[r];
                 for (int i = 0; i < renderer.Bones.Count; i++)
                 {
@@ -344,12 +381,12 @@ namespace SceneLookHarness
             return measure;
         }
 
-        private static Measure CompareTarget(SceneLookLook look, Dictionary<long, SceneLookNode> byTransform, List<SceneLookMatrix[]> poses, List<SceneLookBindMesh<string>> targetBind, Dictionary<string, int> sources)
+        private static Measure CompareTarget(List<SceneLookLookRenderer> renderers, Dictionary<long, SceneLookNode> byTransform, List<SceneLookMatrix[]> poses, List<SceneLookBindMesh<string>> targetBind, Dictionary<string, int> sources)
         {
             Measure measure = new Measure();
-            for (int r = 0; r < look.Renderers.Count; r++)
+            for (int r = 0; r < renderers.Count; r++)
             {
-                SceneLookLookRenderer renderer = look.Renderers[r];
+                SceneLookLookRenderer renderer = renderers[r];
                 for (int i = 0; i < renderer.Bones.Count; i++)
                 {
                     if (!Own(sources, renderer.Bones[i].Name, 0, 0)) continue;
@@ -368,10 +405,10 @@ namespace SceneLookHarness
             return measure;
         }
 
-        private static Measure Frames(SceneLookLook look, List<SceneLookMatrix[]> frames, List<bool[]> falls)
+        private static Measure Frames(List<SceneLookLookRenderer> renderers, List<SceneLookMatrix[]> frames, List<bool[]> falls)
         {
             Measure measure = new Measure();
-            for (int r = 0; r < look.Renderers.Count; r++)
+            for (int r = 0; r < renderers.Count; r++)
             {
                 SceneLookMatrix frame = SceneLookMatrix.Identity();
                 bool have = false;
@@ -390,12 +427,12 @@ namespace SceneLookHarness
             return measure;
         }
 
-        private static Measure SceneRule(SceneLookLook look, Dictionary<long, SceneLookNode> byTransform, List<MeshPoses> meshes)
+        private static Measure SceneRule(SceneLookLook look, Dictionary<long, SceneLookNode> byTransform, List<SceneLookLookRenderer> renderers, List<MeshPoses> meshes)
         {
-            List<SceneLookMatrix[]> poses = new List<SceneLookMatrix[]>(look.Renderers.Count);
-            for (int r = 0; r < look.Renderers.Count; r++)
+            List<SceneLookMatrix[]> poses = new List<SceneLookMatrix[]>(renderers.Count);
+            for (int r = 0; r < renderers.Count; r++)
             {
-                SceneLookLookRenderer renderer = look.Renderers[r];
+                SceneLookLookRenderer renderer = renderers[r];
                 SceneLookNode node = Node(look, renderer.Source.GameObject.PathId);
                 SceneLookMatrix rendererWorld = node == null ? SceneLookMatrix.Identity() : Relative(look, node, byTransform);
                 SceneLookMatrix[] rendererPoses = new SceneLookMatrix[renderer.Bones.Count];
@@ -408,9 +445,9 @@ namespace SceneLookHarness
                 poses.Add(rendererPoses);
             }
             Measure measure = new Measure();
-            for (int r = 0; r < look.Renderers.Count; r++)
+            for (int r = 0; r < renderers.Count; r++)
             {
-                SceneLookLookRenderer renderer = look.Renderers[r];
+                SceneLookLookRenderer renderer = renderers[r];
                 for (int i = 0; i < renderer.Bones.Count; i++)
                 {
                     measure.Bones++;
@@ -479,10 +516,10 @@ namespace SceneLookHarness
             return world;
         }
 
-        private static List<MeshPoses> LookMeshes(SceneLookLook look)
+        private static List<MeshPoses> LookMeshes(IList<SceneLookLookRenderer> renderers)
         {
-            List<MeshPoses> meshes = new List<MeshPoses>(look.Renderers.Count);
-            foreach (SceneLookLookRenderer renderer in look.Renderers)
+            List<MeshPoses> meshes = new List<MeshPoses>(renderers.Count);
+            foreach (SceneLookLookRenderer renderer in renderers)
             {
                 MeshPoses mesh = new MeshPoses();
                 mesh.Label = renderer.Name;
@@ -521,18 +558,6 @@ namespace SceneLookHarness
                 meshes.Add(item);
             }
             return meshes;
-        }
-
-        private static List<SceneLookBindMesh<long>> LookBindMeshes(List<MeshPoses> meshes)
-        {
-            List<SceneLookBindMesh<long>> bind = new List<SceneLookBindMesh<long>>(meshes.Count);
-            foreach (MeshPoses item in meshes)
-            {
-                SceneLookBindMesh<long> mesh = new SceneLookBindMesh<long>();
-                for (int i = 0; i < item.Transforms.Count; i++) mesh.Add(item.Transforms[i], item.FilePoses[i]);
-                bind.Add(mesh);
-            }
-            return bind;
         }
 
         private static List<SceneLookBindMesh<string>> TargetBindMeshes(List<MeshPoses> meshes)
@@ -575,16 +600,12 @@ namespace SceneLookHarness
 
         private static SceneLookMatrix Relative(SceneLookLook look, SceneLookNode node, Dictionary<long, SceneLookNode> byTransform)
         {
-            SceneLookMatrix result = Trs(node);
-            SceneLookNode current = node;
-            while (current != null && current.GameObject != look.Root)
-            {
-                SceneLookNode parent;
-                if (current.Father.FileId != 0 || !byTransform.TryGetValue(current.Father.PathId, out parent)) break;
-                result = Trs(parent).Multiply(result);
-                current = parent;
-            }
-            return result;
+            return SceneLookFrame.Relative(look, node, byTransform);
+        }
+
+        internal static SceneLookMatrix SceneWorld(SceneLookFile file, long transform)
+        {
+            return World(file, transform, 0);
         }
 
         private static SceneLookMatrix World(SceneLookFile file, long transform, long stop)
@@ -609,7 +630,7 @@ namespace SceneLookHarness
 
         private static SceneLookMatrix Trs(SceneLookNode node)
         {
-            return SceneLookMatrix.Trs(node.Position, node.Rotation, node.Scale);
+            return SceneLookFrame.Local(node);
         }
 
         private static SceneLookMatrix Trs(SceneLookTransform transform)
@@ -643,18 +664,12 @@ namespace SceneLookHarness
 
         private static SceneLookNode Node(SceneLookLook look, long gameObject)
         {
-            foreach (SceneLookNode node in look.Nodes)
-            {
-                if (node.GameObject == gameObject) return node;
-            }
-            return null;
+            return SceneLookFrame.Node(look, gameObject);
         }
 
         private static Dictionary<long, SceneLookNode> ByTransform(SceneLookLook look)
         {
-            Dictionary<long, SceneLookNode> map = new Dictionary<long, SceneLookNode>(look.Nodes.Count);
-            foreach (SceneLookNode node in look.Nodes) map[node.Transform] = node;
-            return map;
+            return SceneLookFrame.ByTransform(look);
         }
 
         private static int PoseCount(SceneLookLook look)

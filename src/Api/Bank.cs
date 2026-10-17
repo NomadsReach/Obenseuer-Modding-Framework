@@ -70,6 +70,22 @@ namespace ObenseuerCore
             }
         }
 
+        public static bool IsFrozen(string bankId)
+        {
+            try
+            {
+                Bank bank = Find(bankId);
+                if (bank == null) return false;
+                Money.BankAccountData data = Account(bank);
+                return data != null && data.Frozen;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Cash.Owner, "Banking.IsFrozen", e);
+                return false;
+            }
+        }
+
         public static bool OpenAccount(string bankId)
         {
             if (Cash.Refused("Banking.OpenAccount")) return false;
@@ -193,6 +209,44 @@ namespace ObenseuerCore
             {
                 ApiLog.Once(Cash.Owner, "RepayLoan", e);
                 return false;
+            }
+        }
+
+        public static BankResult Freeze(string bankId)
+        {
+            if (Cash.Refused("Banking.Freeze")) return BankResult.Busy;
+            Bank bank = Find(bankId);
+            if (bank == null || Money.instance == null) return BankResult.Unavailable;
+            try
+            {
+                Money.BankAccountData data = Account(bank);
+                if (data == null) return BankResult.NoAccount;
+                bank.SetAccountFrozen(true);
+                return data.Frozen ? BankResult.Ok : BankResult.Failed;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Cash.Owner, "Banking.Freeze", e);
+                return BankResult.Unavailable;
+            }
+        }
+
+        public static BankResult Unfreeze(string bankId)
+        {
+            if (Cash.Refused("Banking.Unfreeze")) return BankResult.Busy;
+            Bank bank = Find(bankId);
+            if (bank == null || Money.instance == null) return BankResult.Unavailable;
+            try
+            {
+                Money.BankAccountData data = Account(bank);
+                if (data == null) return BankResult.NoAccount;
+                bank.SetAccountFrozen(false);
+                return data.Frozen ? BankResult.Failed : BankResult.Ok;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Cash.Owner, "Banking.Unfreeze", e);
+                return BankResult.Unavailable;
             }
         }
 

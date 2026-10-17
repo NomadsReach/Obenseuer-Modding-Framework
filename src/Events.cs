@@ -11,14 +11,20 @@ namespace ObenseuerCore
         private static bool newGameReady;
         private static bool newGameWasReady;
         private static bool newGameWasNew;
+        private static bool saveLoad;
 
         public static event Action<int> HourPassed;
         public static event Action<int> DayPassed;
         public static event Action<string> SceneLoaded;
         public static event Action Saved;
+        public static event Action<string> AfterSave;
         public static event Action Loaded;
+        public static event Action NewGameStarted;
 
         internal static event Action<string, LoadSceneMode> SceneLoadedWithMode;
+
+        /// <summary>Raised before Ready at each save load and once for a new game's first level, with the kind of point that raised it.</summary>
+        internal static event Action<SessionKind> SessionReady;
 
         private static event Action Ready;
 
@@ -97,6 +103,8 @@ namespace ObenseuerCore
         private static void OnSaved()
         {
             Raise(Saved, "Saved", h => h());
+            string folder = SaveData.WrittenFolder;
+            Raise(AfterSave, "AfterSave", h => h(folder));
         }
 
         private static void OnLoaded()
@@ -104,6 +112,9 @@ namespace ObenseuerCore
             // before Loaded, so handlers see the folder that was loaded
             SaveData.MarkLoaded();
             Raise(Loaded, "Loaded", h => h());
+            SessionKind kind = saveLoad ? SessionKind.SaveLoad : SessionKind.LevelChange;
+            saveLoad = false;
+            Raise(SessionReady, "SessionReady", h => h(kind));
             Raise(Ready, "Ready", h => h());
         }
 
@@ -112,6 +123,7 @@ namespace ObenseuerCore
             newGameWasReady = newGameReady;
             newGameReady = false;
             newGameWasNew = newGame;
+            saveLoad = SaveGate.RealLoad;
             if (SaveGate.RealLoad) newGame = false;
         }
 
@@ -119,13 +131,15 @@ namespace ObenseuerCore
         {
             newGame = newGameWasNew;
             newGameReady = newGameWasReady;
+            saveLoad = false;
             if (SaveReady && !SaveController.Loading && !newLoad) Raise(Ready, "Ready", h => h());
         }
 
-        internal static void NewGameStarted()
+        internal static void RaiseNewGameStarted()
         {
             newGame = true;
             newGameReady = false;
+            Raise(NewGameStarted, "NewGameStarted", h => h());
         }
 
         private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -142,6 +156,7 @@ namespace ObenseuerCore
             {
                 newGame = false;
                 newGameReady = true;
+                Raise(SessionReady, "SessionReady", h => h(SessionKind.NewGame));
                 Raise(Ready, "Ready", h => h());
             }
         }

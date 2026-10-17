@@ -23,8 +23,33 @@ namespace ObenseuerCore
                 if (QuestAuthoring.Check(Mod, good) != QuestRefusal.BadInput) return "a negative target was accepted";
                 good.Objectives[0].Target = QuestAuthoring.MaxTarget;
                 if (QuestAuthoring.Check(Mod, good) != QuestRefusal.None) return "the largest target was refused";
+                QuestObjectiveDefinition hidden = new QuestObjectiveDefinition { Key = "h", Hidden = true, Target = 1 };
+                if (QuestAuthoring.CheckObjective(hidden) != QuestRefusal.None) return "a hidden objective without a title was refused";
+                if (QuestAuthoring.Check(Mod, QuestWith("q", hidden)) != QuestRefusal.None) return "a quest with a hidden objective was refused";
+                if (QuestAuthoring.StoredTitle(hidden) != QuestAuthoring.PlaceholderTitle) return "a hidden objective kept its title";
+                if (QuestAuthoring.StoredDescription(hidden) != "") return "a hidden objective kept its description";
+                hidden.Title = "The butler did it";
+                hidden.Description = "Under the stairs";
+                if (QuestAuthoring.StoredTitle(hidden) != QuestAuthoring.PlaceholderTitle || QuestAuthoring.StoredDescription(hidden) != "") return "a hidden objective with text was stored as written";
+                hidden.Title = new string('x', QuestAuthoring.MaxTitle + 1);
+                if (QuestAuthoring.CheckObjective(hidden) != QuestRefusal.BadInput) return "a hidden objective accepted a long title";
+                QuestObjectiveDefinition visible = new QuestObjectiveDefinition { Key = "v", Title = "Find it", Description = "Under the bed", Target = 2 };
+                if (QuestAuthoring.CheckObjective(visible) != QuestRefusal.None) return "a visible objective was refused";
+                if (QuestAuthoring.StoredTitle(visible) != "Find it" || QuestAuthoring.StoredDescription(visible) != "Under the bed") return "a visible objective lost its text";
+                if (!QuestAuthoring.CanReveal(ObjectiveState.Hidden)) return "a hidden objective could not be revealed";
+                if (QuestAuthoring.CanReveal(ObjectiveState.Active) || QuestAuthoring.CanReveal(ObjectiveState.Finished) || QuestAuthoring.CanReveal(ObjectiveState.Failed) || QuestAuthoring.CanReveal(ObjectiveState.Abandoned)) return "a revealed objective could be revealed again";
+                if (QuestAuthoring.CheckRevealText("Done", null) != QuestRefusal.None) return "a valid reveal was refused";
+                if (QuestAuthoring.CheckRevealText(null, "text") != QuestRefusal.BadInput) return "a reveal without a title was accepted";
+                if (QuestAuthoring.CheckRevealText("  ", null) != QuestRefusal.BadInput) return "a blank reveal title was accepted";
+                if (QuestAuthoring.CheckRevealText(new string('x', QuestAuthoring.MaxTitle + 1), null) != QuestRefusal.BadInput) return "a long reveal title was accepted";
+                if (QuestAuthoring.CheckRevealText("Done", new string('x', QuestAuthoring.MaxDescription + 1)) != QuestRefusal.BadInput) return "a long reveal description was accepted";
                 if (QuestAuthoring.TaskId(Mod, "q") != Mod + ".q" || QuestAuthoring.TaskId(Mod, "q.r") != null) return "task id wrong";
                 if (!QuestAuthoring.Owns("a", "a.q") || QuestAuthoring.Owns("a", "a.b.q") || QuestAuthoring.Owns("a.b", "a.q") || QuestAuthoring.Owns("a", "a.")) return "owner check wrong";
+                if (!QuestAuthoring.ShouldFinishOnReveal(3, 3, false)) return "an objective at its target was not finished on reveal";
+                if (!QuestAuthoring.ShouldFinishOnReveal(4, 3, false)) return "an objective past its target was not finished on reveal";
+                if (QuestAuthoring.ShouldFinishOnReveal(3, 3, true)) return "an objective that skips counter self completion was finished on reveal";
+                if (QuestAuthoring.ShouldFinishOnReveal(2, 3, false)) return "an objective below its target was finished on reveal";
+                if (QuestAuthoring.ShouldFinishOnReveal(3, 0, false)) return "an objective without a counter was finished on reveal";
                 string compare = CompareRule();
                 if (compare != null) return compare;
                 if (!QuestAuthoring.Owns("a.b", "a.b.q") || QuestAuthoring.Owns("a", "ab.q") || QuestAuthoring.Owns("a", null)) return "owner prefix check wrong";
@@ -53,6 +78,13 @@ namespace ObenseuerCore
             QuestInfo finished = Quests.Get(id);
             if (finished == null || finished.State != TaskState.Finished) return "task is not finished";
             return "quest authoring game check ok: " + id + " created and finished, save and load, then run it again to see already exists";
+        }
+
+        private static QuestDefinition QuestWith(string key, QuestObjectiveDefinition objective)
+        {
+            QuestDefinition definition = new QuestDefinition { Key = key, Title = "Hidden quest" };
+            definition.Objectives.Add(objective);
+            return definition;
         }
 
         private static string CompareRule()

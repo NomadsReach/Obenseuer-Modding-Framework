@@ -78,7 +78,7 @@ These are all the events the framework offers, grouped by the part of the game t
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
-| `BlastSites.Detonated` | `Action<string>` | [Blast sites](api/blastsites.md) |
+| `BlastSites.Detonated` | `Action<string>` | [Weapons](api/weapons.md) |
 {: .events-table}
 
 ### Books
@@ -252,9 +252,11 @@ These are all the events the framework offers, grouped by the part of the game t
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
+| `Events.AfterSave` | `Action<string>` | [Framework helpers](api/core-helpers.md) |
 | `Events.DayPassed` | `Action<int>` | [Framework helpers](api/core-helpers.md) |
 | `Events.HourPassed` | `Action<int>` | [Framework helpers](api/core-helpers.md) |
 | `Events.Loaded` | `Action` | [Framework helpers](api/core-helpers.md) |
+| `Events.NewGameStarted` | `Action` | [Framework helpers](api/core-helpers.md) |
 | `Events.Saved` | `Action` | [Framework helpers](api/core-helpers.md) |
 | `Events.SceneLoaded` | `Action<string>` | [Framework helpers](api/core-helpers.md) |
 {: .events-table}
@@ -409,8 +411,8 @@ These are all the events the framework offers, grouped by the part of the game t
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
-| `LegalServices.Completed` | `Action<LegalActionArgs>` |  |
-| `LegalServices.Queued` | `Action<LegalActionArgs>` |  |
+| `LegalServices.Completed` | `Action<LegalActionArgs>` | [Economy: cash, shops, banking, player shops and mail](api/economy.md) |
+| `LegalServices.Queued` | `Action<LegalActionArgs>` | [Economy: cash, shops, banking, player shops and mail](api/economy.md) |
 {: .events-table}
 
 ### Levels
@@ -496,8 +498,8 @@ These are all the events the framework offers, grouped by the part of the game t
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
-| `NetBlob.Finished` | `Action<int, bool>` |  |
-| `NetBlob.Received` | `Action<ulong, string, string, byte[]>` |  |
+| `NetBlob.Finished` | `Action<int, bool>` | [Net: Steam, channels, lobby, presence and blobs](api/net.md) |
+| `NetBlob.Received` | `Action<ulong, string, string, byte[]>` | [Net: Steam, channels, lobby, presence and blobs](api/net.md) |
 {: .events-table}
 
 ### Notes
@@ -518,9 +520,9 @@ These are all the events the framework offers, grouped by the part of the game t
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
-| `Npcs.Despawned` | `Action<NpcInfo>` | [NPCs](api/npcs.md) |
-| `Npcs.Died` | `Action<NpcInfo>` | [NPCs](api/npcs.md) |
-| `Npcs.Spawned` | `Action<NpcInfo>` | [NPCs](api/npcs.md) |
+| `Npcs.Despawned` | `Action<NpcInfo>` | [NPCs, animals, relationships and phones](api/npcs.md) |
+| `Npcs.Died` | `Action<NpcInfo>` | [NPCs, animals, relationships and phones](api/npcs.md) |
+| `Npcs.Spawned` | `Action<NpcInfo>` | [NPCs, animals, relationships and phones](api/npcs.md) |
 {: .events-table}
 
 ### PhoneLines
@@ -592,6 +594,7 @@ These are all the events the framework offers, grouped by the part of the game t
 | Event | Handler type | Page with details |
 | --- | --- | --- |
 | `Quests.ObjectiveChanged` | `Action<ObjectiveChangedArgs>` | [Story: quests, dialogue and law](api-story.md) |
+| `Quests.Ready` | `Action` | Raised when the quest system can be written, once per load attempt: at each save load and at each new game. A level change reloads the level without rebuilding the save and does not raise it again, while loading the same save again, another save or a new game does. Create quests here, and make the handler safe to run more than once. |
 | `Quests.TaskChanged` | `Action<TaskChangedArgs>` | [Story: quests, dialogue and law](api-story.md) |
 {: .events-table}
 
@@ -613,7 +616,7 @@ These are all the events the framework offers, grouped by the part of the game t
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
-| `Relationships.RelationshipChanged` | `Action<RelationshipChange>` | [Relationships](api/relationships.md) |
+| `Relationships.RelationshipChanged` | `Action<RelationshipChange>` | [NPCs, animals, relationships and phones](api/npcs.md) |
 {: .events-table}
 
 ### Renovations
@@ -665,9 +668,9 @@ These are all the events the framework offers, grouped by the part of the game t
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
-| `Shops.Bought` | `Action<TradeArgs>` |  |
-| `Shops.PriceQuery` | `Action<PriceQueryArgs>` |  |
-| `Shops.Sold` | `Action<TradeArgs>` |  |
+| `Shops.Bought` | `Action<TradeArgs>` | [Economy: cash, shops, banking, player shops and mail](api/economy.md) |
+| `Shops.PriceQuery` | `Action<PriceQueryArgs>` | [Economy: cash, shops, banking, player shops and mail](api/economy.md) |
+| `Shops.Sold` | `Action<TradeArgs>` | [Economy: cash, shops, banking, player shops and mail](api/economy.md) |
 {: .events-table}
 
 ### Showers
@@ -757,7 +760,7 @@ These are all the events the framework offers, grouped by the part of the game t
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
-| `TaskItems.Changed` | `Action<TaskItemChangedArgs>` |  |
+| `TaskItems.Changed` | `Action<TaskItemChangedArgs>` | [HUD, console, achievements and difficulty](api/hud.md) |
 {: .events-table}
 
 ### Televisions
@@ -811,7 +814,7 @@ These are all the events the framework offers, grouped by the part of the game t
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
-| `WaitStations.Finished` | `Action<WaitStationDoneArgs>` |  |
+| `WaitStations.Finished` | `Action<WaitStationDoneArgs>` | [Player, skills, effects, subscriptions and travel](api/player.md) |
 {: .events-table}
 
 ### Wardrobe
@@ -844,8 +847,15 @@ These are all the events the framework offers, grouped by the part of the game t
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
-| `WorldPower.BlackoutStarted` | `Action` |  |
-| `WorldPower.GeneratorToggled` | `Action<bool>` |  |
+| `WorldPower.BlackoutStarted` | `Action` | [World: weather, power, water, radiation, location and clock](api/world.md) |
+| `WorldPower.GeneratorToggled` | `Action<bool>` | [World: weather, power, water, radiation, location and clock](api/world.md) |
+{: .events-table}
+
+### WorldProps
+
+| Event | Handler type | Page with details |
+| --- | --- | --- |
+| `WorldProps.Spawned` | `Action<WorldPropSpawned>` |  |
 {: .events-table}
 
 ### WorldWater

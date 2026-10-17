@@ -26,6 +26,7 @@ public class ExampleHello : FrameworkMod
         // Gets the name of each scene (game level) that loads.
         Events.SceneLoaded += scene => Log.Info("scene " + scene);
         // Runs after a save has loaded.
+        Events.AfterSave += folder => Log.Info("saved to " + folder);
         Events.Loaded += () => Log.Info("loaded on day " + GameTime.Day);
     }
 
@@ -49,5 +50,14 @@ Start the game, load a save and play for a few game hours. Then open `BepInEx\lo
 - **Call the framework from your mod's normal code, not from a background thread you started.** The game raises events there too, so your handlers already run in the right place. See [Main thread](../../glossary.md#main-thread).
 
 ## Where to go next
+- `Events.HourPassed(int hour)` runs once for each game hour.
+- `Events.DayPassed(int day)` runs when the game day changes.
+- `Events.SceneLoaded(string scene)` gives the name of the scene that loaded.
+- `Events.Saved` and `Events.Loaded` run after a save and after a load. `Loaded` also runs on every door change, so for work that should happen once per loaded save, use `Events.WhenReady`.
+- `Events.AfterSave(string folder)` runs in the same saving step, after `Events.Saved` and after every `Saved` handler has run. The argument is the folder the game just wrote the save to, for example `...\Saves\Esko_Virtanen\MySave`. During a real load the framework skips writing its own mod files while this event still fires, so treat the folder as the game's and not as proof that the framework wrote anything. A door change saves to the `Autosave` or `Autosave2` slot first, so the folder names that slot. It gives `null` when the game has no character and save name yet. It is not `SaveData.Folder`, which stays on the loaded save until the next load (see [Save data](save-data.md) and [Game save data entries](../../api/savedata-game.md#save-folder-and-peek)).
+- Handlers run in the order they were added. The first throw from each handler is logged to `ObenseuerCore.log`, and the other handlers still run.
+- `GameTime` reads `Day`, `DayOfWeek`, `Hour`, `Minute` and `IsPaused`. On the main menu, and while a load runs, `Day`, `Hour` and `Minute` are 0.
+- `GameTime.IsPaused` is `Time.timeScale == 0`, so it is true whenever the game clock is stopped. The pause menu and the saving screen both set the time scale to 0, so it is true while either is open. For the pause menu flag itself, use `UiState.IsPaused`.
+- The game raises events on Unity's main thread. Call the framework from there too.
 
 Next: [Save data](save-data.md).

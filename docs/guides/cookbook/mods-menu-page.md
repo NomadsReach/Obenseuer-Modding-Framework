@@ -55,6 +55,8 @@ public class MenuPage : FrameworkMod
 
 3. Run `dotnet build -c Release -p:DeployToGame=true` with the game closed, then start the game. Open the Mods menu and find Menu Page in the list. Click Log a click, then check `BepInEx\logs\example.menupage.log` in the game folder.
 
+Pages added with `ModMenu.AddPage` are classic only. The build method runs in the classic uGUI window, whether the player opens the page from the classic sidebar or from the WebUi menu, which opens the classic pane for a page it does not render itself. A page never renders as HTML. Keep a classic page to labels, buttons and the `ModUi` kit. A mod that needs a rich control, such as a searchable dropdown, a colour picker or multi-line text, builds that in the WebUi menu instead, see [the WebUi menu](../../api/webui.md).
+
 Notes:
 
 - `ModMenu.AddPage` takes the mod id, the page title and a method that builds the page. The method runs when the player opens the page.
@@ -64,3 +66,4 @@ Notes:
 ## Where to go next
 
 Next: [Add an HTML panel](html-panel.md).
+- The classic window is played with a controller as well as a mouse: the d-pad and the left stick move the focus, A or Enter activates the focused control, B or Esc goes back, and the bumpers switch sidebar pages. The footer shows the keys. `ModUi` controls are reachable this way; a raw `Selectable` that the page builds itself is not.

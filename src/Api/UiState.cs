@@ -1,4 +1,7 @@
 using System;
+using TMPro;
+using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace ObenseuerCore
 {
@@ -55,6 +58,25 @@ namespace ObenseuerCore
             get
             {
                 return GameController.instance != null && GameController.instance.inventoryDisabled;
+            }
+        }
+
+        public static bool IsTyping
+        {
+            get
+            {
+                EventSystem system = EventSystem.current;
+                if (system != null)
+                {
+                    GameObject selected = system.currentSelectedGameObject;
+                    if (selected != null)
+                    {
+                        TMP_InputField field = selected.GetComponentInParent<TMP_InputField>();
+                        if (field != null && field.isFocused) return true;
+                    }
+                }
+                DeveloperConsole console = DeveloperConsole.Instance;
+                return console != null && console.consoleOpened && console.InputField != null && console.InputField.isFocused;
             }
         }
 

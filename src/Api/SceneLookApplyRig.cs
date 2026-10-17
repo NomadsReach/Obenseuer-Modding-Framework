@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using UnityEngine;
 
 namespace ObenseuerCore
@@ -85,8 +86,8 @@ namespace ObenseuerCore
             }
             Dictionary<string, SceneLookMatrix> rest = TargetRest(body);
             GameObject holder = Holder(look, body, state);
-            SceneLookMatrix frame = SceneLookApplyMesh.ToSceneLookMatrix(holder.transform.localToWorldMatrix);
-            Dictionary<long, SceneLookNode> byTransform = ByTransform(look);
+            SceneLookMatrix frame = SceneLookBind.BindFrame(SceneLookApplyMesh.ToSceneLookMatrix(body.transform.localToWorldMatrix), SceneLookApplyMesh.ToSceneLookMatrix(holder.transform.localToWorldMatrix));
+            Dictionary<long, SceneLookNode> byTransform = SceneLookFrame.ByTransform(look);
             Transform rootBone = Find(root, SceneLookRig.RootBone);
             if (rootBone == null) rootBone = root;
             Material target = TargetMaterial(body);
@@ -94,8 +95,8 @@ namespace ObenseuerCore
             {
                 SceneLookLookRenderer renderer = look.Renderers[i];
                 GameObject owner = Child(renderer.Name, holder.transform, state);
-                SceneLookNode node = Node(look, renderer.Source.GameObject.PathId);
-                if (node != null) PlaceMatrix(owner.transform, Relative(look, node, byTransform));
+                SceneLookNode node = SceneLookFrame.Node(look, renderer.Source.GameObject.PathId);
+                if (node != null) PlaceMatrix(owner.transform, SceneLookApplyMesh.ToMatrix4x4(SceneLookFrame.Relative(look, node, byTransform)));
                 Matrix4x4[] poses = BindPoses(renderer, map, rest, frame);
                 if (!Attach(owner, renderer, assets, resolved[i], rootBone, target, poses, state, out reason)) return false;
             }
@@ -110,6 +111,13 @@ namespace ObenseuerCore
             if (targetAvatar == null || targetAnimator == null)
             {
                 reason = "target is not humanoid";
+                return false;
+            }
+            float factor;
+            string scaleReason;
+            if (!SceneLookFrame.HolderRatio(look, BodyScale(body), out factor, out scaleReason))
+            {
+                reason = scaleReason;
                 return false;
             }
             Dictionary<long, SceneLookMatrix> rest = LookRest(look);
@@ -138,7 +146,9 @@ namespace ObenseuerCore
             }
             Dictionary<long, SceneLookMatrix> worlds = new Dictionary<long, SceneLookMatrix>(look.Nodes.Count);
             Dictionary<long, Matrix4x4> locals = new Dictionary<long, Matrix4x4>(look.Nodes.Count);
-            Dictionary<long, SceneLookNode> byTransform = ByTransform(look);
+            Dictionary<long, SceneLookNode> byTransform = SceneLookFrame.ByTransform(look);
+            PlaceMatrix(holder.transform, SceneLookApplyMesh.ToMatrix4x4(SceneLookFrame.Holder(look, byTransform)));
+            holder.transform.localScale = holder.transform.localScale * factor;
             foreach (SceneLookNode node in look.Nodes) Place(look, node, byTransform, nodes, rest, worlds, locals, 0);
             Avatar avatar = AvatarBuilder.BuildHumanAvatar(holder, Description(look, plan, locals));
             if (avatar == null || !avatar.isValid || !avatar.isHuman)
@@ -163,11 +173,11 @@ namespace ObenseuerCore
                     }
                     bones.Add(found);
                 }
-                SceneLookNode node = Node(look, renderer.Source.GameObject.PathId);
+                SceneLookNode node = SceneLookFrame.Node(look, renderer.Source.GameObject.PathId);
                 Transform owner = null;
                 if (node != null) nodes.TryGetValue(node.Transform, out owner);
                 GameObject ownerObject = owner != null ? owner.gameObject : Child(renderer.Name, holder.transform, state);
-                if (owner == null && node != null) PlaceMatrix(ownerObject.transform, Relative(look, node, byTransform));
+                if (owner == null && node != null) PlaceMatrix(ownerObject.transform, SceneLookApplyMesh.ToMatrix4x4(SceneLookFrame.Relative(look, node, byTransform)));
                 Matrix4x4[] poses = SceneLookApplyMesh.FileBindPoses(renderer.Mesh);
                 if (poses == null || poses.Length != bones.Count)
                 {
@@ -201,6 +211,12 @@ namespace ObenseuerCore
             }
         }
 
+        internal static float BodyScale(GameObject body)
+        {
+            Vector3 scale = body.transform.lossyScale;
+            return (Math.Abs(scale.x) + Math.Abs(scale.y) + Math.Abs(scale.z)) / 3f;
+        }
+
         internal static Material TargetMaterial(GameObject body)
         {
             Renderer[] renderers = body.GetComponentsInChildren<Renderer>(true);
@@ -218,7 +234,7 @@ namespace ObenseuerCore
 
         internal static GameObject Holder(SceneLookLook look, GameObject body, SceneLookApplied state)
         {
-            SceneLookNode node = Node(look, look.Root);
+            SceneLookNode node = SceneLookFrame.Node(look, look.Root);
             GameObject holder = Child(node != null ? node.Name : look.FileName, body.transform, state);
             state.Holder = holder;
             return holder;
@@ -228,17 +244,9 @@ namespace ObenseuerCore
         {
             GameObject created = new GameObject(name);
             created.transform.SetParent(parent, false);
+            created.layer = parent.gameObject.layer;
             state.Objects.Add(created);
             return created;
-        }
-
-        internal static SceneLookNode Node(SceneLookLook look, long gameObject)
-        {
-            foreach (SceneLookNode node in look.Nodes)
-            {
-                if (node.GameObject == gameObject) return node;
-            }
-            return null;
         }
 
         internal static void Place(Transform transform, SceneLookNode node)
@@ -253,22 +261,6 @@ namespace ObenseuerCore
             transform.localPosition = new Vector3(matrix.m03, matrix.m13, matrix.m23);
             transform.localRotation = matrix.rotation;
             transform.localScale = matrix.lossyScale;
-        }
-
-        internal static Matrix4x4 Relative(SceneLookLook look, SceneLookNode node, Dictionary<long, SceneLookNode> byTransform)
-        {
-            Matrix4x4 result = Local(node);
-            SceneLookNode current = node;
-            int depth = 0;
-            while (current != null && current.GameObject != look.Root && depth < MaxDepth)
-            {
-                SceneLookNode parent;
-                if (current.Father.FileId != 0 || !byTransform.TryGetValue(current.Father.PathId, out parent)) break;
-                result = Local(parent) * result;
-                current = parent;
-                depth++;
-            }
-            return result;
         }
 
         private static SceneLookMatrix Place(SceneLookLook look, SceneLookNode node, Dictionary<long, SceneLookNode> byTransform, Dictionary<long, Transform> nodes, Dictionary<long, SceneLookMatrix> rest, Dictionary<long, SceneLookMatrix> worlds, Dictionary<long, Matrix4x4> locals, int depth)
@@ -344,27 +336,52 @@ namespace ObenseuerCore
 
         private static Dictionary<long, SceneLookMatrix> LookRest(SceneLookLook look)
         {
-            List<SceneLookBindMesh<long>> meshes = new List<SceneLookBindMesh<long>>(look.Renderers.Count);
-            foreach (SceneLookLookRenderer renderer in look.Renderers)
-            {
-                SceneLookBindMesh<long> mesh = new SceneLookBindMesh<long>();
-                for (int i = 0; i < renderer.Bones.Count; i++)
-                {
-                    SceneLookMatrix pose = SceneLookMatrix.Identity();
-                    if (renderer.Mesh != null && renderer.Mesh.BindPoses != null && i < renderer.Mesh.BindPoses.Length) pose = SceneLookMatrix.FromFile(renderer.Mesh.BindPoses[i]);
-                    mesh.Add(renderer.Bones[i].Transform.PathId, pose);
-                }
-                meshes.Add(mesh);
-            }
             int unresolved;
-            return SceneLookBind.Rest(meshes, out unresolved);
+            return SceneLookBind.Rest(SceneLookFrame.RestMeshes(look), out unresolved);
         }
 
-        private static Dictionary<long, SceneLookNode> ByTransform(SceneLookLook look)
+        internal static string ScaleNote(SceneLookLook look)
         {
-            Dictionary<long, SceneLookNode> map = new Dictionary<long, SceneLookNode>(look.Nodes.Count);
-            foreach (SceneLookNode node in look.Nodes) map[node.Transform] = node;
-            return map;
+            if (look == null || look.Nodes == null) return string.Empty;
+            Dictionary<long, SceneLookMatrix> rest;
+            try
+            {
+                rest = LookRest(look);
+            }
+            catch (Exception)
+            {
+                return string.Empty;
+            }
+            List<string> parts = new List<string>();
+            foreach (SceneLookNode node in look.Nodes)
+            {
+                if (rest.ContainsKey(node.Transform)) continue;
+                if (node.Scale == null || node.Scale.Length < 3) continue;
+                if (Unit(node.Scale[0]) && Unit(node.Scale[1]) && Unit(node.Scale[2])) continue;
+                if (parts.Count >= 3) break;
+                parts.Add(node.Name + " (" + Number(node.Scale[0]) + ", " + Number(node.Scale[1]) + ", " + Number(node.Scale[2]) + ")");
+            }
+            if (parts.Count == 0) return string.Empty;
+            return " | non unit scale on a node outside the file bind poses: " + string.Join(", ", parts.ToArray());
+        }
+
+        internal static float BindScale(float[] pose)
+        {
+            if (pose == null || pose.Length < 11) return 0f;
+            float x = (float)Math.Sqrt(pose[0] * pose[0] + pose[1] * pose[1] + pose[2] * pose[2]);
+            float y = (float)Math.Sqrt(pose[4] * pose[4] + pose[5] * pose[5] + pose[6] * pose[6]);
+            float z = (float)Math.Sqrt(pose[8] * pose[8] + pose[9] * pose[9] + pose[10] * pose[10]);
+            return (x + y + z) / 3f;
+        }
+
+        internal static bool Unit(float value)
+        {
+            return value > 0.999f && value < 1.001f;
+        }
+
+        internal static string Number(float value)
+        {
+            return value.ToString("0.###", CultureInfo.InvariantCulture);
         }
 
         private static Matrix4x4 Local(SceneLookNode node)
@@ -484,6 +501,8 @@ namespace ObenseuerCore
         private HumanPoseHandler to;
         private HumanPose pose;
 
+        internal bool Auto = true;
+
         internal void Setup(HumanPoseHandler source, HumanPoseHandler look)
         {
             from = source;
@@ -492,11 +511,17 @@ namespace ObenseuerCore
             pose.muscles = new float[HumanTrait.MuscleCount];
         }
 
-        private void LateUpdate()
+        internal void Sync()
         {
             if (from == null || to == null) return;
             from.GetHumanPose(ref pose);
             to.SetHumanPose(ref pose);
+        }
+
+        private void LateUpdate()
+        {
+            if (!Auto) return;
+            Sync();
         }
 
         private void OnDestroy()
