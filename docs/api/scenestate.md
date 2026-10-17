@@ -75,85 +75,178 @@ SceneState.SetInterval(Mod.Id, "some-timer-id", 30f);
 
 ## Reference
 
-This is the full list of what the API gives you, one section for each part. In every code block, the comments say what each member gives you or does. A line starting with `Technical:` holds extra detail for experienced modders. You can skip it on a first read.
-
-Every value has an id. The id is the id the level designers gave the object, or its place in the scene when it has none. These are the same ids that `SceneLogic` uses. Every change takes your mod's id as `modId` (see [Mod id](../glossary.md#mod-id)).
+This is the full list of what the API gives you. Every value has an id: the id the level designers gave the object, or its place in the scene when it has none. These are the same ids that `SceneLogic` uses, and every change takes your mod's id as `modId` (see [Mod id](../glossary.md#mod-id)). Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
 
 ### Reading and changing the scene's values
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>SceneState</code> <span>read and change the scene's values</span></p>
+<div class="api-pair" markdown="1">
 
 ```csharp
 public static class SceneState
 {
-    public static List<BranchInfo> Branches();                                   // every true or false switch in the scene
-    public static bool SetBranch(string modId, string id, bool value);           // sets a switch; true when it is now the value you asked for
-    public static List<CounterInfo> Counters();                                  // every counter in the scene
-    public static bool SetCounter(string modId, string id, int value);           // sets a counter to a value; false when refused
-    public static bool AddCounter(string modId, string id, int amount);          // adds to a counter; false when refused
-    public static List<StateMachineInfo> States();                               // every state machine in the scene
-    public static bool SetState(string modId, string id, string stateName);      // moves a state machine to a named state
-    public static List<SequenceInfo> Sequences();                                // every sequence in the scene
-    public static bool StartSequence(string modId, string id);                   // starts a sequence from its first entry
-    public static bool StopSequence(string modId, string id);                    // stops a sequence
-    public static List<SceneTimerInfo> Timers();                                 // every timer in the scene
-    public static bool StartTimer(string modId, string id);                      // starts a timer
-    public static bool SetInterval(string modId, string id, float seconds);      // changes how long a timer waits between ticks
-}
-
-public sealed class BranchInfo    // a true or false switch
-{
-    public string Id { get; }       // the switch's id
-    public bool Value { get; }      // true or false
-}
-
-public sealed class CounterInfo    // a counter
-{
-    public string Id { get; }       // the counter's id
-    public int Value { get; }       // its value now
-    public int Max { get; }         // the value at which it fires its reactions
-}
-
-public sealed class StateMachineInfo    // something that is in one of several named states
-{
-    public string Id { get; }               // the machine's id
-    public string Current { get; }          // the name of the state it is in now
-    public List<string> Names { get; }      // the names of all its states
-}
-
-public sealed class SequenceInfo    // a list of steps that run one after another
-{
-    public string Id { get; }       // the sequence's id
-    public int Entries { get; }     // how many steps it has
-    public bool Loop { get; }       // true when it starts again after the last step
-}
-
-public sealed class SceneTimerInfo    // a timer
-{
-    public string Id { get; }           // the timer's id
-    public float Interval { get; }      // how many seconds it waits between ticks
-    public bool Running { get; }        // true when it is running
-    public bool Disabled { get; }       // true when the scene has switched it off
+    public static List<BranchInfo> Branches();
+    public static bool SetBranch(string modId, string id, bool value);
+    public static List<CounterInfo> Counters();
+    public static bool SetCounter(string modId, string id, int value);
+    public static bool AddCounter(string modId, string id, int amount);
+    public static List<StateMachineInfo> States();
+    public static bool SetState(string modId, string id, string stateName);
+    public static List<SequenceInfo> Sequences();
+    public static bool StartSequence(string modId, string id);
+    public static bool StopSequence(string modId, string id);
+    public static List<SceneTimerInfo> Timers();
+    public static bool StartTimer(string modId, string id);
+    public static bool SetInterval(string modId, string id, float seconds);
 }
 ```
 
-- **The read calls give you a list of what is in the scene you are in.** If a read fails inside the game, the failure is written to the log once and you get an empty list.
-- **A change call returns `false` when it did nothing.** That happens for an empty mod id, an id that is not in the scene, a value the call refuses, and while a save is loading or being written.
-- **`SetBranch` flips the switch the way the game does, so everything that is wired to it reacts.** The scene's tests and listeners run, and they can set off the scene's other reactions. It returns `true` when the switch has the value you asked for.
-  - Technical: it uses the game's own `logic_branch.IsTrue` setter.
-- **`SetCounter` and `AddCounter` change a counter the way the game does.** A counter that reaches its maximum fires its reactions, as it would in the game. `SetCounter` refuses a negative value, and writes that refusal to the log once. `AddCounter` needs an amount of at least 1.
-  - Technical: they use the game's own `CounterRelay.SetCounterValue` and `IncreaseCounter`. Its reactions are its relays.
-- **A counter's value is saved with the player's save.** The game keeps and saves it, so a change you make stays after a reload.
-  - Technical: `CounterRelay` saves its value.
-- **`SetState` only changes which state the machine says it is in.** It refuses a name the machine does not have (it returns `false`), and an empty name. It does not fire that state's own reactions.
-  - Technical: it calls `logic_state.ChangeState`, and does not fire the state's relay.
-- **`StartSequence` starts the sequence from its first entry, and `StopSequence` stops it.** Both return `true` when the sequence exists. They do not tell you whether it was running.
-- **`StartTimer` starts the timer.** `SetInterval` changes the number of seconds it waits, and does not restart it. The seconds must be above 0.
-- **Writing a branch or a counter can set off the scene's reactions and move quests on.** Use it with the same care as `SceneLogic.Fire`.
+| Method | Returns | What it does |
+|---|---|---|
+| `Branches()` | `List<BranchInfo>` | Every true or false switch in the scene. |
+| `SetBranch(string modId, string id, bool value)` | `bool` | Sets a switch. Returns `true` when it is now the value you asked for. |
+| `Counters()` | `List<CounterInfo>` | Every counter in the scene. |
+| `SetCounter(string modId, string id, int value)` | `bool` | Sets a counter to a value. Returns `false` when refused. |
+| `AddCounter(string modId, string id, int amount)` | `bool` | Adds to a counter. Returns `false` when refused. |
+| `States()` | `List<StateMachineInfo>` | Every state machine in the scene. |
+| `SetState(string modId, string id, string stateName)` | `bool` | Moves a state machine to a named state. |
+| `Sequences()` | `List<SequenceInfo>` | Every sequence in the scene. |
+| `StartSequence(string modId, string id)` | `bool` | Starts a sequence from its first entry. |
+| `StopSequence(string modId, string id)` | `bool` | Stops a sequence. |
+| `Timers()` | `List<SceneTimerInfo>` | Every timer in the scene. |
+| `StartTimer(string modId, string id)` | `bool` | Starts a timer. |
+| `SetInterval(string modId, string id, float seconds)` | `bool` | Changes how long a timer waits between ticks. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>BranchInfo</code> <span>a true or false switch</span></p>
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class BranchInfo
+{
+    public string Id { get; }
+    public bool Value { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Id` | `string` | The switch's id. |
+| `Value` | `bool` | `true` or `false`. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>CounterInfo</code> <span>a counter</span></p>
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class CounterInfo
+{
+    public string Id { get; }
+    public int Value { get; }
+    public int Max { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Id` | `string` | The counter's id. |
+| `Value` | `int` | Its value now. |
+| `Max` | `int` | The value at which it fires its reactions. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>StateMachineInfo</code> <span>something in one of several named states</span></p>
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class StateMachineInfo
+{
+    public string Id { get; }
+    public string Current { get; }
+    public List<string> Names { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Id` | `string` | The machine's id. |
+| `Current` | `string` | The name of the state it is in now. |
+| `Names` | `List<string>` | The names of all its states. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>SequenceInfo</code> <span>a list of steps that run one after another</span></p>
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class SequenceInfo
+{
+    public string Id { get; }
+    public int Entries { get; }
+    public bool Loop { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Id` | `string` | The sequence's id. |
+| `Entries` | `int` | How many steps it has. |
+| `Loop` | `bool` | `true` when it starts again after the last step. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>SceneTimerInfo</code> <span>a timer</span></p>
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class SceneTimerInfo
+{
+    public string Id { get; }
+    public float Interval { get; }
+    public bool Running { get; }
+    public bool Disabled { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Id` | `string` | The timer's id. |
+| `Interval` | `float` | How many seconds it waits between ticks. |
+| `Running` | `bool` | `true` when it is running. |
+| `Disabled` | `bool` | `true` when the scene has switched it off. |
+
+</div>
+</div>
+
+#### Things to know
+
+- The read calls give you a list of what is in the scene you are in. If a read fails inside the game, the failure is written to the log once and you get an empty list.
+- A change call returns `false` when it did nothing. That happens for an empty mod id, an id that is not in the scene, a value the call refuses, and while a save is loading or being written.
+- `SetBranch` flips the switch the way the game does, so everything that is wired to it reacts. The scene's tests and listeners run, and they can set off the scene's other reactions. It returns `true` when the switch has the value you asked for. <span class="tech">(It uses the game's own `logic_branch.IsTrue` setter.)</span>
+- `SetCounter` and `AddCounter` change a counter the way the game does. A counter that reaches its maximum fires its reactions, as it would in the game. `SetCounter` refuses a negative value, and writes that refusal to the log once. `AddCounter` needs an amount of at least 1. <span class="tech">(They use the game's own `CounterRelay.SetCounterValue` and `IncreaseCounter`. Its reactions are its relays.)</span>
+- A counter's value is saved with the player's save. The game keeps and saves it, so a change you make stays after a reload. <span class="tech">(`CounterRelay` saves its value.)</span>
+- `SetState` only changes which state the machine says it is in. It refuses a name the machine does not have (it returns `false`), and an empty name. It does not fire that state's own reactions. <span class="tech">(It calls `logic_state.ChangeState`, and does not fire the state's relay.)</span>
+- `StartSequence` starts the sequence from its first entry, and `StopSequence` stops it. Both return `true` when the sequence exists. They do not tell you whether it was running.
+- `StartTimer` starts the timer. `SetInterval` changes the number of seconds it waits, and does not restart it. The seconds must be above 0.
+- Writing a branch or a counter can set off the scene's reactions and move quests on. Use it with the same care as `SceneLogic.Fire`.
 
 ### What you can't do (yet)
 
-- **You can't be told when one of these values changes.** The game raises no event for them, so the only way to notice a change is to read the values again later.
-  - Technical: the framework would need a patch on every setter.
-- **You can't tell whether a sequence is running.** The game keeps that fact private.
+- You can't be told when one of these values changes. The game raises no event for them, so the only way to notice a change is to read the values again later. <span class="tech">(The framework would need a patch on every setter.)</span>
+- You can't tell whether a sequence is running. The game keeps that fact private.
 
 ## Details
 
@@ -164,9 +257,9 @@ Everything not listed in this reference is internal and may change without notic
 
 ### When you can call it
 
-- **Call everything from your mod's normal code, not from a background thread you started.** The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
-- **It is safe to call any of it at any time, even on the main menu or while a save is loading.** If there is nothing to read you get an empty list, and a change call gives `false`.
-- **This API has no events.**
+- Call everything from your mod's normal code, not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
+- It is safe to call any of it at any time, even on the main menu or while a save is loading. If there is nothing to read you get an empty list, and a change call gives `false`.
+- This API has no events.
 
 ### If something fails to set up
 

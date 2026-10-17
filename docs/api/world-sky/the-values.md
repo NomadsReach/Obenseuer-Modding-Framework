@@ -9,47 +9,97 @@ nav_order: 3
 
 `SkyOverride` is what you hand to `Set`. Every property is nullable: a property you leave `null` is not changed by your mod. `SkyState` is what you get from `Current`. It has the same names, and every value is read only.
 
-```csharp
-public sealed class SkyOverride    // the values your mod wants to change; null means leave it alone
-{
-    public bool? FogEnabled { get; set; }         // true turns fog on, false turns it off
-    public FogMode? FogMode { get; set; }         // how the fog thickens with distance (Unity's FogMode)
-    public Color? FogColor { get; set; }          // the colour of the fog
-    public float? FogDensity { get; set; }        // how thick the fog is; 0 or more
-    public float? FogStart { get; set; }          // distance where linear fog starts
-    public float? FogEnd { get; set; }            // distance where linear fog is full
-    public Color? AmbientColor { get; set; }      // the colour of the light that fills shadows
-    public float? AmbientIntensity { get; set; }  // how strong that light is; 0 or more
-    public float? SkyboxExposure { get; set; }    // how bright the sky is; 0 or more
-    public Color? SunColor { get; set; }          // the colour of the sunlight
-    public float? SunIntensity { get; set; }      // how strong the sunlight is; 0 or more
-    public float? StarsIntensity { get; set; }    // how bright the stars are; 0 or more
-    public float? CloudDensity { get; set; }      // how thick the clouds are, 0 to 1
-}
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>SkyOverride</code> <span>the values your mod wants to change</span></p>
+<div class="api-pair" markdown="1">
 
-public sealed class SkyState    // what the sky looks like now
+```csharp
+public sealed class SkyOverride
 {
-    public bool FogEnabled { get; }           // true when fog is on
-    public FogMode FogMode { get; }           // the fog type
-    public Color FogColor { get; }            // the fog colour
-    public float FogDensity { get; }          // the fog thickness
-    public float FogStart { get; }            // where linear fog starts
-    public float FogEnd { get; }              // where linear fog is full
-    public Color AmbientColor { get; }        // the colour of the light that fills shadows
-    public float AmbientIntensity { get; }    // how strong that light is
-    public float? SkyboxExposure { get; }     // null when the scene has no sky that carries it
-    public Color? SunColor { get; }           // null when the scene has no sun light
-    public float? SunIntensity { get; }       // null when the scene has no sun light
-    public float? StarsIntensity { get; }     // null when the scene has no sky that carries it
-    public float? CloudDensity { get; }       // null when the scene has no sky that carries it
+    public bool? FogEnabled { get; set; }
+    public FogMode? FogMode { get; set; }
+    public Color? FogColor { get; set; }
+    public float? FogDensity { get; set; }
+    public float? FogStart { get; set; }
+    public float? FogEnd { get; set; }
+    public Color? AmbientColor { get; set; }
+    public float? AmbientIntensity { get; set; }
+    public float? SkyboxExposure { get; set; }
+    public Color? SunColor { get; set; }
+    public float? SunIntensity { get; set; }
+    public float? StarsIntensity { get; set; }
+    public float? CloudDensity { get; set; }
 }
 ```
 
-- **The fog and ambient values in `SkyState` always have a value.** The others are `null` when the scene does not contain the object that holds them. A scene can use a different mix of sky systems than another, so a value you can read in one scene may be `null` in the next.
-  - Technical: the game's scenes use `SunDirection`, the Azure sky controllers, or both. A property whose object is missing is skipped, and `Current` reports it as `null`.
-- **`AmbientColor` sets every kind of ambient light to the same colour.**
-  - Technical: flat, sky, equator and ground ambient colours all get the value.
-- **`SkyboxExposure` changes the sky's brightness whichever way the scene draws its sky.** It sets the `_Exposure` property of the current skybox material when it has one, and the exposure of the Azure sky controller when one is in the scene.
-- **`SunColor` and `SunIntensity` change every sun light the sky systems drive.** In the game the sun and the moon share one light, so this changes the moonlight too.
-- **The Azure fog is not the same as the fog you change here.** The game draws its own fog as a screen effect from the sky's shader values, and these properties change Unity's built-in fog only. So `FogEnabled` and the other fog values may look different from the Azure fog you see.
-  - Technical: Azure fog is driven by `globalFogDistance` and other shader values, not by `RenderSettings.fog`.
+| Property | Type | What it means |
+|---|---|---|
+| `FogEnabled` | `bool?` | `true` turns fog on. `false` turns it off. |
+| `FogMode` | `FogMode?` | How the fog thickens with distance (Unity's `FogMode`). |
+| `FogColor` | `Color?` | The colour of the fog. |
+| `FogDensity` | `float?` | How thick the fog is. 0 or more. |
+| `FogStart` | `float?` | The distance where linear fog starts. |
+| `FogEnd` | `float?` | The distance where linear fog is full. |
+| `AmbientColor` | `Color?` | The colour of the light that fills shadows. |
+| `AmbientIntensity` | `float?` | How strong that light is. 0 or more. |
+| `SkyboxExposure` | `float?` | How bright the sky is. 0 or more. |
+| `SunColor` | `Color?` | The colour of the sunlight. |
+| `SunIntensity` | `float?` | How strong the sunlight is. 0 or more. |
+| `StarsIntensity` | `float?` | How bright the stars are. 0 or more. |
+| `CloudDensity` | `float?` | How thick the clouds are, from 0 to 1. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>SkyState</code> <span>what the sky looks like now</span></p>
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class SkyState
+{
+    public bool FogEnabled { get; }
+    public FogMode FogMode { get; }
+    public Color FogColor { get; }
+    public float FogDensity { get; }
+    public float FogStart { get; }
+    public float FogEnd { get; }
+    public Color AmbientColor { get; }
+    public float AmbientIntensity { get; }
+    public float? SkyboxExposure { get; }
+    public Color? SunColor { get; }
+    public float? SunIntensity { get; }
+    public float? StarsIntensity { get; }
+    public float? CloudDensity { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `FogEnabled` | `bool` | `true` when fog is on. |
+| `FogMode` | `FogMode` | The fog type. |
+| `FogColor` | `Color` | The fog colour. |
+| `FogDensity` | `float` | The fog thickness. |
+| `FogStart` | `float` | Where linear fog starts. |
+| `FogEnd` | `float` | Where linear fog is full. |
+| `AmbientColor` | `Color` | The colour of the light that fills shadows. |
+| `AmbientIntensity` | `float` | How strong that light is. |
+| `SkyboxExposure` | `float?` | `null` when the scene has no sky that carries it. |
+| `SunColor` | `Color?` | `null` when the scene has no sun light. |
+| `SunIntensity` | `float?` | `null` when the scene has no sun light. |
+| `StarsIntensity` | `float?` | `null` when the scene has no sky that carries it. |
+| `CloudDensity` | `float?` | `null` when the scene has no sky that carries it. |
+
+</div>
+</div>
+
+## Things to know
+
+- The fog and ambient values in `SkyState` always have a value. The others are `null` when the scene does not contain the object that holds them. A scene can use a different mix of sky systems than another, so a value you can read in one scene may be `null` in the next. <span class="tech">(the game's scenes use `SunDirection`, the Azure sky controllers, or both. A property whose object is missing is skipped, and `Current` reports it as `null`.)</span>
+- `AmbientColor` sets every kind of ambient light to the same colour. <span class="tech">(flat, sky, equator and ground ambient colours all get the value.)</span>
+- `SkyboxExposure` changes the sky's brightness whichever way the scene draws its sky. It sets the `_Exposure` property of the current skybox material when it has one, and the exposure of the Azure sky controller when one is in the scene.
+- `SunColor` and `SunIntensity` change every sun light the sky systems drive. In the game the sun and the moon share one light, so this changes the moonlight too.
+
+## Limits
+
+- The Azure fog is not the same as the fog you change here. The game draws its own fog as a screen effect from the sky's shader values, and these properties change Unity's built-in fog only. So `FogEnabled` and the other fog values may look different from the Azure fog you see. <span class="tech">(Azure fog is driven by `globalFogDistance` and other shader values, not by `RenderSettings.fog`.)</span>

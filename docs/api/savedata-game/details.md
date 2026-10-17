@@ -14,9 +14,10 @@ Everything not listed in this reference is internal and may change without notic
 
 ## When you can call it
 
-- **Call everything from your mod's normal code, not from a background thread you started.** The game only works safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)).
-- **`Capture` and `Apply` do nothing while a save is loading or saving.** See the reference above.
+- Call everything from your mod's normal code, not from a background thread you started. The game only works safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)).
+- `Capture` and `Apply` do nothing while a save is loading or saving. See the reference above.
 
 ## If something fails to set up
 
-This page does not change any game method when the framework starts, so it has no feature group that can turn off. `Capture` and `Apply` use the game's own save and load methods when you call them.
+- This page does not change any game method when the framework starts, so it has no feature group that can turn off.
+- `Capture` and `Apply` use the game's own save and load methods when you call them.

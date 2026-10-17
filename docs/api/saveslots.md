@@ -73,77 +73,130 @@ Events.Saved += () => Log.Info("A save finished.");
 
 ## Reference
 
-This is the full list of what the API gives you. In the code block, the comments say what each member gives you or does. A line starting with `Technical:` holds extra detail for experienced modders. You can skip it on a first read.
+This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
 
 ### Save slots
 
 `SaveSlots` reads the saves on disk and starts an autosave.
 
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>SaveSlots</code> <span>read the saves on disk and start an autosave</span></p>
+<div class="api-pair" markdown="1">
+
 ```csharp
 public static class SaveSlots
 {
-    public static string CurrentName { get; }               // the name of the save slot this game was loaded from; null when none
-    public static SaveAutosaveMode AutosaveMode { get; }    // how often the current difficulty autosaves; Default when unknown
-    public static bool CanSaveNow { get; }                  // true when SaveNow would start a save; has no side effects
-    public static List<SaveSlotInfo> All();                 // every save slot on disk, for every character
-    public static bool SaveNow();                           // ask for an autosave; true when it started, false when refused
-}
-
-public sealed class SaveSlotInfo    // one save slot on disk
-{
-    public string Name { get; }             // the slot: "Autosave", "Autosave2", or "Slot1" to "Slot10"
-    public string Character { get; }        // the character's name, as the Load menu shows it
-    public DateTime LastWritten { get; }    // when the slot was last saved, in your computer's local time
-}
-
-public enum SaveAutosaveMode
-{
-    Default,     // the game's normal autosave setting
-    EveryDay,    // autosave once a day
-    EveryHour    // autosave once an hour
+    public static string CurrentName { get; }
+    public static SaveAutosaveMode AutosaveMode { get; }
+    public static bool CanSaveNow { get; }
+    public static List<SaveSlotInfo> All();
+    public static bool SaveNow();
 }
 ```
 
-- **`All()` lists the saves the Load menu lists, and it is slow, so do not call it every frame.** It reads each save's info file from disk, so call it when something happens and keep the result. It lists the autosave pair and the ten manual slots that have a save in them. A slot is listed when its info file exists, whether or not the file can be read. The game itself leaves out a character when none of that character's info files can be read. Two characters with the same name get " 2" added, as in the game. It also works on the main menu. The list is empty when there are no saves, and also when reading the save folders fails, for example when the game's save folder is missing.
-  - Technical: it reads each slot's `Info.tnmt` file for every character from `SaveController.GetCharacters`. `LastWritten` is the file's last write time.
-- **`CurrentName` is the slot the game was loaded from, and it does not change when you save somewhere else.** It is `null` when no save has been loaded in this session, on the main menu, or when the saved folder belongs to a different character than the one in play. After a new game it is `null` until a save is loaded.
-  - Technical: it is the folder name of `SaveController.LastSaveFolderPath`. The game sets that folder on load and clears it when you quit to the main menu, and it does not update it on save. The game does not clear it when the credits end, so the framework clears it when the main menu loads (`SaveData`) and when a new game starts (`WorldObjects`).
-- **`AutosaveMode` is read only.** The game keeps this setting with the difficulty and saves it with the game, but in this game version nothing in the game reads it, so it does not change how often the game saves.
-  - Technical: it is `DifficultyController.currentDifficultyInfo.autosaveMode`.
-- **`SaveNow()` starts an autosave and does not wait for it.** It returns `true` as soon as the autosave has started. The save itself is written about three frames later. Use `Events.Saved` to know when it finished.
-  - Technical: it calls the game's own autosave, which writes the older of `Autosave` and `Autosave2`. The checks below are not made again at the moment of writing.
-- **`SaveNow()` never writes a slot the player named.** It only writes one of the two autosaves.
-- **Only one save runs at a time.** While a save is running, whether it is yours or the game's own autosave, `SaveNow` returns `false` and `CanSaveNow` is `false`. Do not call `SaveNow` from the code that handles `Events.Saved`, or from code that runs during a save.
-  - Technical: the flag starts when `SaveNow` starts and clears when the game reports the save done, or after 10 seconds if it never does. A save that runs in the frame of the call, including the pause menu's own, also counts.
-- **`SaveNow` is stricter than the game's own autosave.** It also refuses while the game has turned off the Save button in the pause menu. The game's own autosave does not look at that button.
-- **`SaveNow` and `CanSaveNow` say `false` when any of these is true, and nothing is saved.**
-  - A save is loading or being written, a screen fade is running, or a level is still loading.
-  - No save was loaded in this session, the loaded save's folder is gone, or that folder belongs to a different character. A new game has no loaded save until its first load or level change.
-  - No character is in play, as on the main menu.
-  - One of the game's save parts is missing from the scene.
-    - Technical: `GameController`, `SavingUI`, `PauseMenu` or `DestructibleList`.
-  - The player is dead, waiting or asleep, in a sleep event, in a conversation, being arrested, or a door to another level is about to be used.
-  - A save is already running, as described above.
-  - The game has turned off the pause menu's Save button. The game does this in cutscenes, card games, camera-locked animations, after death, and when the difficulty has saves by the player turned off.
-- **You can't delete, rename, overwrite or load a slot.** The framework only reads slots and asks for an autosave.
+| Method | Returns | What it does |
+|---|---|---|
+| `All()` | `List<SaveSlotInfo>` | Every save slot on disk, for every character. |
+| `SaveNow()` | `bool` | Asks for an autosave. `true` when it started, `false` when refused. |
+
+| Property | Type | What it means |
+|---|---|---|
+| `CurrentName` | `string` | The name of the save slot this game was loaded from. `null` when none. |
+| `AutosaveMode` | `SaveAutosaveMode` | How often the current difficulty autosaves. `Default` when unknown. |
+| `CanSaveNow` | `bool` | `true` when `SaveNow` would start a save. It has no side effects. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>SaveSlotInfo</code> <span>one save slot on disk</span></p>
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class SaveSlotInfo
+{
+    public string Name { get; }
+    public string Character { get; }
+    public DateTime LastWritten { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Name` | `string` | The slot: `"Autosave"`, `"Autosave2"`, or `"Slot1"` to `"Slot10"`. |
+| `Character` | `string` | The character's name, as the Load menu shows it. |
+| `LastWritten` | `DateTime` | When the slot was last saved, in your computer's local time. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>SaveAutosaveMode</code> <span>how often the difficulty autosaves</span></p>
+<div class="api-pair" markdown="1">
+
+```csharp
+public enum SaveAutosaveMode
+{
+    Default,
+    EveryDay,
+    EveryHour
+}
+```
+
+| Value | Meaning |
+|---|---|
+| `Default` | The game's normal autosave setting. |
+| `EveryDay` | Autosave once a day. |
+| `EveryHour` | Autosave once an hour. |
+
+</div>
+</div>
+
+#### Things to know
+
+- `All()` lists the saves the Load menu lists. It is slow, so do not call it every frame. It reads each save's info file from disk, so call it when something happens and keep the result. <span class="tech">(It reads each slot's `Info.tnmt` file for every character from `SaveController.GetCharacters`. `LastWritten` is the file's last write time.)</span>
+- `All()` lists the autosave pair and the ten manual slots that have a save in them. A slot is listed when its info file exists, whether or not the file can be read. The game itself leaves out a character when none of that character's info files can be read. Two characters with the same name get " 2" added, as in the game.
+- `All()` also works on the main menu. The list is empty when there are no saves, and also when reading the save folders fails, for example when the game's save folder is missing.
+- `CurrentName` is the slot the game was loaded from, and it does not change when you save somewhere else. <span class="tech">(It is the folder name of `SaveController.LastSaveFolderPath`. The game sets that folder on load and clears it when you quit to the main menu, and it does not update it on save. The game does not clear it when the credits end, so the framework clears it when the main menu loads (`SaveData`) and when a new game starts (`WorldObjects`).)</span>
+- `CurrentName` is `null` when no save has been loaded in this session, on the main menu, or when the saved folder belongs to a different character than the one in play. After a new game it is `null` until a save is loaded.
+- `AutosaveMode` is read only. The game keeps this setting with the difficulty and saves it with the game, but in this game version nothing in the game reads it, so it does not change how often the game saves. <span class="tech">(It is `DifficultyController.currentDifficultyInfo.autosaveMode`.)</span>
+- `SaveNow()` starts an autosave and does not wait for it. It returns `true` as soon as the autosave has started. The save itself is written about three frames later. Use `Events.Saved` to know when it finished. <span class="tech">(It calls the game's own autosave, which writes the older of `Autosave` and `Autosave2`. The checks below are not made again at the moment of writing.)</span>
+- `SaveNow()` never writes a slot the player named. It only writes one of the two autosaves.
+
+#### Limits
+
+- Only one save runs at a time. While a save is running, whether it is yours or the game's own autosave, `SaveNow` returns `false` and `CanSaveNow` is `false`. Do not call `SaveNow` from the code that handles `Events.Saved`, or from code that runs during a save. <span class="tech">(The flag starts when `SaveNow` starts and clears when the game reports the save done, or after 10 seconds if it never does. A save that runs in the frame of the call, including the pause menu's own, also counts.)</span>
+- `SaveNow` is stricter than the game's own autosave. It also refuses while the game has turned off the Save button in the pause menu. The game's own autosave does not look at that button.
+- You can't delete, rename, overwrite or load a slot. The framework only reads slots and asks for an autosave.
+
+#### When SaveNow and CanSaveNow say false
+
+`SaveNow` and `CanSaveNow` say `false` when any of these is true, and nothing is saved.
+
+- A save is loading or being written, a screen fade is running, or a level is still loading.
+- No save was loaded in this session, the loaded save's folder is gone, or that folder belongs to a different character. A new game has no loaded save until its first load or level change.
+- No character is in play, as on the main menu.
+- One of the game's save parts is missing from the scene. <span class="tech">(`GameController`, `SavingUI`, `PauseMenu` or `DestructibleList`.)</span>
+- The player is dead, waiting or asleep, in a sleep event, in a conversation, being arrested, or a door to another level is about to be used.
+- A save is already running, as described above.
+- The game has turned off the pause menu's Save button. The game does this in cutscenes, card games, camera-locked animations, after death, and when the difficulty has saves by the player turned off.
 
 ## Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
-Namespace: `ObenseuerCore`. Logs go to `BepInEx\logs\obenseuer.moddingframework.saveslots.log`.
-
-Everything not listed in this reference is internal and may change without notice. Items marked experimental may change too.
+- Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+- Namespace: `ObenseuerCore`. Logs go to `BepInEx\logs\obenseuer.moddingframework.saveslots.log`.
+- Everything not listed in this reference is internal and may change without notice. Items marked experimental may change too.
 
 ### When you can call it
 
-- **Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started.** The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
-- **It is safe to call any of it at any time, even on the main menu or while a save is loading.** With no save loaded, `CurrentName` is `null` and `CanSaveNow` is `false`. `All()` still lists the saves on disk, as the Load menu does. `AutosaveMode` is `Default` when the difficulty is not known yet.
-- **Do not call `All()` or `CanSaveNow` every frame.** `All()` reads files from disk.
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
+- It is safe to call any of it at any time, even on the main menu or while a save is loading. With no save loaded, `CurrentName` is `null` and `CanSaveNow` is `false`. `All()` still lists the saves on disk, as the Load menu does. `AutosaveMode` is `Default` when the difficulty is not known yet.
+- Do not call `All()` or `CanSaveNow` every frame. `All()` reads files from disk.
 
 ### What to check for and what comes back
 
-- **Nothing here throws an error to you.** If the game itself fails, you get the plain default (`null`, `false`, `Default` or an empty list). A failure in `SaveNow` goes to the log as an error. Failures in the other members go to the log at debug level only.
+- Nothing here throws an error to you. If the game itself fails, you get the plain default (`null`, `false`, `Default` or an empty list). A failure in `SaveNow` goes to the log as an error. Failures in the other members go to the log at debug level only.
 
 ### If something fails to set up
 
-- **There is nothing to set up here.** The framework does not change any game method for save slots, so there is no feature group for this page and no events. The log file name above is `obenseuer.moddingframework.saveslots`, the name used only for the log. The `Events.Saved` event comes from the [Framework helpers](core-helpers.md) page.
+- There is nothing to set up here. The framework does not change any game method for save slots, so there is no feature group for this page and no events. The log file name above is `obenseuer.moddingframework.saveslots`, the name used only for the log. The `Events.Saved` event comes from the [Framework helpers](core-helpers.md) page.

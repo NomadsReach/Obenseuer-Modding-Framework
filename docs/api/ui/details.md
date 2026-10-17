@@ -18,4 +18,4 @@ The framework changes none of the game's methods for this part of the API, so th
 
 ## When you can call it
 
-- **Build and change your controls from your mod's normal code (OnLoad, event handlers, Update), not from a background thread you started.** The controls are Unity objects, and Unity only lets the main thread change them (see the [glossary](../../glossary.md#main-thread)).
+- Build and change your controls from your mod's normal code (OnLoad, event handlers, Update), not from a background thread you started. The controls are Unity objects, and Unity only lets the main thread change them (see the [glossary](../../glossary.md#main-thread)).

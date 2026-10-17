@@ -16,22 +16,20 @@ The framework changes some of the game's methods when it starts, so it can tell 
 
 ## When you can call it
 
-- **Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started.** The game and Unity only work safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)). This goes for every member on this page, and for the code that handles the events.
-- **It is safe to call any of it at any time, even on the main menu or while a save is loading.** If there is nothing to read yet, you get an empty list or `null`.
-- **Your event handlers run inside the game's own call, right after the change.** If one of your handlers throws an error, the framework logs it and still runs the other handlers.
-- **The framework does not hold back the events while a save is loading or being written.** A handler that should ignore those moments can check `SaveData.Busy`, which is `true` during a load or a save.
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)). This goes for every member on this page, and for the code that handles the events.
+- It is safe to call any of it at any time, even on the main menu or while a save is loading. If there is nothing to read yet, you get an empty list or `null`.
+- Your event handlers run inside the game's own call, right after the change. If one of your handlers throws an error, the framework logs it and still runs the other handlers.
+- The framework does not hold back the events while a save is loading or being written. A handler that should ignore those moments can check `SaveData.Busy`, which is `true` during a load or a save.
 
 ## What to check for and what comes back
 
-- **The reading calls never throw an error.** `GetBranch` is the one exception: it throws an `ArgumentNullException` for a `null` object.
-- **The writing calls throw an error only for a `null` object or a negative branch.** See the switches and loaders section above.
-- **If the game itself fails while the framework works, you get an empty answer instead of an error.** The answer is the plain default (an empty list, `null`, `-1` or `false`), and the failure goes to the log as an error.
+- The reading calls never throw an error. `GetBranch` is the one exception: it throws an `ArgumentNullException` for a `null` object.
+- The writing calls throw an error only for a `null` object or a negative branch. See [Switches and loaders](switches-and-loaders.md).
+- If the game itself fails while the framework works, you get an empty answer instead of an error. The answer is the plain default (an empty list, `null`, `-1` or `false`), and the failure goes to the log as an error.
 
 ## If something fails to set up
 
 The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
-- **If the set-off and stop events can't be set up, `Departed` and `Arrived` stop.** The feature group `obenseuer.moddingframework.trains` turns off, error lines and a warning go to the log, and `IsAvailable` is `false`. The reads and the writing calls keep working.
-  - Technical: the game method involved is `TrackTrain.Update`.
-- **If the crash event can't be set up, only `Crashed` stops.** The feature group `obenseuer.moddingframework.trains.crash` turns off.
-  - Technical: the game method involved is `TrackTrain.Crash(GameObject, bool)`.
+- If the set-off and stop events can't be set up, `Departed` and `Arrived` stop. The feature group `obenseuer.moddingframework.trains` turns off, error lines and a warning go to the log, and `IsAvailable` is `false`. The reads and the writing calls keep working. <span class="tech">(The game method involved is `TrackTrain.Update`.)</span>
+- If the crash event can't be set up, only `Crashed` stops. The feature group `obenseuer.moddingframework.trains.crash` turns off. <span class="tech">(The game method involved is `TrackTrain.Crash(GameObject, bool)`.)</span>

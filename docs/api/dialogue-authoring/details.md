@@ -16,11 +16,11 @@ This API builds on `Dialogue` (`src/Story/Dialogue.cs`), so it needs `Dialogue.I
 
 ## When you can call it
 
-- **Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started.** The game only works safely on its main thread (see the [glossary](../../glossary.md#main-thread)).
-- **Writes are refused while a save is loading or being written.** The calls return `null` or `false`, or a refusal reason, instead of changing anything.
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game only works safely on its main thread (see the [glossary](../../glossary.md#main-thread)).
+- Writes are refused while a save is loading or being written. The calls return `null` or `false`, or a refusal reason, instead of changing anything.
 
 ## If something fails to set up
 
 The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
-- **If the dialogue system could not be set up, `Dialogue.IsAvailable` is `false`.** `Narrate`, `AddResponse` and `AddBranch` then refuse their calls, and `DialogueAuthoring.Add` gives `NotReady`.
+- If the dialogue system could not be set up, `Dialogue.IsAvailable` is `false`. `Narrate`, `AddResponse` and `AddBranch` then refuse their calls, and `DialogueAuthoring.Add` gives `NotReady`.

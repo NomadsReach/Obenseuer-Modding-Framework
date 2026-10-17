@@ -16,5 +16,5 @@ This page makes no changes to the game's methods, so it has no feature group.
 
 ## When you can call it
 
-- **The trace is a switch, not code you call, so there is no thread rule for it.** The console command and the Mods menu run it for you.
-- **Lines from background threads are marked.** A call that comes from a thread other than the main thread starts with `[thread N]`. The main thread is your mod's normal code, such as `OnLoad` and event handlers (see the [glossary](../../glossary.md#main-thread)).
+- The trace is a switch, not code you call, so there is no thread rule for it. The console command and the Mods menu run it for you.
+- Lines from background threads are marked. A call that comes from a thread other than the main thread starts with `[thread N]`. The main thread is your mod's normal code, such as `OnLoad` and event handlers (see the [glossary](../../glossary.md#main-thread)).

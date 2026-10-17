@@ -70,64 +70,117 @@ if (farm != null) Log.Info(farm.PlantItemIds.Count + " kinds of plant, filled " 
 
 ## Reference
 
-This is the full list of what the API gives you. In the code block, the comments say what each member gives you or does. A line starting with `Technical:` holds extra detail for experienced modders. You can skip it on a first read.
-
-### Autofarms
+This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
 
 Each autofarm is an `AutofarmInfo`, a snapshot of its state at the moment you asked. The snapshot does not update by itself, so ask again for fresh values. `Replanted` tells you when an autofarm plants.
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>Autofarms</code> <span>lists autofarms and their planting</span></p>
+<div class="api-pair" markdown="1">
 
 ```csharp
 public static class Autofarms
 {
-    public static List<AutofarmInfo> All();                              // every autofarm in the scene you are in
-    public static AutofarmInfo Get(string id);                           // the autofarm with this id; null when none has it
-    public static bool SetGrowPercentage(string id, int min, int max);   // sets how grown the next plants start; false when no autofarm has the id
-
-    public static bool IsAvailable { get; }                              // false when the planting event could not be set up
-    public static event Action<ReplantedArgs> Replanted;                 // an autofarm has just planted something
-}
-
-public sealed class AutofarmInfo    // a snapshot of one autofarm
-{
-    public string Id { get; }                  // the autofarm's id: its save id, or its place in the scene when it has none
-    public Vector3 Position { get; }           // where the autofarm is, in world coordinates
-    public int SlotCount { get; }              // how many growing slots the machine fills
-    public int PlantedCount { get; }           // how many slots hold a plant right now
-    public List<int> PlantItemIds { get; }     // the item ids of the plants it chooses from
-    public bool PlantInOrder { get; }          // true: it fills slots in order; false: it picks plants at random
-    public int GrowPercentageMin { get; }      // the lowest starting growth for a new plant, in percent
-    public int GrowPercentageMax { get; }      // the highest starting growth for a new plant, in percent
-    public int OwnerId { get; }                // the id of the NPC who owns the autofarm; 0 when nobody does
-}
-
-public sealed class ReplantedArgs    // what you get when an autofarm plants
-{
-    public string AutofarmId { get; }          // the id of the autofarm that planted
-    public int PlantedCount { get; }           // how many slots this planting filled
-    public bool Initial { get; }               // true for the first planting of a brand new autofarm
+    public static List<AutofarmInfo> All();
+    public static AutofarmInfo Get(string id);
+    public static bool SetGrowPercentage(string id, int min, int max);
+    public static bool IsAvailable { get; }
+    public static event Action<ReplantedArgs> Replanted;
 }
 ```
 
-- **`All()` lists every autofarm in the scene you are in, and it is slow, so do not call it every frame.** It searches the whole scene each time, and so does `Get`. Call it when something happens, or on a timer, and keep the result.
-  - Technical: both scan the active scene with `FindObjectsByType`.
-- **`Get(id)` gives you one autofarm, or `null` when no autofarm has that id.**
-- **Plant item ids are the plain whole-number ids used everywhere in the framework.** The game also stores a namespace with each plant, and the framework does not give it to you.
-  - Technical: the numbers are `ItemReference.ID`. The reference's `itemnamespace` is not available to mods.
-- **`SetGrowPercentage(id, min, max)` changes how grown the next plants start.** `min` must be from `0` to `100`, and `max` must be from `min` to `100`. Anything else throws an `ArgumentException`. It returns `false` when no autofarm has that id. Plants already in the slots keep their growth, and only later plantings use the new range. You can call it at any time, including while a save is loading or being written.
-- **The growth range is not saved, so set it again after every scene load.** The game does not keep it in the save, so when a save loads, the range goes back to the scene's own values. Call `SetGrowPercentage` again from `Events.SceneLoaded`, as in the second task above.
-  - Technical: `Autofarm.growPercentageMin` and `growPercentageMax` are marked `[fsIgnore]`, which keeps them out of the game's save.
-- **`Replanted` fires when a planting fills at least one empty slot.** It fires for the first planting of a new autofarm (`Initial` is `true`) and for each planting at the autofarm's set times (`Initial` is `false`). A planting that finds no empty slot, or has nothing to plant, does not fire it. An autofarm from a loaded save already did its first planting, so it does not plant when the scene starts.
-  - Technical: `Initial` is true while the game's `initDone` field is still false. A loaded save has `initDone` set.
-- **`Replanted` also fires while a save is loading.** If your handler should ignore those, check `SaveData.Busy`, which is `true` while a save is loading or being written.
+| Method | Returns | What it does |
+|---|---|---|
+| `All()` | `List<AutofarmInfo>` | Every autofarm in the scene you are in. |
+| `Get(string id)` | `AutofarmInfo` | The autofarm with this id. `null` when none has it. |
+| `SetGrowPercentage(string id, int min, int max)` | `bool` | Sets how grown the next plants start. `false` when no autofarm has the id. |
 
-### What you can't do (yet)
+| Property | Type | What it means |
+|---|---|---|
+| `IsAvailable` | `bool` | `false` when the planting event could not be set up. |
 
-- **You can't read or change the planting times.** The days and hours an autofarm plants at are not available to mods yet.
-  - Technical: `Autofarm.replantTimes`, an array of the game's `WeekdayAndHour`.
-- **You can't change which plants an autofarm uses, who owns it, whether it plants in order, or its slots.** Only the growth range can be changed. It is a plain value the game reads on every planting.
-  - Technical: `plantPrefabs`, `ownerId`, `plantInOrder` and the growing slots are not written by the framework.
-- **You can't make an autofarm plant or harvest by hand.** The game's planting method is private. To react to a harvest, use `Plants.Harvested`.
-  - Technical: `Autofarm.Plant` is private.
+| Event | Gives you | When it fires |
+|---|---|---|
+| `Replanted` | `ReplantedArgs` | An autofarm has just planted something. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>AutofarmInfo</code> <span>a snapshot of one autofarm</span></p>
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class AutofarmInfo
+{
+    public string Id { get; }
+    public Vector3 Position { get; }
+    public int SlotCount { get; }
+    public int PlantedCount { get; }
+    public List<int> PlantItemIds { get; }
+    public bool PlantInOrder { get; }
+    public int GrowPercentageMin { get; }
+    public int GrowPercentageMax { get; }
+    public int OwnerId { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Id` | `string` | The autofarm's id: its save id, or its place in the scene when it has none. |
+| `Position` | `Vector3` | Where the autofarm is, in world coordinates. |
+| `SlotCount` | `int` | How many growing slots the machine fills. |
+| `PlantedCount` | `int` | How many slots hold a plant right now. |
+| `PlantItemIds` | `List<int>` | The item ids of the plants it chooses from. |
+| `PlantInOrder` | `bool` | `true`: it fills slots in order. `false`: it picks plants at random. |
+| `GrowPercentageMin` | `int` | The lowest starting growth for a new plant, in percent. |
+| `GrowPercentageMax` | `int` | The highest starting growth for a new plant, in percent. |
+| `OwnerId` | `int` | The id of the NPC who owns the autofarm. `0` when nobody does. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>ReplantedArgs</code> <span>what you get when an autofarm plants</span></p>
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class ReplantedArgs
+{
+    public string AutofarmId { get; }
+    public int PlantedCount { get; }
+    public bool Initial { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `AutofarmId` | `string` | The id of the autofarm that planted. |
+| `PlantedCount` | `int` | How many slots this planting filled. |
+| `Initial` | `bool` | `true` for the first planting of a brand new autofarm. |
+
+</div>
+</div>
+
+### Things to know
+
+- `All()` lists every autofarm in the scene you are in. `Get(id)` gives you one autofarm, or `null` when no autofarm has that id. <span class="tech">(both scan the active scene with `FindObjectsByType`)</span>
+- Plant item ids are the plain whole-number ids used everywhere in the framework. The game also stores a namespace with each plant, and the framework does not give it to you. <span class="tech">(the numbers are `ItemReference.ID`; the reference's `itemnamespace` is not available to mods)</span>
+- `SetGrowPercentage(id, min, max)` changes how grown the next plants start. Plants already in the slots keep their growth, and only later plantings use the new range.
+- You can call `SetGrowPercentage` at any time, including while a save is loading or being written.
+- `Replanted` fires when a planting fills at least one empty slot. It fires for the first planting of a new autofarm (`Initial` is `true`) and for each planting at the autofarm's set times (`Initial` is `false`).
+- A planting that finds no empty slot, or has nothing to plant, does not fire `Replanted`.
+- An autofarm from a loaded save already did its first planting, so it does not plant when the scene starts. <span class="tech">(`Initial` is true while the game's `initDone` field is still false; a loaded save has `initDone` set)</span>
+
+### Limits
+
+- `All()` is slow, because it searches the whole scene each time, and so does `Get`. Do not call `All()` every frame. Call it when something happens, or on a timer, and keep the result.
+- `SetGrowPercentage` requires `min` to be from `0` to `100`, and `max` to be from `min` to `100`. Anything else throws an `ArgumentException`.
+- The growth range is not saved, so set it again after every scene load. The game does not keep it in the save, so when a save loads, the range goes back to the scene's own values. Call `SetGrowPercentage` again from `Events.SceneLoaded`, as in the second task above. <span class="tech">(`Autofarm.growPercentageMin` and `growPercentageMax` are marked `[fsIgnore]`, which keeps them out of the game's save)</span>
+- `Replanted` also fires while a save is loading. If your handler should ignore those, check `SaveData.Busy`, which is `true` while a save is loading or being written.
+- You can't read or change the planting times. The days and hours an autofarm plants at are not available to mods yet. <span class="tech">(`Autofarm.replantTimes`, an array of the game's `WeekdayAndHour`)</span>
+- You can't change which plants an autofarm uses, who owns it, whether it plants in order, or its slots. Only the growth range can be changed. It is a plain value the game reads on every planting. <span class="tech">(`plantPrefabs`, `ownerId`, `plantInOrder` and the growing slots are not written by the framework)</span>
+- You can't make an autofarm plant or harvest by hand. The game's planting method is private. To react to a harvest, use `Plants.Harvested`. <span class="tech">(`Autofarm.Plant` is private)</span>
 
 ## Details
 
@@ -136,19 +189,17 @@ Namespace: `ObenseuerCore`. Source: `src/Api/Autofarms.cs` and `src/Api/Autofarm
 
 Everything not listed in this reference is internal and may change without notice.
 
-The framework changes one of the game's methods when it starts, so it can tell your mod when an autofarm plants. This page calls that change a feature group. Its feature group is `obenseuer.moddingframework.autofarms`, the name you will see in the log.
+- The framework changes one of the game's methods when it starts, so it can tell your mod when an autofarm plants.
+- Its feature group, the name you will see in the log, is `obenseuer.moddingframework.autofarms`.
 
 ### When you can call it
 
-- **Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started.** The game only works safely on its main thread (see the [glossary](../glossary.md#main-thread)).
-- **It is safe to call any of it at any time.** With no save loaded, or on the main menu, `All()` gives an empty list, `Get` gives `null` and `SetGrowPercentage` gives `false`. The only call that throws is `SetGrowPercentage`, for a growth range that is not allowed.
-- **`Autofarms.IsAvailable` tells you whether `Replanted` works.** It is `false` when the framework could not set up the planting event, or when the feature group was turned off. The reads and `SetGrowPercentage` keep working when it is `false`.
-- **Your `Replanted` handler runs inside the game's own planting call.** If your handler throws an error, the framework logs it and still runs the other handlers.
-  - Technical: the event is raised from a Harmony postfix (a piece of code that runs right after the game method) on `Autofarm.Plant`, on the main thread.
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game only works safely on its main thread (see the [glossary](../glossary.md#main-thread)).
+- It is safe to call any of it at any time. With no save loaded, or on the main menu, `All()` gives an empty list, `Get` gives `null` and `SetGrowPercentage` gives `false`. The only call that throws is `SetGrowPercentage`, for a growth range that is not allowed.
+- `Autofarms.IsAvailable` tells you whether `Replanted` works. It is `false` when the framework could not set up the planting event, or when the feature group was turned off. The reads and `SetGrowPercentage` keep working when it is `false`.
+- Your `Replanted` handler runs inside the game's own planting call. If your handler throws an error, the framework logs it and still runs the other handlers. <span class="tech">(the event is raised from a Harmony postfix (a piece of code that runs right after the game method) on `Autofarm.Plant`, on the main thread)</span>
 
 ### If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
-
-- **If the change to the game's planting method fails, the feature group turns off and `Replanted` stops.** One warning goes to the log. `All()`, `Get` and `SetGrowPercentage` keep working.
-  - Technical: the method is `Autofarm.Plant`. The log line reads "autofarm hooks incomplete, replanted events are disabled".
+- The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+- If the change to the game's planting method fails, the feature group turns off and `Replanted` stops. One warning goes to the log. `All()`, `Get` and `SetGrowPercentage` keep working. <span class="tech">(the method is `Autofarm.Plant`. The log line reads "autofarm hooks incomplete, replanted events are disabled")</span>

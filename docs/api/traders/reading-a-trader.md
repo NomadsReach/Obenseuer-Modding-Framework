@@ -7,35 +7,76 @@ nav_order: 2
 
 # Reading a trader
 
-This is the full list of what the API gives you. In every code block, the comments say what each member gives you or does. A line starting with `Technical:` holds extra detail for experienced modders. You can skip it on a first read.
+This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
 
 `Traders.Get(shopId)` gives a `TraderInfo`, a snapshot of one trader at the moment you asked. The snapshot does not update by itself, so ask again for fresh values.
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>Traders</code> <span>reads and checks traders</span></p>
+<div class="api-pair" markdown="1">
 
 ```csharp
 public static class Traders
 {
-    public static bool IsAvailable { get; }               // true when reading a trader and changing its money work
-    public static bool PriceFactorsAvailable { get; }     // true when price factors work
-    public static TraderInfo Get(string shopId);          // the trader with this shop id; null when not found
-}
-
-public sealed class TraderInfo    // a snapshot of one trader
-{
-    public string Id { get; }                         // the trader's shop id
-    public bool Open { get; }                         // true when the trader is open; you can only read this
-    public float Money { get; }                       // how much money the trader has to pay the player with
-    public MoneyCurrency Currency { get; }            // the currency that money is in (OC or RM)
-    public float BuyFactor { get; }                   // all mods' buy price factors multiplied together; 1 when none
-    public float SellFactor { get; }                  // all mods' sell price factors multiplied together; 1 when none
-    public bool BuysStolen { get; }                   // true when the trader buys stolen goods
-    public string[] AllowedCategories { get; }        // the kinds of item the trader buys; empty means no limit
-    public string[] ForbiddenCategories { get; }      // the kinds of item the trader refuses to buy
+    public static bool IsAvailable { get; }
+    public static bool PriceFactorsAvailable { get; }
+    public static TraderInfo Get(string shopId);
 }
 ```
 
-- **A trader is found by its shop id.** It is the same id that `Shops.All()` and `Shops.Stock` use.
-  - Technical: it is the `GUID` of the `Trade`. `Get` gives `null` for an empty or unknown id, and when `IsAvailable` is `false`.
-- **`Money` is in the trader's own currency, which is OC or RM.** OC is Open Sewer Coins and RM is Real Money (see the [glossary](../../glossary.md#oc)).
-- **You can only read `Open`.** The game opens and closes a trader by the clock, and it would undo anything your mod set, so there is no way to set it. `Buy` and `Sell` refuse with `Closed` when the trader is closed.
-  - Technical: the game sets `Trade.open` from the trader's opening hours every in-game minute when `autoOpenClose` is on. The game's own buy and sell checks do not read it. See [Shop hours](../shophours.md) to read the opening times.
-- **`BuysStolen`, `AllowedCategories` and `ForbiddenCategories` say what the trader will take from the player.** `Sell` follows them.
+| Method | Returns | What it does |
+|---|---|---|
+| `Get(string shopId)` | `TraderInfo` | The trader with this shop id. `null` when not found. |
+
+| Property | Type | What it means |
+|---|---|---|
+| `IsAvailable` | `bool` | `true` when reading a trader and changing its money work. |
+| `PriceFactorsAvailable` | `bool` | `true` when price factors work. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>TraderInfo</code> <span>a snapshot of one trader</span></p>
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class TraderInfo
+{
+    public string Id { get; }
+    public bool Open { get; }
+    public float Money { get; }
+    public MoneyCurrency Currency { get; }
+    public float BuyFactor { get; }
+    public float SellFactor { get; }
+    public bool BuysStolen { get; }
+    public string[] AllowedCategories { get; }
+    public string[] ForbiddenCategories { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Id` | `string` | The trader's shop id. |
+| `Open` | `bool` | `true` when the trader is open. You can only read this. |
+| `Money` | `float` | How much money the trader has to pay the player with. |
+| `Currency` | `MoneyCurrency` | The currency that money is in, OC or RM. |
+| `BuyFactor` | `float` | All mods' buy price factors multiplied together. `1` when none. |
+| `SellFactor` | `float` | All mods' sell price factors multiplied together. `1` when none. |
+| `BuysStolen` | `bool` | `true` when the trader buys stolen goods. |
+| `AllowedCategories` | `string[]` | The kinds of item the trader buys. Empty means no limit. |
+| `ForbiddenCategories` | `string[]` | The kinds of item the trader refuses to buy. |
+
+</div>
+</div>
+
+## Things to know
+
+- A trader is found by its shop id, the same id that `Shops.All()` and `Shops.Stock` use. <span class="tech">(it is the `GUID` of the `Trade`; `Get` gives `null` for an empty or unknown id, and when `IsAvailable` is `false`)</span>
+- `Money` is in the trader's own currency, which is OC or RM. OC is Open Sewer Coins and RM is Real Money (see the [glossary](../../glossary.md#oc)).
+- You can only read `Open`. The game opens and closes a trader by the clock, and it would undo anything your mod set, so there is no way to set it. <span class="tech">(the game sets `Trade.open` from the trader's opening hours every in-game minute when `autoOpenClose` is on; the game's own buy and sell checks do not read it. See [Shop hours](../shophours.md) to read the opening times)</span>
+- `BuysStolen`, `AllowedCategories` and `ForbiddenCategories` say what the trader will take from the player. `Sell` follows them.
+
+## Limits
+
+- `Buy` and `Sell` refuse with `Closed` when the trader is closed.

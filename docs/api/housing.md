@@ -12,8 +12,8 @@ nav_order: 4
 
 The tenement is the building where the player lives. It has apartments, and tenants who move in, pay rent and can be evicted. The player can also place and take furniture in a room using build mode. This API has two halves.
 
-- **`Housing`** is about the apartments and the people in them: who lives where, what rent they pay, when someone moves in or out, and how to start or stop an eviction.
-- **`Building`** is about the furniture the player places: list it, place a piece, move one, take one out, unlock furniture blueprints, and find out which building area the player is standing in.
+- `Housing` is about the apartments and the people in them: who lives where, what rent they pay, when someone moves in or out, and how to start or stop an eviction.
+- `Building` is about the furniture the player places: list it, place a piece, move one, take one out, unlock furniture blueprints, and find out which building area the player is standing in.
 
 Cleaning an apartment is on the [Cleaning](cleaning.md) page. Renovations (contractor upgrades) are on the [Renovations](renovations.md) page. Tenant behaviour such as starting a tenement event is on the [Tenants](tenants.md) page.
 
@@ -28,6 +28,8 @@ Cleaning an apartment is on the [Cleaning](cleaning.md) page. Renovations (contr
 ## Quick example
 
 This mod writes a log line when a tenant moves in or out and when rent comes in. Once a save is loaded, it also logs how many apartments are vacant.
+
+<div class="api-example" markdown="1">
 
 ```csharp
 using ObenseuerCore;
@@ -51,5 +53,14 @@ public sealed class TenantWatch : FrameworkMod
     }
 }
 ```
+
+| Step | What it does |
+|---|---|
+| `Housing.TenantMovedIn` | Logs each move-in. |
+| `Housing.TenantMovedOut` | Logs each move-out. |
+| `Housing.RentPaid` | Logs each rent payment. |
+| `Events.WhenReady` | Waits until a save is loaded, then counts the vacant apartments. |
+
+</div>
 
 `TenantMovedIn`, `TenantMovedOut` and `RentPaid` are events: the framework calls your code each time they happen. `Events.WhenReady` waits until a save is loaded before it runs your code. See [Using events](../guides/getting-started/using-events.md). OC is Open Sewer Coins and RM is Real Money (see the glossary entries [OC](../glossary.md#oc) and [RM](../glossary.md#rm)).

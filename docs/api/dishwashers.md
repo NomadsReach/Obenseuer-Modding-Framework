@@ -77,58 +77,81 @@ if (!Dishwashers.IsAvailable) Log.Warn("Dishwasher events are off");
 
 ## Reference
 
-This is the full list of what the API gives you, one section for each part. In every code block, the comments say what each member gives you or does. A line starting with `Technical:` holds extra detail for experienced modders. You can skip it on a first read.
-
-### Dishwashers
-
 `Dishwashers` finds the dishwashers in the scene you are in. Each one is a `DishwasherInfo`, a snapshot of it at the moment you asked. The snapshot does not update by itself, so ask again for fresh values. Items are described by `ItemStackInfo`, which is on the [Inventory](inventory.md) page.
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>Dishwashers</code> <span>find dishwashers and watch their washes</span></p>
+<div class="api-pair" markdown="1">
 
 ```csharp
 public static class Dishwashers
 {
-    public static List<DishwasherInfo> All();               // every dishwasher in the scene you are in
-    public static DishwasherInfo Get(string id);            // the dishwasher with this id; null when there is none
-    public static List<ItemStackInfo> Contents(string id);  // the items inside the dishwasher; an empty list when there is none
-    public static bool Ready(string id);                    // true when the dishwasher is switched on, has power and is not washing
-    public static float Progress(string id);                // how far through the wash it is, from 0 to 1; 0 when it is not washing
-
-    public static bool IsAvailable { get; }                 // false when the wash event could not be set up
-    public static event Action<DishwasherInfo> Finished;    // a dishwasher has just finished a wash
-}
-
-public sealed class DishwasherInfo    // a snapshot of one dishwasher
-{
-    public string Id { get; }              // this dishwasher's id; use it with Get, Contents, Ready and Progress
-    public Vector3 Position { get; }       // where the dishwasher is, in world coordinates
-    public bool Busy { get; }              // true when a wash is running
+    public static List<DishwasherInfo> All();
+    public static DishwasherInfo Get(string id);
+    public static List<ItemStackInfo> Contents(string id);
+    public static bool Ready(string id);
+    public static float Progress(string id);
+    public static bool IsAvailable { get; }
+    public static event Action<DishwasherInfo> Finished;
 }
 ```
 
-- **`All()` lists the dishwashers in the scene you are in, but leaves out any that have no id.** A dishwasher with no id can't be found again later, so it is not listed.
-  - Technical: the id is the station's `CraftingBase.GUID`. Dishwashers with an empty `GUID` are skipped.
-- **`Get(id)` gives you one dishwasher, or `null` when no dishwasher has that id.**
-- **`Contents(id)` lists what is in the dishwasher: the dishes and the washing powder.** It gives an empty list when there is no such dishwasher. It shows the same list that `Containers.GetItems` shows for the dishwasher's storage.
-  - Technical: it reads `CraftingBase.InputOutputStorage` and reuses `Containers.GetItems`.
-- **`Ready(id)` is `true` when the dishwasher has power, is switched on and is not washing at all.** It is the same as "has power and is not `Busy`". A dishwasher that can run several washes at once counts as not ready while any wash runs, even though the game would accept another. `Ready` does not check that the contents can be washed (washing powder, the recipe, the skill), so look at `Contents` for that.
-  - Technical: it is `CraftingBase.PoweredAndActive` and no `CraftingIProgress`. A machine with `manufacturing.AllowSimultaneous` above 1 is not ready while any wash runs.
-- **`Progress(id)` is how far through the wash the dishwasher is, from 0 (just started) to 1 (done).** It is `0` when nothing is washing, or when there is no such dishwasher. A dishwasher that runs several washes at once only reports the first one.
-  - Technical: it reads the first entry of the private craft list `craftsInProgresses` of `manufacturing`. Without that list it returns `0`.
-- **`Finished` fires after a wash ends, for dishwashers only.** It gives you the dishwasher as it is after the wash, so `Busy` is `false` unless another wash is still running. The wash has finished and the clean dishes are in the dishwasher by the time your code runs.
-  - Technical: it fires from the end of `manufacturing.CraftDelayed`, after the game has made the outputs.
-- **`IsAvailable` is `false` when the wash event could not be set up.** The reads keep working when it is `false`. See [If something fails to set up](#if-something-fails-to-set-up).
+| Method | Returns | What it does |
+|---|---|---|
+| `All()` | `List<DishwasherInfo>` | Every dishwasher in the scene you are in. |
+| `Get(string id)` | `DishwasherInfo` | The dishwasher with this id. `null` when there is none. |
+| `Contents(string id)` | `List<ItemStackInfo>` | The items inside the dishwasher. An empty list when there is none. |
+| `Ready(string id)` | `bool` | `true` when the dishwasher is switched on, has power and is not washing. |
+| `Progress(string id)` | `float` | How far through the wash it is, from 0 to 1. `0` when it is not washing. |
 
-### How this relates to the crafting event
+| Property | Type | What it means |
+|---|---|---|
+| `IsAvailable` | `bool` | `false` when the wash event could not be set up. |
 
-- **One wash raises two events: `Crafting.Crafted` first, then `Dishwashers.Finished`.** A dishwasher is a crafting station, so `Crafting.Crafted` (on the [Recipes and crafting](recipes.md) page) also fires when it makes its clean dishes. Use `Crafting.Crafted` when you want the washed items and the recipe. Use `Dishwashers.Finished` when you only want dishwashers and their id. `Dishwashers.Finished` never fires for any other crafting station.
-  - Technical: `Crafting.Crafted` comes from `CreateItems`, with the recipe and the results. `Dishwashers.Finished` comes from the end of `CraftDelayed`, with the dishwasher's id and state.
+| Event | Gives you | When it fires |
+|---|---|---|
+| `Finished` | `DishwasherInfo` | A dishwasher has just finished a wash. |
 
-### What you can't do (yet)
+</div>
+</div>
 
-- **You can't start a wash from your mod.** The game starts a wash from its crafting panel and reads the player's choice there, so a mod calling it directly would not be safe. This matches the choice made for crafting stations on the [Recipes and crafting](recipes.md) page.
-  - Technical: `manufacturing.Craft()` is driven by the manufacturing panel and reads its selection.
-- **You can't read the dishwasher's washing powder, categories or blacklist.** They are part of the game's own data and the framework does not give them to you.
-- **You can't read the recipe of a dishwasher item.** The game builds it from the item instead of storing a recipe, and the framework's speed tweak handles the wash speed.
-  - Technical: the recipe comes from `Dishwasher.GenerateRecipe`. The speed tweak is `TweaksDishwasher`.
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>DishwasherInfo</code> <span>a snapshot of one dishwasher</span></p>
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class DishwasherInfo
+{
+    public string Id { get; }
+    public Vector3 Position { get; }
+    public bool Busy { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Id` | `string` | This dishwasher's id. Use it with `Get`, `Contents`, `Ready` and `Progress`. |
+| `Position` | `Vector3` | Where the dishwasher is, in world coordinates. |
+| `Busy` | `bool` | `true` when a wash is running. |
+
+</div>
+</div>
+
+### Things to know
+
+- `Contents(id)` lists what is in the dishwasher: the dishes and the washing powder. It gives an empty list when there is no such dishwasher. It shows the same list that `Containers.GetItems` shows for the dishwasher's storage. <span class="tech">(It reads `CraftingBase.InputOutputStorage` and reuses `Containers.GetItems`.)</span>
+- `Ready(id)` is `true` when the dishwasher has power, is switched on and is not washing at all. It is the same as "has power and is not `Busy`". A dishwasher that can run several washes at once counts as not ready while any wash runs, even though the game would accept another. `Ready` does not check that the contents can be washed (washing powder, the recipe, the skill), so look at `Contents` for that. <span class="tech">(It is `CraftingBase.PoweredAndActive` and no `CraftingIProgress`. A machine with `manufacturing.AllowSimultaneous` above 1 is not ready while any wash runs.)</span>
+- `Progress(id)` is how far through the wash the dishwasher is, from 0 (just started) to 1 (done). It is `0` when nothing is washing, or when there is no such dishwasher. A dishwasher that runs several washes at once only reports the first one. <span class="tech">(It reads the first entry of the private craft list `craftsInProgresses` of `manufacturing`. Without that list it returns `0`.)</span>
+- `Finished` fires after a wash ends, for dishwashers only. It gives you the dishwasher as it is after the wash, so `Busy` is `false` unless another wash is still running. The wash has finished and the clean dishes are in the dishwasher by the time your code runs. <span class="tech">(It fires from the end of `manufacturing.CraftDelayed`, after the game has made the outputs.)</span>
+- One wash raises two events: `Crafting.Crafted` first, then `Dishwashers.Finished`. A dishwasher is a crafting station, so `Crafting.Crafted` (on the [Recipes and crafting](recipes.md) page) also fires when it makes its clean dishes. Use `Crafting.Crafted` when you want the washed items and the recipe. Use `Dishwashers.Finished` when you only want dishwashers and their id. `Dishwashers.Finished` never fires for any other crafting station. <span class="tech">(`Crafting.Crafted` comes from `CreateItems`, with the recipe and the results. `Dishwashers.Finished` comes from the end of `CraftDelayed`, with the dishwasher's id and state.)</span>
+- `IsAvailable` is `false` when the wash event could not be set up. The reads keep working when it is `false`. See [If something fails to set up](#if-something-fails-to-set-up).
+
+### Limits
+
+- `All()` leaves out any dishwasher that has no id. A dishwasher with no id can't be found again later, so it is not listed. <span class="tech">(The id is the station's `CraftingBase.GUID`. Dishwashers with an empty `GUID` are skipped.)</span>
+- You can't start a wash from your mod. The game starts a wash from its crafting panel and reads the player's choice there, so a mod calling it directly would not be safe. This matches the choice made for crafting stations on the [Recipes and crafting](recipes.md) page. <span class="tech">(`manufacturing.Craft()` is driven by the manufacturing panel and reads its selection.)</span>
+- You can't read the dishwasher's washing powder, categories or blacklist. They are part of the game's own data and the framework does not give them to you.
+- You can't read the recipe of a dishwasher item. The game builds it from the item instead of storing a recipe, and the framework's speed tweak handles the wash speed. <span class="tech">(The recipe comes from `Dishwasher.GenerateRecipe`. The speed tweak is `TweaksDishwasher`.)</span>
 
 ## Details
 
@@ -139,16 +162,14 @@ Everything not listed in this reference is internal and may change without notic
 
 ### When you can call it
 
-- **Call everything from your mod's normal code, not from a background thread you started.** The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
-- **It is safe to call any of it at any time, even on the main menu or while a save is loading.** If there is nothing to read yet, you get an empty list, `false` or `0`.
-- **Nothing here throws an error, and nothing here changes the game.** No argument can make a call throw.
-- **Your `Finished` handler runs inside the game's own call, one at a time.** If one of your handlers throws an error, the framework logs it and still runs the other handlers.
-  - Technical: `Finished` is raised synchronously after the game has finished the cycle and created its outputs.
-- **`Finished` also fires while a save is loading.** If you want to ignore those, check `SaveData.Busy`, which is `true` while a save is loading or being written.
+- Call everything from your mod's normal code, not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
+- It is safe to call any of it at any time, even on the main menu or while a save is loading. If there is nothing to read yet, you get an empty list, `false` or `0`.
+- Nothing here throws an error, and nothing here changes the game. No argument can make a call throw.
+- Your `Finished` handler runs inside the game's own call, one at a time. If one of your handlers throws an error, the framework logs it and still runs the other handlers. <span class="tech">(`Finished` is raised synchronously after the game has finished the cycle and created its outputs.)</span>
+- `Finished` also fires while a save is loading. If you want to ignore those, check `SaveData.Busy`, which is `true` while a save is loading or being written.
 
 ### If something fails to set up
 
 The framework changes some of the game's methods when it starts, so it can tell your mod when a wash finishes. If a game update breaks one of them, only that feature turns off, and the framework writes error lines and a warning to the log. The rest of the API keeps working.
 
-- **The wash event depends on the feature group `obenseuer.moddingframework.dishwashers`.** This is the name you will see in the log. If the framework can't change the wash method, or can't find the dishwasher's craft list, it turns the group off and writes error lines and a warning to `BepInEx\logs\obenseuer.moddingframework.dishwashers.log`. Then `Finished` stops and `IsAvailable` is `false`. The reads keep working, except that `Progress` gives `0` when the craft list is missing.
-  - Technical: the framework installs one change, on `manufacturing.CraftDelayed`, and reads the private craft list with `AccessTools.Field`.
+- The wash event depends on the feature group `obenseuer.moddingframework.dishwashers`. This is the name you will see in the log. If the framework can't change the wash method, or can't find the dishwasher's craft list, it turns the group off and writes error lines and a warning to `BepInEx\logs\obenseuer.moddingframework.dishwashers.log`. Then `Finished` stops and `IsAvailable` is `false`. The reads keep working, except that `Progress` gives `0` when the craft list is missing. <span class="tech">(The framework installs one change, on `manufacturing.CraftDelayed`, and reads the private craft list with `AccessTools.Field`.)</span>

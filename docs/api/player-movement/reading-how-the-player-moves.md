@@ -7,53 +7,91 @@ nav_order: 2
 
 # Reading how the player moves
 
-This is the full list of what the API gives you, one section for each part. In every code block, the comments say what each member gives you or does. A line starting with `Technical:` holds extra detail for experienced modders. You can skip it on a first read.
+This is the full list of what the API gives you, one section for each part. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
 
 These properties give you what the player is doing right now. `State()` gives several of them together in one `PlayerMovementInfo`, a snapshot of the speeds and flags at the moment you asked. The snapshot does not update by itself, so ask again for fresh values.
 
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>PlayerMovementInfo</code> <span>a snapshot of the player's movement</span></p>
+<div class="api-pair" markdown="1">
+
 ```csharp
-public sealed class PlayerMovementInfo    // a snapshot of the player's movement
+public sealed class PlayerMovementInfo
 {
-    public float WalkSpeed { get; }       // how fast the player walks
-    public float RunSpeed { get; }        // how fast the player runs
-    public float SwimmingSpeed { get; }   // how fast the player swims
-    public float CrouchSpeed { get; }     // how fast the player moves while crouching
-    public float BackwardSpeed { get; }   // the game's backward speed (has no effect on movement)
-    public float StrafeSpeed { get; }     // the game's sideways speed (has no effect on movement)
-    public bool IsCrouching { get; }      // true while the player is crouched
-    public bool IsWalking { get; }        // true when the walk toggle is on (walk mode instead of run mode)
-    public bool IsGrounded { get; }       // true while the player stands on the ground
-    public bool ControlsDisabled { get; } // true while the player's controls are held, including a Lock from this API
-}
-
-public static class PlayerMovement
-{
-    public static bool IsAvailable { get; }    // false when the speed hooks did not set up
-
-    public static bool IsGrounded { get; }     // true while the player stands on the ground
-    public static bool IsSprinting { get; }    // true when the player is set to run (see below)
-    public static bool IsCrouching { get; }    // true while the player is crouched
-    public static Vector3 Velocity { get; }    // how fast and in which direction the player is moving, in world space
-    public static Vector3 Position { get; }    // where the player's body is, in world coordinates
-
-    public static PlayerMovementInfo State();  // several of the above in one snapshot; null when no player is loaded
+    public float WalkSpeed { get; }
+    public float RunSpeed { get; }
+    public float SwimmingSpeed { get; }
+    public float CrouchSpeed { get; }
+    public float BackwardSpeed { get; }
+    public float StrafeSpeed { get; }
+    public bool IsCrouching { get; }
+    public bool IsWalking { get; }
+    public bool IsGrounded { get; }
+    public bool ControlsDisabled { get; }
 }
 ```
 
-- **On the main menu, or with no player, the reads give plain defaults.** `IsGrounded`, `IsCrouching` and `IsSprinting` are `false`, and `Velocity` and `Position` are `Vector3.zero`.
-- **`IsSprinting` is `true` when the player is set to run, not when they are actually moving.** A player who is standing still with run mode selected reads `true`. It is `false` while crouching. Swimming is not checked.
-  - Technical: it is `true` when run speed is the selected speed: not crouching, and either the Walk toggle is in run mode or the input is a controller. The game reads the same condition in `GetTargetSpeed`. No movement check is made.
-- **`IsGrounded` and `IsCrouching` come straight from the game's player controller.**
-  - Technical: `OpenSewerCharacterController.movement.isGrounded` (through `BaseCharacterController.isGrounded`) and `OpenSewerCharacterController.isCrouching`.
-- **`Velocity` is the player's current velocity, and `Position` is the position of the player's body.**
-  - Technical: `movement.velocity` and the controller's transform position.
-- **`State()` returns `null` when no player is loaded.**
-- **`WalkSpeed`, `CrouchSpeed`, `BackwardSpeed` and `StrafeSpeed` are the controller's current values.**
-- **`RunSpeed` and `SwimmingSpeed` include the orange mushroom's speed boost.** When the orange mushroom effect is not active, they are the unmodified base speeds.
-  - Technical: they are the controller's getter values, which include the game's orange mushroom run modifier.
-- **`IsWalking` is `true` in walk mode and `false` in run mode.**
-  - Technical: the controller's public `walk` property is never assigned in the game code, so the private `walking` field is read through the same reflection field as `IsSprinting`.
-- **`ControlsDisabled` is `true` while anything holds the player's controls.** That includes a `Lock` from this API.
-  - Technical: it is `OpenSewerCharacterController.ControlsDisabled()`.
-- **Sprinting is not in `State()`.** The controller does not expose it, so use the `IsSprinting` property.
-- **`IsAvailable` tells you whether the speed changes work.** It is `false` when the framework could not set up its speed hooks. The multipliers then stop applying. Reads, `Lock` and `Unlock` keep working.
+| Property | Type | What it means |
+|---|---|---|
+| `WalkSpeed` | `float` | How fast the player walks. |
+| `RunSpeed` | `float` | How fast the player runs. |
+| `SwimmingSpeed` | `float` | How fast the player swims. |
+| `CrouchSpeed` | `float` | How fast the player moves while crouching. |
+| `BackwardSpeed` | `float` | The game's backward speed. It has no effect on movement. |
+| `StrafeSpeed` | `float` | The game's sideways speed. It has no effect on movement. |
+| `IsCrouching` | `bool` | `true` while the player is crouched. |
+| `IsWalking` | `bool` | `true` when the walk toggle is on (walk mode instead of run mode). |
+| `IsGrounded` | `bool` | `true` while the player stands on the ground. |
+| `ControlsDisabled` | `bool` | `true` while the player's controls are held, including a `Lock` from this API. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>PlayerMovement</code> <span>what the player is doing right now</span></p>
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class PlayerMovement
+{
+    public static bool IsAvailable { get; }
+    public static bool IsGrounded { get; }
+    public static bool IsSprinting { get; }
+    public static bool IsCrouching { get; }
+    public static Vector3 Velocity { get; }
+    public static Vector3 Position { get; }
+    public static PlayerMovementInfo State();
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `State()` | `PlayerMovementInfo` | Several of the properties below in one snapshot. `null` when no player is loaded. |
+
+| Property | Type | What it means |
+|---|---|---|
+| `IsAvailable` | `bool` | `false` when the speed hooks did not set up. |
+| `IsGrounded` | `bool` | `true` while the player stands on the ground. |
+| `IsSprinting` | `bool` | `true` when the player is set to run (see below). |
+| `IsCrouching` | `bool` | `true` while the player is crouched. |
+| `Velocity` | `Vector3` | How fast and in which direction the player is moving, in world space. |
+| `Position` | `Vector3` | Where the player's body is, in world coordinates. |
+
+</div>
+</div>
+
+## Things to know
+
+- On the main menu, or with no player, the reads give plain defaults. `IsGrounded`, `IsCrouching` and `IsSprinting` are `false`, and `Velocity` and `Position` are `Vector3.zero`.
+- `IsSprinting` is `true` when the player is set to run, not when they are actually moving. A player who is standing still with run mode selected reads `true`. It is `false` while crouching. Swimming is not checked. <span class="tech">(it is `true` when run speed is the selected speed: not crouching, and either the Walk toggle is in run mode or the input is a controller. The game reads the same condition in `GetTargetSpeed`. No movement check is made.)</span>
+- `IsGrounded` and `IsCrouching` come straight from the game's player controller. <span class="tech">(`OpenSewerCharacterController.movement.isGrounded` (through `BaseCharacterController.isGrounded`) and `OpenSewerCharacterController.isCrouching`.)</span>
+- `Velocity` is the player's current velocity, and `Position` is the position of the player's body. <span class="tech">(`movement.velocity` and the controller's transform position.)</span>
+- `WalkSpeed`, `CrouchSpeed`, `BackwardSpeed` and `StrafeSpeed` are the controller's current values.
+- `RunSpeed` and `SwimmingSpeed` include the orange mushroom's speed boost. When the orange mushroom effect is not active, they are the unmodified base speeds. <span class="tech">(they are the controller's getter values, which include the game's orange mushroom run modifier.)</span>
+- `IsWalking` is `true` in walk mode and `false` in run mode. <span class="tech">(the controller's public `walk` property is never assigned in the game code, so the private `walking` field is read through the same reflection field as `IsSprinting`.)</span>
+- `ControlsDisabled` is `true` while anything holds the player's controls. That includes a `Lock` from this API. <span class="tech">(it is `OpenSewerCharacterController.ControlsDisabled()`.)</span>
+- Sprinting is not in `State()`. The controller does not expose it, so use the `IsSprinting` property.
+
+## Limits
+
+- `IsAvailable` tells you whether the speed changes work. It is `false` when the framework could not set up its speed hooks. The multipliers then stop applying. Reads, `Lock` and `Unlock` keep working.

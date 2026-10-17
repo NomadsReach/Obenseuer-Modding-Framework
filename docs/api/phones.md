@@ -13,8 +13,6 @@ This API reads the phone book, the numbers the player can dial. Calls are on [Ph
 
 ## Reference
 
-`Phones.All()` reads the phone book; calls go on [Phone lines](phone-lines.md).
-
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Phones</code> <span>the phone book</span></p>
 <div class="api-pair" markdown="1">
@@ -28,7 +26,7 @@ public static class Phones
 
 | Method | Returns | What it does |
 |---|---|---|
-| `All()` | `List<PhoneContact>` | Every dialable number. |
+| `All()` | `List<PhoneContact>` | Every number the player can dial. |
 
 </div>
 </div>
@@ -49,16 +47,16 @@ public sealed class PhoneContact
 
 | Property | Type | What it means |
 |---|---|---|
-| `Id` | `string` | Internal name. |
-| `Number` | `string` | Digits; `*` is 10, `#` is 11. |
-| `Network` | `PhoneNetwork` | Networks; values combine. |
-| `AnswerChance` | `float` | 0 to 1: chance someone answers. |
+| `Id` | `string` | The entry's internal name. |
+| `Number` | `string` | The digits to dial, where `*` is 10 and `#` is 11. |
+| `Network` | `PhoneNetwork` | Which network the number is on. A number can be on more than one. |
+| `AnswerChance` | `float` | The chance someone picks up, from 0 (never) to 1 (always). |
 
 </div>
 </div>
 
 <div class="api-type" markdown="1">
-<p class="api-type-head"><code>PhoneNetwork</code> <span>networks; values combine</span></p>
+<p class="api-type-head"><code>PhoneNetwork</code> <span>which networks a number is on</span></p>
 <div class="api-pair" markdown="1">
 
 ```csharp
@@ -74,10 +72,10 @@ public enum PhoneNetwork
 
 | Value | Meaning |
 |---|---|
-| `None` | No network. |
-| `Obenseuer` | Phones in Obenseuer. |
-| `Outside` | Phones outside Obenseuer. |
-| `Wasteland` | Phones in the wasteland. |
+| `None` | The number is on no network. |
+| `Obenseuer` | A phone in Obenseuer. |
+| `Outside` | A phone outside Obenseuer. |
+| `Wasteland` | A phone in the wasteland. |
 
 </div>
 </div>
@@ -112,8 +110,8 @@ public sealed class PhoneBook : FrameworkMod
 
 | Step | What it does |
 |---|---|
-| `contact.Network.HasFlag(PhoneNetwork.Obenseuer)` | Keeps Obenseuer numbers. |
-| `contact.AnswerChance * 100` | Makes a percentage. |
+| `contact.Network.HasFlag(PhoneNetwork.Obenseuer)` | Keeps only the numbers on the Obenseuer network. |
+| `contact.AnswerChance * 100` | Turns the chance into a percentage. |
 
 </div>
 
@@ -124,7 +122,7 @@ public sealed class PhoneBook : FrameworkMod
 
 ### Limits
 
-- You can't add numbers; added ones vanish on load.
+- The framework has no call to add a number. The game's phone book is a static list (`PhoneNumberDatabase.database`) that it fills once at start and never saves, so a number a mod adds itself lasts until the game closes and must be added again at each launch.
 
 ## Details
 

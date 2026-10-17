@@ -14,8 +14,8 @@ Everything not listed in this reference is internal and may change without notic
 
 ## When you can call it
 
-- **Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started.** The game only works safely on its main thread (see the [glossary](../../glossary.md#main-thread)).
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game only works safely on its main thread (see the [glossary](../../glossary.md#main-thread)).
 
 ## If something fails to set up
 
-- **This part of the framework does not change any game methods, so there is no feature group that can turn off.** It only listens for scene loads and registers its save file. If the save file cannot be registered, tame choices last until the player quits the game, and an error goes to the log.
+- This part of the framework does not change any game methods, so there is no feature group that can turn off. It only listens for scene loads and registers its save file. If the save file cannot be registered, tame choices last until the player quits the game, and an error goes to the log.

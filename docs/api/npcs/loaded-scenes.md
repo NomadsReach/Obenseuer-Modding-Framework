@@ -22,7 +22,7 @@ public static class Npcs
 
 | Method | Returns | What it does |
 |---|---|---|
-| `InScene()` | `List<SceneNpcInfo>` | Every NPC object, on or off. |
+| `InScene()` | `List<SceneNpcInfo>` | Every NPC object, whether it is switched on or off. |
 
 </div>
 </div>
@@ -49,21 +49,21 @@ public sealed class SceneNpcInfo
 
 | Property | Type | What it means |
 |---|---|---|
-| `Scene` | `string` | Scene the object is in. |
-| `Path` | `string` | Object location, like `Root/Child`. |
-| `Handle` | `string` | Name kept across sessions. |
-| `IsDirector` | `bool` | `true` when `All()` lists it. |
-| `Id` | `int` | Character number; `-1` if none. |
-| `Name` | `string` | First name, or object name. |
-| `DisplayName` | `string` | Full name; `null` if none. |
-| `Position` | `Vector3` | Position when `InScene` ran. |
-| `Active` | `bool` | `true` when switched on. |
-| `Present` | `bool` | `true` when really there, even if off. |
+| `Scene` | `string` | The scene the object is in. |
+| `Path` | `string` | Where the object is in its scene, like `Root/Child`. |
+| `Handle` | `string` | A name that is kept across sessions. |
+| `IsDirector` | `bool` | It is `true` when `All()` lists the NPC. |
+| `Id` | `int` | The character number, or `-1` if there is none. |
+| `Name` | `string` | The first name, or the object's name if there is none. |
+| `DisplayName` | `string` | The full name, or `null` if there is none. |
+| `Position` | `Vector3` | The position when `InScene()` ran. |
+| `Active` | `bool` | It is `true` when the object is switched on. |
+| `Present` | `bool` | It is `true` when the NPC is really there, even if it is switched off. |
 
 </div>
 </div>
 
-### Putting it together
+## Putting it together
 
 Logs NPCs with no game record and counts those really present.
 
@@ -95,17 +95,17 @@ public sealed class SceneNpcs : FrameworkMod
 | Step | What it does |
 |---|---|
 | `Npcs.InScene()` | Searches loaded scenes once. |
-| `npc.IsDirector` | `false` when there is no record. |
+| `npc.IsDirector` | It is `false` when the NPC has no record. |
 
 </div>
 
-### Things to know
+## Things to know
 
 - `InScene()` is slow; call it on an event or timer.
-- NPCs with no record appear here but not in `All()`; objects with no NPC component appear in neither.
-- The game switches off NPCs beyond 20 metres or off camera; they still count as `Present` unless sent away.
+- NPCs with no record appear here but not in `All()`. Objects with no NPC component appear in neither.
+- The game switches off NPCs beyond 20 metres or off camera; they still count as `Present` unless they are sent away.
 
-### Limits
+## Limits
 
 - If another mod hides an NPC on purpose while the distance hide is on, `Present` still says `true`.
-- `Handle` is stable only for map-placed NPCs; `Path` can repeat for odd object names.
+- `Handle` is stable only for map-placed NPCs. `Path` can repeat for objects with odd names.

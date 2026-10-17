@@ -16,12 +16,12 @@ The framework changes no game method for this API, so it has no `IsAvailable` an
 
 ## When you can call it
 
-- **Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started.** The game and Unity only work safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)).
-- **It is safe to call any of it at any time.** With no save loaded, `All` gives an empty list, `SetMoney` and `Restock` give `false`, and `Buy` and `Sell` give `Busy` or `Unavailable`.
-- **Your `Bought` and `Sold` handlers run one at a time.** If one throws an error, the framework logs it and still runs the others.
-- **The framework does not hold back `Bought` and `Sold` while a save is loading or being written.** A handler that should ignore those moments can check `SaveData.Busy`, which is `true` during a load or a save.
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)).
+- It is safe to call any of it at any time. With no save loaded, `All` gives an empty list, `SetMoney` and `Restock` give `false`, and `Buy` and `Sell` give `Busy` or `Unavailable`.
+- Your `Bought` and `Sold` handlers run one at a time. If one throws an error, the framework logs it and still runs the others.
+- The framework does not hold back `Bought` and `Sold` while a save is loading or being written. A handler that should ignore those moments can check `SaveData.Busy`, which is `true` during a load or a save.
 
 ## What to check for and what comes back
 
-- **Nothing here throws an error.** A null or empty id finds no shop. `SetMoney` and `Restock` give `false` while a save is loading or being written, and `Buy` and `Sell` give `Busy` then.
-- **If the game itself fails while the framework works, you get an empty answer or `Failed` instead of an error.** The first failure of each member goes to the log as an error. Later failures of that member are not logged again.
+- Nothing here throws an error. A null or empty id finds no shop. `SetMoney` and `Restock` give `false` while a save is loading or being written, and `Buy` and `Sell` give `Busy` then.
+- If the game itself fails while the framework works, you get an empty answer or `Failed` instead of an error. The first failure of each member goes to the log as an error. Later failures of that member are not logged again.

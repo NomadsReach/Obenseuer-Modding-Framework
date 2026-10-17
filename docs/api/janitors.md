@@ -70,53 +70,99 @@ Janitors.Acted += janitor =>
 
 ## Reference
 
-This is the full list of what the API gives you. In the code block, the comments say what each member gives you or does. A line starting with `Technical:` holds extra detail for experienced modders. You can skip it on a first read.
+This is the full list of what the API gives you.
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>Janitors</code> <span>the janitor event</span></p>
+<div class="api-pair" markdown="1">
 
 ```csharp
 public static class Janitors
 {
-    public static event Action<JanitorActedArgs> Acted;   // a janitor has just done its chore
-
-    public static bool IsAvailable { get; }               // false when the Acted event could not be set up
-    public static List<GameObject> All { get; }           // the object each janitor sits on; empty when none are loaded
-}
-
-public enum JanitorActionKind
-{
-    Storage,   // a storage janitor: restocks a container
-    Relay      // a relay janitor: fires the actions the map attached to it
-}
-
-public sealed class JanitorActedArgs    // what one janitor just did
-{
-    public string Id { get; }                  // a name for this janitor; the same every time it fires
-    public JanitorActionKind Kind { get; }     // Storage or Relay
-    public ContainerInfo Container { get; }    // the container on the same object; null for a relay or when there is none
-    public int ItemId { get; }                 // the item this janitor is set to stock; -1 when none
-    public int LiquidId { get; }               // the liquid this janitor is set to stock; -1 when none
-    public bool Cleared { get; }               // true when the janitor empties the container before it stocks it
-    public bool Replay { get; }                // true when the game is repeating an old trigger while loading a save
+    public static event Action<JanitorActedArgs> Acted;
+    public static bool IsAvailable { get; }
+    public static List<GameObject> All { get; }
 }
 ```
 
+| Event | Gives you | When it fires |
+|---|---|---|
+| `Acted` | `JanitorActedArgs` | A janitor has just done its chore. |
+
+| Property | Type | What it means |
+|---|---|---|
+| `IsAvailable` | `bool` | `false` when the `Acted` event could not be set up. |
+| `All` | `List<GameObject>` | The object each janitor sits on. Empty when none are loaded. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>JanitorActionKind</code> <span>what kind of chore a janitor does</span></p>
+<div class="api-pair" markdown="1">
+
+```csharp
+public enum JanitorActionKind
+{
+    Storage,
+    Relay
+}
+```
+
+| Value | Meaning |
+|---|---|
+| `Storage` | A storage janitor. It restocks a container. |
+| `Relay` | A relay janitor. It fires the actions the map attached to it. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>JanitorActedArgs</code> <span>what one janitor just did</span></p>
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class JanitorActedArgs
+{
+    public string Id { get; }
+    public JanitorActionKind Kind { get; }
+    public ContainerInfo Container { get; }
+    public int ItemId { get; }
+    public int LiquidId { get; }
+    public bool Cleared { get; }
+    public bool Replay { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Id` | `string` | A name for this janitor. It is the same every time it fires. |
+| `Kind` | `JanitorActionKind` | `Storage` or `Relay`. |
+| `Container` | `ContainerInfo` | The container on the same object. `null` for a relay or when there is none. |
+| `ItemId` | `int` | The item this janitor is set to stock. `-1` when none. |
+| `LiquidId` | `int` | The liquid this janitor is set to stock. `-1` when none. |
+| `Cleared` | `bool` | `true` when the janitor empties the container before it stocks it. |
+| `Replay` | `bool` | `true` when the game is repeating an old trigger while loading a save. |
+
+</div>
+</div>
+
 `ContainerInfo` is described on the [Inventory and container](inventory/containers.md#containers) page.
 
-- **`Acted` fires once each time a janitor finishes its chore.** It tells you that the chore ran, not what changed. A storage janitor that finds no free space and is not set to empty the container first still fires `Acted` with the item it is set to stock. If you need to know whether items were really added, look at the container.
-  - Technical: it fires after the game's `TriggerAction` returns on `StorageJanitorAction` or `RelayJanitor`. `Acted` does not list the items added or removed, because that would need a before and after snapshot of every slot.
-- **For a storage janitor, `Container`, `ItemId`, `LiquidId` and `Cleared` describe how the janitor is set up.** `ItemId` and `LiquidId` are the item and liquid it is set to stock, not what it actually added. `Container` is a snapshot taken when the event fires.
-  - Technical: they come from the `itemToFill`, `liquidToFill` and `overrideStorage` fields of `StorageJanitorAction`. `ItemId` and `LiquidId` are the `ItemReference.ID` values.
-- **For a relay janitor, there is no container or item.** `Container` is `null`, `ItemId` and `LiquidId` are `-1`, and `Cleared` is `false`.
-- **`Cleared` is `true` when the janitor first empties the container.** The janitor then fills it from scratch.
-  - Technical: it is the `overrideStorage` flag. When it is true the game calls `storage.Empty()` before it fills.
-- **`Replay` is `true` when the game repeats an old trigger while it loads a save.** The game remembers which janitor tags have run, and when a save loads it runs them again for each scene that has not seen them yet. These are not real new events. A mod that reacts to a real trigger should ignore events where `Replay` is `true`.
-  - Technical: `JanitorController.LoadDelay` replays the saved actions through the same `TriggerAction`. The framework marks a call as live when it happens inside `JanitorController.TriggerJanitorAction(tag)`.
-- **One tag triggers every janitor that has it, and each one fires `Acted`.** So a single trigger can give you several events.
-  - Technical: `TriggerJanitorAction` is registered as a Lua function for the game's scripts. It runs `TriggerAction` on each matching janitor.
-- **`Id` is the id of the janitor script.** It stays the same between sessions when the script has a save id. Otherwise it is made from the script's place in the scene.
-  - Technical: it is the save GUID when the component has one, otherwise the scene path.
-- **`All` lists the objects that carry a janitor script, in the order the game registered them.** It is empty when no save is loaded.
-  - Technical: it reads the game's `protected` list `janitorables` on `JanitorController.instance` through reflection, and returns the `GameObject` of each entry that is a `Component`.
-- **You can't place a janitor or trigger one from your mod.** `IsAvailable`, `Acted` and `All` are everything this API offers.
+### Things to know
+
+- `Acted` fires once each time a janitor finishes its chore. It tells you that the chore ran, not what changed. A storage janitor that finds no free space and is not set to empty the container first still fires `Acted` with the item it is set to stock. If you need to know whether items were really added, look at the container. <span class="tech">(It fires after the game's `TriggerAction` returns on `StorageJanitorAction` or `RelayJanitor`. `Acted` does not list the items added or removed, because that would need a before and after snapshot of every slot.)</span>
+- For a storage janitor, `Container`, `ItemId`, `LiquidId` and `Cleared` describe how the janitor is set up. `ItemId` and `LiquidId` are the item and liquid it is set to stock, not what it actually added. `Container` is a snapshot taken when the event fires. <span class="tech">(They come from the `itemToFill`, `liquidToFill` and `overrideStorage` fields of `StorageJanitorAction`. `ItemId` and `LiquidId` are the `ItemReference.ID` values.)</span>
+- For a relay janitor, there is no container or item. `Container` is `null`, `ItemId` and `LiquidId` are `-1`, and `Cleared` is `false`.
+- `Cleared` is `true` when the janitor first empties the container. The janitor then fills it from scratch. <span class="tech">(It is the `overrideStorage` flag. When it is true the game calls `storage.Empty()` before it fills.)</span>
+- `Replay` is `true` when the game repeats an old trigger while it loads a save. The game remembers which janitor tags have run, and when a save loads it runs them again for each scene that has not seen them yet. These are not real new events. A mod that reacts to a real trigger should ignore events where `Replay` is `true`. <span class="tech">(`JanitorController.LoadDelay` replays the saved actions through the same `TriggerAction`. The framework marks a call as live when it happens inside `JanitorController.TriggerJanitorAction(tag)`.)</span>
+- One tag triggers every janitor that has it, and each one fires `Acted`. So a single trigger can give you several events. <span class="tech">(`TriggerJanitorAction` is registered as a Lua function for the game's scripts. It runs `TriggerAction` on each matching janitor.)</span>
+- `Id` is the id of the janitor script. It stays the same between sessions when the script has a save id. Otherwise it is made from the script's place in the scene. <span class="tech">(It is the save GUID when the component has one, otherwise the scene path.)</span>
+- `All` lists the objects that carry a janitor script, in the order the game registered them. It is empty when no save is loaded. <span class="tech">(It reads the game's `protected` list `janitorables` on `JanitorController.instance` through reflection, and returns the `GameObject` of each entry that is a `Component`.)</span>
+
+### Limits
+
+- You can't place a janitor or trigger one from your mod. `IsAvailable`, `Acted` and `All` are everything this API offers.
 
 ## Details
 
@@ -127,15 +173,13 @@ Everything not listed in this reference is internal and may change without notic
 
 ### When you can call it
 
-- **Call `All` and `IsAvailable` from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started.** The game only works safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
-- **Nothing here throws an error to you.** If the framework fails while it reads, `All` writes the error to the log and gives you an empty list.
-- **Your `Acted` handlers run inside the game's own call, one at a time, right after the janitor finished.** If one of your handlers throws an error, the framework logs it and still runs the other handlers.
-- **Events fire during a save load too.** That is why `Replay` exists. A handler that should ignore everything during a load can check whether the game is busy loading or saving.
-  - Technical: `SaveData.Busy` is true while a save is loading or being written.
+- Call `All` and `IsAvailable` from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game only works safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
+- Nothing here throws an error to you. If the framework fails while it reads, `All` writes the error to the log and gives you an empty list.
+- Your `Acted` handlers run inside the game's own call, one at a time, right after the janitor finished. If one of your handlers throws an error, the framework logs it and still runs the other handlers.
+- Events fire during a save load too. That is why `Replay` exists. A handler that should ignore everything during a load can check whether the game is busy loading or saving. <span class="tech">(`SaveData.Busy` is true while a save is loading or being written.)</span>
 
 ### If something fails to set up
 
 The framework changes some of the game's methods when it starts, so it can tell your mod when a janitor acts. If a game update breaks one of them, the framework turns the feature group off, so the `Acted` event stops, and writes error lines to the group's log file in `BepInEx\logs`. Its feature group is `obenseuer.moddingframework.janitors`, the name you will see in the log. A feature group is the named set of the framework's changes for one feature.
 
-- **`Janitors.IsAvailable` is `false` when the event is switched off.** The change needs all three game methods to be found. If any one is missing, none of them is used.
-  - Technical: the methods are `TriggerAction` on `StorageJanitorAction` and on `RelayJanitor`, and `JanitorController.TriggerJanitorAction`. The last one is how the framework tells a live trigger from a replay.
+- `Janitors.IsAvailable` is `false` when the event is switched off. The change needs all three game methods to be found. If any one is missing, none of them is used. <span class="tech">(The methods are `TriggerAction` on `StorageJanitorAction` and on `RelayJanitor`, and `JanitorController.TriggerJanitorAction`. The last one is how the framework tells a live trigger from a replay.)</span>

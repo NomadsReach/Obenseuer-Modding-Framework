@@ -63,27 +63,37 @@ if (id != null) ComputerDesk.SetWallpaper(Mod.Id, id, wallpaperSprite);
 
 ## Reference
 
-This is the full list of what the API gives you. In the code block, the comments say what the call does. A line starting with `Technical:` holds extra detail for experienced modders. You can skip it on a first read.
+This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>ComputerDesk</code> <span>changes a computer's wallpaper</span></p>
+<div class="api-pair" markdown="1">
 
 ```csharp
 public static class ComputerDesk
 {
-    // Changes the wallpaper of one computer right away. modId is your mod's id.
-    // computerId comes from ComputerContents.All() or ComputerContents.IdOf.
-    // Returns true when the wallpaper was changed, false when it was not.
     public static bool SetWallpaper(string modId, string computerId, Sprite wallpaper);
 }
 ```
 
-- **The wallpaper changes on the screen straight away, and it is not saved.** When the player loads a save or the scene loads again, the computer goes back to its own wallpaper. Set it again after each load.
-  - Technical: the computer sets its wallpaper from its own saved picture in `InteractableComputer.Start`, which runs after `Events.SceneLoaded` is raised. A call made inside a `SceneLoaded` handler would be overwritten. Calling `Events.WhenReady` from that handler makes the wallpaper be set again after every load.
-- **`SetWallpaper` needs your mod's id.** Pass the id of your mod, such as `Mod.Id`. An id that is empty, longer than 64 characters, or has characters other than letters, digits, `.`, `_` and `-` makes the call return `false` and writes one line to the log.
-- **`SetWallpaper` returns `false` when it cannot do the change.** That happens for an empty computer id, a `null` picture, a computer that is not in the scene you are in, or a bad mod id. It does not throw for any of these.
-  - Technical: the computer is found among the active `InteractableComputer` objects in the active scene, so a computer on a switched-off object or in another scene is not found.
-- **You can't add files or emails to a computer.** The game sets up a computer's files and emails once, when the computer starts. Doing it again would show every old entry twice, so the framework does not offer it.
-  - Technical: `ComputerScreen.AddEmails` and `ComputerScreen.AddRecycleBinFiles` assign the list and build a row for every entry, so a second call duplicates the rows. They are not wrapped.
-- **You can't open a file on a computer from your mod.** Opening a file shows a game panel that needs one of the game's own note assets, and the framework has no way to look one up by name.
-  - Technical: `ComputerScreen.OpenTextFile` takes a `NoteInfo` asset.
+| Method | Returns | What it does |
+|---|---|---|
+| `SetWallpaper(string modId, string computerId, Sprite wallpaper)` | `bool` | Changes the wallpaper of one computer right away. `modId` is your mod's id. `computerId` comes from `ComputerContents.All()` or `ComputerContents.IdOf`. Returns `true` when the wallpaper was changed, `false` when it was not. |
+
+</div>
+</div>
+
+### Things to know
+
+- The wallpaper changes on the screen straight away, and it is not saved. When the player loads a save or the scene loads again, the computer goes back to its own wallpaper. Set it again after each load. <span class="tech">(the computer sets its wallpaper from its own saved picture in `InteractableComputer.Start`, which runs after `Events.SceneLoaded` is raised; a call made inside a `SceneLoaded` handler would be overwritten; calling `Events.WhenReady` from that handler makes the wallpaper be set again after every load)</span>
+- `SetWallpaper` needs your mod's id. Pass the id of your mod, such as `Mod.Id`.
+
+### Limits
+
+- An id that is empty, longer than 64 characters, or has characters other than letters, digits, `.`, `_` and `-` makes `SetWallpaper` return `false` and writes one line to the log.
+- `SetWallpaper` returns `false` when it cannot do the change. That happens for an empty computer id, a `null` picture, a computer that is not in the scene you are in, or a bad mod id. It does not throw for any of these. <span class="tech">(the computer is found among the active `InteractableComputer` objects in the active scene, so a computer on a switched-off object or in another scene is not found)</span>
+- You can't add files or emails to a computer. The game sets up a computer's files and emails once, when the computer starts. Doing it again would show every old entry twice, so the framework does not offer it. <span class="tech">(`ComputerScreen.AddEmails` and `ComputerScreen.AddRecycleBinFiles` assign the list and build a row for every entry, so a second call duplicates the rows; they are not wrapped)</span>
+- You can't open a file on a computer from your mod. Opening a file shows a game panel that needs one of the game's own note assets, and the framework has no way to look one up by name. <span class="tech">(`ComputerScreen.OpenTextFile` takes a `NoteInfo` asset)</span>
 
 ## Details
 
@@ -94,9 +104,11 @@ Everything not listed in this reference is internal and may change without notic
 
 ### When you can call it
 
-- **Call `SetWallpaper` from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started.** The game only works safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
-- **It only does something once a computer exists in the scene.** On the main menu it returns `false`.
+- Call `SetWallpaper` from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game only works safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
+- It only does something once a computer exists in the scene. On the main menu it returns `false`.
 
 ### If something fails to set up
 
-This API does not change any game method, so there is no feature group to turn off. If the game's private computer screen field is missing in a future game version, `SetWallpaper` returns `false`. If the game raises an error while the wallpaper is set, the framework writes one error line to the log, then returns `false`.
+- This API does not change any game method, so there is no feature group to turn off.
+- If the game's private computer screen field is missing in a future game version, `SetWallpaper` returns `false`.
+- If the game raises an error while the wallpaper is set, the framework writes one error line to the log, then returns `false`.

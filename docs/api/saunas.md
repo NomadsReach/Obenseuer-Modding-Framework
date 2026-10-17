@@ -60,58 +60,104 @@ if (sauna != null) Log.Info("Steam: " + sauna.Loyly);
 
 ## Reference
 
-This is the full list of what the API gives you. In the code block, the comments say what each member gives you or does. A line starting with `Technical:` holds extra detail for experienced modders. You can skip it on a first read.
-
-### Saunas
-
 Each sauna is a `SaunaInfo`, a snapshot of its state at the moment you asked. The snapshot does not update by itself, so ask again for fresh values. The two events give you a `SaunaChangedArgs`, which holds the state right after the change.
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>Saunas</code> <span>list, switch and watch saunas</span></p>
+<div class="api-pair" markdown="1">
 
 ```csharp
 public static class Saunas
 {
-    public static List<SaunaInfo> All();                  // every sauna in the scene you are in
-    public static SaunaInfo Get(string id);               // the sauna with this id; null when none has it
-    public static bool SetOn(string id, bool on);         // switches a sauna on or off; true when it ends up as you asked
-
-    public static bool IsAvailable { get; }               // false when the on and off events could not be set up
-    public static event Action<SaunaChangedArgs> TurnedOn;    // a sauna has just been switched on
-    public static event Action<SaunaChangedArgs> TurnedOff;   // a sauna has just been switched off
-}
-
-public sealed class SaunaInfo    // a snapshot of one sauna
-{
-    public string Id { get; }              // the sauna's id: its save id, or its place in the scene when it has none
-    public bool On { get; }                // true when the sauna is on
-    public float Temperature { get; }      // how hot it is, in degrees Celsius
-    public float Loyly { get; }            // the steam from water thrown on the stones
-}
-
-public sealed class SaunaChangedArgs    // what you get when a sauna is switched on or off
-{
-    public string Id { get; }              // the sauna's id, the same as SaunaInfo.Id
-    public bool On { get; }                // whether the sauna is on now, after the change
-    public float Temperature { get; }      // how hot it is, in degrees Celsius
-    public float Loyly { get; }            // the steam
+    public static List<SaunaInfo> All();
+    public static SaunaInfo Get(string id);
+    public static bool SetOn(string id, bool on);
+    public static bool IsAvailable { get; }
+    public static event Action<SaunaChangedArgs> TurnedOn;
+    public static event Action<SaunaChangedArgs> TurnedOff;
 }
 ```
 
-- **`All()` lists every sauna that is switched on in the scene you are in.** `Get(id)` gives one sauna, or `null` when no sauna has that id. An unknown or empty id also gives `null`.
-- **`SetOn(id, on)` does what the game does when the player or a script switches the sauna.** It returns `true` when the sauna exists and is now in the state you asked for. It returns `false` when no sauna has that id, and while a save is loading or being written. Switching a sauna on starts its timer, and for a passive sauna it sets the steam to 1.
-  - Technical: it calls the game's own `Sauna.TurnOn` or `Sauna.TurnOff`, and the save check is `SaveData.Busy`. `Loyly` is the game's `Sauna.löyly` field.
-- **`TurnedOn` fires after a sauna goes from off to on, and `TurnedOff` fires after it goes from on to off.** Switching on a sauna that is already on fires nothing. The events fire no matter who switched the sauna, not only your calls to `SetOn`. The `SaunaChangedArgs` holds the sauna's state after the change.
-  - Technical: they are raised from a Harmony postfix (a piece of code that runs right after the game method) on `Sauna.TurnOn` and `Sauna.TurnOff`.
-- **The events also fire while a save is loading.** If your handler should ignore those, check `SaveData.Busy`, which is `true` while a save is loading or being written.
+| Method | Returns | What it does |
+|---|---|---|
+| `All()` | `List<SaunaInfo>` | Every sauna that is switched on in the scene you are in. |
+| `Get(string id)` | `SaunaInfo` | The sauna with this id. `null` when none has it. |
+| `SetOn(string id, bool on)` | `bool` | Switches a sauna on or off. `true` when it ends up as you asked. |
 
-### What you can't do (yet)
+| Property | Type | What it means |
+|---|---|---|
+| `IsAvailable` | `bool` | `false` when the on and off events could not be set up. |
 
-- **You can't change how strongly a sauna affects the player each moment, for example how fast it sobers them up or improves their hygiene.** The game keeps these rates in fields it reads every tick, so a setter is possible, but the framework does not offer one yet: eight setters would be a long-term commitment for a feature nobody has asked for.
-  - Technical: the rates are `ReduceDrunk`, `ReduceSMV`, `ImproveHygiene` and the others, public fields read in `PlayerStatsSauna.ApplySauna`.
-- **You can't tell when the player is inside a sauna.** The game learns this only from a private trigger handler and gives no public signal, so a session event would need a new change to the game that is left out.
-  - Technical: the sauna's player-inside trigger is a private Unity message handler on `Sauna`, so it has no public method to patch.
-- **You can't throw water on the stones, or control the stove sounds and particles.**
-  - Technical: `Sauna.ThrowWater` is not covered.
-- **The sauna cooling object is not covered.** It is a separate object with its own switch.
-  - Technical: `SaunaCooling` has its own `Toggle(bool)`.
+| Event | Gives you | When it fires |
+|---|---|---|
+| `TurnedOn` | `SaunaChangedArgs` | A sauna has just been switched on. |
+| `TurnedOff` | `SaunaChangedArgs` | A sauna has just been switched off. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>SaunaInfo</code> <span>a snapshot of one sauna</span></p>
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class SaunaInfo
+{
+    public string Id { get; }
+    public bool On { get; }
+    public float Temperature { get; }
+    public float Loyly { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Id` | `string` | The sauna's id: its save id, or its place in the scene when it has none. |
+| `On` | `bool` | `true` when the sauna is on. |
+| `Temperature` | `float` | How hot it is, in degrees Celsius. |
+| `Loyly` | `float` | The steam from water thrown on the stones. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>SaunaChangedArgs</code> <span>what you get when a sauna is switched on or off</span></p>
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class SaunaChangedArgs
+{
+    public string Id { get; }
+    public bool On { get; }
+    public float Temperature { get; }
+    public float Loyly { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Id` | `string` | The sauna's id, the same as `SaunaInfo.Id`. |
+| `On` | `bool` | Whether the sauna is on now, after the change. |
+| `Temperature` | `float` | How hot it is, in degrees Celsius. |
+| `Loyly` | `float` | The steam. |
+
+</div>
+</div>
+
+### Things to know
+
+- `All()` lists every sauna that is switched on in the scene you are in. `Get(id)` gives one sauna. An unknown or empty id also gives `null`.
+- `SetOn(id, on)` does what the game does when the player or a script switches the sauna. Switching a sauna on starts its timer, and for a passive sauna it sets the steam to 1. <span class="tech">(It calls the game's own `Sauna.TurnOn` or `Sauna.TurnOff`, and the save check is `SaveData.Busy`. `Loyly` is the game's `Sauna.löyly` field.)</span>
+- `TurnedOn` fires after a sauna goes from off to on, and `TurnedOff` fires after it goes from on to off. Switching on a sauna that is already on fires nothing. The events fire no matter who switched the sauna, not only your calls to `SetOn`. The `SaunaChangedArgs` holds the sauna's state after the change. <span class="tech">(They are raised from a Harmony postfix (a piece of code that runs right after the game method) on `Sauna.TurnOn` and `Sauna.TurnOff`.)</span>
+- The events also fire while a save is loading. If your handler should ignore those, check `SaveData.Busy`, which is `true` while a save is loading or being written.
+
+### Limits
+
+- `SetOn` returns `false` when no sauna has that id, and while a save is loading or being written.
+- You can't change how strongly a sauna affects the player each moment, for example how fast it sobers them up or improves their hygiene. The game keeps these rates in fields it reads every tick, so a setter is possible, but the framework does not offer one yet: eight setters would be a long-term commitment for a feature nobody has asked for. <span class="tech">(The rates are `ReduceDrunk`, `ReduceSMV`, `ImproveHygiene` and the others, public fields read in `PlayerStatsSauna.ApplySauna`.)</span>
+- You can't tell when the player is inside a sauna. The game learns this only from a private trigger handler and gives no public signal, so a session event would need a new change to the game that is left out. <span class="tech">(The sauna's player-inside trigger is a private Unity message handler on `Sauna`, so it has no public method to patch.)</span>
+- You can't throw water on the stones, or control the stove sounds and particles. <span class="tech">(`Sauna.ThrowWater` is not covered.)</span>
+- The sauna cooling object is not covered. It is a separate object with its own switch. <span class="tech">(`SaunaCooling` has its own `Toggle(bool)`.)</span>
 
 ## Details
 
@@ -124,14 +170,13 @@ The framework changes two of the game's methods when it starts, so it can tell y
 
 ### When you can call it
 
-- **Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started.** The game only works safely on its main thread (see the [glossary](../glossary.md#main-thread)).
-- **It is safe to call any of it at any time.** With no save loaded, or on the main menu, the reads give an empty list or `null`, and `SetOn` gives `false`. Nothing throws.
-- **`Saunas.IsAvailable` tells you whether the events work.** It is `false` when the framework could not set up the on and off events, or when the feature group was turned off.
-- **Your event handlers run right after the game has changed the sauna.** If your handler throws an error, the framework logs it and still runs the other handlers.
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game only works safely on its main thread (see the [glossary](../glossary.md#main-thread)).
+- It is safe to call any of it at any time. With no save loaded, or on the main menu, the reads give an empty list or `null`, and `SetOn` gives `false`. Nothing throws.
+- `Saunas.IsAvailable` tells you whether the events work. It is `false` when the framework could not set up the on and off events, or when the feature group was turned off.
+- Your event handlers run right after the game has changed the sauna. If your handler throws an error, the framework logs it and still runs the other handlers.
 
 ### If something fails to set up
 
 The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
-- **If either of the two changes fails, the feature group turns off and `TurnedOn` and `TurnedOff` stop.** One warning goes to the log file named above. `All()`, `Get` and `SetOn` keep working.
-  - Technical: the methods are `Sauna.TurnOn` and `Sauna.TurnOff`. The log line reads "sauna hooks incomplete, sauna events are disabled".
+- If either of the two changes fails, the feature group turns off and `TurnedOn` and `TurnedOff` stop. One warning goes to the log file named above. `All()`, `Get` and `SetOn` keep working. <span class="tech">(The methods are `Sauna.TurnOn` and `Sauna.TurnOff`. The log line reads "sauna hooks incomplete, sauna events are disabled".)</span>

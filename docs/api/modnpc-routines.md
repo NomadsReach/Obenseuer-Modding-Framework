@@ -14,8 +14,8 @@ Status: experimental.
 
 A mod NPC is a character that your mod spawns into the game (see [Mod NPCs](modnpcs.md)). On its own it just stands where you put it. This API gives a mod NPC something to do. There are two parts:
 
-- **Orders** are one-off commands: walk to a point, wander around a spot, patrol along some points, sit on a chair, sleep in a bed, or stop.
-- **Routines** are a weekly timetable. Each step says which days and hours it covers, which scene the NPC is in, and what it does there. While a step is in effect, the framework puts the NPC in that scene, and when the clock moves on, the NPC leaves.
+- Orders are one-off commands: walk to a point, wander around a spot, patrol along some points, sit on a chair, sleep in a bed, or stop.
+- Routines are a weekly timetable. Each step says which days and hours it covers, which scene the NPC is in, and what it does there. While a step is in effect, the framework puts the NPC in that scene, and when the clock moves on, the NPC leaves.
 
 These calls work only on NPCs that your mod spawned. They do not work on the game's own NPCs. To read what a game NPC is doing, see [NPC schedules](npc-schedules.md).
 

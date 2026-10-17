@@ -66,53 +66,103 @@ foreach (NoteEntryInfo note in Notes.Held())
 
 ## Reference
 
-This is the full list of what the API gives you, one section for each part. In every code block, the comments say what each member gives you or does. A line starting with `Technical:` holds extra detail for experienced modders. You can skip it on a first read.
+This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
 
 ### Notes
 
 `Notes` reads and gives the game's single notes. Each note is described by a `NoteEntryInfo`.
 
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>Notes</code> <span>list, check and give single notes</span></p>
+<div class="api-pair" markdown="1">
+
 ```csharp
 public static class Notes
 {
-    public static bool IsAvailable { get; }          // false when the collected event could not be set up
-    public static List<NoteEntryInfo> All();         // every single note the game has
-    public static List<NoteEntryInfo> Held();        // the single notes the player holds, in the order they were collected
-    public static bool Has(string id);               // true when the player holds this note
-    public static bool Give(string id);              // gives the player the note; true only when it was added just now
-    public static event Action<NoteCollectedArgs> Collected;   // the player has just collected a note
-}
-
-public sealed class NoteEntryInfo    // one note
-{
-    public string Id { get; }        // the note's id; use it with Has and Give
-    public string Title { get; }     // the note's title
-}
-
-public sealed class NoteCollectedArgs    // what you are told when a note is collected
-{
-    public string Id { get; }        // the note's id
-    public string Title { get; }     // the note's title
+    public static bool IsAvailable { get; }
+    public static List<NoteEntryInfo> All();
+    public static List<NoteEntryInfo> Held();
+    public static bool Has(string id);
+    public static bool Give(string id);
+    public static event Action<NoteCollectedArgs> Collected;
 }
 ```
 
-- **`All()` lists every single note the game has, and leaves out book pages.** It is the same list the game's developer console uses.
-  - Technical: it lists the `NoteInfo` assets in the game's `Resources/Notes` folder and skips any with `NoteInfo.book` set.
-- **`Held()` lists the single notes the player has collected, in the order they were collected.** Book pages are left out.
-  - Technical: it reads `NoteController.notes` and skips entries that have a book.
-- **A note's id is the note's own id in the game files. If it has none, the id is where the note is stored, and if it has neither, the id is its title.**
-  - Technical: `Id` is `NoteInfo.Id`: the `id` field, else `addressableAssetPath`, else `title`.
-- **`Has(id)` and `Give(id)` find the note by its id, and do nothing if two notes share an id.** If two notes in the game have the same id, `Has` and `Give` can't tell them apart, so both return `false` for that id.
-- **`Give(id)` adds the note the way the game's own mail, tasks and bundles do.** The notes window and the save both update as they would in the game. It does not show the "New note" pop-up, the same as the game's mail and tasks.
-  - Technical: it calls the game's `NoteController.AddNote`.
-- **`Give` returns `false` when it did not add the note.** That happens when the id is not a note the game has, when the player already holds the note, when a save is loading or being written, and when the game's note controller is not running (on the main menu, or before a save is loaded). An id of `null` also returns `false`, and writes one line to the log.
-- **`Collected` fires once for each single note that goes from not held to held, however it was added.** It fires for `Give`, for mail, for tasks and for the console. It does not fire again for a note the player already holds, and it does not fire when a save loads.
-- **`IsAvailable` is `false` when the collected event could not be set up.** The reads and `Give` keep working when it is `false`. See [If something fails to set up](#if-something-fails-to-set-up).
+| Method | Returns | What it does |
+|---|---|---|
+| `All()` | `List<NoteEntryInfo>` | Every single note the game has. |
+| `Held()` | `List<NoteEntryInfo>` | The single notes the player holds, in the order they were collected. |
+| `Has(string id)` | `bool` | `true` when the player holds this note. |
+| `Give(string id)` | `bool` | Gives the player the note. Returns `true` only when it was added just now. |
+
+| Property | Type | What it means |
+|---|---|---|
+| `IsAvailable` | `bool` | `false` when the collected event could not be set up. |
+
+| Event | Gives you | When it fires |
+|---|---|---|
+| `Collected` | `NoteCollectedArgs` | The player has just collected a note. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>NoteEntryInfo</code> <span>one note</span></p>
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class NoteEntryInfo
+{
+    public string Id { get; }
+    public string Title { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Id` | `string` | The note's id. Use it with `Has` and `Give`. |
+| `Title` | `string` | The note's title. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>NoteCollectedArgs</code> <span>what Collected gives you</span></p>
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class NoteCollectedArgs
+{
+    public string Id { get; }
+    public string Title { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Id` | `string` | The note's id. |
+| `Title` | `string` | The note's title. |
+
+</div>
+</div>
+
+#### Things to know
+
+- `All()` lists every single note the game has, and leaves out book pages. It is the same list the game's developer console uses. <span class="tech">(It lists the `NoteInfo` assets in the game's `Resources/Notes` folder and skips any with `NoteInfo.book` set.)</span>
+- `Held()` lists the single notes the player has collected, in the order they were collected. Book pages are left out. <span class="tech">(It reads `NoteController.notes` and skips entries that have a book.)</span>
+- A note's id is the note's own id in the game files. If it has none, the id is where the note is stored, and if it has neither, the id is its title. <span class="tech">(`Id` is `NoteInfo.Id`: the `id` field, else `addressableAssetPath`, else `title`.)</span>
+- `Has(id)` and `Give(id)` find the note by its id, and do nothing if two notes share an id. If two notes in the game have the same id, `Has` and `Give` can't tell them apart, so both return `false` for that id.
+- `Give(id)` adds the note the way the game's own mail, tasks and bundles do. The notes window and the save both update as they would in the game. It does not show the "New note" pop-up, the same as the game's mail and tasks. <span class="tech">(It calls the game's `NoteController.AddNote`.)</span>
+- `Collected` fires once for each single note that goes from not held to held, however it was added. It fires for `Give`, for mail, for tasks and for the console. It does not fire again for a note the player already holds, and it does not fire when a save loads.
+- `IsAvailable` is `false` when the collected event could not be set up. The reads and `Give` keep working when it is `false`. See [If something fails to set up](#if-something-fails-to-set-up).
+
+#### Limits
+
+- `Give` returns `false` when it did not add the note. That happens when the id is not a note the game has, when the player already holds the note, when a save is loading or being written, and when the game's note controller is not running (on the main menu, or before a save is loaded). An id of `null` also returns `false`, and writes one line to the log.
 
 ### What you can't do (yet)
 
-- **You can't add a new note of your own.** Every note is a data file that ships with the game, and the save stores a note by the path of that file. A mod can't add a note without shipping such a file, so `Give` only works for notes the game already has.
-  - Technical: a note is a `NoteInfo` asset, stored in the save by its addressable path.
+- You can't add a new note of your own. Every note is a data file that ships with the game, and the save stores a note by the path of that file. A mod can't add a note without shipping such a file, so `Give` only works for notes the game already has. <span class="tech">(A note is a `NoteInfo` asset, stored in the save by its addressable path.)</span>
 
 ## Details
 
@@ -123,19 +173,19 @@ Everything not listed in this reference is internal and may change without notic
 
 ### When you can call it
 
-- **Call everything from your mod's normal code, not from a background thread you started.** The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
-- **It is safe to call any of it at any time, even on the main menu or while a save is loading.** If no save is loaded, or the game's note controller is missing, the reads give an empty list or `false`.
-- **Your `Collected` handler runs inside the game's own call, one at a time.** If one of your handlers throws an error, the framework logs it and still runs the other handlers.
-- **`Collected` also fires while a save is loading, if a note is added then.** If you want to ignore those, check `SaveData.Busy`, which is `true` while a save is loading or being written.
+- Call everything from your mod's normal code, not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
+- It is safe to call any of it at any time, even on the main menu or while a save is loading. If no save is loaded, or the game's note controller is missing, the reads give an empty list or `false`.
+- Your `Collected` handler runs inside the game's own call, one at a time. If one of your handlers throws an error, the framework logs it and still runs the other handlers.
+- `Collected` also fires while a save is loading, if a note is added then. If you want to ignore those, check `SaveData.Busy`, which is `true` while a save is loading or being written.
 
 ### What to check for and what comes back
 
-- **Nothing here throws.** A `null` id gives `false` and one line in the log. Everything else gives its plain default (`false` or an empty list).
-- **`IsAvailable` only tells you about the `Collected` event.** In code it is "set up, and the feature group is not turned off".
+- Nothing here throws. A `null` id gives `false` and one line in the log. Everything else gives its plain default (`false` or an empty list).
+- `IsAvailable` only tells you about the `Collected` event. In code it is "set up, and the feature group is not turned off".
 
 ### If something fails to set up
 
 The framework changes some of the game's methods when it starts, so it can tell your mod when a note is collected. If a game update breaks one of them, only that feature turns off, and the framework writes error lines and a warning to the log. The rest of the API keeps working.
 
-- **The `Collected` event depends on the feature group `obenseuer.moddingframework.notes`.** This is the name you will see in the log. If the framework can't change the game's method that adds a note, it turns the group off, `Collected` stops, and the framework writes error lines and a warning to `BepInEx\logs\obenseuer.moddingframework.notes.log`. `All`, `Held`, `Has` and `Give` keep working.
-  - Technical: the game method is `NoteController.AddNote(NoteInfo, bool)`.
+- The `Collected` event depends on the feature group `obenseuer.moddingframework.notes`. This is the name you will see in the log.
+- If the framework can't change the game's method that adds a note, it turns the group off, `Collected` stops, and the framework writes error lines and a warning to `BepInEx\logs\obenseuer.moddingframework.notes.log`. `All`, `Held`, `Has` and `Give` keep working. <span class="tech">(The game method is `NoteController.AddNote(NoteInfo, bool)`.)</span>

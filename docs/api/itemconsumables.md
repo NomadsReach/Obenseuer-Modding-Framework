@@ -74,51 +74,91 @@ ItemConsumables.Clear("example.strongapples");
 
 ## Reference
 
-This is the full list of what the API gives you. In every code block, the comments say what each member gives you or does. A line starting with `Technical:` holds extra detail for experienced modders. You can skip it on a first read.
+This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>ConsumableInfo</code> <span>the effect numbers of one item's consumable action</span></p>
+<div class="api-pair" markdown="1">
 
 ```csharp
-public sealed class ConsumableInfo    // the effect numbers of one item's consumable action
+public sealed class ConsumableInfo
 {
-    public bool DestroyAfterUse { get; set; }     // true when using the item uses it up
-    public float Food { get; set; }               // how much it feeds the player
-    public float Drink { get; set; }              // how much it quenches thirst
-    public float Nicotine { get; set; }           // how much nicotine it gives
-    public float Intoxication { get; set; }       // how drunk it makes the player
-    public float Smv { get; set; }                // the game's SMV effect value, passed through unchanged
-    public float Depression { get; set; }         // its effect on depression
-    public float Health { get; set; }             // its effect on health
-    public float Bleeding { get; set; }           // its effect on bleeding
-    public float High { get; set; }               // how high it makes the player
-    public float Tiredness { get; set; }          // its effect on tiredness
-    public float Hygiene { get; set; }            // its effect on hygiene
-    public float AlcoholAddiction { get; set; }   // how much it adds to alcohol addiction
-    public float MushroomAddiction { get; set; }  // how much it adds to mushroom addiction
-    public float SmokingAddiction { get; set; }   // how much it adds to smoking addiction
-}
-
-public static class ItemConsumables
-{
-    public static ConsumableInfo Get(int itemId);                              // a copy of the item's numbers; null when the item has no consumable action
-    public static bool Set(string modId, int itemId, ConsumableInfo info);     // writes the numbers; true when they were written
-    public static bool Clear(string modId);                                    // undoes every change your mod made; true when it undid at least one
+    public bool DestroyAfterUse { get; set; }
+    public float Food { get; set; }
+    public float Drink { get; set; }
+    public float Nicotine { get; set; }
+    public float Intoxication { get; set; }
+    public float Smv { get; set; }
+    public float Depression { get; set; }
+    public float Health { get; set; }
+    public float Bleeding { get; set; }
+    public float High { get; set; }
+    public float Tiredness { get; set; }
+    public float Hygiene { get; set; }
+    public float AlcoholAddiction { get; set; }
+    public float MushroomAddiction { get; set; }
+    public float SmokingAddiction { get; set; }
 }
 ```
 
-- **`Get` gives you a copy of the item's own numbers, or `null` when the item cannot be used up.** Changing the copy does nothing until you pass it to `Set`. These are the item's base numbers: the game can still add to them when the item is used, for example food that changes with the item's quality.
-  - Technical: the numbers are the fields of the item's `ItemConsumable` action. The game's getters, such as `GetFood`, add a quality modifier at use time.
-- **`Set` returns `false` when it cannot write the numbers.** That happens when the item has no consumable action, when one of the numbers is not a real number (not a number or infinite), when you pass null, or while a save is loading or being written. `modId` must be 1 to 64 letters, digits, `.`, `_` or `-`, or `Set` throws an `ArgumentException`.
-- **`Clear` undoes everything your mod changed.** It puts every item your mod changed back to the numbers it had before. It returns `true` when it undid at least one item, and `false` when your mod had changed nothing, and also `false` while a save is loading or being written. It also forgets a change of yours that another mod's later change covers.
-  - Technical: see the Vanilla bullet below for what the numbers go back to. `Clear` also throws an `ArgumentException` for an invalid `modId`.
-- **The numbers belong to the item, not to one copy of it.** A change applies to every copy in the world and in the inventory.
-  - Technical: the values are written to the item's template action, which all copies share.
-- **A change made while a game is running is saved with that save.** The framework applies it again every time that save loads, including when a door changes the level. Leaving to the main menu puts the numbers back, so one save's changes never reach another save. Saves from before this feature simply have no entry.
-  - Technical: "while a game is running" means a save is loaded, or the game has left the main menu for a new game. The framework writes the change to the save's mod data, with the mod id that set it, in `mods\obenseuer.moddingframework.consumables.json` in the save folder.
-- **A change made before a game is running is not saved.** If you call `Set` early, for example in your plugin's `Awake` or on the main menu, the change lasts for the whole session, through every load of any save, and your mod sets it again at the next start. It also wins over a saved change for the same item.
-- **The framework remembers the numbers an item had before your first change.** Leaving to the main menu puts a saved change back to the earlier session change for that item, if there was one, and otherwise to those original numbers. `Clear` does the same for the items your mod changed.
-- **A saved change only applies while the mod that made it is installed.** If the mod is gone, the item keeps its normal numbers, one message goes to the log, and the next save drops the entry. So pass your plugin's GUID as `modId`. If your mod stays installed but stops changing an item, call `Clear`, or the saved change would be applied again.
-  - Technical: the mod counts as installed when its id is the GUID of a loaded BepInEx plugin, or when it has called `Set` in this session.
-- **If two mods change the same item, the last one wins.** The log names both mods. If the first mod then calls `Clear`, the second mod's numbers stay on the item, and the first mod's earlier change does not come back when the player leaves to the main menu.
-- **You can't define a new consumable item here.** This API only changes the effects of items that already have a consumable action. Items are read-only on the [Items](items.md) page, which only reports whether an item is consumable and the names of its actions.
+| Property | Type | What it means |
+|---|---|---|
+| `DestroyAfterUse` | `bool` | `true` when using the item uses it up. |
+| `Food` | `float` | How much it feeds the player. |
+| `Drink` | `float` | How much it quenches thirst. |
+| `Nicotine` | `float` | How much nicotine it gives. |
+| `Intoxication` | `float` | How drunk it makes the player. |
+| `Smv` | `float` | The game's SMV effect value, passed through unchanged. |
+| `Depression` | `float` | Its effect on depression. |
+| `Health` | `float` | Its effect on health. |
+| `Bleeding` | `float` | Its effect on bleeding. |
+| `High` | `float` | How high it makes the player. |
+| `Tiredness` | `float` | Its effect on tiredness. |
+| `Hygiene` | `float` | Its effect on hygiene. |
+| `AlcoholAddiction` | `float` | How much it adds to alcohol addiction. |
+| `MushroomAddiction` | `float` | How much it adds to mushroom addiction. |
+| `SmokingAddiction` | `float` | How much it adds to smoking addiction. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>ItemConsumables</code> <span>read, change and undo item effects</span></p>
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class ItemConsumables
+{
+    public static ConsumableInfo Get(int itemId);
+    public static bool Set(string modId, int itemId, ConsumableInfo info);
+    public static bool Clear(string modId);
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `Get(int itemId)` | `ConsumableInfo` | A copy of the item's numbers. `null` when the item has no consumable action. |
+| `Set(string modId, int itemId, ConsumableInfo info)` | `bool` | Writes the numbers. `true` when they were written. |
+| `Clear(string modId)` | `bool` | Undoes every change your mod made. `true` when it undid at least one. |
+
+</div>
+</div>
+
+### Things to know
+
+- `Get` gives you a copy of the item's own numbers, or `null` when the item cannot be used up. Changing the copy does nothing until you pass it to `Set`. These are the item's base numbers: the game can still add to them when the item is used, for example food that changes with the item's quality. <span class="tech">(The numbers are the fields of the item's `ItemConsumable` action. The game's getters, such as `GetFood`, add a quality modifier at use time.)</span>
+- `Clear` undoes everything your mod changed. It puts every item your mod changed back to the numbers it had before. It returns `true` when it undid at least one item, and `false` when your mod had changed nothing, and also `false` while a save is loading or being written. It also forgets a change of yours that another mod's later change covers. <span class="tech">(The numbers it puts back are the ones the framework remembers, see the note on remembered numbers below. `Clear` also throws an `ArgumentException` for an invalid `modId`.)</span>
+- The numbers belong to the item, not to one copy of it. A change applies to every copy in the world and in the inventory. <span class="tech">(The values are written to the item's template action, which all copies share.)</span>
+- A change made while a game is running is saved with that save. The framework applies it again every time that save loads, including when a door changes the level. Leaving to the main menu puts the numbers back, so one save's changes never reach another save. Saves from before this feature simply have no entry. <span class="tech">("While a game is running" means a save is loaded, or the game has left the main menu for a new game. The framework writes the change to the save's mod data, with the mod id that set it, in `mods\obenseuer.moddingframework.consumables.json` in the save folder.)</span>
+- The framework remembers the numbers an item had before your first change. Leaving to the main menu puts a saved change back to the earlier session change for that item, if there was one, and otherwise to those original numbers. `Clear` does the same for the items your mod changed.
+- A saved change only applies while the mod that made it is installed. If the mod is gone, the item keeps its normal numbers, one message goes to the log, and the next save drops the entry. So pass your plugin's GUID as `modId`. If your mod stays installed but stops changing an item, call `Clear`, or the saved change would be applied again. <span class="tech">(The mod counts as installed when its id is the GUID of a loaded BepInEx plugin, or when it has called `Set` in this session.)</span>
+- If two mods change the same item, the last one wins. The log names both mods. If the first mod then calls `Clear`, the second mod's numbers stay on the item, and the first mod's earlier change does not come back when the player leaves to the main menu.
+
+### Limits
+
+- `Set` returns `false` when it cannot write the numbers. That happens when the item has no consumable action, when one of the numbers is not a real number (not a number or infinite), when you pass null, or while a save is loading or being written. `modId` must be 1 to 64 letters, digits, `.`, `_` or `-`, or `Set` throws an `ArgumentException`.
+- A change made before a game is running is not saved. If you call `Set` early, for example in your plugin's `Awake` or on the main menu, the change lasts for the whole session, through every load of any save, and your mod sets it again at the next start. It also wins over a saved change for the same item.
+- You can't define a new consumable item here. This API only changes the effects of items that already have a consumable action. Items are read-only on the [Items](items.md) page, which only reports whether an item is consumable and the names of its actions.
 
 ## Details
 
@@ -131,5 +171,5 @@ This page installs no changes to the game's methods, so there is no feature grou
 
 ### When you can call it
 
-- **Call everything from your mod's normal code, not from a background thread you started.** The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
-- **It is safe to call `Get` at any time.** If the item is unknown or has no consumable action, you get `null`. `Set` and `Clear` return `false` while a save is loading or being written.
+- Call everything from your mod's normal code, not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
+- It is safe to call `Get` at any time. If the item is unknown or has no consumable action, you get `null`. `Set` and `Clear` return `false` while a save is loading or being written.

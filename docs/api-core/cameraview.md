@@ -7,46 +7,49 @@ nav_order: 10
 
 # CameraView
 
-Obenseuer is played in first person. The game also has a third person camera, but it is switched off in the normal game. `CameraView` lets your mod ask the game to use it. It does so through the game's own camera state, and it never moves a camera by hand.
+Obenseuer is played in first person. The game also has a third person camera, but it is switched off in the normal game. `CameraView` lets your mod ask the game to use it, through the game's own camera state, and never moves a camera by hand.
 
-Vanilla 0.5.08 is first person only. Third person is a mode the game left dormant, so the player's body, animations and clipping may look rough in it.
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>CameraView</code> <span>first and third person</span></p>
+<div class="api-pair" markdown="1">
 
 ```csharp
 public static class CameraView
 {
-    public static bool IsAvailable { get; }          // true when the game has a camera to control; false on the main menu
-    public static bool IsFirstPerson { get; }        // true when the view is first person
-    public static bool ThirdPersonAllowed { get; }   // false when third person cannot be used right now (see below)
-    public static bool SetThirdPerson(float distance = 2.5f);  // go to third person at this distance; false when it is not allowed
-    public static void SetFirstPerson();             // go back to first person
-    public static bool Toggle();                     // switch to the other view; false when not available or refused
-    public static event Action<bool> ModeChanged;    // the view changed; true means it is now first person
+    public static bool IsAvailable { get; }
+    public static bool IsFirstPerson { get; }
+    public static bool ThirdPersonAllowed { get; }
+    public static bool SetThirdPerson(float distance = 2.5f);
+    public static void SetFirstPerson();
+    public static bool Toggle();
+    public static event Action<bool> ModeChanged;
 }
 ```
 
-- **Nothing breaks on the main menu.** With no camera, the properties return `false` and the methods return `false` or do nothing.
-- **`ThirdPersonAllowed` is `false` in three cases.** There is no camera, or a camera zone in the scene is forcing first person, or an object in the scene has asked the game to turn off camera zoom.
-  - Technical: the zone case is a `PlayerCameraTrigger` that forces first person, and the zoom case is a non-empty `disabledZoomList`.
-- **`SetThirdPerson(distance)` sets the camera distance and turns third person on.** The distance is kept between the game's minimum and maximum. It returns `false` when third person is not allowed.
-  - Technical: it sets `currentDistance` clamped to `minDistance..maxDistance`. It clears `disableThirdPerson` and `firstpersonOnly`, and keeps the vanilla values so `Tweaks.Camera` can put them back. The game's `FixedUpdate` then calls `ThirdPerson()` on the next physics step.
-- **The view changes on the next physics step, not inside the call.** `ModeChanged` fires then, not while `SetThirdPerson` runs.
-- **A wall closer than about 0.6 metres keeps you in first person.** The game pulls the camera in when something is in the way.
-  - Technical: the game's collision sets `distance` below 0.5.
-- **`SetFirstPerson` does not turn the view.** The direction you are looking stays as it was, so the picture does not jump.
-  - Technical: the controller's `rotX` and `rotY` stay as they are. It sets `currentDistance = 0` and calls `FirstPerson()`.
-- **A camera zone can force first person, and the framework follows it.** A zone counts as forcing from the moment it asks for first person until it asks to stop, or until it is destroyed. A zone that is only switched off, without asking to stop, still counts. No game code uses these zones yet, so how a zone is entered and left depends on the scene and has not been checked.
-  - Technical: the framework watches `PlayerCameraTrigger.FirstPersonOnly(bool)` with a postfix. A trigger counts from its `FirstPersonOnly(true)` call until its `FirstPersonOnly(false)` call, or until it is destroyed.
-- **If the framework cannot watch the camera zones, third person is refused instead of forced.** `ThirdPersonAllowed` then stays `false`.
-  - Technical: this is when the postfix on `PlayerCameraTrigger.FirstPersonOnly` cannot be installed.
-- **The game's own first-person lock does not count as a zone.** The game sets that lock itself for the whole game, so it is not treated as a forced zone.
-  - Technical: `ThirdPersonCameraCollision.Start` sets `firstpersonOnly` from `disableThirdPerson`.
-- **The game saves the camera mode.** A save made in third person stores the cleared lock flags, so loading it restores third person.
-  - Technical: the game saves `firstperson`, `currentDistance`, `disableThirdPerson` and `firstpersonOnly` (the public fields without `fsIgnore` in the game's `SaveController`).
-- **The first-person lock can come back when a new camera starts.** A new `ThirdPersonCameraCollision` runs `Start` again, which sets the lock again. While `ThirdPersonToggle` or `AllowScrollZoom` is on, the framework clears it again on the next frame. It has not been checked that `Start` runs on every scene load.
-- **Use `CameraView` rather than the game's camera methods, so held items stay right.** The held-item code listens to the same view-change event, and the game's `FirstPerson()` and `ThirdPerson()` fire it.
-  - Technical: `PlayerHandItems.CameraModeChange` is subscribed to the same static event.
+| Method | Returns | What it does |
+|---|---|---|
+| `SetThirdPerson(float distance = 2.5f)` | `bool` | Switches to third person at this distance. Returns `false` when third person is not allowed. |
+| `SetFirstPerson()` | `void` | Switches back to first person. |
+| `Toggle()` | `bool` | Switches to the other view. Returns `false` when it is not available or refused. |
 
-This plugin logs every change of view, and switches to third person once at start if the game allows it.
+| Property | Type | What it means |
+|---|---|---|
+| `IsAvailable` | `bool` | `true` when the game has a camera to control. `false` on the main menu. |
+| `IsFirstPerson` | `bool` | `true` when the view is first person. |
+| `ThirdPersonAllowed` | `bool` | `false` when third person cannot be used right now. See Things to know. |
+
+| Event | Gives you | When it fires |
+|---|---|---|
+| `ModeChanged` | `bool` | The view changes. `true` means it is now first person. |
+
+</div>
+</div>
+
+## Putting it together
+
+Logs every change of view, and switches to third person once at start if the game allows it.
+
+<div class="api-example" markdown="1">
 
 ```csharp
 using BepInEx;
@@ -66,3 +69,31 @@ public class ChaseCam : BaseUnityPlugin
     }
 }
 ```
+
+| Step | What it does |
+|---|---|
+| `CameraView.ModeChanged += ...` | Logs each change of view. |
+| `CameraView.ThirdPersonAllowed` | Checks whether third person can be used right now. |
+| `CameraView.SetThirdPerson(3f)` | Switches to third person at a distance of 3. |
+
+</div>
+
+## Things to know
+
+- Nothing breaks on the main menu. With no camera, the properties return `false`, and the methods return `false` or do nothing.
+- `ThirdPersonAllowed` is `false` when there is no camera, when a camera zone forces first person, or when an object has asked the game to turn off camera zoom. <span class="tech">(The zone case is a `PlayerCameraTrigger` that forces first person. The zoom case is a non-empty `disabledZoomList`.)</span>
+- `SetThirdPerson(distance)` sets the camera distance and turns third person on. The game keeps the distance between its minimum and maximum. <span class="tech">(It sets `currentDistance` clamped to `minDistance..maxDistance`. It clears `disableThirdPerson` and `firstpersonOnly`, and keeps the vanilla values so `Tweaks.Camera` can put them back. The game's `FixedUpdate` then calls `ThirdPerson()` on the next physics step.)</span>
+- The view changes on the next physics step, not inside the call. `ModeChanged` fires then, not while `SetThirdPerson` runs.
+- A wall closer than about 0.6 metres keeps you in first person, because the game pulls the camera in when something is in the way. <span class="tech">(The game's collision sets `distance` below 0.5.)</span>
+- `SetFirstPerson` does not turn the view. The direction you are looking stays as it was, so the picture does not jump. <span class="tech">(The controller's `rotX` and `rotY` stay as they are. It sets `currentDistance = 0` and calls `FirstPerson()`.)</span>
+- A camera zone can force first person, and the framework follows it. A zone counts as forcing from the moment it asks for first person until it asks to stop, or until it is destroyed. <span class="tech">(The framework watches `PlayerCameraTrigger.FirstPersonOnly(bool)` with a postfix. A trigger counts from its `FirstPersonOnly(true)` call until its `FirstPersonOnly(false)` call, or until it is destroyed.)</span>
+- The game's own first-person lock does not count as a zone. The game sets that lock itself for the whole game. <span class="tech">(`ThirdPersonCameraCollision.Start` sets `firstpersonOnly` from `disableThirdPerson`.)</span>
+- The game saves the camera mode. A save made in third person stores the cleared lock flags, so loading it restores third person. <span class="tech">(The game saves `firstperson`, `currentDistance`, `disableThirdPerson` and `firstpersonOnly`, the public fields without `fsIgnore` in the game's `SaveController`.)</span>
+- Use `CameraView` rather than the game's camera methods, so held items stay right. The held-item code listens to the same view-change event, and the game's `FirstPerson()` and `ThirdPerson()` fire it. <span class="tech">(`PlayerHandItems.CameraModeChange` is subscribed to the same static event.)</span>
+
+## Limits
+
+- Vanilla 0.5.08 is first person only. Third person is a mode the game left dormant, so the player's body, animations and clipping may look rough in it.
+- A zone that is only switched off, without asking to stop, still counts. No game code uses these zones yet. How a zone is entered and left depends on the scene, and that has not been checked.
+- If the framework cannot watch the camera zones, third person is refused instead of forced, and `ThirdPersonAllowed` stays `false`. <span class="tech">(This is when the postfix on `PlayerCameraTrigger.FirstPersonOnly` cannot be installed.)</span>
+- The first-person lock can come back when a new camera starts. A new `ThirdPersonCameraCollision` runs `Start` again, which sets the lock again. While `ThirdPersonToggle` or `AllowScrollZoom` is on, the framework clears it again on the next frame. It has not been checked that `Start` runs on every scene load.

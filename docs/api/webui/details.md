@@ -18,10 +18,10 @@ The framework does not change the game's own methods for this part of the API. W
 
 ## When you can call it
 
-- **Call everything from your mod's normal code (OnLoad, event handlers, Update), not from a background thread you started.** The game and Unity only work safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)). From another thread, `Open` gives `null`, the calls that return a `bool` give `false`, and `Close` does nothing.
+- Call everything from your mod's normal code (OnLoad, event handlers, Update), not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)). From another thread, `Open` gives `null`, the calls that return a `bool` give `false`, and `Close` does nothing.
 
 ## Bad values
 
-- **A mod id that is not valid throws an error.** `Open` throws an `ArgumentException` when `modId` is not 1 to 64 characters of letters, digits, `.`, `_` or `-`, as the other framework calls do.
-- **A folder or page that is not valid gives `null`.** `Open` gives `null` when `folder` is not a folder that exists, or when `page` is not a relative path (see [Navigation](navigation.md#navigation)).
-- **Nothing else throws an error.** A call into the shim that fails gives `false` or `null`, and `LastError` then holds the shim's error text.
+- A mod id that is not valid throws an error. `Open` throws an `ArgumentException` when `modId` is not 1 to 64 characters of letters, digits, `.`, `_` or `-`, as the other framework calls do.
+- A folder or page that is not valid gives `null`. `Open` gives `null` when `folder` is not a folder that exists, or when `page` is not a relative path (see [Navigation](navigation.md#navigation)).
+- Nothing else throws an error. A call into the shim that fails gives `false` or `null`, and `LastError` then holds the shim's error text.

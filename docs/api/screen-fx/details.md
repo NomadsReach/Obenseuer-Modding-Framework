@@ -16,18 +16,16 @@ The framework changes some of the game's methods when it starts. This page calls
 
 ## When you can call it
 
-- **Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started.** The game and Unity only work safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)).
-- **It is safe to call any of it at any time, even on the main menu.** A call that needs a part of the game that is not there yet returns `false`.
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)).
+- It is safe to call any of it at any time, even on the main menu. A call that needs a part of the game that is not there yet returns `false`.
 
 ## What to check for and what comes back
 
-- **`ScreenFx.IsAvailable` tells you whether the field of view override works.** It is `false` when the framework could not set it up, or when the feature group was turned off. Shake, the fades, the death message, the vignette and the blur do not depend on it, and keep working.
+- `ScreenFx.IsAvailable` tells you whether the field of view override works. It is `false` when the framework could not set it up, or when the feature group was turned off. Shake, the fades, the death message, the vignette and the blur do not depend on it, and keep working.
 
 ## If something fails to set up
 
 The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
-- **If the framework cannot change the game's camera field of view code, the field of view override stops and the rest keeps working.** `IsAvailable` becomes `false`.
-  - Technical: it changes `SetCameraFOV.Update` and `SetCameraFOV.SetFOV`. If either is missing, the feature group `obenseuer.moddingframework.screenfx` is removed.
-- **If the framework cannot change one of the game's blur methods, `Blur` returns `false`.** `ClearBlur` still runs, and the field of view override is not affected.
-  - Technical: the feature group is `obenseuer.moddingframework.screenfx.blur`.
+- If the framework cannot change the game's camera field of view code, the field of view override stops and the rest keeps working. `IsAvailable` becomes `false`. <span class="tech">(It changes `SetCameraFOV.Update` and `SetCameraFOV.SetFOV`. If either is missing, the feature group `obenseuer.moddingframework.screenfx` is removed.)</span>
+- If the framework cannot change one of the game's blur methods, `Blur` returns `false`. `ClearBlur` still runs, and the field of view override is not affected. <span class="tech">(The feature group is `obenseuer.moddingframework.screenfx.blur`.)</span>

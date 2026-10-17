@@ -28,19 +28,19 @@ public static class Npcs
 
 | Method | Returns | What it does |
 |---|---|---|
-| `All()` | `List<NpcInfo>` | Every known NPC. |
-| `Get(int id)` | `NpcInfo` | NPC with this id; `null` if none. |
-| `Find(string name)` | `NpcInfo` | Name match; `null` if none, throws if empty. |
+| `All()` | `List<NpcInfo>` | Every NPC the game knows about. |
+| `Get(int id)` | `NpcInfo` | The NPC with this id, or `null` if there is none. |
+| `Find(string name)` | `NpcInfo` | The first NPC whose first or full name matches, or `null` if none. Throws if the name is empty. |
 
 | Property | Type | What it means |
 |---|---|---|
-| `IsAvailable` | `bool` | `false` if those events are off. |
+| `IsAvailable` | `bool` | It is `false` when the spawn, despawn or death events are off. |
 
 | Event | Gives you | When it fires |
 |---|---|---|
 | `Spawned` | `NpcInfo` | An NPC appears. |
 | `Despawned` | `NpcInfo` | An NPC leaves the scene. |
-| `Died` | `NpcInfo` | Once, when an NPC dies. |
+| `Died` | `NpcInfo` | It fires once, when an NPC dies. |
 
 </div>
 </div>
@@ -63,17 +63,17 @@ public sealed class NpcInfo
 
 | Property | Type | What it means |
 |---|---|---|
-| `Id` | `int` | Number for `Npcs.Get`. |
-| `Name` | `string` | First name; `null` if none. |
-| `DisplayName` | `string` | Full name; `null` if none. |
-| `Position` | `Vector3` | Live position, or last known. |
-| `Alive` | `bool` | `false` only for a dead NPC in scene. |
-| `CurrentScene` | `string` | Scene the game says; `null` if unknown. |
+| `Id` | `int` | The number you pass to `Npcs.Get`. |
+| `Name` | `string` | The first name, or `null` if there is none. |
+| `DisplayName` | `string` | The full name, or `null` if there is none. |
+| `Position` | `Vector3` | The live position, or the last known one if the NPC is not active in the scene. |
+| `Alive` | `bool` | It is `false` only for a dead NPC that is in a scene. |
+| `CurrentScene` | `string` | The scene the game reports, or `null` if it is unknown. |
 
 </div>
 </div>
 
-### Putting it together
+## Putting it together
 
 Logs each spawn, then finds one NPC by name.
 
@@ -108,17 +108,17 @@ public sealed class NpcRoster : FrameworkMod
 | Step | What it does |
 |---|---|
 | `Npcs.Spawned` | Logs each spawn. |
-| `Npcs.Find("Some Name")` | First match, or `null`. |
+| `Npcs.Find("Some Name")` | Returns the first match, or `null` if there is none. |
 
 </div>
 
-### Things to know
+## Things to know
 
 - `All()` misses NPCs placed straight into a scene; use `InScene()`.
 - `Spawned` fires before a `Character.Spawn` NPC starts; both it and `Despawned` fire during save loads.
-- `Died` does not repeat on load. `Despawned` ignores NPCs only switched off for walking away.
+- `Died` does not repeat on load. `Despawned` ignores NPCs that were only switched off because they walked away.
 
-### Limits
+## Limits
 
 - The game forgets deaths of away NPCs, so `Died` misses them and `Alive` stays `true`.
 - In 0.5.08 the game never kills NPCs, so `Alive` changes mostly when a mod kills one.

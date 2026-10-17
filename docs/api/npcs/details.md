@@ -14,9 +14,9 @@ Unlisted items are internal and may change.
 ## When you can call it
 
 - Call from the [main thread](../../glossary.md#main-thread), not a thread you started.
-- Safe at any time; empty reads return `0`, `false`, `null` or an empty list.
+- It is safe to call at any time. Empty reads return `0`, `false`, `null` or an empty list.
 - Only `Animals.Damage` changes the game.
-- A throwing handler is logged; others still run.
+- If a handler throws, the error is logged and the other handlers still run.
 - Don't change scenes or NPCs from a handler.
 
 ## What to check for and what comes back

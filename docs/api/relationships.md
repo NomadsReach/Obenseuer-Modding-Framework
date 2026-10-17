@@ -32,17 +32,17 @@ public static class Relationships
 
 | Method | Returns | What it does |
 |---|---|---|
-| `All()` | `List<RelationshipValue>` | Every tracked relationship. |
-| `GetDisposition(string id)` | `float` | Score; `0` if the player lacks it. |
-| `Has(string id)` | `bool` | `true` when the player has it. |
+| `All()` | `List<RelationshipValue>` | Every relationship the framework tracks. |
+| `GetDisposition(string id)` | `float` | The score, or `0` if the player does not have it. |
+| `Has(string id)` | `bool` | It is `true` when the player has it. |
 
 | Property | Type | What it means |
 |---|---|---|
-| `IsAvailable` | `bool` | `false` if the change event is off. |
+| `IsAvailable` | `bool` | It is `false` when the change event is off. |
 
 | Event | Gives you | When it fires |
 |---|---|---|
-| `RelationshipChanged` | `RelationshipChange` | Once per move, daily. |
+| `RelationshipChanged` | `RelationshipChange` | It fires when the game's daily check changes a score. |
 
 </div>
 </div>
@@ -64,11 +64,11 @@ public sealed class RelationshipValue
 
 | Property | Type | What it means |
 |---|---|---|
-| `Id` | `string` | Internal name. |
-| `Name` | `string` | Shown name. |
-| `Disposition` | `float` | Current score. |
-| `Target` | `float` | Score it moves toward. |
-| `Enabled` | `bool` | `true` when the player has it. |
+| `Id` | `string` | The relationship's internal name in the game files. |
+| `Name` | `string` | The name the game shows the player. |
+| `Disposition` | `float` | The current score. |
+| `Target` | `float` | The score it moves toward. |
+| `Enabled` | `bool` | It is `true` when the player has it. |
 
 </div>
 </div>
@@ -89,10 +89,10 @@ public sealed class RelationshipChange
 
 | Property | Type | What it means |
 |---|---|---|
-| `Id` | `string` | Internal name. |
-| `Name` | `string` | Shown name. |
-| `Previous` | `float` | Score before. |
-| `Current` | `float` | Score after. |
+| `Id` | `string` | The relationship's internal name in the game files. |
+| `Name` | `string` | The name the game shows the player. |
+| `Previous` | `float` | The score before the change. |
+| `Current` | `float` | The score after the change. |
 
 </div>
 </div>
@@ -144,7 +144,7 @@ public sealed class MoodWatch : FrameworkMod
 ### Limits
 
 - Scores are per player, not per NPC.
-- You can't set scores or targets; the framework has nothing safe to call.
+- You can't set scores or targets, because the framework has nothing safe to call.
 
 ## Details
 
@@ -155,8 +155,8 @@ Relationships use feature group `obenseuer.moddingframework.npcs.relationship`.
 ### When you can call it
 
 - Call from the [main thread](../glossary.md#main-thread), not a thread you started.
-- Safe at any time; empty reads return `0`, `false`, `null` or an empty list.
-- A throwing handler is logged; others still run.
+- It is safe to call at any time. Empty reads return `0`, `false`, `null` or an empty list.
+- If a handler throws, the error is logged and the other handlers still run.
 - Don't change scenes or NPCs from a handler.
 
 ## Under the hood

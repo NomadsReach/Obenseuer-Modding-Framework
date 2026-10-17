@@ -70,76 +70,124 @@ if (Robbers.Negotiate(Mod.Id, npcId)) Log.Info("The robber took the bribe and le
 
 ## Reference
 
-This is the full list of what the API gives you. In every code block, the comments say what each member gives you or does. A line starting with `Technical:` holds extra detail for experienced modders. You can skip it on a first read.
+Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
 
 ### Reading robbers
 
 `Robbers.All()` and `Robbers.State()` tell you which NPCs are robbers and what they are doing. They also see a robber that is far away and not in the scene you are in.
 
-```csharp
-public sealed class RobberInfo    // one robber
-{
-    public int NpcId { get; }       // the robber's NPC id; use it with the other members
-    public string State { get; }    // what the robber is doing: Idle, Stand, Patrol, Wander, Chase or Aggro
-}
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>RobberInfo</code> <span>one robber</span></p>
+<div class="api-pair" markdown="1">
 
-public static class Robbers
+```csharp
+public sealed class RobberInfo
 {
-    public static bool IsAvailable { get; }          // false when the Robbed event could not be set up
-    public static List<RobberInfo> All();            // every robber the game knows
-    public static string State(int npcId);           // what that robber is doing; null when the NPC is not a robber
+    public int NpcId { get; }
+    public string State { get; }
 }
 ```
 
-- **A robber is an NPC whose current activity is the game's robber activity.** When a robber is doing something else, such as another job, it is not listed.
-  - Technical: `All` looks at each NPC's `state.CurrentActivity` in `NPCDirector.globalDatabase` and keeps the ones that are an `Act_Robber`.
-- **The states mean what the robber is doing now.** `Idle` and `Stand` are waiting, `Patrol` is walking its route, `Wander` is walking around, `Chase` is following the player, and `Aggro` is attacking the player.
-- **`IsAvailable` is `false` when the `Robbed` event does not work.** The reads and the other writes keep working.
+| Property | Type | What it means |
+|---|---|---|
+| `NpcId` | `int` | The robber's NPC id. Use it with the other members. |
+| `State` | `string` | What the robber is doing: `Idle`, `Stand`, `Patrol`, `Wander`, `Chase` or `Aggro`. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>Robbers</code> <span>reading robbers</span></p>
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class Robbers
+{
+    public static bool IsAvailable { get; }
+    public static List<RobberInfo> All();
+    public static string State(int npcId);
+}
+```
+
+| Method | Returns | What it does |
+|---|---|---|
+| `All()` | `List<RobberInfo>` | Every robber the game knows. |
+| `State(int npcId)` | `string` | What that robber is doing. It is `null` when the NPC is not a robber. |
+
+| Property | Type | What it means |
+|---|---|---|
+| `IsAvailable` | `bool` | `false` when the `Robbed` event could not be set up. |
+
+</div>
+</div>
+
+- A robber is an NPC whose current activity is the game's robber activity. When a robber is doing something else, such as another job, it is not listed. <span class="tech">(`All` looks at each NPC's `state.CurrentActivity` in `NPCDirector.globalDatabase` and keeps the ones that are an `Act_Robber`.)</span>
+- The states mean what the robber is doing now. `Idle` and `Stand` are waiting, `Patrol` is walking its route, `Wander` is walking around, `Chase` is following the player, and `Aggro` is attacking the player.
+- `IsAvailable` is `false` when the `Robbed` event does not work. The reads and the other writes keep working.
 
 ### Making a robber act
 
 These calls make a robber do something. The first argument is your mod's id (`Mod.Id`). They only work on a robber that is in the scene you are in. For a robber that is far away, they return `false`.
 
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>Robbers</code> <span>making a robber act</span></p>
+<div class="api-pair" markdown="1">
+
 ```csharp
 public static class Robbers
 {
-    public static bool Aggro(string modId, int npcId);                  // make the robber attack the player; true when it is now attacking
-    public static bool Rob(string modId, int npcId);                    // rob the player now; true when the robbery ran
-    public static bool Negotiate(string modId, int npcId);              // try to bribe the robber; true when it worked
-    public static bool SetAloof(string modId, int npcId, bool aloof);   // change the robber's "aloof" dialogue flag; true when it was set
+    public static bool Aggro(string modId, int npcId);
+    public static bool Rob(string modId, int npcId);
+    public static bool Negotiate(string modId, int npcId);
+    public static bool SetAloof(string modId, int npcId, bool aloof);
 }
 ```
 
-- **`Aggro` makes the robber attack the player, the same as the game's own attack call.** It returns `true` only when the robber is now attacking. If the robber has seen a police officer, the game does not let it attack, and you get `false`.
-  - Technical: it calls `Act_Robber.Aggro()` and checks `state == Aggro`. The game does nothing when `seenPolice` is set.
-- **`Rob` robs the player the way the game does, then ends the robber's job.** It only runs when the player holds at least the robber's minimum in both currencies, which is 1000 OC and 33 RM in this game version. Otherwise it returns `false` and nothing happens. The game leaves the player a random amount below that minimum in each currency. It returns `true` once the robbery has run.
-  - Technical: the check is `Money.CheckMoney(minimumMoney)` on the private `Act_Robber.minimumMoney` field, so a player holding at least the minimum in both currencies is only ever robbed, never given money. The game's own robbery talk still starts on either currency alone and can add money for a player who holds less. The framework does not change that. `RobPlayer` also sets the robber's aloof flag and finishes its activity.
-- **`Negotiate` tries the bribe the way the game does.** The chance depends on the player's bribery skill and on how much money the player holds: the more money, the less likely it works. It returns `true` when it works. Then the game takes a small share of the player's money and the robber leaves.
-  - Technical: it calls `Act_Robber.TryNegotiate()`. On success the game removes 5% of the player's money, finishes the activity and sets the aloof flag.
-- **`SetAloof` changes a flag that the robber's dialogue reads.** The game sets this flag itself after a robbery or a bribe. It returns `false` when the robber has no conversation to set it on.
-  - Technical: it calls `ChangeRobberAloofStatus`, which sets the actor field `Aloof` for the NPC's `ConversationTrigger`.
-- **Your mod's id must be valid.** It must be 1 to 64 letters, digits, dots, underscores or dashes. A bad id throws an `ArgumentException`. Use `Mod.Id` and you are fine.
-- **These calls return `false` while a save is loading or being written.**
+| Method | Returns | What it does |
+|---|---|---|
+| `Aggro(string modId, int npcId)` | `bool` | Makes the robber attack the player. It is `true` when it is now attacking. |
+| `Rob(string modId, int npcId)` | `bool` | Robs the player now. It is `true` when the robbery ran. |
+| `Negotiate(string modId, int npcId)` | `bool` | Tries to bribe the robber. It is `true` when it worked. |
+| `SetAloof(string modId, int npcId, bool aloof)` | `bool` | Changes the robber's "aloof" dialogue flag. It is `true` when it was set. |
+
+</div>
+</div>
+
+- `Aggro` makes the robber attack the player, the same as the game's own attack call. It returns `true` only when the robber is now attacking. If the robber has seen a police officer, the game does not let it attack, and you get `false`. <span class="tech">(It calls `Act_Robber.Aggro()` and checks `state == Aggro`. The game does nothing when `seenPolice` is set.)</span>
+- `Rob` robs the player the way the game does, then ends the robber's job. It only runs when the player holds at least the robber's minimum in both currencies, which is 1000 OC and 33 RM in this game version. Otherwise it returns `false` and nothing happens. The game leaves the player a random amount below that minimum in each currency. It returns `true` once the robbery has run. <span class="tech">(The check is `Money.CheckMoney(minimumMoney)` on the private `Act_Robber.minimumMoney` field, so a player holding at least the minimum in both currencies is only ever robbed, never given money. The game's own robbery talk still starts on either currency alone and can add money for a player who holds less. The framework does not change that. `RobPlayer` also sets the robber's aloof flag and finishes its activity.)</span>
+- `Negotiate` tries the bribe the way the game does. The chance depends on the player's bribery skill and on how much money the player holds: the more money, the less likely it works. It returns `true` when it works. Then the game takes a small share of the player's money and the robber leaves. <span class="tech">(It calls `Act_Robber.TryNegotiate()`. On success the game removes 5% of the player's money, finishes the activity and sets the aloof flag.)</span>
+- `SetAloof` changes a flag that the robber's dialogue reads. The game sets this flag itself after a robbery or a bribe. It returns `false` when the robber has no conversation to set it on. <span class="tech">(It calls `ChangeRobberAloofStatus`, which sets the actor field `Aloof` for the NPC's `ConversationTrigger`.)</span>
+- Your mod's id must be valid. It must be 1 to 64 letters, digits, dots, underscores or dashes. A bad id throws an `ArgumentException`. Use `Mod.Id` and you are fine.
+- These calls return `false` while a save is loading or being written.
 
 ### Knowing when the player is robbed
 
 `Robbed` tells you each time a robbery finishes.
 
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>Robbers</code> <span>knowing when the player is robbed</span></p>
+<div class="api-pair" markdown="1">
+
 ```csharp
 public static class Robbers
 {
-    public static event Action<int> Robbed;   // a robbery just finished; you get the robber's NPC id
+    public static event Action<int> Robbed;
 }
 ```
 
-- **`Robbed` fires when a robbery finishes, whether the game or a mod started it.** Your handler gets the robber's NPC id. It does not fire when the robber has no NPC id.
-  - Technical: it is raised from a Harmony postfix on `Act_Robber.RobPlayer`, on the main thread.
-- **A `Robbed` handler that throws an error does not stop the others.** The framework logs the error and still runs the other handlers.
+| Event | Gives you | When it fires |
+|---|---|---|
+| `Robbed` | `int`, the robber's NPC id | A robbery just finished. |
+
+</div>
+</div>
+
+- `Robbed` fires when a robbery finishes, whether the game or a mod started it. Your handler gets the robber's NPC id. It does not fire when the robber has no NPC id. <span class="tech">(It is raised from a Harmony postfix on `Act_Robber.RobPlayer`, on the main thread.)</span>
+- A `Robbed` handler that throws an error does not stop the others. The framework logs the error and still runs the other handlers.
 
 ### What you can't do (yet)
 
-- **There is no event for a robber changing state.** The game changes a robber's state in several places, and some of them do not go through the shared method the framework could watch, so one watch would miss changes. To follow a robber, ask `State` on a timer.
-  - Technical: some state changes skip `StartState`, so a hook on it would miss them.
+- There is no event for a robber changing state. The game changes a robber's state in several places, and some of them do not go through the shared method the framework could watch, so one watch would miss changes. To follow a robber, ask `State` on a timer. <span class="tech">(Some state changes skip `StartState`, so a hook on it would miss them.)</span>
 
 ## Details
 
@@ -152,16 +200,15 @@ The framework changes one game method when it starts, so it can tell your mod wh
 
 ### When you can call it
 
-- **Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started.** The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)). This goes for the code that handles `Robbed` too.
-- **It is safe to call any of it at any time, even on the main menu or while a save is loading.** Reads give an empty list or `null` when there is nothing to read. Calls that make a robber act give `false`.
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)). This goes for the code that handles `Robbed` too.
+- It is safe to call any of it at any time, even on the main menu or while a save is loading. Reads give an empty list or `null` when there is nothing to read. Calls that make a robber act give `false`.
 
 ### What to check for and what comes back
 
-- **Bad values give `false` or `null` instead of an error.** The only error is the `ArgumentException` for an invalid mod id. If the game itself fails, the first failure of each member goes to the log as an error and you get the same plain default.
+- Bad values give `false` or `null` instead of an error. The only error is the `ArgumentException` for an invalid mod id. If the game itself fails, the first failure of each member goes to the log as an error and you get the same plain default.
 
 ### If something fails to set up
 
 The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
-- **If the framework cannot change the game's robbery method, `Robbed` stops and the rest keeps working.** `IsAvailable` becomes `false`.
-  - Technical: the method is `Act_Robber.RobPlayer`.
+- If the framework cannot change the game's robbery method, `Robbed` stops and the rest keeps working. `IsAvailable` becomes `false`. <span class="tech">(The method is `Act_Robber.RobPlayer`.)</span>

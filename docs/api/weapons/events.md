@@ -7,26 +7,61 @@ nav_order: 4
 
 # Events
 
-```csharp
-public sealed class WeaponFiredArgs    // what you get when a Detonator goes off
-{
-    public int ItemId { get; }           // the Detonator's item id
-    public WeaponKind Kind { get; }      // always Explosive
-    public int AmmoLoaded { get; }       // the ammo loaded after the press
-}
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>WeaponFiredArgs</code> <span>what you get when a Detonator goes off</span></p>
+<div class="api-pair" markdown="1">
 
-public static class Weapons
+```csharp
+public sealed class WeaponFiredArgs
 {
-    public static bool IsAvailable { get; }                    // false when one of the first three events could not be set up
-    public static event Action<WeaponFiredArgs> Fired;         // a Detonator press used a charge
-    public static event Action<WeaponInfo> MeleeSwung;         // a melee swing has started
-    public static event Action<WeaponInfo> Reloaded;           // a Detonator reload has started
-    public static event Action<HitArgs> Hit;                   // a melee hit has landed (see Hit power)
+    public int ItemId { get; }
+    public WeaponKind Kind { get; }
+    public int AmmoLoaded { get; }
 }
 ```
 
-- **`Fired` fires when a Detonator press uses a charge.** `Kind` is `Explosive`. Nothing else raises it.
-- **`MeleeSwung` fires once for each swing, when the swing's hit window opens, not for each thing it hits.**
-- **`Reloaded` fires when a Detonator reload starts and its ammo item is used up.** The refill comes later, so the snapshot shows the ammo from before the refill.
-- **`Hit` fires once for each melee hit that a target accepts, just before the target takes the damage.** See "Hit power" below for what you get.
-- **Damage to the player from weapons is not repeated here.** Use `Survival.Damaged` (see the [core API page](../../api-core/survival.md#survival)).
+| Property | Type | What it means |
+|---|---|---|
+| `ItemId` | `int` | The Detonator's item id. |
+| `Kind` | `WeaponKind` | Always `Explosive`. |
+| `AmmoLoaded` | `int` | The ammo loaded after the press. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>Weapons</code> <span>the weapon events</span></p>
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class Weapons
+{
+    public static bool IsAvailable { get; }
+    public static event Action<WeaponFiredArgs> Fired;
+    public static event Action<WeaponInfo> MeleeSwung;
+    public static event Action<WeaponInfo> Reloaded;
+    public static event Action<HitArgs> Hit;
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `IsAvailable` | `bool` | `false` when one of the first three events could not be set up. |
+
+| Event | Gives you | When it fires |
+|---|---|---|
+| `Fired` | `WeaponFiredArgs` | A Detonator press used a charge. |
+| `MeleeSwung` | `WeaponInfo` | A melee swing has started. |
+| `Reloaded` | `WeaponInfo` | A Detonator reload has started. |
+| `Hit` | `HitArgs` | A melee hit has landed. See Hit power. |
+
+</div>
+</div>
+
+## Things to know
+
+- `Fired` fires when a Detonator press uses a charge. `Kind` is `Explosive`. Nothing else raises it.
+- `MeleeSwung` fires once for each swing, when the swing's hit window opens. It does not fire once for each thing the swing hits.
+- `Reloaded` fires when a Detonator reload starts and its ammo item is used up. The refill comes later, so the snapshot shows the ammo from before the refill.
+- `Hit` fires once for each melee hit that a target accepts, just before the target takes the damage. See "Hit power" for what you get.
+- Damage to the player from weapons is not repeated here. Use `Survival.Damaged` (see the [core API page](../../api-core/survival.md#survival)).

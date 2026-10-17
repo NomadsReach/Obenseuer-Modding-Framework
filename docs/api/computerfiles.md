@@ -71,43 +71,88 @@ void ShowId(UnityEngine.GameObject computerObject)
 
 ## Reference
 
-This is the full list of what the API gives you. In the code block, the comments say what each member gives you or does. A line starting with `Technical:` holds extra detail for experienced modders. You can skip it on a first read.
+This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>ComputerContents</code> <span>find computers and read their files and emails</span></p>
+<div class="api-pair" markdown="1">
 
 ```csharp
 public static class ComputerContents
 {
-    public static List<ComputerInfo> All();                         // every computer in the scene you are in
-    public static string IdOf(GameObject computer);                 // the id of this computer; null when the object is not a computer
-    public static List<ComputerDocInfo> Files(string computerId);   // the files in this computer's recycle bin
-    public static List<ComputerDocInfo> Emails(string computerId);  // the emails in this computer's inbox
-}
-
-public sealed class ComputerInfo    // one computer
-{
-    public string Id { get; }       // the computer's id; pass it to Files and Emails
-    public string Title { get; }    // the name the computer shows; an empty text when it has none
-    public string Scene { get; }    // the name of the scene the computer is in
-}
-
-public sealed class ComputerDocInfo    // one file or one email
-{
-    public string Title { get; }     // a file's name, or an email's subject
-    public string Sender { get; }    // an email's sender; an empty text for a file
-    public string Body { get; }      // the text of the file or the email
+    public static List<ComputerInfo> All();
+    public static string IdOf(GameObject computer);
+    public static List<ComputerDocInfo> Files(string computerId);
+    public static List<ComputerDocInfo> Emails(string computerId);
 }
 ```
 
-- **You can only read. You can't add, change or delete files or emails.** The game builds each computer's screen once, when the computer starts. Adding a file or email later would show the old rows a second time next to the new ones, and nothing the framework could add would be saved.
-  - Technical: the lists are `InteractableComputer.emails` and `recycleBinFiles`, set in the Unity editor and marked `[fsIgnore]`, so they are not saved. The game copies them to the screen once, in the computer's `Start`. `ComputerScreen.AddEmails` and `ComputerScreen.AddRecycleBinFiles` each replace the list and build a row for every entry, so a second call shows the old rows twice. The framework does not wrap them. The wallpaper is a separate case: see [Computer desk](computerdesk.md).
-- **A computer id is a piece of text that names one computer.** `All()` and `IdOf` give it to you. It is stable as long as the scene does not change. Do not keep it for a computer that the game creates while it runs.
-  - Technical: the id is the computer's world GUID when the game gave it one. Most computers have none, so the usual id is the scene path, such as `Scene:Root[0]/Child[2]/Computer[1]`, with each node followed by its position among its siblings.
-- **`All()` only lists computers that are switched on in the scene you are in.** A computer in another scene, or one the game has switched off, is not listed, and `Files` and `Emails` return an empty list for it.
-  - Technical: it searches the active objects of the active scene for `InteractableComputer`.
-- **`Files` and `Emails` give you copies, in the order the game keeps them.** Each call reads what the computer holds right now.
-- **For a file, `Sender` is an empty text, and `Body` is empty when the file is not a text file.** For an email, `Title` is the subject, `Sender` is the sender's name and `Body` is the message.
-  - Technical: for a file, `Title` is `ComputerFile.fileName` and `Body` is `textFile.content`. For an email they are `Email.title`, `from` and `content`.
-- **A missing computer gives an empty list, and a missing id throws an error.** An id that matches no computer, or a computer that is not loaded, gives an empty list. A `null` id throws an `ArgumentException`. An empty text is not an error: it matches nothing and gives an empty list.
-- **`IdOf` gives `null` for a `null` object and for an object that is not a computer.**
+| Method | Returns | What it does |
+|---|---|---|
+| `All()` | `List<ComputerInfo>` | Every computer in the scene you are in. |
+| `IdOf(GameObject computer)` | `string` | The id of this computer. `null` when the object is not a computer. |
+| `Files(string computerId)` | `List<ComputerDocInfo>` | The files in this computer's recycle bin. |
+| `Emails(string computerId)` | `List<ComputerDocInfo>` | The emails in this computer's inbox. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>ComputerInfo</code> <span>one computer</span></p>
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class ComputerInfo
+{
+    public string Id { get; }
+    public string Title { get; }
+    public string Scene { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Id` | `string` | The computer's id. Pass it to `Files` and `Emails`. |
+| `Title` | `string` | The name the computer shows. An empty text when it has none. |
+| `Scene` | `string` | The name of the scene the computer is in. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>ComputerDocInfo</code> <span>one file or one email</span></p>
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class ComputerDocInfo
+{
+    public string Title { get; }
+    public string Sender { get; }
+    public string Body { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Title` | `string` | A file's name, or an email's subject. |
+| `Sender` | `string` | An email's sender. An empty text for a file. |
+| `Body` | `string` | The text of the file or the email. |
+
+</div>
+</div>
+
+### Things to know
+
+- A computer id is a piece of text that names one computer. `All()` and `IdOf` give it to you. It is stable as long as the scene does not change. Do not keep it for a computer that the game creates while it runs. <span class="tech">(The id is the computer's world GUID when the game gave it one. Most computers have none, so the usual id is the scene path, such as `Scene:Root[0]/Child[2]/Computer[1]`, with each node followed by its position among its siblings.)</span>
+- `All()` only lists computers that are switched on in the scene you are in. A computer in another scene, or one the game has switched off, is not listed, and `Files` and `Emails` return an empty list for it. <span class="tech">(It searches the active objects of the active scene for `InteractableComputer`.)</span>
+- `Files` and `Emails` give you copies, in the order the game keeps them. Each call reads what the computer holds right now.
+- For a file, `Sender` is an empty text, and `Body` is empty when the file is not a text file. For an email, `Title` is the subject, `Sender` is the sender's name and `Body` is the message. <span class="tech">(For a file, `Title` is `ComputerFile.fileName` and `Body` is `textFile.content`. For an email they are `Email.title`, `from` and `content`.)</span>
+- A missing computer gives an empty list, and a missing id throws an error. An id that matches no computer, or a computer that is not loaded, gives an empty list. A `null` id throws an `ArgumentException`. An empty text is not an error: it matches nothing and gives an empty list.
+- `IdOf` gives `null` for a `null` object and for an object that is not a computer.
+
+### Limits
+
+- You can only read. You can't add, change or delete files or emails. The game builds each computer's screen once, when the computer starts. Adding a file or email later would show the old rows a second time next to the new ones, and nothing the framework could add would be saved. <span class="tech">(The lists are `InteractableComputer.emails` and `recycleBinFiles`, set in the Unity editor and marked `[fsIgnore]`, so they are not saved. The game copies them to the screen once, in the computer's `Start`. `ComputerScreen.AddEmails` and `ComputerScreen.AddRecycleBinFiles` each replace the list and build a row for every entry, so a second call shows the old rows twice. The framework does not wrap them. The wallpaper is a separate case: see [Computer desk](computerdesk.md).)</span>
 
 ## Details
 
@@ -118,9 +163,9 @@ Everything not listed in this reference is internal and may change without notic
 
 ### When you can call it
 
-- **Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started.** The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
 
 ### What to check for and what comes back
 
-- **This API changes nothing in the game, so it has no `IsAvailable` and no feature group.** The framework changes no game method for it, and it has no events.
-- **If the game itself fails while the framework reads, you get an empty answer instead of an error.** The answer is an empty list, or `null` for `IdOf`. The failure goes to the log at debug level only.
+- This API changes nothing in the game, so it has no `IsAvailable` and no feature group. The framework changes no game method for it, and it has no events.
+- If the game itself fails while the framework reads, you get an empty answer instead of an error. The answer is an empty list, or `null` for `IdOf`. The failure goes to the log at debug level only.

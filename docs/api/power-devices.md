@@ -14,9 +14,9 @@ Many things in the game need power: lamps, fridges and other furniture, crafting
 
 It covers three kinds of power object:
 
-- **Furniture power devices**, the lamps and machines the player places in a room.
-- **Crafting stations that have a power source**, including generators and stoves that burn fuel.
-- **Batteries**, which use up stored fuel items over time.
+- Furniture power devices, the lamps and machines the player places in a room.
+- Crafting stations that have a power source, including generators and stoves that burn fuel.
+- Batteries, which use up stored fuel items over time.
 
 Blackouts and generator switches are on the [World](world.md) page (`WorldPower`) and are not repeated here. The gas pumps are on the [Fuel](fuel.md) page.
 

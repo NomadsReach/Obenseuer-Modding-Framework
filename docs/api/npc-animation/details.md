@@ -18,5 +18,5 @@ The framework changes some of the game's methods when it starts, so it can tell 
 
 ## When you can call it
 
-- **Call everything from your mod's normal code (OnLoad, event handlers, Update), not from a background thread you started.** The game and Unity only work safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)).
-- **While a save is loading or being written, `Play`, `Stop`, `PlayOn` and `StopOn` give `false`.** `StopAll` still stops your clips.
+- Call everything from your mod's normal code (OnLoad, event handlers, Update), not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)).
+- While a save is loading or being written, `Play`, `Stop`, `PlayOn` and `StopOn` give `false`. `StopAll` still stops your clips.

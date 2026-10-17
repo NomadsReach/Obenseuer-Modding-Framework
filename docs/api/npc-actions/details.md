@@ -18,10 +18,10 @@ The framework changes some of the game's methods when it starts, so it can tell 
 
 ## When you can call it
 
-- **Call everything from your mod's normal code (OnLoad, event handlers, Update), not from a background thread you started.** The game only works safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)).
-- **An error from the game is caught and logged once, and you get `false`.** The first error of each action goes to the log. Later errors of that action are not logged again.
+- Call everything from your mod's normal code (OnLoad, event handlers, Update), not from a background thread you started. The game only works safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)).
+- An error from the game is caught and you get `false`. Only the first error of each action is logged. Later errors of that action are not logged again.
 
 ## Limits
 
-- **`Say` and `Comment` follow the game's own rules for speech.** Because of the game's priorities, conditions and conversation state, they give `true` when the line was asked for and not when it was shown.
-- **A `Teleport` is not final.** It moves the character, but the NPC's schedule may pull it back to its target on the next tick.
+- `Say` and `Comment` follow the game's own rules for speech. Because of the game's priorities, conditions and conversation state, they give `true` when the line was asked for and not when it was shown.
+- A `Teleport` is not final. It moves the character, but the NPC's schedule may pull it back to its target on the next tick.

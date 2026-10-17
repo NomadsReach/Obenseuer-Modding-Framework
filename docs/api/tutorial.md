@@ -64,50 +64,93 @@ if (!TutorialGuide.IsAvailable) Log.Warn("Tutorial step events are off in this g
 
 ## Reference
 
-This is the full list of what the API gives you. In every code block, the comments say what each member gives you or does. A line starting with `Technical:` holds extra detail for experienced modders. You can skip it on a first read.
+This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
 
 ### Tutorial steps
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>TutorialGuide</code> <span>read the opening tutorial step and listen for changes</span></p>
+<div class="api-pair" markdown="1">
 
 ```csharp
 public static class TutorialGuide
 {
-    public static bool IsAvailable { get; }                  // true when the StepChanged event works (see Details)
-    public static bool Active { get; }                       // true while a tutorial prompt is showing
-    public static TutorialStep Step { get; }                 // the opening tutorial step the player is on
-    public static event Action<TutorialStepArgs> StepChanged;   // the tutorial has just moved to another step
-}
-
-public enum TutorialStep
-{
-    None = 0,         // no opening step is running
-    LookAround = 1,   // the player is learning to look around
-    Move = 2,         // the player is learning to move
-    Interact = 3,     // the player is learning to use things
-    Menu = 4          // the player is learning to open the menu
-}
-
-public sealed class TutorialStepArgs    // what changed
-{
-    public TutorialStep Previous { get; }   // the step before the change
-    public TutorialStep Step { get; }       // the step after the change
+    public static bool IsAvailable { get; }
+    public static bool Active { get; }
+    public static TutorialStep Step { get; }
+    public static event Action<TutorialStepArgs> StepChanged;
 }
 ```
 
-- **`Step` is `None` before the tutorial starts, after it is over, and when there is no tutorial at all.** There is no tutorial on the main menu, or when no save is loaded.
-  - Technical: it is `None` when `Tutorial.instance` is null. Otherwise it reads the game's opening-tutorial flags in the order look around, move, use, menu.
-- **`Active` is `true` while a tutorial prompt is on the screen.** The game turns it off when the prompt is hidden, so it is `false` between prompts, even while `Step` is not `None`.
-  - Technical: it reads the game's `Tutorial.TutorialActive` flag.
-- **The game's other prompts make `Active` `true`, but they are not steps.** These are the prompts for building, cleaning, reloading, the headlight, the inventory, the map, tasks and the tenement. `Step` does not change for them.
-- **`StepChanged` fires once for each change of step.** It can fire a little after the player did the action, because the game waits a short moment before it moves on.
-  - Technical: the game changes its flags inside a coroutine (`ChangeTutorial`) after a short wait. The framework checks the flags at the end of `Tutorial.Update`, so the event comes from there.
-- **You do not get an event for a change that happened before you subscribed.** Your first handler starts from the step the tutorial is on at that moment.
-  - Technical: when the first handler is added, the framework records the current `Step`. With no handler, the check is skipped.
+| Property | Type | What it means |
+|---|---|---|
+| `IsAvailable` | `bool` | `true` when the `StepChanged` event works (see Details). |
+| `Active` | `bool` | `true` while a tutorial prompt is showing. |
+| `Step` | `TutorialStep` | The opening tutorial step the player is on. |
+
+| Event | Gives you | When it fires |
+|---|---|---|
+| `StepChanged` | `TutorialStepArgs` | The tutorial has just moved to another step. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>TutorialStep</code> <span>the opening tutorial steps</span></p>
+<div class="api-pair" markdown="1">
+
+```csharp
+public enum TutorialStep
+{
+    None = 0,
+    LookAround = 1,
+    Move = 2,
+    Interact = 3,
+    Menu = 4
+}
+```
+
+| Value | Meaning |
+|---|---|
+| `None` | No opening step is running. |
+| `LookAround` | The player is learning to look around. |
+| `Move` | The player is learning to move. |
+| `Interact` | The player is learning to use things. |
+| `Menu` | The player is learning to open the menu. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>TutorialStepArgs</code> <span>what changed</span></p>
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class TutorialStepArgs
+{
+    public TutorialStep Previous { get; }
+    public TutorialStep Step { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Previous` | `TutorialStep` | The step before the change. |
+| `Step` | `TutorialStep` | The step after the change. |
+
+</div>
+</div>
+
+- `Step` is `None` before the tutorial starts, after it is over, and when there is no tutorial at all. There is no tutorial on the main menu, or when no save is loaded. <span class="tech">(It is `None` when `Tutorial.instance` is null. Otherwise it reads the game's opening-tutorial flags in the order look around, move, use, menu.)</span>
+- `Active` is `true` while a tutorial prompt is on the screen. The game turns it off when the prompt is hidden, so it is `false` between prompts, even while `Step` is not `None`. <span class="tech">(It reads the game's `Tutorial.TutorialActive` flag.)</span>
+- The game's other prompts make `Active` `true`, but they are not steps. These are the prompts for building, cleaning, reloading, the headlight, the inventory, the map, tasks and the tenement. `Step` does not change for them.
+- `StepChanged` fires once for each change of step. It can fire a little after the player did the action, because the game waits a short moment before it moves on. <span class="tech">(The game changes its flags inside a coroutine (`ChangeTutorial`) after a short wait. The framework checks the flags at the end of `Tutorial.Update`, so the event comes from there.)</span>
+- You do not get an event for a change that happened before you subscribed. Your first handler starts from the step the tutorial is on at that moment. <span class="tech">(When the first handler is added, the framework records the current `Step`. With no handler, the check is skipped.)</span>
 
 ### What you can't do (yet)
 
-- **You can't start, skip or finish the tutorial.** The game has no call that finishes it. Each step ends when the player does what it asks, and the game moves to the next step by itself.
-  - Technical: `Tutorial.HideTutorial` hides the prompt and clears the building, cleaning, reload and headlight flags, but it does not touch the opening steps, so the framework has no call for it.
-- **You can't show or hide a tutorial prompt.** The framework offers no call to display one.
+- You can't start, skip or finish the tutorial. The game has no call that finishes it. Each step ends when the player does what it asks, and the game moves to the next step by itself. <span class="tech">(`Tutorial.HideTutorial` hides the prompt and clears the building, cleaning, reload and headlight flags, but it does not touch the opening steps, so the framework has no call for it.)</span>
+- You can't show or hide a tutorial prompt. The framework offers no call to display one.
 
 ## Details
 
@@ -120,11 +163,10 @@ Everything not listed in this reference is internal and may change without notic
 
 The framework changes one of the game's methods when it starts, so it can tell your mod when the tutorial step changes. If a game update breaks it, the `StepChanged` event turns off, and the framework writes error lines and a warning to the log. The change belongs to a feature group, `obenseuer.moddingframework.tutorial`, the name you will see in the log.
 
-- **`TutorialGuide.IsAvailable` tells you whether `StepChanged` works.** It is `false` when the framework could not set up the change, or when the feature group was turned off. `Step` and `Active` do not depend on it, but `StepChanged` does not fire unless it is `true`.
-  - Technical: the framework also needs five of the game's private `Tutorial` fields. If any of them is missing, `IsAvailable` is `false`, and a read that cannot find its field falls back to `None` or `false`.
+- `TutorialGuide.IsAvailable` tells you whether `StepChanged` works. It is `false` when the framework could not set up the change, or when the feature group was turned off. `Step` and `Active` do not depend on it, but `StepChanged` does not fire unless it is `true`. <span class="tech">(The framework also needs five of the game's private `Tutorial` fields. If any of them is missing, `IsAvailable` is `false`, and a read that cannot find its field falls back to `None` or `false`.)</span>
 
 ### When you can call it
 
-- **Call everything from your mod's normal code (OnLoad, event handlers, Update), not from a background thread you started.** The game only works safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
-- **It is safe to call any of it at any time.** Nothing throws an error, because no call takes an argument. If the game fails while the framework reads, you get `None` or `false`.
-- **Your `StepChanged` handlers run inside the game's own update, one at a time.** If a handler throws an error, the framework logs it and still runs the other handlers.
+- Call everything from your mod's normal code (OnLoad, event handlers, Update), not from a background thread you started. The game only works safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
+- It is safe to call any of it at any time. Nothing throws an error, because no call takes an argument. If the game fails while the framework reads, you get `None` or `false`.
+- Your `StepChanged` handlers run inside the game's own update, one at a time. If a handler throws an error, the framework logs it and still runs the other handlers.

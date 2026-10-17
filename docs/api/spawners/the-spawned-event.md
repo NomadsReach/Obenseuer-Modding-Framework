@@ -7,20 +7,52 @@ nav_order: 5
 
 # The Spawned event
 
+The `Spawned` event tells your mod each time a spawner spawns something.
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>Spawners</code> <span>the spawn event</span></p>
+<div class="api-pair" markdown="1">
+
 ```csharp
 public static class Spawners
 {
-    public static event Action<SpawnerArgs> Spawned;   // a spawner spawned something
-}
-
-public sealed class SpawnerArgs    // what you get when a spawner spawns
-{
-    public string Id { get; }            // the id of the spawner, as SpawnerInfo.Id
-    public string TypeName { get; }      // what kind of spawner it is
-    public int SpawnedCount { get; }     // how many things it has spawned, counted after this spawn
+    public static event Action<SpawnerArgs> Spawned;
 }
 ```
 
-- **`Spawned` fires every time a spawner spawns, including the spawns the game makes by itself.** That covers the spawn when a scene starts and the spawn on a map change, not just the ones you trigger.
-  - Technical: it is raised from a postfix on `Spawner.TrySpawn(bool)` whenever the method returns `true`.
-- **`Spawned` can fire even though nothing new appeared.** See the `TriggerNow` bullets above for the cases.
+| Event | Gives you | When it fires |
+|---|---|---|
+| `Spawned` | `SpawnerArgs` | A spawner spawned something. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>SpawnerArgs</code> <span>what you get when a spawner spawns</span></p>
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class SpawnerArgs
+{
+    public string Id { get; }
+    public string TypeName { get; }
+    public int SpawnedCount { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Id` | `string` | The id of the spawner, as `SpawnerInfo.Id`. |
+| `TypeName` | `string` | What kind of spawner it is. |
+| `SpawnedCount` | `int` | How many things it has spawned, counted after this spawn. |
+
+</div>
+</div>
+
+## Things to know
+
+- `Spawned` fires every time a spawner spawns, including the spawns the game makes by itself. That covers the spawn when a scene starts and the spawn on a map change, not just the ones you trigger. <span class="tech">(it is raised from a postfix on `Spawner.TrySpawn(bool)` whenever the method returns `true`.)</span>
+
+## Limits
+
+- `Spawned` can fire even though nothing new appeared. See the notes on `TriggerNow` in [Spawning now](spawning-now.md).

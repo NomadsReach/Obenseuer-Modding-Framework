@@ -75,85 +75,146 @@ if (tank != null) Log.Info("locked: " + tank.Locked + ", main water source: " + 
 
 ## Reference
 
-This is the full list of what the API gives you. In every code block, the comments say what each member gives you or does. A line starting with `Technical:` holds extra detail for experienced modders. You can skip it on a first read.
-
-### Reading tanks
-
 Each tank is a `TankInfo`, a snapshot of its state at the moment you asked. Ask again for fresh values.
 
-```csharp
-public static class Tanks
-{
-    public static List<TankInfo> All();        // every tank in the scene you are in
-    public static TankInfo Get(string id);     // the tank with this id; null when there is none
-
-    public static bool IsAvailable { get; }    // false only when the framework turned this feature off
-}
-
-public sealed class TankInfo    // a snapshot of one tank
-{
-    public string Id { get; }           // names this tank; see the first bullet below
-    public int LiquidItemId { get; }    // the item id of the liquid; 0 when the tank holds nothing
-    public float Amount { get; }        // how much liquid is in the tank
-    public float Capacity { get; }      // the most the tank can hold; below 0 when it is infinite
-    public bool Locked { get; }         // true when the tank is locked; false when it has no lock
-    public bool Global { get; }         // true when this is a tank that keeps its state across level changes
-}
-```
-
-- **A tank's `Id` names one tank in the scene you are in.** If the game gave the tank a save id, that is the id. If not, the id is the tank's place in the scene, and it changes if someone edits the objects around it.
-  - Technical: the id is the object's GUID when it has one, otherwise a scene path such as `Scene:Root[0]/Child[2]`.
-- **`All()` and `Get` read the current values every time.** `All()` lists the tanks in the scene you are in, including the main water source.
-- **A `Capacity` below 0 means the tank is infinite.** An infinite tank can't be filled to a limit.
-  - Technical: this follows the game's `HasInfiniteOutputCapasity`.
-- **`Global` is `true` for a tank that keeps its state when the level changes.** The game saves it separately from the level. Other tanks are saved with their level.
-  - Technical: it is `LiquidStorage.global`. A global tank is saved in the cross-level save data under its GUID.
-- **Changing an infinite tank usually does not change what the taps give.** An infinite tank that has no outside storage takes its water from the main water source, and taps read that source, not the tank's own numbers. `Get` still reports the tank's own numbers.
-  - Technical: this happens for an infinite tank with no external output storage, unless `NotPartOfMainSource` is set.
-
-### Changing tanks
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>Tanks</code> <span>read the tanks</span></p>
+<div class="api-pair" markdown="1">
 
 ```csharp
 public static class Tanks
 {
-    public static bool Set(string id, int itemId, float amount);   // puts the liquid in the tank at that amount
-    public static bool Empty(string id);                           // empties the tank
-    public static bool SetLocked(string id, bool locked);          // locks or unlocks the tank
+    public static List<TankInfo> All();
+    public static TankInfo Get(string id);
+    public static bool IsAvailable { get; }
 }
 ```
 
-- **You can't change the main water source.** `Set`, `Empty` and `SetLocked` refuse the tank that supplies the game's main water. Reading it still works, with `Global` set. Changing it would change what the water supply reports for the whole game.
-  - Technical: this is the tank `WaterSourceController.instance.globalStorage` returns, which `WorldWater` reads for `Amount` and `IsInfinite`.
-- **`Set(id, itemId, amount)` puts that liquid in the tank at that amount.** The amount is held between 0 and the tank's capacity, and rounded to a tenth, the way the game rounds a liquid level. A negative amount counts as 0. If the tank holds a different liquid, that liquid is thrown away and replaced. If the tank already holds the same liquid, only the amount changes and the liquid's quality and freshness stay. An empty tank takes the liquid fresh.
-  - Technical: the level is limited to 0 through `Capacity`, then rounded with `ItemLiquidData.SetAndGetLiquidAmount`. A value that rounds above `Capacity` is set to `Capacity`.
-- **`Set` with an amount of 0 leaves the tank holding that liquid at 0.** To clear the tank properly, use `Empty`.
-- **`Set` returns `false` when it can't do it.** That happens for an unknown item, an amount that is not a real number or is infinite, an unknown tank id, a tank with infinite or zero capacity, the main water source, or while a save is loading or being written. A tank with infinite or zero capacity is refused because the game draws its level as the amount divided by the capacity. Otherwise it returns `true` when the tank now holds that item at that amount.
-- **`Set` accepts any item that exists, not only liquids.** The game does not check that the item is a liquid, so check that yourself.
-- **`Set` with a different liquid throws away the liquid that was there.** The game would refuse that without being forced, so this API makes the choice to replace it.
-- **`Empty(id)` empties the tank the way the game does, and the game's "emptied" triggers run.** Quests or doors that wait for the tank to be emptied can react to this. It returns `true` when the tank holds no liquid afterwards, including when it was already empty.
-  - Technical: it calls the game's `OnEmpty`, which clears the liquid and its metadata and fires the tank's `onEmpty` relay.
-- **`SetLocked(id, locked)` locks or unlocks the tank.** It returns `false` when the tank has no lock, and otherwise `true` when the lock now matches `locked`.
-  - Technical: it calls the game's `Lock` or `Unlock`.
+| Method | Returns | What it does |
+|---|---|---|
+| `All()` | `List<TankInfo>` | Every tank in the scene you are in. |
+| `Get(string id)` | `TankInfo` | The tank with this id. `null` when there is none. |
 
-### The Changed event
+| Property | Type | What it means |
+|---|---|---|
+| `IsAvailable` | `bool` | `false` only when the framework turned this feature off. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>TankInfo</code> <span>a snapshot of one tank</span></p>
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class TankInfo
+{
+    public string Id { get; }
+    public int LiquidItemId { get; }
+    public float Amount { get; }
+    public float Capacity { get; }
+    public bool Locked { get; }
+    public bool Global { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Id` | `string` | Names this tank. See the note on ids below. |
+| `LiquidItemId` | `int` | The item id of the liquid. `0` when the tank holds nothing. |
+| `Amount` | `float` | How much liquid is in the tank. |
+| `Capacity` | `float` | The most the tank can hold. Below 0 when it is infinite. |
+| `Locked` | `bool` | `true` when the tank is locked. `false` when it has no lock. |
+| `Global` | `bool` | `true` when this is a tank that keeps its state across level changes. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>Tanks</code> <span>change a tank</span></p>
+<div class="api-pair" markdown="1">
 
 ```csharp
 public static class Tanks
 {
-    public static event Action<TankChangedArgs> Changed;   // your mod changed a tank through this API
-}
-
-public sealed class TankChangedArgs    // what you get when a tank is changed
-{
-    public string Id { get; }           // the id of the tank, as TankInfo.Id
-    public int LiquidItemId { get; }    // the item id of the liquid now in the tank; 0 when empty
-    public float Amount { get; }        // how much liquid is in the tank now
-    public bool Locked { get; }         // true when the tank is locked now
+    public static bool Set(string id, int itemId, float amount);
+    public static bool Empty(string id);
+    public static bool SetLocked(string id, bool locked);
 }
 ```
 
-- **`Changed` only fires for changes made through this API.** It fires after `Set`, `Empty` and `SetLocked`. It does not fire when the player or the game fills a tank, drains it, or changes it in any other way. If your mod needs to know about every change, read `All()` or `Get` on your own schedule.
-  - Technical: the game changes `LiquidAmount` in many places, and the framework does not change those methods.
+| Method | Returns | What it does |
+|---|---|---|
+| `Set(string id, int itemId, float amount)` | `bool` | Puts the liquid in the tank at that amount. |
+| `Empty(string id)` | `bool` | Empties the tank. `true` when the tank holds no liquid afterwards, including when it was already empty. |
+| `SetLocked(string id, bool locked)` | `bool` | Locks or unlocks the tank. `false` when the tank has no lock. Otherwise `true` when the lock now matches `locked`. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>Tanks</code> <span>your mod changed a tank</span></p>
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class Tanks
+{
+    public static event Action<TankChangedArgs> Changed;
+}
+```
+
+| Event | Gives you | When it fires |
+|---|---|---|
+| `Changed` | `TankChangedArgs` | Your mod changed a tank through this API. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>TankChangedArgs</code> <span>what you get when a tank is changed</span></p>
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class TankChangedArgs
+{
+    public string Id { get; }
+    public int LiquidItemId { get; }
+    public float Amount { get; }
+    public bool Locked { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Id` | `string` | The id of the tank, as `TankInfo.Id`. |
+| `LiquidItemId` | `int` | The item id of the liquid now in the tank. `0` when empty. |
+| `Amount` | `float` | How much liquid is in the tank now. |
+| `Locked` | `bool` | `true` when the tank is locked now. |
+
+</div>
+</div>
+
+### Things to know
+
+- A tank's `Id` names one tank in the scene you are in. If the game gave the tank a save id, that is the id. If not, the id is the tank's place in the scene, and it changes if someone edits the objects around it. <span class="tech">(The id is the object's GUID when it has one, otherwise a scene path such as `Scene:Root[0]/Child[2]`.)</span>
+- `All()` and `Get` read the current values every time. `All()` lists the tanks in the scene you are in, including the main water source.
+- A `Capacity` below 0 means the tank is infinite. An infinite tank can't be filled to a limit. <span class="tech">(This follows the game's `HasInfiniteOutputCapasity`.)</span>
+- `Global` is `true` for a tank that keeps its state when the level changes. The game saves it separately from the level. Other tanks are saved with their level. <span class="tech">(It is `LiquidStorage.global`. A global tank is saved in the cross-level save data under its GUID.)</span>
+- `Set(id, itemId, amount)` puts that liquid in the tank at that amount. The amount is held between 0 and the tank's capacity, and rounded to a tenth, the way the game rounds a liquid level. A negative amount counts as 0. If the tank already holds the same liquid, only the amount changes and the liquid's quality and freshness stay. An empty tank takes the liquid fresh. <span class="tech">(The level is limited to 0 through `Capacity`, then rounded with `ItemLiquidData.SetAndGetLiquidAmount`. A value that rounds above `Capacity` is set to `Capacity`.)</span>
+- `Set` with a different liquid throws away the liquid that was there. The game would refuse that without being forced, so this API makes the choice to replace it.
+- `Set` with an amount of 0 leaves the tank holding that liquid at 0. To clear the tank properly, use `Empty`.
+- `Empty(id)` empties the tank the way the game does, and the game's "emptied" triggers run. Quests or doors that wait for the tank to be emptied can react to this. <span class="tech">(It calls the game's `OnEmpty`, which clears the liquid and its metadata and fires the tank's `onEmpty` relay.)</span>
+- `SetLocked` uses the game's own lock and unlock for the tank. <span class="tech">(It calls the game's `Lock` or `Unlock`.)</span>
+- `Changed` only fires for changes made through this API. It fires after `Set`, `Empty` and `SetLocked`. It does not fire when the player or the game fills a tank, drains it, or changes it in any other way. If your mod needs to know about every change, read `All()` or `Get` on your own schedule. <span class="tech">(The game changes `LiquidAmount` in many places, and the framework does not change those methods.)</span>
+- This page installs no changes to the game's methods, because everything it needs is public in the game. Its feature group is `obenseuer.moddingframework.tanks`, the name you will see in the log, and nothing can break it at startup.
+
+### Limits
+
+- You can't change the main water source. `Set`, `Empty` and `SetLocked` refuse the tank that supplies the game's main water. Reading it still works, with `Global` set. Changing it would change what the water supply reports for the whole game. <span class="tech">(This is the tank `WaterSourceController.instance.globalStorage` returns, which `WorldWater` reads for `Amount` and `IsInfinite`.)</span>
+- `Set` returns `false` when it can't do it. That happens for an unknown item, an amount that is not a real number or is infinite, an unknown tank id, a tank with infinite or zero capacity, the main water source, or while a save is loading or being written. A tank with infinite or zero capacity is refused because the game draws its level as the amount divided by the capacity. Otherwise it returns `true` when the tank now holds that item at that amount.
+- `Set` accepts any item that exists, not only liquids. The game does not check that the item is a liquid, so check that yourself.
+- Changing an infinite tank usually does not change what the taps give. An infinite tank that has no outside storage takes its water from the main water source, and taps read that source, not the tank's own numbers. `Get` still reports the tank's own numbers. <span class="tech">(This happens for an infinite tank with no external output storage, unless `NotPartOfMainSource` is set.)</span>
+- `Empty` runs the tank's "emptied" triggers. Emptying a tank can advance a quest or open a door that the tank's trigger drives, so think about that before you call it.
 
 ## Details
 
@@ -162,19 +223,12 @@ Namespace: `ObenseuerCore`. Logs go to `BepInEx\logs\obenseuer.moddingframework.
 
 Everything not listed in this reference is internal and may change without notice.
 
-This page installs no changes to the game's methods, because everything it needs is public in the game. Its feature group is `obenseuer.moddingframework.tanks`, the name you will see in the log, and nothing can break it at startup.
-
 ### When you can call it
 
-- **Call everything from your mod's normal code, not from a background thread you started.** The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)). This goes for every member on this page and for the code that handles `Changed`.
-- **It is safe to call any of it at any time, even on the main menu or while a save is loading.** With no save loaded, `All` returns an empty list, `Get` returns `null`, and the changing calls return `false`. Nothing throws, and a null or empty id finds nothing.
-- **The changing calls return `false` while a save is loading or being written.**
-  - Technical: the check is `SaveData.Busy`.
+- Call everything from your mod's normal code, not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)). This goes for every member on this page and for the code that handles `Changed`.
+- It is safe to call any of it at any time, even on the main menu or while a save is loading. With no save loaded, `All` returns an empty list, `Get` returns `null`, and the changing calls return `false`. Nothing throws, and a null or empty id finds nothing.
+- The changing calls return `false` while a save is loading or being written. <span class="tech">(The check is `SaveData.Busy`.)</span>
 
 ### If something fails to set up
 
-- **Nothing can fail to set up here.** The framework installs no changes for this page, so `Tanks.IsAvailable` is `true` unless the feature group was turned off.
-
-### Limits
-
-- **`Empty` runs the tank's "emptied" triggers.** Emptying a tank can advance a quest or open a door that the tank's trigger drives, so think about that before you call it.
+- Nothing can fail to set up here. The framework installs no changes for this page, so `Tanks.IsAvailable` is `true` unless the feature group was turned off.

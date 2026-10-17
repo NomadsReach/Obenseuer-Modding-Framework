@@ -60,44 +60,76 @@ Log.Info(Ladders.IsPlayerClimbing ? "The player is on a ladder." : "The player i
 
 ## Reference
 
-This is the full list of what the API gives you. In the code block, the comments say what each member gives you or does. A line starting with `Technical:` holds extra detail for experienced modders. You can skip it on a first read.
+This is the full list of what the API gives you.
 
 ### Ladders
 
 Each ladder is a `LadderInfo`, a snapshot of its state at the moment you asked. The snapshot does not update by itself, so ask again for fresh values.
 
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>Ladders</code> <span>list and block ladders</span></p>
+<div class="api-pair" markdown="1">
+
 ```csharp
 public static class Ladders
 {
-    public static List<LadderInfo> All();                    // every ladder in the scene you are in
-    public static LadderInfo Get(string id);                 // the ladder with this id; null when none has it
-    public static bool IsPlayerClimbing { get; }             // true while the player is on any ladder
-    public static bool SetBlocked(string id, bool blocked);  // blocks or unblocks a ladder; true when it ends up as you asked
-}
-
-public sealed class LadderInfo    // a snapshot of one ladder
-{
-    public string Id { get; }        // the ladder's id: its save id, or its place in the scene when it has none
-    public bool Blocked { get; }     // true when the ladder is blocked: its prompt reads "Blocked" and the climb is refused
-    public bool PlayerOn { get; }    // true when the player is on this ladder
+    public static List<LadderInfo> All();
+    public static LadderInfo Get(string id);
+    public static bool IsPlayerClimbing { get; }
+    public static bool SetBlocked(string id, bool blocked);
 }
 ```
 
-- **`All()` lists every ladder that is switched on in the scene you are in.**
-  - Technical: it lists the active `InteractableLadder` components in the active scene.
-- **`Get(id)` gives you one ladder, or `null` when no ladder has that id.** An unknown or empty id also gives `null`.
-- **`IsPlayerClimbing` is `true` while the player is on any ladder, not only one you looked up.**
-  - Technical: it reads the static `InteractableLadder.playerClimbingGlobal`.
-- **`SetBlocked` returns `true` when the ladder now has the value you asked for.** It returns `false` when no ladder has that id, while a save is loading or being written, and while the player is on that ladder. The player can still get off the ladder, and you can try again after that. If none of those apply and the ladder already has the value you asked for, it returns `true` and changes nothing.
-  - Technical: it writes the game's public `blocked` field, which the game's `ClimbToggle` reads, so nothing else needs to change. The check for the player on the ladder reads the ladder's own `playerClimbing` flag, and `SetBlocked` also returns `false` when that flag cannot be read. The save check is `SaveData.Busy`.
-- **A blocked ladder stays blocked after the player saves and loads, if the ladder has a save id.** The game saves the blocked value with the ladder.
-- **A ladder with no save id is not saved.** Its id is its place in the scene, and the change lasts only until the scene reloads. This may not hold for every ladder.
-  - Technical: the game's save code skips objects with an empty `GUID`.
+| Method | Returns | What it does |
+|---|---|---|
+| `All()` | `List<LadderInfo>` | Every ladder that is switched on in the scene you are in. |
+| `Get(string id)` | `LadderInfo` | The ladder with this id. `null` when none has it. |
+| `SetBlocked(string id, bool blocked)` | `bool` | Blocks or unblocks a ladder. `true` when it ends up as you asked. |
+
+| Property | Type | What it means |
+|---|---|---|
+| `IsPlayerClimbing` | `bool` | `true` while the player is on any ladder. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>LadderInfo</code> <span>a snapshot of one ladder</span></p>
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class LadderInfo
+{
+    public string Id { get; }
+    public bool Blocked { get; }
+    public bool PlayerOn { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Id` | `string` | The ladder's id: its save id, or its place in the scene when it has none. |
+| `Blocked` | `bool` | `true` when the ladder is blocked: its prompt reads "Blocked" and the climb is refused. |
+| `PlayerOn` | `bool` | `true` when the player is on this ladder. |
+
+</div>
+</div>
+
+#### Things to know
+
+- `All()` lists every ladder that is switched on in the scene you are in. `Get` gives `null` for an unknown or empty id. <span class="tech">(It lists the active `InteractableLadder` components in the active scene.)</span>
+- `IsPlayerClimbing` is `true` while the player is on any ladder, not only one you looked up. <span class="tech">(It reads the static `InteractableLadder.playerClimbingGlobal`.)</span>
+- `SetBlocked` returns `true` when the ladder now has the value you asked for. If the ladder already has the value you asked for, and none of the cases in the limits below apply, it returns `true` and changes nothing. <span class="tech">(It writes the game's public `blocked` field, which the game's `ClimbToggle` reads, so nothing else needs to change.)</span>
+- A blocked ladder stays blocked after the player saves and loads, if the ladder has a save id. The game saves the blocked value with the ladder.
+
+#### Limits
+
+- `SetBlocked` returns `false` when no ladder has that id, while a save is loading or being written, and while the player is on that ladder. The player can still get off the ladder, and you can try again after that. <span class="tech">(The check for the player on the ladder reads the ladder's own `playerClimbing` flag, and `SetBlocked` also returns `false` when that flag cannot be read. The save check is `SaveData.Busy`.)</span>
+- A ladder with no save id is not saved. Its id is its place in the scene, and the change lasts only until the scene reloads. This may not hold for every ladder. <span class="tech">(The game's save code skips objects with an empty `GUID`.)</span>
 
 ### What you can't do (yet)
 
-- **You can't make the player climb or get off a ladder, and there is no event for ladders.** This API only reads and blocks.
-  - Technical: `Climb` and `StopClimb` are not covered.
+- You can't make the player climb or get off a ladder, and there is no event for ladders. This API only reads and blocks. <span class="tech">(`Climb` and `StopClimb` are not covered.)</span>
 
 ## Details
 
@@ -108,9 +140,9 @@ Everything not listed in this reference is internal and may change without notic
 
 ### When you can call it
 
-- **Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started.** The game only works safely on its main thread (see the [glossary](../glossary.md#main-thread)).
-- **It is safe to call any of it at any time.** With no scene loaded, or on the main menu, `All()` gives an empty list, `Get` gives `null`, `IsPlayerClimbing` gives `false` and `SetBlocked` gives `false`. Nothing throws.
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game only works safely on its main thread (see the [glossary](../glossary.md#main-thread)).
+- It is safe to call any of it at any time. With no scene loaded, or on the main menu, `All()` gives an empty list, `Get` gives `null`, `IsPlayerClimbing` gives `false` and `SetBlocked` gives `false`. Nothing throws.
 
 ### If something fails to set up
 
-- **This part of the framework does not change any game methods, so there is no feature group that can turn off.** It needs no set-up at all.
+- This part of the framework does not change any game methods, so there is no feature group that can turn off. It needs no set-up at all.

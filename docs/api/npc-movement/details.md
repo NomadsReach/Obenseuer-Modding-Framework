@@ -16,9 +16,8 @@ This page changes none of the game's methods, so it has no feature group and not
 
 ## When you can call it
 
-- **Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started.** The game and Unity only work safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)).
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)).
 
 ## If something fails to set up
 
-- **There is nothing to set up.** The framework does one thing in the background for this page: once a frame it retries any release that had to wait, and drops claims whose NPC controller was destroyed.
-  - Technical: `NpcMovement.Tick` is internal. The framework calls it once per frame from its update loop.
+- There is nothing to set up. The framework does one thing in the background for this page: once a frame it retries any release that had to wait, and drops claims whose NPC controller was destroyed. <span class="tech">(`NpcMovement.Tick` is internal. The framework calls it once per frame from its update loop.)</span>

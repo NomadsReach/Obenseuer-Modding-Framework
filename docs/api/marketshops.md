@@ -72,69 +72,115 @@ foreach (MarketShopInfo shop in MarketShops.All())
 
 ## Reference
 
-This is the full list of what the API gives you. In every code block, the comments say what each member gives you or does. A line starting with `Technical:` holds extra detail for experienced modders. You can skip it on a first read.
+This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
 
 ### Market shops
 
 Each stall is a `MarketShopInfo`, a snapshot taken when you asked. The snapshot does not update by itself, so ask again for fresh values.
 
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>MarketShops</code> <span>lists stalls, locks them and reports payments</span></p>
+<div class="api-pair" markdown="1">
+
 ```csharp
 public static class MarketShops
 {
-    public static List<MarketShopInfo> All();                    // every market stall in the scene the player is in
-    public static bool SetLocked(string id, bool locked);        // locks or unlocks a stall; true when it is now as you asked
-
-    public static event Action<MarketPayArgs> Paid;              // the player has paid at a till
-
-    public static bool IsAvailable { get; }                      // false when the framework could not set up the Paid event
-}
-
-public sealed class MarketShopInfo    // a snapshot of one stall
-{
-    public string Id { get; }               // the id to pass to SetLocked; the number the game saves the stall under, or a path through the scene
-    public string Name { get; }             // the name of the stall
-    public bool Locked { get; }             // true when the stall's lock is locked
-    public int Price { get; }               // the total at the till right now; 0 when nothing is on the conveyor
-    public MoneyCurrency Currency { get; }  // the currency the stall charges in: OC or RM
-}
-
-public sealed class MarketPayArgs    // what Paid tells you
-{
-    public string Id { get; }                 // the stall's id
-    public string Name { get; }               // the name of the stall
-    public int Price { get; }                 // the amount charged, at least 1
-    public MoneyCurrency Currency { get; }    // the currency it was charged in: OC or RM
+    public static List<MarketShopInfo> All();
+    public static bool SetLocked(string id, bool locked);
+    public static event Action<MarketPayArgs> Paid;
+    public static bool IsAvailable { get; }
 }
 ```
 
-- **`All()` lists the stalls that are switched on in the scene the player is in.** A stall that is switched off is not listed. If no save is loaded, you get an empty list.
-  - Technical: it searches the active scene with `FindObjectsByType`, which skips inactive objects. The id is the object's `GUID`, else the GUID of the `SavableScript` on its object, else a path counted from the scene root.
-- **`Price` is the total of the goods on the stall's conveyor, in the stall's currency.** It is `0` when the conveyor is empty. You can read it, but you can't change it.
-  - Technical: `Price` is `MarketShop.GetCurrentPrice()`. `Currency` is the shop's `currency`, converted by `Cash.FromGame`.
-- **`SetLocked(id, locked)` locks or unlocks the stall's lock, as the game does.** A locked stall's till refuses to open. It gives back `true` when the lock is now as you asked. It gives back `false` for an unknown id, for a stall with no lock, and while a save is loading or being written.
-  - Technical: it calls the game's `Lock()` or `Unlock()`, which call the lock's `_Lock()` or `_Unlock()`. The save check is `SaveData.Busy`.
-- **`Paid` fires after the player pays at the till and the game has taken the money.** It does not fire when the payment is refused, for example when the player has too little money, or when the stall is not waiting for a payment. `Price` is the amount the game charged. It is rounded, and at least 1, the same as the game's own minimum.
-- **`Paid` also fires when a script pays at a stall, not only the player at the till.** The framework listens to the game's own pay method, which any script can call.
-  - Technical: the change is a prefix and a postfix on `MarketShop.Pay`, which is public.
-- **`IsAvailable` is `false` when the `Paid` event could not be set up.** See [If something fails to set up](#if-something-fails-to-set-up).
+| Method | Returns | What it does |
+|---|---|---|
+| `All()` | `List<MarketShopInfo>` | Every market stall in the scene the player is in. |
+| `SetLocked(string id, bool locked)` | `bool` | Locks or unlocks a stall. Returns `true` when it is now as you asked. |
+
+| Property | Type | What it means |
+|---|---|---|
+| `IsAvailable` | `bool` | `false` when the framework could not set up the `Paid` event. |
+
+| Event | Gives you | When it fires |
+|---|---|---|
+| `Paid` | `MarketPayArgs`: the stall's id, name, the amount charged and the currency. | The player has paid at a till. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>MarketShopInfo</code> <span>a snapshot of one stall</span></p>
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class MarketShopInfo
+{
+    public string Id { get; }
+    public string Name { get; }
+    public bool Locked { get; }
+    public int Price { get; }
+    public MoneyCurrency Currency { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Id` | `string` | The id to pass to `SetLocked`. The number the game saves the stall under, or a path through the scene. |
+| `Name` | `string` | The name of the stall. |
+| `Locked` | `bool` | `true` when the stall's lock is locked. |
+| `Price` | `int` | The total at the till right now. `0` when nothing is on the conveyor. |
+| `Currency` | `MoneyCurrency` | The currency the stall charges in: `OC` or `RM`. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>MarketPayArgs</code> <span>what Paid tells you</span></p>
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class MarketPayArgs
+{
+    public string Id { get; }
+    public string Name { get; }
+    public int Price { get; }
+    public MoneyCurrency Currency { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Id` | `string` | The stall's id. |
+| `Name` | `string` | The name of the stall. |
+| `Price` | `int` | The amount charged, at least 1. |
+| `Currency` | `MoneyCurrency` | The currency it was charged in: `OC` or `RM`. |
+
+</div>
+</div>
+
+### Things to know
+
+- `All()` lists the stalls that are switched on in the scene the player is in. A stall that is switched off is not listed. If no save is loaded, you get an empty list. <span class="tech">(It searches the active scene with `FindObjectsByType`, which skips inactive objects. The id is the object's `GUID`, else the GUID of the `SavableScript` on its object, else a path counted from the scene root.)</span>
+- `Price` is the total of the goods on the stall's conveyor, in the stall's currency. It is `0` when the conveyor is empty. You can read it, but you can't change it. <span class="tech">(`Price` is `MarketShop.GetCurrentPrice()`. `Currency` is the shop's `currency`, converted by `Cash.FromGame`.)</span>
+- `SetLocked(id, locked)` locks or unlocks the stall's lock, as the game does. A locked stall's till refuses to open. It gives back `true` when the lock is now as you asked. <span class="tech">(It calls the game's `Lock()` or `Unlock()`, which call the lock's `_Lock()` or `_Unlock()`. The save check is `SaveData.Busy`.)</span>
+- `Paid` fires after the player pays at the till and the game has taken the money. `Price` is the amount the game charged. It is rounded, and at least 1, the same as the game's own minimum.
+- `Paid` also fires when a script pays at a stall, not only the player at the till. The framework listens to the game's own pay method, which any script can call. <span class="tech">(The change is a prefix and a postfix on `MarketShop.Pay`, which is public.)</span>
+- `IsAvailable` is `false` when the `Paid` event could not be set up. See [If something fails to set up](#if-something-fails-to-set-up).
 
 ### What you can't do (yet)
 
-- **You can't read or change the goods on the conveyor.** The conveyor holds the player's own goods while they wait to be paid for, so `All()` does not list them. Read `Price` for the total at the till.
-  - Technical: the conveyor's item list is a private `List<ConveyorItem>`.
-- **You can't use the game's `Market` class.** It has no working state to read.
-  - Technical: its `checkInventory` throws `NotImplementedException` when `inv.slotAmount` is above zero, and `buy` and `returnStuff` throw the same way.
-- **You can't buy anything from a stall.** A stall has no stock of its own. The till charges the goods the player has already put on the conveyor, and the conveyor takes them from the player's own inventory. So there is nothing on the stall's side to buy, and a `Buy` call would take money for nothing. The [economy page](economy.md) lists this under the things it leaves out for market shops.
-  - Technical: the conveyor is filled by `MarketShop.LoadConveyor` and `IsMarketShopItem`.
-- **You can't load, scan or change the conveyor.**
-  - Technical: `MarketShop.state` and its items are not written by this API.
-- **You can't change prices or ownership.**
-  - Technical: this means `priceFactor`, `retainOwner` and `owner`.
-- **Base shops are on another page.** See [Base shops](baseshops.md).
+- You can't read or change the goods on the conveyor. The conveyor holds the player's own goods while they wait to be paid for, so `All()` does not list them. Read `Price` for the total at the till. <span class="tech">(The conveyor's item list is a private `List<ConveyorItem>`.)</span>
+- You can't use the game's `Market` class. It has no working state to read. <span class="tech">(Its `checkInventory` throws `NotImplementedException` when `inv.slotAmount` is above zero, and `buy` and `returnStuff` throw the same way.)</span>
+- You can't buy anything from a stall. A stall has no stock of its own. The till charges the goods the player has already put on the conveyor, and the conveyor takes them from the player's own inventory. So there is nothing on the stall's side to buy, and a `Buy` call would take money for nothing. The [economy page](economy.md) lists this under the things it leaves out for market shops. <span class="tech">(The conveyor is filled by `MarketShop.LoadConveyor` and `IsMarketShopItem`.)</span>
+- You can't load, scan or change the conveyor. <span class="tech">(`MarketShop.state` and its items are not written by this API.)</span>
+- You can't change prices or ownership. <span class="tech">(This means `priceFactor`, `retainOwner` and `owner`.)</span>
+- Base shops are on another page. See [Base shops](baseshops.md).
 
 ### Limits
 
-- **The price is read just before the game takes the money.** The game charges the same value, but if the price changes in between, the framework does not notice.
+- `SetLocked` returns `false` for an unknown id, for a stall with no lock, and while a save is loading or being written.
+- `Paid` does not fire when the payment is refused, for example when the player has too little money, or when the stall is not waiting for a payment.
+- The price is read just before the game takes the money. The game charges the same value, but if the price changes in between, the framework does not notice.
 
 ## Details
 
@@ -147,13 +193,12 @@ The framework changes one of the game's methods when it starts, so it can tell y
 
 ### When you can call it
 
-- **Call everything from your mod's normal code, not from a background thread you started.** The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)). That includes the code that handles `Paid`.
-- **It is safe to call at any time.** With no save loaded, `All` gives back an empty list. Nothing throws, and a null or empty `id` finds nothing.
-- **`Paid` is not held back while a save loads.** If your handler should ignore payments while a save loads, check `SaveData.Busy`, which is `true` while a save is loading or being written.
+- Call everything from your mod's normal code, not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)). That includes the code that handles `Paid`.
+- It is safe to call at any time. With no save loaded, `All` gives back an empty list. Nothing throws, and a null or empty `id` finds nothing.
+- `Paid` is not held back while a save loads. If your handler should ignore payments while a save loads, check `SaveData.Busy`, which is `true` while a save is loading or being written.
 
 ### If something fails to set up
 
 The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
-- **If the payment change cannot be made, the feature group is turned off and `Paid` stops firing.** `MarketShops.IsAvailable` becomes `false`. `All` and `SetLocked` keep working.
-  - Technical: the game method involved is `MarketShop.Pay`, patched with a prefix and a postfix.
+- If the payment change cannot be made, the feature group is turned off and `Paid` stops firing. `MarketShops.IsAvailable` becomes `false`. `All` and `SetLocked` keep working. <span class="tech">(The game method involved is `MarketShop.Pay`, patched with a prefix and a postfix.)</span>

@@ -16,14 +16,14 @@ The framework changes one of the game's methods when it starts, so a task made h
 
 ## When you can call it
 
-- **Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started.** The game and Unity only work safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)).
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)).
 
 ## What to check for
 
-- **`QuestAuthoring.IsAvailable` tells you whether you can make and change tasks.** Every call that changes a task returns `false` (or `null` for `Create`) while it is `false`. It also needs `Quests.IsAvailable` to be `true`.
+- `QuestAuthoring.IsAvailable` tells you whether you can make and change tasks. Every call that changes a task returns `false` (or `null` for `Create`) while it is `false`. It also needs `Quests.IsAvailable` to be `true`.
 
 ## If something fails to set up
 
 The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
-- **If the change that matches tasks by id cannot be made, quest authoring is switched off.** `QuestAuthoring.IsAvailable` becomes `false`. The `Quests` page keeps working for the game's own tasks.
+- If the change that matches tasks by id cannot be made, quest authoring is switched off. `QuestAuthoring.IsAvailable` becomes `false`. The `Quests` page keeps working for the game's own tasks.

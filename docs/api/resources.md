@@ -70,65 +70,137 @@ foreach (ResourceNodeInfo node in ResourceNodes.All())
 
 ## Reference
 
-This is the full list of what the API gives you. In every code block, the comments say what each member gives you or does. A line starting with `Technical:` holds extra detail for experienced modders. You can skip it on a first read.
+This is the full list of what the API gives you.
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>ResourceNodes</code> <span>list, read and refill resource nodes</span></p>
+<div class="api-pair" markdown="1">
 
 ```csharp
 public static class ResourceNodes
 {
-    public static List<ResourceNodeInfo> All();                                // every node in the scene you are in
-    public static List<ResourceNodeInfo> Near(Vector3 position, float radius); // the nodes within radius metres of a position
-    public static ResourceNodeInfo Get(string id);                             // the node with this id; null when nobody has it
-    public static bool SetStock(string id, int stock);                         // sets how many items the node has left; true when it was set
+    public static List<ResourceNodeInfo> All();
+    public static List<ResourceNodeInfo> Near(Vector3 position, float radius);
+    public static ResourceNodeInfo Get(string id);
+    public static bool SetStock(string id, int stock);
 
-    public static bool IsAvailable { get; }                                    // false when the Hit and Depleted events could not be set up
-    public static event Action<ResourceHitArgs> Hit;                           // a node was hit
-    public static event Action<ResourceDepletedArgs> Depleted;                 // a node ran out
-}
-
-public sealed class ResourceNodeInfo    // a snapshot of one node
-{
-    public string Id { get; }                  // the node's id; pass it to Get and SetStock
-    public Vector3 Position { get; }           // where the node is, in world coordinates
-    public List<int> ItemIds { get; }          // the numbers of the items the node can give
-    public int Stock { get; }                  // how many items it has left now
-    public int MaxStock { get; }               // the most it holds; it refills up to this
-    public int OwnerId { get; }                // the number of the character who owns it; 0 when nobody does
-    public bool PermissionToTake { get; }      // true when items taken from it count as the owner letting you take them
-    public bool RespawnEnabled { get; }        // true when the node refills over time
-}
-
-public sealed class ResourceHitArgs    // what Hit tells you
-{
-    public string NodeId { get; }       // the id of the node that was hit
-    public int Stock { get; }           // how many items it has left after the hit
-    public bool Yielded { get; }        // true when this hit gave the player an item
-}
-
-public sealed class ResourceDepletedArgs    // what Depleted tells you
-{
-    public string NodeId { get; }       // the id of the node that ran out
+    public static bool IsAvailable { get; }
+    public static event Action<ResourceHitArgs> Hit;
+    public static event Action<ResourceDepletedArgs> Depleted;
 }
 ```
 
-- **`All()` lists the resource nodes that are switched on in the scene you are in, and it is slow, so do not call it every frame.** It searches every object in the scene each time. Call it when something happens, or on a timer, and keep the result. `Near` and `Get` search the same way. To follow hits, use `Hit` instead of asking again and again.
-  - Technical: they search the active objects of the active scene for `WorkableResourceSource`, which is O(nodes) per call.
-- **A node id is a piece of text that names one node.** `All()`, `Near` and `Get` give it to you. It is stable as long as the scene does not change. A null or empty id finds nothing.
-  - Technical: the id is the node's save GUID when it has one, otherwise its scene path, such as `Scene:Root[0]/Child[2]/Rock[1]`.
-- **`Near(position, radius)` lists the nodes up to `radius` metres from `position`, including those exactly `radius` away.** A negative radius, or a number that is not a real number, throws an `ArgumentException`.
-- **`Get(id)` gives you a snapshot, not a live view.** The values do not change by themselves, so call `Get` again for fresh values. It gives `null` when no node has that id.
-- **`ItemIds` are the plain item numbers used everywhere in the framework.** A node picks one of these items at random each time it gives something up.
-  - Technical: they are `ItemReference.ID` values. The reference's `itemnamespace` is not given.
-- **`SetStock(id, stock)` sets how many items the node has left.** A number above `MaxStock` is lowered to `MaxStock`. The value is saved with the game. It returns `false` when no node has that id and while a save is loading or being written. A negative `stock` throws an `ArgumentException`.
-  - Technical: it writes the game's own `currentStock` field.
-- **`SetStock` also does what the game does when a node's stock changes.** Anything wired to the node follows the new value, the node starts or stops its refill timer depending on whether it is below its largest stock, and its collider is refreshed. It does not reset how much damage the node has taken toward its next item, and it does not fire `Hit` or `Depleted`, because nothing was hit.
-  - Technical: it triggers the node's `onStock` and `onCurrentStock` relay outputs, calls `ChangeDeltaSecondsStatus(stock < maximumStock)` and then `UpdateState`.
-- **`Hit` fires when the game accepts a hit on a node that still has stock.** A hit of a kind the node does not accept, or a hit on a node that is already empty, does not fire it. A hit that does not make the node give up an item yet still fires, with `Yielded` set to `false`.
-  - Technical: it is raised after `WorkableResourceSource.Damage` when the stock before the call was at least 1 and `CheckDamageType` accepted the damage type. `Yielded` is true when the stock went down.
-- **`Depleted` fires once, when a hit takes the last item.** It fires right after `Hit` for the same hit. It does not fire again until the node has refilled and run out again, and it does not fire when your mod empties a node with `SetStock`.
-- **`IsAvailable` tells you whether `Hit` and `Depleted` work.** It is `false` when the framework could not set up those events. The reads and `SetStock` can still work.
-- **You can't watch a node refill, and you can't change its largest stock, its items or its owner.** The node refills on the game's own timer, so there is no event for it. You can only see from `RespawnEnabled` that it does. `MaxStock`, `ItemIds`, `OwnerId` and `PermissionToTake` are read only.
-  - Technical: respawn is driven by `WorkableResourceSource.DeltaSeconds` and `SpawnSettings.TimeToSpawn`.
-- **Other things you may mistake for resource nodes are not covered.** The game's extractables have no stock, owner or item list. They spawn objects and keep a health value, so they are a different system.
+| Method | Returns | What it does |
+|---|---|---|
+| `All()` | `List<ResourceNodeInfo>` | Every node in the scene you are in. |
+| `Near(Vector3 position, float radius)` | `List<ResourceNodeInfo>` | The nodes within `radius` metres of a position, including those exactly `radius` away. |
+| `Get(string id)` | `ResourceNodeInfo` | The node with this id. `null` when nobody has it. |
+| `SetStock(string id, int stock)` | `bool` | Sets how many items the node has left. `true` when it was set. |
+
+| Property | Type | What it means |
+|---|---|---|
+| `IsAvailable` | `bool` | `false` when the `Hit` and `Depleted` events could not be set up. |
+
+| Event | Gives you | When it fires |
+|---|---|---|
+| `Hit` | `ResourceHitArgs` | A node was hit. |
+| `Depleted` | `ResourceDepletedArgs` | A node ran out. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>ResourceNodeInfo</code> <span>a snapshot of one node</span></p>
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class ResourceNodeInfo
+{
+    public string Id { get; }
+    public Vector3 Position { get; }
+    public List<int> ItemIds { get; }
+    public int Stock { get; }
+    public int MaxStock { get; }
+    public int OwnerId { get; }
+    public bool PermissionToTake { get; }
+    public bool RespawnEnabled { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `Id` | `string` | The node's id. Pass it to `Get` and `SetStock`. |
+| `Position` | `Vector3` | Where the node is, in world coordinates. |
+| `ItemIds` | `List<int>` | The numbers of the items the node can give. |
+| `Stock` | `int` | How many items it has left now. |
+| `MaxStock` | `int` | The most it holds. It refills up to this. |
+| `OwnerId` | `int` | The number of the character who owns it. `0` when nobody does. |
+| `PermissionToTake` | `bool` | `true` when items taken from it count as the owner letting you take them. |
+| `RespawnEnabled` | `bool` | `true` when the node refills over time. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>ResourceHitArgs</code> <span>what Hit tells you</span></p>
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class ResourceHitArgs
+{
+    public string NodeId { get; }
+    public int Stock { get; }
+    public bool Yielded { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `NodeId` | `string` | The id of the node that was hit. |
+| `Stock` | `int` | How many items it has left after the hit. |
+| `Yielded` | `bool` | `true` when this hit gave the player an item. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>ResourceDepletedArgs</code> <span>what Depleted tells you</span></p>
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class ResourceDepletedArgs
+{
+    public string NodeId { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `NodeId` | `string` | The id of the node that ran out. |
+
+</div>
+</div>
+
+### Things to know
+
+- `All()` lists the resource nodes that are switched on in the scene you are in, and it is slow, so do not call it every frame. It searches every object in the scene each time. Call it when something happens, or on a timer, and keep the result. `Near` and `Get` search the same way. To follow hits, use `Hit` instead of asking again and again. <span class="tech">(They search the active objects of the active scene for `WorkableResourceSource`, which is O(nodes) per call.)</span>
+- A node id is a piece of text that names one node. `All()`, `Near` and `Get` give it to you. It is stable as long as the scene does not change. A null or empty id finds nothing. <span class="tech">(The id is the node's save GUID when it has one, otherwise its scene path, such as `Scene:Root[0]/Child[2]/Rock[1]`.)</span>
+- `Near(position, radius)` lists the nodes up to `radius` metres from `position`, including those exactly `radius` away.
+- `Get(id)` gives you a snapshot, not a live view. The values do not change by themselves, so call `Get` again for fresh values. It gives `null` when no node has that id.
+- `ItemIds` are the plain item numbers used everywhere in the framework. A node picks one of these items at random each time it gives something up. <span class="tech">(They are `ItemReference.ID` values. The reference's `itemnamespace` is not given.)</span>
+- `SetStock(id, stock)` sets how many items the node has left. A number above `MaxStock` is lowered to `MaxStock`. The value is saved with the game. <span class="tech">(It writes the game's own `currentStock` field.)</span>
+- `SetStock` also does what the game does when a node's stock changes. Anything wired to the node follows the new value, the node starts or stops its refill timer depending on whether it is below its largest stock, and its collider is refreshed. It does not reset how much damage the node has taken toward its next item, and it does not fire `Hit` or `Depleted`, because nothing was hit. <span class="tech">(It triggers the node's `onStock` and `onCurrentStock` relay outputs, calls `ChangeDeltaSecondsStatus(stock < maximumStock)` and then `UpdateState`.)</span>
+- `Hit` fires when the game accepts a hit on a node that still has stock. A hit that does not make the node give up an item yet still fires, with `Yielded` set to `false`. <span class="tech">(It is raised after `WorkableResourceSource.Damage` when the stock before the call was at least 1 and `CheckDamageType` accepted the damage type. `Yielded` is true when the stock went down.)</span>
+- `Depleted` fires once, when a hit takes the last item. It fires right after `Hit` for the same hit. It does not fire again until the node has refilled and run out again, and it does not fire when your mod empties a node with `SetStock`.
+- `IsAvailable` tells you whether `Hit` and `Depleted` work. The reads and `SetStock` can still work.
+
+### Limits
+
+- `Near` throws an `ArgumentException` for a negative radius, or a number that is not a real number. A negative `stock` given to `SetStock` throws an `ArgumentException`.
+- `SetStock` returns `false` when no node has that id, and while a save is loading or being written.
+- A hit of a kind the node does not accept, or a hit on a node that is already empty, does not fire `Hit`.
+- You can't watch a node refill, and you can't change its largest stock, its items or its owner. The node refills on the game's own timer, so there is no event for it. You can only see from `RespawnEnabled` that it does. `MaxStock`, `ItemIds`, `OwnerId` and `PermissionToTake` are read only. <span class="tech">(Respawn is driven by `WorkableResourceSource.DeltaSeconds` and `SpawnSettings.TimeToSpawn`.)</span>
+- Other things you may mistake for resource nodes are not covered. The game's extractables have no stock, owner or item list. They spawn objects and keep a health value, so they are a different system.
 
 ## Details
 
@@ -141,19 +213,18 @@ The framework changes some of the game's methods when it starts, so it can tell 
 
 ### When you can call it
 
-- **Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started.** The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)). This goes for every member on this page, and for the code that handles `Hit` and `Depleted`.
-- **It is safe to call any of it at any time, even on the main menu or while a save is loading.** If there is nothing to read yet, you get an empty list or `null`, and `SetStock` gives `false`.
-- **Your event handlers run inside the game's own call, right after the hit.** If one of your handlers throws an error, the framework logs it and still runs the other handlers.
-- **The framework does not hold back `Hit` and `Depleted` while a save is loading or being written.** A handler that should ignore those moments can check `SaveData.Busy`, which is `true` during a load or a save.
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)). This goes for every member on this page, and for the code that handles `Hit` and `Depleted`.
+- It is safe to call any of it at any time, even on the main menu or while a save is loading. If there is nothing to read yet, you get an empty list or `null`, and `SetStock` gives `false`.
+- Your event handlers run inside the game's own call, right after the hit. If one of your handlers throws an error, the framework logs it and still runs the other handlers.
+- The framework does not hold back `Hit` and `Depleted` while a save is loading or being written. A handler that should ignore those moments can check `SaveData.Busy`, which is `true` during a load or a save.
 
 ### What to check for and what comes back
 
-- **Only two calls throw an error for a bad value.** `SetStock` throws an `ArgumentException` for a negative `stock`, and `Near` throws one for a negative or not-a-number `radius`.
-- **If the game itself fails while the framework works, you get an empty answer instead of an error.** The answer is the plain default (an empty list, `null` or `false`), and the first failure of each member goes to the log as an error. Later failures of that member are not logged again.
+- Only two calls throw an error for a bad value. `SetStock` throws an `ArgumentException` for a negative `stock`, and `Near` throws one for a negative or not-a-number `radius`.
+- If the game itself fails while the framework works, you get an empty answer instead of an error. The answer is the plain default (an empty list, `null` or `false`), and the first failure of each member goes to the log as an error. Later failures of that member are not logged again.
 
 ### If something fails to set up
 
 The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
-- **If the node events can't be set up, only `Hit` and `Depleted` stop.** The framework checks three private fields on the node (`currentStock`, `maximumStock`, `outputItems`) and changes the game's `WorkableResourceSource.Damage`. If any of that fails, the feature group `obenseuer.moddingframework.resources` turns off, error lines and a warning go to the log, and `IsAvailable` is `false`.
-  - Technical: the reads use the same three fields, so a missing field makes them return empty results as well.
+- If the node events can't be set up, only `Hit` and `Depleted` stop. The framework checks three private fields on the node (`currentStock`, `maximumStock`, `outputItems`) and changes the game's `WorkableResourceSource.Damage`. If any of that fails, the feature group `obenseuer.moddingframework.resources` turns off, error lines and a warning go to the log, and `IsAvailable` is `false`. <span class="tech">(The reads use the same three fields, so a missing field makes them return empty results as well.)</span>
