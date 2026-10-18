@@ -11,7 +11,7 @@ Status: experimental.
 
 ## What it is
 
-When the player commits crimes in the game, the game keeps a criminal record. When the law catches up with them, the player can pay a fine, try to bribe their way out, or be arrested and have their things taken. This API lets your mod do those things for the player: check whether a fine can be paid or a bribe tried, pay the fine, try the bribe, and move everything the player carries into a container. Reading the record and sending the player to prison are on the [Story API](../api-story/law-experimental-for-arrest.md#law-experimental-for-arrest) page, in the `Law` part.
+When the player commits crimes in the game, the game keeps a criminal record. When the law catches up with them, the player can pay a fine, try to bribe their way out, or be arrested and have their things taken. This API lets your mod do those things for the player. It can check whether a fine can be paid or a bribe tried, pay the fine, try the bribe, and move everything the player carries into a container. Reading the record and sending the player to prison are on the [Story API](../api-story/law-experimental-for-arrest.md#law-experimental-for-arrest) page, in the `Law` part.
 
 ## When to use it
 
@@ -120,7 +120,7 @@ Everything not listed in this reference is internal and may change without notic
 
 ### When you can call it
 
-- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game only works safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game only runs safely on the main thread (see the [glossary](../glossary.md#main-thread)).
 - It is safe to call at any time. If the player has no record, or the game is busy, you get `false`.
 
 ### If something fails to set up

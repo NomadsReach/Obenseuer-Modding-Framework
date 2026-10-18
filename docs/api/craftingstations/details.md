@@ -14,12 +14,12 @@ Everything not listed in this reference is internal and may change without notic
 
 ## When you can call it
 
-- Call everything from your mod's normal code, not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)).
+- Call everything from your mod's normal code, not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../../glossary.md#main-thread)).
 - The calls do not throw errors. A call that cannot do its job returns `false`, and a failure inside the game goes to the log once.
 
 ## If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../../glossary.md#feature-group) that depends on it, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
 - Speed and quality each have their own feature group. They are `obenseuer.moddingframework.craftingspeed` and `obenseuer.moddingframework.craftingquality`, the names you will see in the log.
 - If one of them cannot be set up, its availability flag (`SpeedFactorsAvailable` or `QualityFactorAvailable`) is `false`, error lines and a warning go to the log, and its setter returns `false`.

@@ -9,7 +9,7 @@ nav_order: 4
 
 ## What it is
 
-A job in the game is a place where the player can wait out a stretch of time and get paid for it. Each job has an hourly wage, may test one of the player's skills, and has a hardness. This API lets your mod list the jobs in the scene you are in, read their wage, skill and hardness, and get told each time the player finishes working, with how long they worked and how much money it paid.
+A job in the game is a place where the player can wait out a stretch of time and get paid for it. Each job has an hourly wage, may test one of the player's skills, and has a hardness. This API lets your mod list the jobs in the scene you are in, and read their wage, skill and hardness. It tells you each time the player finishes working, with how long they worked and how much money it paid.
 
 ## When to use it
 
@@ -189,12 +189,12 @@ The framework changes one of the game's methods when it starts, so it can tell y
 
 ### When you can call it
 
-- Call everything from your mod's normal code, not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)). This goes for every member on this page and for the code that handles `Worked`.
+- Call everything from your mod's normal code, not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../glossary.md#main-thread)). This goes for every member on this page and for the code that handles `Worked`.
 - It is safe to call any of it at any time, even on the main menu or while a save is loading. If there is nothing to read yet, you get an empty list or `null`.
 - Your `Worked` handlers run inside the game's own call, one at a time. If one of your handlers throws an error, the framework logs it and still runs the other handlers. <span class="tech">(The event is raised synchronously from the game's wait completion.)</span>
 
 ### If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../glossary.md#feature-group) that depends on it, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
 - If the change behind `Worked` cannot be made, `Jobs.IsAvailable` becomes `false` and `Worked` never fires. The feature group is turned off and error lines and a warning go to `BepInEx\logs\obenseuer.moddingframework.jobs.log`. `All` and `Get` keep working. <span class="tech">(The change is on `InteractableWaitWork.WaitDone`. `Worked` relies on `WaitDone` being the only way a wait finishes. The game code has one override of it and one call, in `WaitingController.Wakeup`.)</span>

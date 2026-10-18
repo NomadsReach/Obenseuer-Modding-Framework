@@ -185,7 +185,7 @@ Everything not listed in this reference is internal and may change without notic
 
 ### When you can call it
 
-- Call `All` and `IsAvailable` from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game only works safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
+- Call `All` and `IsAvailable` from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game only runs safely on the main thread (see the [glossary](../glossary.md#main-thread)).
 - Nothing here throws an error to you. If the framework fails while it reads, `All` writes the error to the log and gives you an empty list.
 - Your `Acted` handlers run inside the game's own call, one at a time, right after the janitor finished. If one of your handlers throws an error, the framework logs it and still runs the other handlers.
 - Events fire during a save load too. That is why `Replay` exists. A handler that should ignore everything during a load can check whether the game is busy loading or saving. <span class="tech">(`SaveData.Busy` is true while a save is loading or being written.)</span>

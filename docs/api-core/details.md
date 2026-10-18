@@ -26,6 +26,6 @@ nav_order: 17
 
 ## If something fails to set up
 
-- The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+- If a game update breaks one of the framework's changes, the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 - `Survival.IsAvailable` is `false` until its changes are made, and stays `false` if they fail or are refused. It is also `false` when `Core.PatchingAllowed` is false, or when the feature group is disabled. Calls that need a missing change return their default (`0`, `false` or nothing happens).
 - A call that needs the change gives you `false` while an unrelated one keeps working. For example, if the damage change fails, `InterceptDamage` returns `false`, but `Get` and `Set` still work.

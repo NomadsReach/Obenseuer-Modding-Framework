@@ -10,7 +10,7 @@ nav_order: 8
 This page uses `Vector3`, `Quaternion`, `GameObject` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
-`SaveData` keeps your mod's own data in the player's save. You hand it a small class of your own, and it writes that class into the save on every save and gives it back on every load, so your numbers and lists survive a reload. Each mod gets its own file. See [Save data](../guides/getting-started/save-data.md) for a walkthrough.
+`SaveData` keeps your mod's own data in the player's save. You hand it a small class of your own. It writes that class into the save on every save and gives it back on every load, so your numbers and lists survive a reload. Each mod gets its own file. See [Save data](../guides/getting-started/save-data.md) for a walkthrough.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SaveData</code> <span>keep your data in the save</span></p>

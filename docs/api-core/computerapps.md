@@ -10,7 +10,7 @@ nav_order: 15
 This page uses `GameObject`, `Sprite` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
-The game has computer desks the player can sit at. `ComputerApps` lets your mod put an app on them, which is an icon on each desk's screen that opens your own interface. It can also open an app in a full-screen window, and give any object in the world a use prompt like the game's own ("Use", "Read" and so on). You draw the interface yourself, with the help of the [UI kit](../api/ui.md) page.
+The game has computer desks the player can sit at. `ComputerApps` puts an app on them. An app is an icon on each desk's screen that opens your own interface, and it can also open in a full-screen window. The API also gives any object in the world a use prompt like the game's own ("Use", "Read" and so on). You draw the interface yourself, using the [UI kit](../api/ui.md) page.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ComputerApps</code> <span>apps on the desk computers</span></p>
@@ -123,7 +123,7 @@ public class NotesApp : BaseUnityPlugin
 - `Register` returns `false` when the desk changes cannot be made, or when `appId` is already used. Changes are refused when `Core.PatchingAllowed` is false. The first registration of an `appId` wins, and a warning is logged for the second. An empty `appId`, an `appId` that contains `/`, or an empty `title` also returns `false` and logs once.
 - `Register` throws for a bad `modId` or `open`. A null or empty `modId` throws `ArgumentException`, and a null `open` throws `ArgumentNullException`.
 - `title` must not be empty. `icon` may be `null`, and then the title is drawn on the tile.
-- The icons form a grid at the top right of each desk. Each is 84 x 72, there are 5 rows, columns are 96 pixels apart, rows are 84 pixels apart, with a 12 pixel margin.
+- The icons form a grid at the top right of each desk. Each icon is 84 x 72. There are 5 rows, columns are 96 pixels apart, rows are 84 pixels apart, and the margin is 12 pixels.
 - An icon is created once for every desk and app, and reused after that.
 - When the player clicks the icon, `open(host)` is called. `host` is a `RectTransform` that fills the desk's wallpaper, one for each desk and app, and it is an empty area you build your interface in.
 - The framework clears `host` before every `open` call: each child is renamed, deactivated and destroyed. You always build into an empty area, the same as with `OpenStandalone`. Nothing you leave in the area survives the next click, so keep your own state in your mod.
@@ -133,27 +133,27 @@ public class NotesApp : BaseUnityPlugin
 
 ### Closing and events
 
-- Apps hide when the player leaves the computer. `Close(appId)` hides the app on every desk, and closes the full-screen window if it shows that app. `Close` always runs, also while a save loads or saves. Each close raises `AppClosed`.
+- Apps hide when the player leaves the computer. `Close(appId)` hides the app on every desk, and closes the full-screen window if it shows that app. `Close` always runs, even while a save loads or saves. Each close raises `AppClosed`.
 - A desk view raises `AppClosed` when it was showing and then one of these happens: `Close(appId)`, the player leaving the computer (`HideAll`), a single scene load (not an additive one), `RemoveAll` for its mod, or an `open` that throws. A view that was already hidden raises nothing.
 - The full-screen window raises `AppClosed` when it closes: its Close button, Esc, a single scene load, `RemoveAll` for its mod, or `OpenStandalone` of another app.
 - `AppClosed` fires once for each view that closes. Its `ModId` is the mod that registered the app, and `AppId` is the app's id.
 - A handler cannot tell a desk view from the full-screen window. The arguments carry only `ModId` and `AppId`. If you need to tell them apart, track your own view. Handlers are kept apart from each other, and you unsubscribe with `-=`.
-- `ActiveScreen` is the screen of the computer the player is using now, or `null`. It is set when the player starts using a computer and cleared when the use stops or a single scene load clears it. `ScreenChanged` fires with the new value on each change, not on every frame. A `WebView` can follow it with `PinTo` (see [Web UI](../api/webui.md)). <span class="tech">(`ActiveScreen` is the desk's wallpaper `RectTransform`. It is set in `InteractableComputer.Use` and cleared in `StopUse`.)</span>
+- `ActiveScreen` is the screen of the computer the player is using now, or `null`. It is set when the player starts using a computer, and cleared when the use stops or a single scene load happens. `ScreenChanged` fires with the new value on each change, not on every frame. A `WebView` can follow it with `PinTo` (see [Web UI](../api/webui.md)). <span class="tech">(`ActiveScreen` is the desk's wallpaper `RectTransform`. It is set in `InteractableComputer.Use` and cleared in `StopUse`.)</span>
 
 ### The full-screen window
 
 - `OpenStandalone` opens the app over the whole game. It draws on top of everything, has a Close button at the top right, locks the game's controls and shows the cursor. It changes no saved state, so it does not check whether the game is saving. <span class="tech">(A ScreenSpaceOverlay canvas at sort order 500, a CanvasScaler at 1920x1080 (match 0.5) and a GraphicRaycaster. The controls lock is `ControlsDisabled`.)</span>
 - `OpenStandalone` returns `false` and logs a warning when the app is unknown, or when the game is not ready or is busy. Busy means a menu, shop, pause, dialogue or the console is open. It returns `true` when that app is already open.
-- The window creates an event system if the scene has none, and removes it again. The last window to close destroys the event system, if the framework created it. <span class="tech">(It is an EventSystem with a StandaloneInputModule.)</span>
+- The window creates an event system if the scene has none. The last window to close destroys it, if the framework created it. <span class="tech">(It is an EventSystem with a StandaloneInputModule.)</span>
 - The window closes on Esc, on its Close button, on a single scene load, and when the window throws. A scene added on top of the current one does not close it.
-- Esc belongs to a text field or key row first. Esc does not close the window while an input field in it has focus or a key row is waiting for a key. That Esc belongs to the field or row, and the desk computer and the Pause Menu ignore it too. Otherwise Esc closes the window and does not open the Pause Menu on the same press. <span class="tech">(The close runs after the game's `Update`, in `LateUpdate`, while the controls lock still holds, so the game's `Update` returns before its Pause Menu check.)</span>
+- A text field or key row gets Esc first. Esc does not close the window while an input field in it has focus or a key row is waiting for a key. That press belongs to the field or row, and the desk computer and the Pause Menu ignore it too. Otherwise Esc closes the window and does not open the Pause Menu on the same press. <span class="tech">(The close runs after the game's `Update`, in `LateUpdate`, while the controls lock still holds, so the game's `Update` returns before its Pause Menu check.)</span>
 
 ### Use prompts
 
 - `AddInteraction` gives an object the game's own use prompt. The prompt shows `title` and `(message)` the way the game shows its own prompts, and `onUse` runs when the player uses it. An error in `onUse` is logged to your mod's log.
 - The object needs a collider. `target` needs a `Collider`, and the game's `InteractObjects` must exist.
 - Calling it again from the same mod updates the title, message and `onUse`.
-- `AddInteraction` returns `false` while a save loads or saves, when changes are not allowed (`Core.PatchingAllowed` is false), when there is no collider or no interact system, when no usable layer is found, or when another mod already owns the object. It also returns `false` when the object already has a game component that handles use. The game would show its own prompt in that case, so your prompt would never appear. A warning is logged once. <span class="tech">(A "game component that handles use" is any MonoBehaviour that implements `IInteractable`, except the framework's own prompt.)</span>
+- `AddInteraction` returns `false` while a save loads or saves, when changes are not allowed (`Core.PatchingAllowed` is false), when there is no collider or interact system, when no usable layer is found, or when another mod owns the object. It also returns `false` when the object already has a game component that handles use, because the game would show its own prompt instead. A warning is logged once. <span class="tech">(A "game component that handles use" is any MonoBehaviour that implements `IInteractable`, except the framework's own prompt.)</span>
 - The object keeps its layer when that layer can be used. Otherwise it gets the first usable layer of 17, 23, 29, 20 and 15. `RemoveAll` puts the original layer back. <span class="tech">(A usable layer is one that is in `InteractObjects.MaskList`.)</span>
 - `RemoveAll(modId)` removes your mod's apps and icons, closes its window, and removes its use prompts.
 

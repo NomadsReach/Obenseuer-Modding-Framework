@@ -7,12 +7,12 @@ nav_order: 10
 
 # CameraView
 
-Obenseuer is played in first person. The game also has a third person camera, but it is switched off in the normal game. `CameraView` lets your mod ask the game to use it, through the game's own camera state, and never moves a camera by hand.
+Obenseuer is played in first person. The game also has a third person camera, but it is switched off in the normal game. `CameraView` asks the game to use it through the game's own camera state. It never moves a camera by hand.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>CameraView</code> <span>first and third person</span></p>
 
-Check `IsAvailable` first, since there is no camera on the main menu. Then use `SetThirdPerson`, `SetFirstPerson` or `Toggle` to change the view, and `IsFirstPerson` to see which one is on.
+Check `IsAvailable` first, because there is no camera on the main menu. Use `SetThirdPerson`, `SetFirstPerson` or `Toggle` to change the view, and `IsFirstPerson` to see which one is on.
 
 <div class="api-pair" markdown="1">
 

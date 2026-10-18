@@ -74,7 +74,7 @@ void ShowId(UnityEngine.GameObject computerObject)
 
 ## Reference
 
-This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail you can skip on a first read.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ComputerContents</code> <span>find computers and read their files and emails</span></p>
@@ -175,7 +175,7 @@ Everything not listed in this reference is internal and may change without notic
 
 ### When you can call it
 
-- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../glossary.md#main-thread)).
 
 ### What to check for and what comes back
 

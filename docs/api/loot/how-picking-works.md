@@ -7,7 +7,7 @@ nav_order: 2
 
 # How picking works
 
-This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail you can skip on a first read.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>LootPools</code> <span>add items to the game's loot categories</span></p>

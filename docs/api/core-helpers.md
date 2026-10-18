@@ -18,7 +18,7 @@ Status: experimental.
 These are three small shortcuts that remove the setup code almost every mod repeats. None of them adds a new feature. Each one calls an existing part of the framework for you.
 
 - `CoreMod` gives your mod one handle that does saving, keybinds, logging and patching under your mod id, so you do not type the id each time.
-- The `CorePatcher` short helpers (`Prefix`, `Postfix`, `Finalizer`) are quick ways to change a game method, when you only need to run your own code before it, after it, or when it throws an error.
+- The `CorePatcher` short helpers (`Prefix`, `Postfix`, `Finalizer`) change a game method when you only need to run your own code before it, after it, or when it throws an error.
 - `Events.WhenReady` runs your code once a save is loaded, even if the save was loaded before your code asked.
 
 Saving a value with `SaveData.Bind` is on the [game save data page](savedata-game.md).

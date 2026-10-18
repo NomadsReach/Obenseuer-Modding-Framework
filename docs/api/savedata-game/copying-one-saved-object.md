@@ -10,7 +10,7 @@ nav_order: 2
 This page uses `GameObject` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
-This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail you can skip on a first read.
 
 A savable object is an object the game saves, such as the player's inventory. `Capture` copies its entry into text, and `Apply` puts text back into it. Neither writes to disk.
 

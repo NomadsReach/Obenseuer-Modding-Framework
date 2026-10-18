@@ -73,7 +73,7 @@ if (farm != null) Log.Info(farm.PlantItemIds.Count + " kinds of plant, filled " 
 
 ## Reference
 
-This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail you can skip on a first read.
 
 Each autofarm is an `AutofarmInfo`, a snapshot of its state at the moment you asked. The snapshot does not update by itself, so ask again for fresh values. `Replanted` tells you when an autofarm plants.
 
@@ -206,12 +206,12 @@ Everything not listed in this reference is internal and may change without notic
 
 ### When you can call it
 
-- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game only works safely on its main thread (see the [glossary](../glossary.md#main-thread)).
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game only runs safely on the main thread (see the [glossary](../glossary.md#main-thread)).
 - It is safe to call any of it at any time. With no save loaded, or on the main menu, `All()` gives an empty list, `Get` gives `null` and `SetGrowPercentage` gives `false`. The only call that throws is `SetGrowPercentage`, for a growth range that is not allowed.
 - `Autofarms.IsAvailable` tells you whether `Replanted` works. It is `false` when the framework could not set up the planting event, or when the feature group was turned off. The reads and `SetGrowPercentage` keep working when it is `false`.
 - Your `Replanted` handler runs inside the game's own planting call. If your handler throws an error, the framework logs it and still runs the other handlers. <span class="tech">(the event is raised from a Harmony postfix (a piece of code that runs right after the game method) on `Autofarm.Plant`, on the main thread)</span>
 
 ### If something fails to set up
 
-- The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+- The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../glossary.md#feature-group) that depends on it, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 - If the change to the game's planting method fails, the feature group turns off and `Replanted` stops. One warning goes to the log. `All()`, `Get` and `SetGrowPercentage` keep working. <span class="tech">(the method is `Autofarm.Plant`. The log line reads "autofarm hooks incomplete, replanted events are disabled")</span>

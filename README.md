@@ -1,12 +1,12 @@
 # Obenseuer Modding Framework
 
-The Obenseuer Modding Framework (the framework) is a free add-on for the game Obenseuer. Other mods build on it, so they all share one settings menu, per-save data, game events and helpers for the game's items, NPCs, shops and more. It is a [BepInEx](docs/glossary.md#bepinex) plugin. BepInEx is the tool that loads mods into the game. The framework runs on BepInEx 5 (5.4.23 or later) and BepInEx 6 (Unity.Mono). It also has a few optional gameplay tweaks, all off by default.
+The Obenseuer Modding Framework (the framework) is a free add-on for the game Obenseuer. Mods build on it, so they share one settings menu, per-save data, game events, and helpers for the game's items, NPCs, shops and more. It is a [BepInEx](docs/glossary.md#bepinex) plugin, and BepInEx is the tool that loads mods into the game. The framework runs on BepInEx 5 (5.4.23 or later) and BepInEx 6 (Unity.Mono). It also has a few optional gameplay tweaks, all off by default.
 
-- **Playing with mods?** Go to [Install](#install).
-- **Making a mod?** Read [Your first mod](docs/guides/getting-started/first-mod.md), then the [API index](docs/API.md).
-- **Something not working?** See the [FAQ](docs/faq.md).
+- Playing with mods? Go to [Install](#install).
+- Making a mod? Read [Your first mod](docs/guides/getting-started/first-mod.md), then the [API index](docs/API.md).
+- Something not working? See the [FAQ](docs/faq.md).
 
-Version: 0.12.0-beta (plugin version 0.12.0, GUID `obenseuer.moddingframework`). License: MIT. This is a beta, see the [status page](docs/status.md).
+Version: 0.12.0-beta (plugin version 0.12.0, GUID `obenseuer.moddingframework`). License: MIT. This is a beta, so it may have bugs. See the [status page](docs/status.md).
 
 Documentation site: https://nomadsreach.github.io/Obenseuer-Modding-Framework/
 
@@ -14,34 +14,30 @@ Documentation site: https://nomadsreach.github.io/Obenseuer-Modding-Framework/
 
 ### What the framework does
 
-- Game API: more than 100 areas over the game's systems, including players, NPCs and animals, items, inventory and containers, crafting, shops, banking, mail, housing, world objects, power, doors, trains, weather and time.
-- Custom items and recipes, with OBJ models and PNG icons.
-- Custom furniture: a mod furniture is a copy of a vanilla piece, and it can have its own OBJ model.
+- A game API with more than 100 areas over the game's systems, including players, NPCs and animals, items, inventory and containers, crafting, shops, banking, mail, housing, world objects, power, doors, trains, weather and time.
+- Custom items and recipes, with OBJ models and PNG icons, and custom furniture: a copy of a vanilla piece, which can have its own OBJ model.
 - Shop stock for mod items in traders and vending machines, loot categories for mod spawn pools, and mail bundles that send several items as one letter or package after a delay.
 - Per-save data, so each mod keeps its own data in the save folder.
-- Newer areas: player shops, mod NPC routines and orders, door and level positions, furniture blueprints and flatpacks, custom skills, and dialogue and quest authoring.
-- A shared Mods menu with every plugin's settings, including key bindings.
-- In-game computer apps: mods add icons to the desks and open full-screen app windows.
-- WebUi, an optional module that shows mod pages in HTML. It is Windows only. It has a shared theme in light and dark.
+- A shared Mods menu for every plugin's settings and key bindings, in-game computer apps, and WebUi, an optional Windows-only module that shows mod pages as HTML with a shared light and dark theme.
 - Safe patching: if a game update breaks one of the framework's changes to the game, the framework turns off the whole feature group for that feature and writes error lines to that group's log file. The rest keeps working.
-- Story API (experimental): quests, dialogue and law.
-- Net (experimental): Steam, lobby and presence helpers for co-op.
-- Optional tweaks, off by default: drain multipliers, stack size, spoilage, crafting and renovation speed, camera toggle, game clock speed and more. Change them in the Mods menu or in the config file. The full list is in [Framework core classes](docs/api-core/tweaks.md#tweaks).
+- Newer areas: player shops, mod NPC routines and orders, door and level positions, furniture blueprints and flatpacks, custom skills, and dialogue and quest authoring.
+- Experimental: the story API (quests, dialogue and law), and Net (Steam, lobby and presence helpers for co-op).
+- Optional tweaks, all off by default: drain multipliers, stack size, spoilage, crafting and renovation speed, camera toggle, game clock speed and more. Change them in the Mods menu or in the config file. The full list is in [the framework's tweaks](docs/api-core/tweaks.md#tweaks).
 
-Mods add their own features on top. The game API areas and helpers were built from the game's code. Extensive testing has not been fully done yet. See the [status page](docs/status.md). Report problems with your log file, `BepInEx\logs\ObenseuerCore.log`.
+Mods add their own features on top. The game API areas and helpers were built from the game's code. Report problems with your log file, `BepInEx\logs\ObenseuerCore.log`.
 
 ### Requirements
 
 - Obenseuer 0.5.08 (Steam build 25969064).
-- [BepInEx](docs/glossary.md#bepinex) 5.4.23 or later (Mono, x64), or BepInEx 6 Unity.Mono, x64, bleeding edge build from https://builds.bepinex.dev/projects/bepinex_be: [be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build. Newer BepInEx 6 builds usually work, but BepInEx 6 is a pre-release and a new build can break mods. If something breaks, use be.788. Install one of them first, then start the game once so it creates its folders.
+- [BepInEx](docs/glossary.md#bepinex) 5.4.23 or later (Mono, x64), or BepInEx 6 Unity.Mono (x64), the tested build being [be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip). BepInEx 6 is a pre-release, so a newer build can break mods. If that happens, go back to be.788. Install one of them first, then start the game once so it creates its folders.
 - ConfigurationManager and UnityExplorer, if you use them, need the builds for your BepInEx version.
-- Microsoft Edge WebView2 Runtime, only for the optional WebUi module: mods that use WebUi and the web Mods menu. Windows 10 and 11 have it already. Without it, or without the module, the framework still runs, and the Mods menu uses the classic window.
+- Microsoft Edge WebView2 Runtime, only for the optional WebUi module. Windows 10 and 11 have it already. Without it, or without the module, the framework still runs, and the Mods menu uses the classic window.
 
 ### Install
 
-1. Close the game. In the game folder (the folder that holds `Obenseuer.exe`), extract a BepInEx zip: BepInEx 5.4.23 or later (Mono, win-x64), or the BepInEx 6 Unity.Mono win-x64 zip, `BepInEx-Unity.Mono-win-x64-6.0.0-be.<build>+<hash>.zip` ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build). Newer BepInEx 6 builds usually work, but BepInEx 6 is a pre-release and a new build can break mods. If something breaks, use be.788.
+1. Close the game. In the game folder (the folder that holds `Obenseuer.exe`), extract a BepInEx zip: 5.4.23 or later (Mono, win-x64), or the BepInEx 6 Unity.Mono win-x64 zip, `BepInEx-Unity.Mono-win-x64-6.0.0-be.<build>+<hash>.zip`. Use the tested build listed in Requirements.
 2. Start the game once, then close it.
-3. Download the framework zip from https://github.com/NomadsReach/Obenseuer-Modding-Framework/releases and extract it into the game folder. The zip contains a `BepInEx` folder, so its files land in `BepInEx\plugins\ObenseuerCore\`. The zip holds a build for each loader: `ObenseuerCore.dll` for BepInEx 6 and `ObenseuerCore.BepInEx5.dll` for BepInEx 5. BepInEx loads the one that matches. If your log shows an error about the other file, see [BepInEx 5 or 6?](docs/faq.md#bepinex-5-or-6).
+3. Download the framework zip from https://github.com/NomadsReach/Obenseuer-Modding-Framework/releases and extract it into the game folder. The zip contains a `BepInEx` folder, so its files land in `BepInEx\plugins\ObenseuerCore\`. It holds `ObenseuerCore.dll` for BepInEx 6 and `ObenseuerCore.BepInEx5.dll` for BepInEx 5, and BepInEx loads the one that matches. If your log shows an error about the other file, see [BepInEx 5 or 6?](docs/faq.md#bepinex-5-or-6).
 4. Optional: for WebUi, extract the WebUi zip from the same releases page into the game folder too. Its files land in `BepInEx\plugins\ObenseuerCore.WebUi\`.
 5. Start the game.
 
@@ -60,7 +56,7 @@ To update, close the game and delete `BepInEx\plugins\ObenseuerCore\`, and `BepI
 
 ### Mods menu
 
-The framework adds a "Mods" tab to the in-game menu, and a "MODS" button to the main menu. Both open the Mods window. By default it is a web page styled like the game's own menu. It has page tabs, a sidebar of mods, a settings search box, and every BepInEx setting from every installed plugin, grouped by plugin. Set `[UI] ModMenuStyle` to `classic` for the classic full-screen window. The classic window also opens when the web page cannot open, and when the WebUi module is not installed.
+The framework adds a "Mods" tab to the in-game menu, and a "MODS" button to the main menu. Both open the Mods window. By default it is a web page styled like the game's own menu, with page tabs, a sidebar of mods, a settings search box, and every BepInEx setting from every installed plugin, grouped by plugin. Set `[UI] ModMenuStyle` to `classic` for the classic full-screen window. The classic window also opens when the web page cannot open, and when the WebUi module is not installed.
 
 ### Safety setting
 
@@ -111,7 +107,7 @@ The docs are in the source repo on GitHub, https://github.com/NomadsReach/Obense
 
 ## Compatibility
 
-The framework depends on BepInEx 5.4.23 or later (Mono, x64) or BepInEx 6 Unity.Mono (x64, [be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build), and HarmonyX, which BepInEx ships. The BepInEx 6 build is built against `BepInEx.Core.dll`, `BepInEx.Unity.Mono.dll` and `SemanticVersioning.dll` from the BepInEx 6 core folder. The BepInEx 5 build is built against BepInEx packages from NuGet. The optional WebUi module depends on the framework and also needs the WebView2 Runtime (see Requirements). The framework has no native code and no other dependencies.
+The framework depends on BepInEx 5.4.23 or later (Mono, x64) or BepInEx 6 Unity.Mono (x64, [be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build), and on HarmonyX, which BepInEx ships. The BepInEx 6 build is built against `BepInEx.Core.dll`, `BepInEx.Unity.Mono.dll` and `SemanticVersioning.dll` from the BepInEx 6 core folder. The BepInEx 5 build is built against BepInEx packages from NuGet. The optional WebUi module depends on the framework and also needs the WebView2 Runtime (see Requirements). The framework has no native code and no other dependencies.
 
 ## License
 
@@ -125,13 +121,9 @@ https://github.com/NomadsReach/Obenseuer-Modding-Framework
 
 Only needed if you change the framework. Mod authors do not build it.
 
-- Build the whole solution for both loaders before `tools\package.cmd`. Run `dotnet build ObenseuerCore.slnx -c Release`, which writes `bin\` and `bin\webui\`, then `dotnet build ObenseuerCore.slnx -c Release -p:Loader=BepInEx5`, which writes `bin\be5\` and `bin\be5\webui\`.
-- Building needs the game folder (`Obenseuer_Data\Managed`) and a BepInEx `core` folder that holds `Mono.Cecil.dll`. The publicizer and the preloader use it for both loaders. The BepInEx 6 build also needs `BepInEx.Core.dll` there. The BepInEx 5 build restores its BepInEx 5 packages from the BepInEx NuGet feed in `nuget.config`.
-- Prerequisites: the .NET 10 SDK (tested with 10.0.401). The .NET 8 SDK fails on `.slnx` files with MSB4068. The publicizer runs on the .NET 8 runtime, so that runtime must be installed too. For the native `ObxWebView.dll` (built by the WebUi project only) you also need Visual Studio 2022 with the "Desktop development with C++" workload. Without it, build with `-p:SkipNative=true`, which uses an existing `webui\native\ObxWebView\bin\ObxWebView.dll`. If that DLL is absent, the build warns and WebUi is unavailable at runtime (the Mods menu uses its fallback).
-- Linux (or any non-Windows host): the native DLL is Windows only and is skipped, so the same warning appears. Set `OBENSEUER_DIR` to the game folder, then run `dotnet build ObenseuerCore.slnx -c Release`. Output still goes to `bin/`. WebUi is unavailable there.
-- The BepInEx 6 build reads `Obenseuer_Data\Managed` and `BepInEx\core` from the game folder, and `BepInEx\core` must hold BepInEx 6 (`BepInEx.Core.dll`). To use another BepInEx core folder, set `-p:BepInExCore=<folder>`. To use another game folder, set `-p:GameDir=<folder>`, or the `OBENSEUER_DIR` environment variable, or put `<Project><PropertyGroup><GameDir><folder></GameDir></PropertyGroup></Project>` in `GameDir.user.props` next to `Directory.Build.props` (it is gitignored). They are checked in that order.
-- The WebView2 SDK comes from the NuGet package `Microsoft.Web.WebView2` 1.0.4022.49, restored on build by `webui\ObenseuerCore.WebUi.csproj`.
-- The build also runs the [publicizer](docs/glossary.md#publicizer) in `tools\Publicize`, which writes the publicized game assembly into `lib\`, and builds `preloader\` and the `Examples\` projects into their own `bin\` folders.
-- `tools\package.cmd` makes both release zips from `bin\` and `bin\be5\` (the WebUi zip from `bin\webui\` and `bin\be5\webui\`). It builds nothing. The zips go to `dist\ObenseuerModdingFramework-<version>-beta.zip` and `dist\ObenseuerModdingFramework-WebUi-<version>-beta.zip`. It also runs the System32 `tar.exe`, which Windows 10 1803 or later has. Its version defaults to the plugin version in `src\Core.cs`.
-- The `preloader\` folder is built but not shipped. To try the L0 publicizer, copy `preloader\bin\ObenseuerCore.Preloader.dll` (BepInEx 6) or `preloader\bin\be5\ObenseuerCore.Preloader.dll` (BepInEx 5) to `BepInEx\patchers\ObenseuerCore\`. It does nothing until `Publicize = true` in `BepInEx\config\ObenseuerCore.L0.cfg` (on BepInEx 5 the game assembly is still reloaded from memory, unchanged).
-- The native build (`webui\native\ObxWebView\ObxWebView.vcxproj`) runs Visual Studio's MSBuild, which the WebUi project finds with vswhere. Any Visual Studio 2022 edition with the C++ tools works. The .NET SDK's MSBuild cannot build C++ projects, so the WebView2 SDK path comes from the restored NuGet package through the `WebView2Dir` property. To build the native test host, run Visual Studio's MSBuild on `webui\native\ObxWebView\test\ObxHost.vcxproj`.
+- Build both loaders before packaging: run `dotnet build ObenseuerCore.slnx -c Release`, which writes `bin\` and `bin\webui\`, then `dotnet build ObenseuerCore.slnx -c Release -p:Loader=BepInEx5`, which writes `bin\be5\` and `bin\be5\webui\`.
+- Prerequisites: the .NET 10 SDK (tested with 10.0.401), and the .NET 8 runtime, which the publicizer uses. The build needs the game folder (`Obenseuer_Data\Managed`) and a BepInEx `core` folder that holds `Mono.Cecil.dll`, plus `BepInEx.Core.dll` for the BepInEx 6 build. The BepInEx 5 packages come from the NuGet feed in `nuget.config`.
+- The native `ObxWebView.dll`, built by the WebUi project only, needs Visual Studio 2022 with the "Desktop development with C++" workload. Without it, build with `-p:SkipNative=true`. On Linux the native DLL is skipped, so set `OBENSEUER_DIR` to the game folder and build as above. WebUi is unavailable there.
+- To use another game folder or BepInEx core folder, pass `-p:GameDir=<folder>` or `-p:BepInExCore=<folder>`, set `OBENSEUER_DIR`, or put it in `GameDir.user.props` next to `Directory.Build.props`. They are checked in that order.
+- The build also runs the [publicizer](docs/glossary.md#publicizer) in `tools\Publicize`, and builds `preloader\` and the `Examples\` projects into their own `bin\` folders. The `preloader\` folder is built but not shipped.
+- `tools\package.cmd` makes both release zips from `bin\` and `bin\be5\` (the WebUi zip from `bin\webui\` and `bin\be5\webui\`) into `dist\`. It builds nothing. Its version defaults to the plugin version in `src\Core.cs`.

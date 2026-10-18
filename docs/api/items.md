@@ -12,7 +12,7 @@ Status: experimental.
 
 ## What it is
 
-Every item in the game, such as the empty glass bottle, is listed in the game's item catalogue. This part of the framework lets a mod look items up by id, by title, by text in the title or by category, and read facts about them: price, how many fit in a stack, whether they spoil, where they are worn and more. It only reads. It adds no items and changes nothing.
+Every item in the game, such as the empty glass bottle, is listed in the game's item catalogue. This part of the framework lets a mod look items up by id, by title, by text in the title or by category. It also reads facts about them: price, how many fit in a stack, whether they spoil, where they are worn and more. It only reads. It adds no items and changes nothing.
 
 To add new items, see [Registry](registry.md). To give an item to the player, see [Inventory](inventory.md).
 

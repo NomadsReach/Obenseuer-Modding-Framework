@@ -7,7 +7,7 @@ nav_order: 2
 
 # IDs
 
-This is the full list of what the API gives you, in the order a mod meets it: ids, items, icons, models, recipes, then what happens to saves. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you, in the order a mod meets it: ids, items, icons, models, recipes, then what happens to saves. Text in brackets at the end of a note is extra detail you can skip on a first read.
 
 Every item and recipe your mod adds gets a number, its id. You never choose the number. The framework works it out from your mod id and the key you give the item, so the same pair always gives the same number.
 

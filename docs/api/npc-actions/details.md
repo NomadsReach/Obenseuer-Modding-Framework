@@ -18,7 +18,7 @@ The framework changes some of the game's methods when it starts, so it can tell 
 
 ## When you can call it
 
-- Call everything from your mod's normal code (OnLoad, event handlers, Update), not from a background thread you started. The game only works safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)).
+- Call everything from your mod's normal code (OnLoad, event handlers, Update), not from a background thread you started. The game only runs safely on the main thread (see the [glossary](../../glossary.md#main-thread)).
 - An error from the game is caught and you get `false`. Only the first error of each action is logged. Later errors of that action are not logged again.
 
 ## Limits

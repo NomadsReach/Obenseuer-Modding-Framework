@@ -10,7 +10,7 @@ nav_order: 8
 
 ## What it is
 
-The game world is split into levels, and the player moves from one to another through level changers: doors with a lock, other use points, and invisible areas that take the player to the next level when they walk in. This API lists the level changers in the scene you are in, tells you where each one leads, locks and unlocks doors, uses a changer for the player, moves the player to any level by name, and tells you when the game is about to change level.
+The game world is split into levels, and the player moves from one to another through level changers: doors with a lock, other use points, and invisible areas that take the player to the next level when they walk in. This API lists the level changers in the scene you are in, and tells you where each one leads. It can lock and unlock doors, use a changer for the player, and move the player to any level by name. It also tells you when the game is about to change level.
 
 ## When to use it
 

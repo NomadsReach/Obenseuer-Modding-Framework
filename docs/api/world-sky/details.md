@@ -17,11 +17,11 @@ Everything not listed in this reference is internal and may change without notic
 
 ## When you can call it
 
-- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game only works safely on its main thread (see the [glossary](../../glossary.md#main-thread)).
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game only runs safely on the main thread (see the [glossary](../../glossary.md#main-thread)).
 - `WorldSky.IsAvailable` tells you whether your values will be applied. It is `false` when the framework could not set up the sky changes, or when the feature group was turned off. Then `Set` returns `false`.
 
 ## If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../../glossary.md#feature-group) that depends on it, and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
 - If any of the changes fails, the feature group turns off and `WorldSky.IsAvailable` becomes `false`. `Current` can still be read. <span class="tech">(the framework patches `AzureSkyRenderController.UpdateShaderUniforms()` with a prefix, and each game writer with a prefix and a finalizer (the methods listed above). It subscribes to `Application.onBeforeRender` only while an override is set or a value is still held.)</span>

@@ -12,7 +12,7 @@ This page uses `Vector3` from Unity. The [glossary](../glossary.md#types-that-co
 
 ## What it is
 
-A lantern is an object placed in the world, not an item you carry. The player puts a candle from their inventory into it, and the candle burns for a while until it runs out. This API lets your mod list the lanterns in the scene you are in, read whether each one is lit and how many seconds of candle are left, and get told when a candle burns out. The candle itself is an inventory item: see [Inventory](inventory.md).
+A lantern is an object placed in the world, not an item you carry. The player puts a candle from their inventory into it, and the candle burns for a while until it runs out. This API lets your mod list the lanterns in the scene you are in, and read whether each one is lit and how many seconds of candle are left. It tells you when a candle burns out. The candle itself is an inventory item: see [Inventory](inventory.md).
 
 ## When to use it
 
@@ -65,7 +65,7 @@ foreach (LanternInfo lantern in Lanterns.All())
 
 ## Reference
 
-Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+Text in brackets at the end of a note is extra detail you can skip on a first read.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Lanterns</code> <span>the lanterns in the scene you are in</span></p>
@@ -170,14 +170,14 @@ The framework changes one of the game's methods when it starts, so it can tell y
 
 ### When you can call it
 
-- Call everything from your mod's normal code, not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)). This goes for every member on this page and for the code that handles `CandleBurntOut`.
+- Call everything from your mod's normal code, not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../glossary.md#main-thread)). This goes for every member on this page and for the code that handles `CandleBurntOut`.
 - It is safe to call any of it at any time, even on the main menu or while a save is loading. If there is nothing to read yet, you get an empty list or `null`. Nothing throws, and no argument makes a call throw.
 - Every call only reads. Nothing here changes a lantern.
 - Your `CandleBurntOut` handlers run inside the game's own call, one at a time. If one of your handlers throws an error, the framework logs it and still runs the other handlers. <span class="tech">(The event is raised synchronously after the game has finished putting the candle out.)</span>
 
 ### If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../glossary.md#feature-group) that depends on it, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
 - If the change behind `CandleBurntOut` cannot be made, `Lanterns.IsAvailable` becomes `false` and `CandleBurntOut` never fires. The feature group is turned off and error lines and a warning go to `BepInEx\logs\obenseuer.moddingframework.lanterns.log`. `All` and `Get` keep working. <span class="tech">(The one change is on `Lantern.CandleExtinguished`.)</span>
 

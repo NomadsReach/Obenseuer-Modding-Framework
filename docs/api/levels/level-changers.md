@@ -10,7 +10,7 @@ nav_order: 2
 This page uses `Vector3`, `Transform` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
-A level changer is named by an id, a text name for that changer in the scene. You get the ids from `Levels.All()` and pass them to the other members. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+A level changer is named by an id, a text name for that changer in the scene. You get the ids from `Levels.All()` and pass them to the other members. Text in brackets at the end of a note is extra detail you can skip on a first read.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Levels</code> <span>list, lock and use level changers</span></p>

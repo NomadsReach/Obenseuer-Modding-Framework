@@ -20,7 +20,7 @@ The framework changes two of the game's methods when it starts, so it can tell y
 
 ## When you can call it
 
-- Call everything from your mod's normal code (OnLoad, event handlers, Update), not from a background thread you started. The game only works safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)).
+- Call everything from your mod's normal code (OnLoad, event handlers, Update), not from a background thread you started. The game only runs safely on the main thread (see the [glossary](../../glossary.md#main-thread)).
 - It is safe to call any of it at any time, even on the main menu. With no scene loaded, the reads give an empty list, `null` or `false`.
 - Nothing throws an error. An id that is empty or not known gives `false` (or `null` for `Get` and `OpeningTimes`).
 - Your event handlers run inside the game's own door update, one at a time. If a handler throws an error, the framework logs it and still runs the other handlers.

@@ -7,7 +7,7 @@ nav_order: 2
 
 # GameSettings
 
-This is the full list of what the API gives you, one section for each part. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you, one section for each part. Text in brackets at the end of a note is extra detail you can skip on a first read.
 
 `GameSettings` reads the options the player chose in the game's Options screen. Each read gives a snapshot of what is saved when you ask.
 

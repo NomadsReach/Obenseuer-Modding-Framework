@@ -48,7 +48,7 @@ public class PayPlayer : FrameworkMod
 }
 ```
 
-Replace the code in `Plugin.cs` of your project from [Your first mod](../getting-started/first-mod.md) with the code above. Then run `dotnet build -c Release -p:DeployToGame=true` with the game closed, and start the game. Load a save and wait until the next full game hour. you receive 50 OC, and the next hour does not pay again.
+Replace the code in `Plugin.cs` of your project from [Your first mod](../getting-started/first-mod.md) with the code above. Then run `dotnet build -c Release -p:DeployToGame=true` with the game closed, and start the game. Load a save and wait until the next full game hour. You receive 50 OC, and the next hour does not pay again.
 
 Notes:
 

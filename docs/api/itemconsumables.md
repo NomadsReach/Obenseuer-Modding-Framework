@@ -74,7 +74,7 @@ ItemConsumables.Clear("example.strongapples");
 
 ## Reference
 
-This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail you can skip on a first read.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ItemConsumables</code> <span>read, change and undo item effects</span></p>
@@ -177,5 +177,5 @@ This page installs no changes to the game's methods, so there is no feature grou
 
 ### When you can call it
 
-- Call everything from your mod's normal code, not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
+- Call everything from your mod's normal code, not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../glossary.md#main-thread)).
 - It is safe to call `Get` at any time. If the item is unknown or has no consumable action, you get `null`. `Set` and `Clear` return `false` while a save is loading or being written.

@@ -12,7 +12,7 @@ Status: experimental.
 
 ## What it is
 
-Containers in the game, such as cupboards, toolboxes, fridges and dumpsters, fill themselves with items. Each container draws its items from a loot pool: a list of items kept under a category name, such as `Cupboard`. Each category has two lists, a common list and a rare list. This API lets your mod read those lists, add your own items to a category, take your items out again, create a category of your own, and get told when a container has been filled.
+Containers in the game, such as cupboards, toolboxes, fridges and dumpsters, fill themselves with items. Each container draws its items from a loot pool: a list of items kept under a category name, such as `Cupboard`. Each category has two lists, a common list and a rare list. This API lets your mod read those lists, and add your own items to a category. It can take your items out again, create a category of your own, and tells you when a container has been filled.
 
 All changes are in memory only. The framework never writes the game's files, and your entries are gone when the game closes, so your mod adds them again at every start.
 

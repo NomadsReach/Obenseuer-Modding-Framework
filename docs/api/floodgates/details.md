@@ -14,7 +14,7 @@ Everything not listed in this reference is internal and may change without notic
 
 ## When you can call it
 
-- Call everything from your mod's normal code, not from a background thread you started. The game only works safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)). This goes for the code that handles `Changed` too.
+- Call everything from your mod's normal code, not from a background thread you started. The game only runs safely on the main thread (see the [glossary](../../glossary.md#main-thread)). This goes for the code that handles `Changed` too.
 - It is safe to call any of it at any time, even on the main menu or with no save loaded. Reads give an empty list, `null` or `false`. The calls that change a gate give `false` and nothing throws to you. An unknown or empty id gives `false`.
 - Your `Changed` handler runs inside the game's own call, right after the command. If your handler throws an error, the framework logs it and still runs the other handlers.
 

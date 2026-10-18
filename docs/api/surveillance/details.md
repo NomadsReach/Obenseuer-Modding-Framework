@@ -14,7 +14,7 @@ Everything not listed in this reference is internal and may change without notic
 
 ## When you can call it
 
-- Call everything from your mod's normal code, not from a background thread you started. The game only works safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)). This goes for the code that handles the events too.
+- Call everything from your mod's normal code, not from a background thread you started. The game only runs safely on the main thread (see the [glossary](../../glossary.md#main-thread)). This goes for the code that handles the events too.
 - It is safe to call any of it at any time, even on the main menu, while loading, or with no save loaded. Reads give a plain default: `false` or an empty list. `SetCameraActive` gives `false` when no camera has the id, and while a save is loading or saving.
 - Your event handlers run inside the game's own call. If one throws an error, the framework logs it and still runs the other handlers.
 

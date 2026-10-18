@@ -7,7 +7,7 @@ nav_order: 2
 
 # Install and requirements
 
-This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail you can skip on a first read.
 
 WebUi is a separate BepInEx plugin, so a player has to install it. Without it, the WebUi types are missing from the game, and the Mods menu uses the classic window instead. It is needed only by mods that use WebUi and by the web Mods menu.
 

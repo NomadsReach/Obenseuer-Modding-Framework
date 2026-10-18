@@ -7,7 +7,7 @@ nav_order: 2
 
 # Listing and renting rooms
 
-This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail you can skip on a first read.
 
 `Hotels` lists and rents the hotel rooms in the scene you are in. Each room is a `HotelRoomInfo`, a snapshot of it at the moment you asked. The snapshot does not update by itself, so ask again for fresh values.
 

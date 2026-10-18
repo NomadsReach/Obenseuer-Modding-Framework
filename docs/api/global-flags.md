@@ -76,7 +76,7 @@ Start your own flag names with your mod id, so they cannot clash with the game's
 
 ## Reference
 
-This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail you can skip on a first read.
 
 ### GlobalFlags
 
@@ -173,7 +173,7 @@ The framework changes some of the game's methods when it starts, so it can tell 
 
 ### When you can call it
 
-- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../glossary.md#main-thread)).
 - It is safe to call at any time, even on the main menu. With no save loaded, `Get` returns `false` and `All()` returns an empty list. <span class="tech">(There is no flag store yet (`GlobalState.instance` is missing).)</span>
 - Your event handlers run inside the game's own call, one at a time. If a handler throws an error, the framework logs it and still runs the other handlers.
 
@@ -184,7 +184,7 @@ The framework changes some of the game's methods when it starts, so it can tell 
 
 ### If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../glossary.md#feature-group) that depends on it, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
 - If the change to the game's flag switch cannot be made, only `Changed` stops. `GlobalFlags.IsAvailable` becomes `false` and error lines and a warning go to the log. `Get`, `Set` and `All()` keep working. <span class="tech">(The framework changes the three `GlobalState.SetState` overloads together. If any of them is missing, all of them are removed.)</span>
 

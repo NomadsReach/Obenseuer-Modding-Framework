@@ -19,7 +19,7 @@ The framework changes some of the game's methods when it starts, so it can tell 
 
 ## When you can call it
 
-- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)). This goes for every member on this page, and for the code that handles the events.
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../../glossary.md#main-thread)). This goes for every member on this page, and for the code that handles the events.
 - It is safe to call any of it at any time, even on the main menu or while a save is loading. If there is nothing to read yet, you get an empty list or `null`.
 - Your event handlers run inside the game's own call, right after the change. If one of your handlers throws an error, the framework logs it and still runs the other handlers.
 - The framework does not hold back the events while a save is loading or being written. A handler that should ignore those moments can check `SaveData.Busy`, which is `true` during a load or a save.
@@ -32,7 +32,7 @@ The framework changes some of the game's methods when it starts, so it can tell 
 
 ## If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../../glossary.md#feature-group) that depends on it, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
 - If the set-off and stop events can't be set up, `Departed` and `Arrived` stop. The feature group `obenseuer.moddingframework.trains` turns off, error lines and a warning go to the log, and `IsAvailable` is `false`. The reads and the writing calls keep working. <span class="tech">(The game method involved is `TrackTrain.Update`.)</span>
 - If the crash event can't be set up, only `Crashed` stops. The feature group `obenseuer.moddingframework.trains.crash` turns off. <span class="tech">(The game method involved is `TrackTrain.Crash(GameObject, bool)`.)</span>

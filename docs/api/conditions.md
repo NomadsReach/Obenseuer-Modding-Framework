@@ -11,7 +11,7 @@ Status: experimental.
 
 ## What it is
 
-Conditions are the health problems the player can pick up, such as the ones that come from poor hygiene or a high dose of radiation. Each one shows a "New condition!" message when it starts and a "Condition removed!" message when it ends. This API lists the conditions the game knows, tells you which ones the player has right now, lets your mod give or take away a condition, and tells you when one starts, stops or changes strength.
+Conditions are the health problems the player can pick up, such as the ones that come from poor hygiene or a high dose of radiation. Each one shows a "New condition!" message when it starts and a "Condition removed!" message when it ends. This API lists the conditions the game knows, and tells you which ones the player has right now. It lets your mod give or take away a condition, and tells you when one starts, stops or changes strength.
 
 ## When to use it
 
@@ -191,7 +191,7 @@ The framework changes some of the game's methods when it starts, so it can tell 
 
 ### When you can call it
 
-- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../glossary.md#main-thread)).
 - It is safe to call any of it at any time, even on the main menu or while a save is loading. If there is nothing to read yet, you get an empty list or `false`. `Add` and `Remove` also return `false` then.
 
 ### What to check for and what comes back
@@ -201,6 +201,6 @@ The framework changes some of the game's methods when it starts, so it can tell 
 
 ### If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../glossary.md#feature-group) that depends on it, and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
 - If the framework cannot change the game's condition methods, `Changed` stops and the rest keeps working. One error goes to the log, and `IsAvailable` becomes `false`. <span class="tech">(The methods are `BaseHealthCondition.ApplyCondition` and `RemoveCondition`.)</span>

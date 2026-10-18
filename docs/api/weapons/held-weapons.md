@@ -7,7 +7,7 @@ nav_order: 2
 
 # Held weapons
 
-This is the full list of what the API gives you, one section for each part. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you, one section for each part. Text in brackets at the end of a note is extra detail you can skip on a first read.
 
 `Weapons.Equipped()` and `Weapons.EquippedLeft()` tell you what the player holds in each hand. What they return is a `WeaponInfo`, a snapshot of the item at the moment you asked. The snapshot does not update by itself, so ask again for fresh values.
 

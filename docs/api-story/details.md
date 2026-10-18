@@ -24,7 +24,7 @@ The framework changes some of the game's methods when it starts, so it can tell 
 
 ## If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+If a game update breaks one of the framework's changes, the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
 - If the changes for one of these APIs cannot be made, that API's `IsAvailable` becomes `false` and nothing else is affected. The other two story APIs and the rest of the framework keep working.
 

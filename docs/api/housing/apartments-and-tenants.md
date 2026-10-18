@@ -7,7 +7,7 @@ nav_order: 2
 
 # Apartments and tenants
 
-This is the full list of what the API gives you, one section for each part. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you, one section for each part. Text in brackets at the end of a note is extra detail you can skip on a first read.
 
 `Housing` lists the apartments in the tenement and the tenants in them, and tells you when tenants move or pay rent. An apartment's number is the number the game shows (for example "Apartment: 2").
 

@@ -66,7 +66,7 @@ if (id != null) ComputerDesk.SetWallpaper(Mod.Id, id, wallpaperSprite);
 
 ## Reference
 
-This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail you can skip on a first read.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ComputerDesk</code> <span>changes a computer's wallpaper</span></p>
@@ -110,7 +110,7 @@ Everything not listed in this reference is internal and may change without notic
 
 ### When you can call it
 
-- Call `SetWallpaper` from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game only works safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
+- Call `SetWallpaper` from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game only runs safely on the main thread (see the [glossary](../glossary.md#main-thread)).
 - It only does something once a computer exists in the scene. On the main menu it returns `false`.
 
 ### If something fails to set up

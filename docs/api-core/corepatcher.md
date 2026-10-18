@@ -87,5 +87,5 @@ public class MyMod : BaseUnityPlugin
 
 ## Limits
 
-- Your mod id must not start with `obenseuer.moddingframework` or `nomad.obenseuer.core`, and it must not be empty. Those two starts are reserved for the framework's own changes, in any capital or small letters. If you break this rule, all four `Patch` calls throw an `ArgumentException` before they do anything else.
+- Your mod id must not start with `obenseuer.moddingframework` or `nomad.obenseuer.core`, and it must not be empty. Those two starts are reserved for the framework's own changes, in any mix of capital and small letters. If you break this rule, all four `Patch` calls throw an `ArgumentException` before they do anything else.
 - The framework refuses to change anything when `Core.PatchingAllowed` is false. The call returns `false` and logs `patch skipped, unsupported game build`. That only happens when the game build is not 0.5.08 and `[Safety] RefuseUnknownBuild` is set. By default an unknown build is changed anyway.

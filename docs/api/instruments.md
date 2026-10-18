@@ -10,7 +10,7 @@ nav_order: 8
 
 ## What it is
 
-The only musical instrument in the game is the guitar. The player holds it in a hand and strums it with the Primary Use key, and people nearby may comment on the playing. This API lists the guitars in the scene you are in, plays a single strum or a timed run of strums from your mod, holds a long note, and tells you when a strum is played and when a witness comments on it.
+The only musical instrument in the game is the guitar. The player holds it in a hand and strums it with the Primary Use key, and people nearby may comment on the playing. This API lists the guitars in the scene you are in. It can play a single strum or a timed run of strums from your mod, hold a long note, and tells you when a strum is played and when a witness comments on it.
 
 ## When to use it
 

@@ -14,7 +14,7 @@ nav_order: 5
 
 ## When you can call it
 
-- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)).
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../../glossary.md#main-thread)).
 - It is safe to call at any time, even on the main menu. With no save loaded, `FuelStations.All()` returns an empty list.
 - Nothing here changes the game, and nothing throws an error to your code. If the game itself fails while the framework reads, you get an empty answer, and the first failure of each member goes to the log.
 - Your event handlers run inside the game's own call, one at a time. If a handler throws an error, the framework logs it and still runs the other handlers.
@@ -25,6 +25,6 @@ nav_order: 5
 
 ## If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../../glossary.md#feature-group) that depends on it, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
 - If the change to `GasStation.PayFuelOc` cannot be made, only `FuelBought` stops. `FuelStations.IsAvailable` becomes `false` and error lines and a warning go to `BepInEx\logs\obenseuer.moddingframework.fuel.log`. `FuelStations.All()` and `FuelTypes` keep working. <span class="tech">(The warning reads "fuel hooks incomplete, fuel events are disabled". `CorePatcher.IsDisabled("obenseuer.moddingframework.fuel")` becomes `true`.)</span>

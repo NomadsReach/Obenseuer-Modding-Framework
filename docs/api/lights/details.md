@@ -16,7 +16,7 @@ The framework changes some of the game's methods when it starts, so it can tell 
 
 ## When you can call it
 
-- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)).
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../../glossary.md#main-thread)).
 - It is safe to call at any time, even on the main menu. With no save loaded, lists are empty, `Get` returns `null`, the state reads return `-1`, and the switching calls return `false`.
 - Nothing here throws an error to your code. A `null` or empty id finds nothing. If the game itself fails while the framework works, you get the same plain answer, and the first failure of each member goes to the log.
 - `SetOn` and `SetState` return `false` while a save is loading or being written.
@@ -28,6 +28,6 @@ The framework changes some of the game's methods when it starts, so it can tell 
 
 ## If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../../glossary.md#feature-group) that depends on it, turns the group off, writes error lines to the log file of that group, and the rest of the framework keeps working. The reads and the switching calls keep working. Only the event of the missing group stops: `Toggled` for the simple lights, `StateChanged` for the multi-state lights. The other event keeps firing.
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../../glossary.md#feature-group) that depends on it and writes error lines to its log file. The rest of the framework keeps working. The reads and the switching calls keep working. Only the event of the missing group stops: `Toggled` for the simple lights, `StateChanged` for the multi-state lights. The other event keeps firing.
 
 - Four changes are made in total. Three are on simple lights (`turnLightOn`, `turnLightOff` and `TurnLightOffFade`), and one is on multi-state lights (`SetState`). Each failure is logged to the log of its own group, for example `BepInEx\logs\obenseuer.moddingframework.lights.multistate.log`. <span class="tech">(If an install throws, for example from a mistyped handler name, both groups are turned off.)</span>

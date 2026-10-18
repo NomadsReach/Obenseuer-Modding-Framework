@@ -16,7 +16,7 @@ The framework changes some of the game's methods when it starts, so it can tell 
 
 ## When you can call it
 
-- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game only works safely on its main thread (see the [glossary](../../glossary.md#main-thread)).
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game only runs safely on the main thread (see the [glossary](../../glossary.md#main-thread)).
 - It is safe to call any of it at any time: on the main menu, while loading, or with no save loaded. The reads give a neutral default (`null`, `0` or `false`). `Reload` and `SetFlashlightOn` give `false` in the same cases, and while a save is loading or being written.
 - Your event handlers run inside the game's own call, one at a time. If one of your handlers throws an error, the framework logs it and still runs the other handlers. <span class="tech">(Each event is raised from a Harmony postfix on the game method, on the main thread. `Hit` is raised from a Harmony prefix on the target's damage call.)</span>
 - An event nobody listens to costs one check for `null` per game call.
@@ -32,7 +32,7 @@ The framework changes some of the game's methods when it starts, so it can tell 
 
 ## If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../../glossary.md#feature-group) that depends on it, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
 - A missing change stops only its own feature group. If the Detonator press, the Detonator reload or the melee swing change fails, that feature group is turned off, error lines and a warning go to the log, and only its event never fires. If a hit change fails, the hit feature group turns off, `SetHitFactor` returns `false` and `Hit` never fires. <span class="tech">(The methods are `Detonator.Onpressed` (`Fired`), `Detonator.Reload` (`Reloaded`), `MeleeAnimationEvents.EnableHit` (`MeleeSwung`), and `MeleeWeapon.Hit` with the `Damage` call of `WorkableResourceSource`, `Breakable`, `BreakableLock` and `SpawnItemOnBreak` (`Hit`). The log lines read "weapon hooks incomplete, IsAvailable is false, the events whose hooks are missing are disabled" and "weapon hit hooks incomplete, hit factors and the Hit event are disabled".)</span>
 - The framework does not hold back these events while a save is loading. A handler that should ignore events raised then can check `SaveData.Busy`, which is `true` while a save is loading or being written.

@@ -9,7 +9,7 @@ nav_order: 7
 
 ## What it is
 
-An item giver is an object in the world that hands items to the player when the player uses it. It usually holds a limited stock, and some of them fill up again after a while. This API lets your mod list the item givers in the scene you are in, read how much stock each one has left, empty one or refill one, and be told each time one hands something over.
+An item giver is an object in the world that hands items to the player when the player uses it. It usually holds a limited stock, and some of them fill up again after a while. This API lets your mod list the item givers in the scene you are in, and read how much stock each one has left. It can empty or refill one, and tells you each time one hands something over.
 
 The API does not hand out items itself. A handout is always the game's own, started by the player using the object or by a game script.
 
@@ -72,7 +72,7 @@ if (!ItemGivers.IsAvailable) Log.Warn("The Gave event is off in this game versio
 
 ## Reference
 
-This is the full list of what the API gives you, one section for each part. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you, one section for each part. Text in brackets at the end of a note is extra detail you can skip on a first read.
 
 ### Item givers
 
@@ -220,7 +220,7 @@ The framework changes one of the game's methods when it starts, so it can tell y
 
 ### When you can call it
 
-- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../glossary.md#main-thread)).
 - It is safe to call at any time, even on the main menu. With no save loaded, `All()` returns an empty list.
 - Nothing here throws an error to your code. A `null` or empty id finds nothing, so `SetEmpty` and `Respawn` return `false`. If the game itself fails while the framework works, you get the same plain answer, and the first failure of each member goes to the log.
 - Your event handlers run inside the game's own call, one at a time. If a handler throws an error, the framework logs it and still runs the other handlers.
@@ -231,6 +231,6 @@ The framework changes one of the game's methods when it starts, so it can tell y
 
 ### If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../glossary.md#feature-group) that depends on it, and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
 - If the change to the game's handout method cannot be made, only `Gave` stops. `ItemGivers.IsAvailable` becomes `false`. `All`, `SetEmpty` and `Respawn` keep working. <span class="tech">(The single change is a postfix on the private `InteractableItemGiver.GiveItem`.)</span>

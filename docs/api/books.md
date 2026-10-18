@@ -63,7 +63,7 @@ if (Books.IsRead("some-book-id")) Log.Info("The player has read it.");
 
 ## Reference
 
-This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail you can skip on a first read.
 
 A book in your list is a `BookEntryInfo`. The list only has books the player is holding right now, because the game has no list of every book that exists.
 
@@ -176,12 +176,12 @@ Everything not listed in this reference is internal and may change without notic
 
 ### When you can call it
 
-- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game only works safely on its main thread (see the [glossary](../glossary.md#main-thread)).
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game only runs safely on the main thread (see the [glossary](../glossary.md#main-thread)).
 - It is safe to call any of it at any time, even on the main menu. With nothing to read, `All()` gives an empty list and `IsRead` gives `false`. Neither depends on `IsAvailable`.
 - `Books.IsAvailable` tells you whether `Read` works. It is `false` when the framework could not set up the read event, or when the feature group was turned off.
 - If the game fails while the framework reads, you get the plain default (an empty list or `false`) instead of an error.
 
 ### If something fails to set up
 
-- The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+- The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../glossary.md#feature-group) that depends on it, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 - If the change to the notes window fails, the feature group turns off and `Read` stops. One warning goes to the log. `All()` and `IsRead` keep working. <span class="tech">(the method is `NoteUIPanel.Selected`. The log line reads "book events not installed, Read is disabled")</span>

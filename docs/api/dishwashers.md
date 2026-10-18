@@ -14,7 +14,7 @@ Status: experimental.
 
 ## What it is
 
-A dishwasher in the game is a machine that washes dirty dishes. You put the dishes and washing powder in, and after a while clean dishes come out. This API lets a mod list the dishwashers in the scene you are in, see whether each one is running, how far along it is and what is inside, and get told when a wash finishes.
+A dishwasher in the game is a machine that washes dirty dishes. You put the dishes and washing powder in, and after a while clean dishes come out. This API lets a mod list the dishwashers in the scene you are in. It shows whether each one is running, how far along it is and what is inside, and tells you when a wash finishes.
 
 Dishwashers are also crafting stations, so the general crafting list in [Recipes and crafting](recipes.md) (`Crafting.All`) includes them too. This page adds the things that are only for dishwashers. The speed of dishwashers is set by the framework's own tweak, not by this API.
 
@@ -171,7 +171,7 @@ Everything not listed in this reference is internal and may change without notic
 
 ### When you can call it
 
-- Call everything from your mod's normal code, not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
+- Call everything from your mod's normal code, not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../glossary.md#main-thread)).
 - It is safe to call any of it at any time, even on the main menu or while a save is loading. If there is nothing to read yet, you get an empty list, `false` or `0`.
 - Nothing here throws an error, and nothing here changes the game. No argument can make a call throw.
 - Your `Finished` handler runs inside the game's own call, one at a time. If one of your handlers throws an error, the framework logs it and still runs the other handlers. <span class="tech">(`Finished` is raised synchronously after the game has finished the cycle and created its outputs.)</span>

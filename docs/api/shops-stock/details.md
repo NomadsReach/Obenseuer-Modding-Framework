@@ -14,11 +14,11 @@ nav_order: 7
 
 ## When you can call it
 
-- Call everything from your mod's normal code, not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)).
+- Call everything from your mod's normal code, not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../../glossary.md#main-thread)).
 - The calls that change something return `false` while a save is loading or being written. The stock added when a shop loads, and the vending entries, are added inside the game's own load and spawn code, so a save does not block them. <span class="tech">(Writes are refused while `SaveData.Busy` is true.)</span>
 
 ## If something fails to set up
 
-- The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+- The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../../glossary.md#feature-group) that depends on it, and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 - If any change in this feature group cannot be made, the whole group turns off and `ShopStock.IsAvailable` becomes `false`. The other three calls then return `false`. <span class="tech">(The changes are on `VendingMachine.Start`, `VendingMachine.OnLoadingGame`, `VendingMachine.Buy`, `VendingMachine.RefillStock` and `Storage.OnLoadingGame`, plus a lookup of `Storage.AddItemToStorageSlot`. A failed change turns off only the feature group that registered it.)</span>
 - After a restock, the trader's top-up comes from the loot pools feature. That part runs inside a change made by the loot pools feature group. If it is off, a trader is still topped up when a save loads, and when you call `AddTraderStock` for a shop that is already loaded, but not after the shop restocks. Vending entries and `Place` do not depend on it. <span class="tech">(The restock top-up is an addition to the `Storage.SpawnItems` postfix that the loot pools patches register under `obenseuer.moddingframework.loot`.)</span>

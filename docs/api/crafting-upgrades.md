@@ -9,7 +9,7 @@ nav_order: 3
 
 ## What it is
 
-A crafting upgrade is an add-on part that attaches to one or more crafting stations (workbenches and the like) and improves them, for example by unlocking extra recipes or raising the quality of what they make. An upgrade can be switched on or off. This API lists the upgrades in the scene you are in, shows which stations each one is attached to, and lets your mod switch one on or off.
+A crafting upgrade is an add-on part. It attaches to one or more crafting stations (workbenches and the like) and improves them, for example by unlocking extra recipes or raising the quality of what they make. An upgrade can be switched on or off. This API lists the upgrades in the scene you are in, shows which stations each one is attached to, and lets your mod switch one on or off.
 
 ## When to use it
 
@@ -150,7 +150,7 @@ Everything not listed in this reference is internal and may change without notic
 
 ### When you can call it
 
-- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../glossary.md#main-thread)).
 - It is safe to call any of it at any time, even on the main menu or while a save is loading. If there is no scene to look in, `All()` gives an empty list, `Get` gives `null`, and `SetOn` gives `false`. Nothing is thrown to you. <span class="tech">(If the game itself fails, the first failure of each member goes to the log and you get the same plain default.)</span>
 
 ### If something fails to set up

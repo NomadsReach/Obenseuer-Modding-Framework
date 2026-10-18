@@ -204,7 +204,7 @@ The framework runs on BepInEx 5.4.23 or later (Mono, x64) and on BepInEx 6 Unity
 
 ## Testing
 
-Extensive testing has not been done yet. These areas have been written against the game's code and checked, so they are the most likely to work, but they have not had long play sessions:
+These areas have been written against the game's code and checked, so they are the most likely to work. They have not had long play sessions:
 
 - Housing and building: `Building`, `Housing`, `FurnitureItem`.
 - Items and crafting: `ItemRegistry`, `Recipes`, `Crafting`, `Recycling`, `TaskItems`, `Containers`.

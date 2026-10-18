@@ -85,7 +85,7 @@ private IEnumerable<Storage> OnlyForGrowing(CraftingStationInfo station)
 
 ## Reference
 
-Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+Text in brackets at the end of a note is extra detail you can skip on a first read.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>CraftingSources</code> <span>adding and removing your containers</span></p>
@@ -145,10 +145,10 @@ The framework changes some of the game's methods when it starts, so a station ca
 
 ### When you can call it
 
-- Call `Register` and `Unregister` from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)). The framework calls your function on the main thread too.
+- Call `Register` and `Unregister` from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../glossary.md#main-thread)). The framework calls your function on the main thread too.
 
 ### If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../glossary.md#feature-group) that depends on it, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
 - If the crafting changes can't be set up, `Register` returns `false` and no function is used. The feature group `obenseuer.moddingframework.craftingsources` turns off and error lines and a warning go to the log. <span class="tech">(The game methods involved are `CraftingBase.CompareRecipeToItems`, `CountItems`, `RemoveItems` and `UpdateSlots`, plus `manufacturing.Craft`, `manufacturingProcess.StartProcess` and `Growing.StartGrow`.)</span>

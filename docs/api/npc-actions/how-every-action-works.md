@@ -7,7 +7,7 @@ nav_order: 2
 
 # How every action works
 
-This page covers the rules that every action follows. Each action's own page says more. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This page covers the rules that every action follows. Each action's own page says more. Text in brackets at the end of a note is extra detail you can skip on a first read.
 
 ## Things to know
 

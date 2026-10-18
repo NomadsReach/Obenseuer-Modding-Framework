@@ -68,7 +68,7 @@ if (!BlastSites.IsAvailable) Log.Warn("The blast site event is not working in th
 
 ## Reference
 
-This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail you can skip on a first read.
 
 The game calls the part you place dynamite on a cone, so the names below say "cone". One cone is one blast site.
 
@@ -153,7 +153,7 @@ Everything not listed in this reference is internal and may change without notic
 
 ### When you can call it
 
-- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game only works safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game only runs safely on the main thread (see the [glossary](../glossary.md#main-thread)).
 - It is safe to call at any time, even on the main menu or while a save is loading. If there is nothing to read yet, you get an empty list or null.
 - Your `Detonated` handler runs inside the game's own call. If your handler throws an error, the framework logs it and the game carries on.
 - Reading blast sites from inside a handler is safe, but the group is still going off: the site the player pressed still reads as having dynamite until its own event fires. Use a timer if you need the final state of the whole group.

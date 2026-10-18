@@ -17,7 +17,7 @@ The framework changes some of the game's methods when it starts, so it can add y
 
 ## When you can call it
 
-- Call everything from your mod's normal code (`Awake`, `OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)).
+- Call everything from your mod's normal code (`Awake`, `OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../../glossary.md#main-thread)).
 - Call `Define` before the game loads its item list and its recipe list. The usual place is your plugin's `Awake`. The item list first loads in `ItemDatabase.Awake`, and the recipe list in `RecipeDatabase.Awake` (or `OnEnable`, if the list is empty).
 - After the first load, `Define` writes an error to the log and returns -1. It is -1 and not 0 because 0 is a real item (the coin). A caller that passed a refused number on as an output would otherwise get a coin, while -1 is rejected as an invalid item number.
 - Defining the same mod id and key again before the load gives you the same number and keeps the first definition.
@@ -31,9 +31,9 @@ The framework changes some of the game's methods when it starts, so it can add y
 
 ## If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../../glossary.md#feature-group) that depends on it, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
-- If the item and recipe changes can't be set up, `Define` returns -1 from then on. If any of the five game methods the framework changes can't be changed, it removes all the changes in the feature group `obenseuer.moddingframework.registry` and writes error lines and a warning to the log. <span class="tech">(The five methods are `ItemDatabase.DeSerialize`, `ItemDatabase.Awake`, `OnEnable` and `Reload`, and `RecipeDatabase.LoadDatabase`.)</span>
+- If the item and recipe changes can't be set up, `Define` returns -1 from then on. If any of the five game methods the framework changes can't be changed, it turns off the feature group `obenseuer.moddingframework.registry` and writes error lines and a warning to the log. <span class="tech">(The five methods are `ItemDatabase.DeSerialize`, `ItemDatabase.Awake`, `OnEnable` and `Reload`, and `RecipeDatabase.LoadDatabase`.)</span>
 - If the player has turned on the framework's setting that refuses all changes on a game version other than 0.5.08, nothing is changed on such a version and `Define` also returns -1. <span class="tech">(The setting is `RefuseUnknownBuild` in the `Safety` section of the framework's config, and it is off by default.)</span>
 - The placeholders for missing items have their own feature group, so a failure there does not stop `Define`. If they can't be set up, an unknown item number shows as a coin again, as in the game without the framework.
 - `ItemRegistry.IsAvailable` and `RecipeRegistry.IsAvailable` are `true` when the changes are set up and their feature group is not turned off. `ItemIcons.IsAvailable` and `ModelRegistry.IsAvailable` tell you the same for icons and models.

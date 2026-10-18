@@ -12,7 +12,7 @@ Status: experimental.
 
 ## What it is
 
-The game has shops where the player buys furniture for their home and sells furniture back. Each shop holds some money of its own, in both currencies, and its stock changes when it restocks. This API lets your mod list those shops, see and set the money a shop holds, make a shop restock, buy furniture from a shop for the player, sell furniture from the player to a shop, and get told when either happens.
+The game has shops where the player buys furniture for their home and sells furniture back. Each shop holds some money of its own, in both currencies, and its stock changes when it restocks. This API lets your mod list those shops, and see and set the money a shop holds. It can make a shop restock, buy furniture from a shop for the player, and sell furniture from the player to a shop. It also tells you when either happens.
 
 It works with furniture shops. The shop that sells trains is listed too, but you can't buy from it or sell to it through this API (see the rules below). Market stalls are on the [market shops](marketshops.md) page.
 

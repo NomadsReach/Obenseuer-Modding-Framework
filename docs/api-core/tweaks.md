@@ -7,7 +7,7 @@ nav_order: 11
 
 # Tweaks
 
-The framework ships a set of gameplay options, such as slower hunger, bigger stacks or faster crafting, and they have no C# API. Players turn them on in `BepInEx\config\obenseuer.moddingframework.cfg`, one section for each tweak, or in the in-game config window (BepInEx ConfigurationManager, F1). This section tells you how they behave, in case your mod runs next to them.
+The framework ships a set of gameplay options, such as slower hunger, bigger stacks or faster crafting. They have no C# API. Players turn them on in `BepInEx\config\obenseuer.moddingframework.cfg`, one section for each tweak, or in the in-game config window (BepInEx ConfigurationManager, F1). This section tells you how they behave, in case your mod runs next to them.
 
 ### Settings
 

@@ -16,7 +16,7 @@ The framework changes no game method for this API, so it has no `IsAvailable` an
 
 ## When you can call it
 
-- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)).
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../../glossary.md#main-thread)).
 - It is safe to call any of it at any time. With no save loaded, `All` gives an empty list, `SetMoney` and `Restock` give `false`, and `Buy` and `Sell` give `Busy` or `Unavailable`.
 - Your `Bought` and `Sold` handlers run one at a time. If one throws an error, the framework logs it and still runs the others.
 - The framework does not hold back `Bought` and `Sold` while a save is loading or being written. A handler that should ignore those moments can check `SaveData.Busy`, which is `true` during a load or a save.

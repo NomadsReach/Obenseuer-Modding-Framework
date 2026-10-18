@@ -383,7 +383,7 @@ The values of `Stat` never change, and new stats are added at the end.
 
 #### Reading, setting and watching a stat
 
-- Nothing in `Survival` throws an error into the game. If a feature the call needs is missing, you get the plain default: `0`, `false` or nothing happens. `Survival.IsAvailable` is `true` only when every feature group Survival needs is in place (see [If something fails to set up](details.md#if-something-fails-to-set-up)). A handler of yours that throws is logged, and the next handler still runs.
+- Nothing in `Survival` throws into the game. If a feature the call needs is missing, you get the plain default: `0`, `false` or nothing happens. `Survival.IsAvailable` is `true` only when every feature group Survival needs is in place (see [If something fails to set up](details.md#if-something-fails-to-set-up)). A handler of yours that throws is logged, and the next handler still runs.
 - Bad arguments still throw, even when `IsAvailable` is false. An empty `modId` throws `ArgumentException`. A `null` callback or handler throws `ArgumentNullException`.
 - `Get` gives you the value exactly as the game keeps it. It does not scale it to a percentage.
 - `Set` returns `false` when the value is not a number, there is no player, or the game is loading or saving. Otherwise it keeps your value inside the range in the table. For example, setting Health to 500 sets it to 100.

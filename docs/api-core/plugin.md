@@ -7,7 +7,7 @@ nav_order: 2
 
 # Plugin
 
-This is the full list of what the API gives you, one section for each part. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This page lists what the API gives you, one section for each part. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
 
 The framework is itself a BepInEx plugin, a class named `Core`. It checks which game build is running and reads its own config file. Most of what it offers is on the other pages in this section, and these few members tell you about the game build and about a debug check.
 

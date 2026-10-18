@@ -12,7 +12,7 @@ Status: experimental.
 
 ## What it is
 
-The framework can keep a diary of what it does while the game runs. This is the debug trace. When you turn it on, the framework writes one line to a log file for each framework call it makes, each change it has made to a game method, each event it raises, and each save and load. Each line says what was called, what came back and how long it took. You do not write any code to use it. It is a switch.
+The framework can keep a diary of what it does while the game runs. This is the debug trace. When you turn it on, the framework writes one line to a log file for each framework call it makes. It also logs each change it has made to a game method, each event it raises, and each save and load. Each line says what was called, what came back and how long it took. You do not write any code to use it. It is a switch.
 
 The trace slows the game down, so leave it off for normal play.
 

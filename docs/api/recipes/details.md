@@ -16,7 +16,7 @@ The framework changes some of the game's methods when it starts, so it can tell 
 
 ## When you can call it
 
-- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)).
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../../glossary.md#main-thread)).
 - It is safe to call at any time, even on the main menu. With no save loaded, reads return an empty list, `null`, `0` or `false`.
 - The only call that changes the game is `Recipes.Unlock`. It returns `false` while a save is loading or being written.
 - Nothing here throws an error to your code. Each member catches its own errors and logs the first failure of each member.
@@ -28,7 +28,7 @@ The framework changes some of the game's methods when it starts, so it can tell 
 
 ## If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../../glossary.md#feature-group) that depends on it, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
 - If either craft change cannot be made, only `CraftStarted` and `Crafted` stop. The two craft changes are made together, so one missing turns off the whole `obenseuer.moddingframework.crafting` group. The reads and `Crafting.All()` keep working.
 - `Plants.Harvested` and `Plants.Picked` share one feature group. If its change cannot be made, both events stop and the rest keeps working.

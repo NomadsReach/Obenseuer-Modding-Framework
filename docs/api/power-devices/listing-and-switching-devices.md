@@ -7,7 +7,7 @@ nav_order: 2
 
 # Listing and switching devices
 
-This is the full list of what the API gives you, one section for each part. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you, one section for each part. Text in brackets at the end of a note is extra detail you can skip on a first read.
 
 
 <div class="api-type" markdown="1">

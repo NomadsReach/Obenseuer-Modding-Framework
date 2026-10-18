@@ -56,7 +56,7 @@ if (!ok || CorePatcher.IsDisabled(Mod.Id)) Log.Warn("day patch unavailable");
 
 This needs `using System;` and `using System.Reflection;` at the top of the file.
 
-Patches use [Harmony](../../glossary.md#harmony), the library that changes game methods, under the hood. Do not write raw Harmony patches in a mod. `CorePatcher` checks the game build first, and it removes your patches when a core patch fails.
+Patches use [Harmony](../../glossary.md#harmony), the library that changes game methods. Do not write raw Harmony patches in a mod. `CorePatcher` checks the game build first, and it removes your patches when a core patch fails.
 
 ## Where to go next
 

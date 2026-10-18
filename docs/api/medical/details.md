@@ -18,7 +18,7 @@ Everything not listed in this reference is internal and may change without notic
 
 ## When you can call it
 
-- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)). This goes for every member on this page, and for the code that handles `Treated`.
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../../glossary.md#main-thread)). This goes for every member on this page, and for the code that handles `Treated`.
 - It is safe to call any of it at any time, even on the main menu or while a save is loading. If there is nothing to read yet, you get an empty list or `false`. The only call that changes the game is `Treat`.
 - Your `Treated` handler runs inside the game's own call, right after the purchase. If your handler throws an error, the framework logs it and still runs the other handlers.
 - The framework does not hold back `Treated` while a save is loading or being written. A handler that should ignore those moments can check `SaveData.Busy`, which is `true` during a load or a save.
@@ -30,5 +30,5 @@ Everything not listed in this reference is internal and may change without notic
 
 ## If something fails to set up
 
-- The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+- The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../../glossary.md#feature-group) that depends on it, and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 - If the purchase event can't be set up, only `Treated` stops. `Treatments`, `CanTreat` and `Treat` keep working. The feature group `obenseuer.moddingframework.medical` turns off, one error goes to the log, and `IsAvailable` is `false`. <span class="tech">(the framework changes the `BuyTreatment` method on the five treatment classes (`TreatmentAddictions`, `TreatmentFungalDisease`, `TreatmentMentalHealth`, `TreatmentPhysicalHealth`, `TreatmentRadiation`).)</span>

@@ -20,7 +20,7 @@ Everything not listed in this reference is internal and may change without notic
 
 ## When you can call it
 
-- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)).
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../../glossary.md#main-thread)).
 - It is safe to call at any time, even on the main menu. With no player, reads return `false`, `Vector3.zero` or the stored multiplier, and `Lock` returns `false`.
 
 ## What to check for and what comes back
@@ -30,7 +30,7 @@ Everything not listed in this reference is internal and may change without notic
 
 ## If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../../glossary.md#feature-group) that depends on it, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
 - If the speed changes cannot be made, the multipliers stop applying. `PlayerMovement.IsAvailable` becomes `false`, the setters return `false`, and the framework writes error lines and a warning to the log. The reads, `Lock` and `Unlock` keep working.
 - If the rotation changes cannot be made, `LockLook` stops working. It returns `false` and takes nothing.

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0" Type="Project" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
+  <TemplateData>
+    <Name>Obenseuer Mod (Framework)</Name>
+    <Description>A minimal Obenseuer mod built on the Obenseuer Modding Framework, the same project as the Starter folder. It logs one line and shows an on-screen hint once a save loads. One DLL that works on BepInEx 5 and BepInEx 6.</Description>
+    <ProjectType>CSharp</ProjectType>
+    <TemplateID>Obenseuer.ModdingFramework.Project.CSharp</TemplateID>
+    <SortOrder>100</SortOrder>
+    <DefaultName>ObenseuerMod</DefaultName>
+    <ProvideDefaultName>true</ProvideDefaultName>
+    <CreateNewFolder>true</CreateNewFolder>
+  </TemplateData>
+  <TemplateContent>
+    <Project File="$safeprojectname$.csproj" TargetFileName="$safeprojectname$.csproj" ReplaceParameters="true">
+      <ProjectItem ReplaceParameters="true" OpenInEditor="true">Plugin.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true">Directory.Build.props</ProjectItem>
+      <ProjectItem ReplaceParameters="true">README.txt</ProjectItem>
+    </Project>
+  </TemplateContent>
+</VSTemplate>

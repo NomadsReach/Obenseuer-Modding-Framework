@@ -12,7 +12,7 @@ Status: experimental. Needs framework 0.11.0 or later.
 
 ## What it is
 
-A framework mod is the simplest kind of mod for the game. It is one DLL with one class. The framework finds the DLL in `BepInEx\plugins\` when the game starts and loads it for you. The same DLL runs on both BepInEx 5 and BepInEx 6, the two mod loaders the framework supports, so you do not need one build for each. Your mod does not reference BepInEx at all. This page covers the pieces that make up a framework mod: the class you write, the labels that give it a name and a version, its settings, how it loads, and how it depends on other mods.
+A framework mod is the simplest kind of mod for the game. It is one DLL with one class. The framework finds the DLL in `BepInEx\plugins\` when the game starts and loads it for you. The same DLL runs on both BepInEx 5 and BepInEx 6, the two mod loaders the framework supports, so you do not need one build for each. Your mod does not reference BepInEx at all. This page covers the pieces that make up a framework mod. They are the class you write, the labels that give it a name and a version, its settings, how it loads, and how it depends on other mods.
 
 ## When to use it
 

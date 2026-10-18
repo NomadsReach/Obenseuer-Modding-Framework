@@ -5,7 +5,7 @@ nav_order: 1.5
 
 # Features
 
-This page lists what the framework lets a mod do, grouped by part of the game. Each part says what a mod can do, links to the page with the details, and says what is not possible yet. Pages for the newer areas are marked experimental, which means they work but may still change. Extensive testing has not been fully done yet. The framework targets Obenseuer 0.5.08.
+This page lists what the framework lets a mod do, grouped by part of the game. Each part says what a mod can do, links to the page with the details, and says what is not possible yet. Pages for newer areas are marked experimental: they work, but they may still change. The framework targets Obenseuer 0.5.08. See [Status](status.md) for what is tested.
 
 ## Player
 

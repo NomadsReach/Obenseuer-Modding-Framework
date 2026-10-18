@@ -13,18 +13,18 @@ Namespace: `ObenseuerCore`. Logs go to `BepInEx\logs\obenseuer.moddingframework.
 Status: experimental. Everything not listed in this reference is internal and may change without notice. Items marked experimental may change too.
 
 - The framework changes some of the game's methods when it starts, so it can tell your mod about money changes, trades, mail and the like.
-- These changes are grouped into feature groups. If a game update breaks one change in a group, the framework removes all the changes of that group, turns the group off, writes error lines to the group's log file in `BepInEx\logs`, and the rest of the framework keeps working.
+- These changes are grouped into feature groups. If a game update breaks one change in a group, the framework turns off that group and writes error lines to its log file in `BepInEx\logs`. The rest of the framework keeps working.
 - The bank ledger also writes a warning. This page uses these feature groups: `obenseuer.moddingframework.economy` (the money change), `obenseuer.moddingframework.shops.trade`, `.vending` and `.price` (the shop events), and `obenseuer.moddingframework.bankledger` (the ledger).
 
 ## When you can call it
 
-- Call everything from your mod's normal code, not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)). This goes for every member on this page and for the code that handles each event.
+- Call everything from your mod's normal code, not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../../glossary.md#main-thread)). This goes for every member on this page and for the code that handles each event.
 - Your event handlers run inside the game's own call, one at a time, in the order they were added. If one of your handlers throws an error, the framework logs it and still runs the other handlers. <span class="tech">(they run synchronously, as postfixes on the game's methods.)</span>
 - Read the price before you change it. `PriceQuery` handlers run inside the game's price call. See [Shops](shops.md#shops).
 
 ## If something fails to set up
 
-- The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+- The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../../glossary.md#feature-group) that depends on it, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 - `Cash.IsAvailable`, `Shops.IsAvailable` and `Mail.IsAvailable` are `false` when their changes could not be set up or their feature group was turned off. Reads still work where they only read game state. Events do not fire while a part is unavailable.
 - Each part has its own feature group, so a failure only turns off its own part. The money change is in `obenseuer.moddingframework.economy`.
 - The shop events have three groups of their own, `obenseuer.moddingframework.shops.trade`, `.vending` and `.price`. A failed shop change turns off only the shop events and leaves `Cash.MoneyChanged` working. No shop event fires while `Shops.IsAvailable` is `false`, even when only one shop group failed.

@@ -14,7 +14,7 @@ nav_order: 6
 
 ## When you can call it
 
-- Call everything from your mod's normal code (`OnLoad`, `Awake`, event handlers, `Update`), not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)).
+- Call everything from your mod's normal code (`OnLoad`, `Awake`, event handlers, `Update`), not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../../glossary.md#main-thread)).
 - Your `ContainerFilled` handler runs inside the game's own call, right after the fill. Do not change scenes from inside it.
 
 ## How the pools live and what is saved
@@ -29,6 +29,6 @@ nav_order: 6
 
 ## If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../../glossary.md#feature-group) that depends on it, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
 - If the loot changes can't be set up, `IsAvailable` is `false`. Then `Add`, `Remove`, `DefineCategory` and `ContainerFilled` do nothing, and `Categories` and `PoolFor` keep working. The feature group `obenseuer.moddingframework.loot` turns off and error lines and a warning go to the log. <span class="tech">(The game methods involved are `StorageSpawnCategoryDatabase.ConstructSpawnCategoryDatabase` and `Storage.SpawnItems`.)</span>

@@ -276,7 +276,7 @@ public sealed class LawTour : FrameworkMod
 
 - `Intercept(modId, handler)` runs for every crime, before it is recorded. Handlers run in the order they were added. Adding the same handler for the same mod again does nothing.
 - Your handler can change `Kind`, `Severity` and `Silent`, or set `Cancel`. A `Kind` of `None` or an unknown value keeps the game's kind. `Severity` is kept between 1 and 1,000,000 only when the handler changed it. `Silent` hides the crime notification.
-- Any `Cancel` wins: once a handler sets it, the later handlers still run and see `Cancel` as `true`, and setting it back to `false` has no effect. `Kind`, `Severity` and `Silent` are last-writer-wins, which means the last handler to set them counts, and they are ignored once the crime is cancelled.
+- Any `Cancel` wins: once a handler sets it, the later handlers still run and see `Cancel` as `true`, and setting it back to `false` has no effect. `Kind`, `Severity` and `Silent` are last-writer-wins: the last handler to set them counts, and they are ignored once the crime is cancelled.
 - `Committed` fires for each crime that was recorded. Its `Severity` is the recorded value, at least 1. A cancelled crime is not recorded, and `Committed` does not fire.
 
 ### Arrest (experimental)

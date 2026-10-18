@@ -17,13 +17,13 @@ Everything not listed in this reference is internal and may change without notic
 
 ## When you can call it
 
-- Call everything from your mod's normal code, not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)). This goes for every member on this page and for the code that handles `Spawned`.
+- Call everything from your mod's normal code, not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../../glossary.md#main-thread)). This goes for every member on this page and for the code that handles `Spawned`.
 - It is safe to call any of it at any time. With no save loaded, reads return an empty list or `null`, and the writing calls return `false`. Nothing throws, and a null or unknown id finds nothing.
 - The writing calls return `false` while a save is loading or being written. <span class="tech">(the check is `SaveData.Busy`.)</span>
 
 ## If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../../glossary.md#feature-group) that depends on it, and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
 - If the change behind `Spawned` cannot be made, `Spawners.IsAvailable` becomes `false` and `Spawned` never fires. The feature group is turned off. The reads, `SetRespawn`, `SetRespawnTiming` and `TriggerNow` keep working. <span class="tech">(the change is a postfix on `Spawner.TrySpawn(bool)`.)</span>
 

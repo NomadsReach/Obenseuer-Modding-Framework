@@ -9,7 +9,7 @@ nav_order: 2
 
 ## What it is
 
-The game has elevators that carry the player between floors. This API lets your mod list the elevators in the scene you are in, see which floor each car is on and whether it is moving, send a car to a floor, and get told when a car arrives.
+The game has elevators that carry the player between floors. This API lets your mod list the elevators in the scene you are in, and see which floor each car is on and whether it is moving. It can send a car to a floor, and tells you when a car arrives.
 
 ## When to use it
 
@@ -62,7 +62,7 @@ if (elevator != null && floor >= 0 && floor < elevator.FloorCount) Elevators.GoT
 
 ## Reference
 
-This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail you can skip on a first read.
 
 ### Finding elevators
 
@@ -241,7 +241,7 @@ The framework changes one of the game's methods when it starts, so it can tell y
 
 ### When you can call it
 
-- Call everything from your mod's normal code (OnLoad, event handlers, Update), not from a background thread you started. The game only works safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
+- Call everything from your mod's normal code (OnLoad, event handlers, Update), not from a background thread you started. The game only runs safely on the main thread (see the [glossary](../glossary.md#main-thread)).
 - It is safe to call any of it at any time, even on the main menu. With no elevator loaded, the reads give an empty list, `null`, `0` or `false`.
 - The only call that can throw is `GoToFloor`, for a floor outside the range of a known elevator.
 - Your `Arrived` handlers run inside the game's physics update, one at a time. The game has already stopped the car by then. If a handler throws an error, the framework logs it and still runs the other handlers.

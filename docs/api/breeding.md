@@ -73,7 +73,7 @@ Breeding.Bred += args =>
 
 ## Reference
 
-This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail you can skip on a first read.
 
 ### Breeders
 
@@ -281,7 +281,7 @@ The framework changes some of the game's methods when it starts, so it can tell 
 
 ### When you can call it
 
-- Call everything from your mod's normal code (OnLoad, event handlers, Update), not from a background thread you started. The game only works safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
+- Call everything from your mod's normal code (OnLoad, event handlers, Update), not from a background thread you started. The game only runs safely on the main thread (see the [glossary](../glossary.md#main-thread)).
 - It is safe to call `All()` at any time. With no save loaded, or on the main menu, you get an empty list. Nothing on this page throws an error, and nothing changes the game.
 - Your event handlers run inside the game's own call, one at a time. If a handler throws an error, the framework logs it and still runs the other handlers.
 

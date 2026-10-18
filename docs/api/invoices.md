@@ -12,7 +12,7 @@ Status: experimental.
 
 ## What it is
 
-An invoice is a bill the player has to pay. It arrives in the player's mail as an item, with a name on it, an amount in OC or RM, and a due day. The player pays it by putting the invoice item into a payment machine. If the player lets it run out, the game can count it as a crime. This API lets a mod list the open invoices, check whether the player can pay one, send a new invoice, cancel one, set off an invoice sender that is placed in the level, and get told when an invoice is issued, paid or cancelled.
+An invoice is a bill the player has to pay. It arrives in the player's mail as an item, with a name on it, an amount in OC or RM, and a due day. The player pays it by putting the invoice item into a payment machine. If the player lets it run out, the game can count it as a crime. This API lets a mod list the open invoices, and check whether the player can pay one. It can send a new invoice, cancel one, and set off an invoice sender that is placed in the level. It tells you when an invoice is issued, paid or cancelled.
 
 ## When to use it
 

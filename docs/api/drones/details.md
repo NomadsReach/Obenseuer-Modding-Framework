@@ -16,13 +16,13 @@ The framework changes some of the game's methods when it starts, so it can tell 
 
 ## When you can call it
 
-- Call everything from your mod's normal code, not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)). This goes for every member on this page and for the code that handles each event.
+- Call everything from your mod's normal code, not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../../glossary.md#main-thread)). This goes for every member on this page and for the code that handles each event.
 - It is safe to call any of it at any time, even on the main menu or while a save is loading. If there is no drone to read, you get an empty list, `null` or `false`. Nothing throws: the writing calls return `false` instead.
 - Your event handlers run inside the game's own call, one at a time. If one of your handlers throws an error, the framework logs it and still runs the other handlers. <span class="tech">(`Changed` is raised synchronously inside the game's `TurnOn` or `TurnOff`, after the game has changed `active` and fired its outputs. `NodePassed` is raised inside `Drone.Update`.)</span>
 
 ## If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../../glossary.md#feature-group) that depends on it, and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
 - All the changes behind `Changed` and `NodePassed` are needed. If any one of them cannot be made, the whole feature group turns off, `Drones.IsAvailable` becomes `false`, and the error goes to `BepInEx\logs\obenseuer.moddingframework.drones.log`. The reads and `SetActive` keep working. Only `Changed` and `NodePassed` stop. <span class="tech">(The changes are on `Drone.TurnOn` and `Drone.TurnOff` (for `Changed`), `Drone.Update` and `Air_Node.Pass` (for `NodePassed`).)</span>
 

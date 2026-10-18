@@ -18,7 +18,7 @@ The framework does not change the game's own methods for this part of the API. W
 
 ## When you can call it
 
-- Call everything from your mod's normal code (OnLoad, event handlers, Update), not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)). From another thread, `Open` gives `null`, the calls that return a `bool` give `false`, and `Close` does nothing.
+- Call everything from your mod's normal code (OnLoad, event handlers, Update), not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../../glossary.md#main-thread)). From another thread, `Open` gives `null`, the calls that return a `bool` give `false`, and `Close` does nothing.
 
 ## Bad values
 

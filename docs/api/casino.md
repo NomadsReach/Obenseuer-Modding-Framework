@@ -10,7 +10,7 @@ nav_order: 3
 
 ## What it is
 
-The game has two gambling machines you can place or find in the world: the slot machine, and a coin pusher (the game calls it Pajatso). It also has scratchcards, which are items the player uses. This API lets your mod list the machines in the scene, get told when a round is played, won, doubled or cashed out, get told when a scratchcard is used, and change how much the machines pay out. Both machines take and pay OC (Open Sewer Coins, see the [glossary](../glossary.md#oc)).
+The game has two gambling machines you can place or find in the world: the slot machine, and a coin pusher (the game calls it Pajatso). It also has scratchcards, which are items the player uses. This API lets your mod list the machines in the scene, and change how much they pay out. It tells you when a round is played, won, doubled or cashed out, and when a scratchcard is used. Both machines take and pay OC (Open Sewer Coins, see the [glossary](../glossary.md#oc)).
 
 The player's gambling stats are not covered here: the totals of what they won and lost, the gambling need and the addiction level. `Survival` (see [Survival](../api-core/survival.md#survival)) covers only the gambling need and addiction level, not the totals.
 

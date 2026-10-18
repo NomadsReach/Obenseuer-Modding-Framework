@@ -12,7 +12,7 @@ Status: experimental.
 
 ## What it is
 
-Hotels in the game rent out rooms by the night. The player pays for a room, gets a key to its door and a bed to sleep in, and loses the room when the nights run out. This API lets a mod list the hotel rooms in the scene you are in, see which are free and how many nights are left on the player's room, ask what a stay costs, rent a room for the player, and get told when a room is rented or runs out.
+Hotels in the game rent out rooms by the night. The player pays for a room, gets a key to its door and a bed to sleep in, and loses the room when the nights run out. This API lets a mod list the hotel rooms in the scene you are in, and see which are free and how many nights are left on the player's room. It can ask what a stay costs, rent a room for the player, and tells you when a room is rented or runs out.
 
 ## When to use it
 

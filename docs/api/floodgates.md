@@ -10,7 +10,7 @@ nav_order: 6
 
 ## What it is
 
-A flood gate is a big powered gate that slides open or shut. It has a green light for open and a red light for closed, and it usually takes about ten seconds to move. This API lets your mod list the flood gates in the scene, check whether each one is open and has power, open or close one, switch its power on or off, and get told when one is commanded open or closed.
+A flood gate is a big powered gate that slides open or shut. It has a green light for open and a red light for closed, and it usually takes about ten seconds to move. This API lets your mod list the flood gates in the scene, and check whether each one is open and has power. It can open or close one, switch its power on or off, and tells you when one is commanded open or closed.
 
 ## When to use it
 

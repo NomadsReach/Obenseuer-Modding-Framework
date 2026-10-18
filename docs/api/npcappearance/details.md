@@ -19,7 +19,7 @@ The framework changes no game method for this API. It only reads and changes the
 
 ## When you can call it
 
-- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)).
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../../glossary.md#main-thread)).
 - The reading calls are safe at any time. `Meshes`, `MaterialNames`, `ShapeKind`, `GetLook` and `BlendShapes` give an empty list, `None` or `null` when there is nothing to read.
 
 ## What to check for and what comes back

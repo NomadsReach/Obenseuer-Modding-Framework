@@ -16,7 +16,7 @@ The framework changes some of the game's methods when it starts, so it can tell 
 
 ## When you can call it
 
-- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game only works safely on its main thread (see the [glossary](../../glossary.md#main-thread)).
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game only runs safely on the main thread (see the [glossary](../../glossary.md#main-thread)).
 - It is safe to call any of it at any time. With no save loaded, or on the main menu, reads give `0`, `false` or an empty list.
 
 ## What to check for and what comes back
@@ -26,7 +26,7 @@ The framework changes some of the game's methods when it starts, so it can tell 
 
 ## If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../../glossary.md#feature-group) that depends on it, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
 - If any of the four changes for the inventory events fails, the whole inventory feature group turns off. `ItemAdded` and `ItemRemoved` stop, `PlayerInventory.IsAvailable` becomes `false`, and the framework writes error lines and a warning to the log. Reads and writes keep working. <span class="tech">(The changes are a postfix on `SlotController.AddItemAndReturnRemaining` and a postfix on `SlotController.TakeItem(Item, int, int, object[])`, which raise the events; and prefix and finalizer pairs on `SlotController.TakeItem(ItemData)` and `SlotController.DropItem`, which count the drags in the inventory screens so the events stay quiet while the player moves items there.)</span>
 - If any of the three container changes fails, the containers feature group turns off. `Opened` and `Closed` stop, error lines and a warning go to the log, and the rest of `Containers` keeps working. <span class="tech">(The changes are postfixes on `Storage.EnterExternally(bool)`, `Storage.ExitExternally()` and `Storage.OnDisable()`. The log line reads "container hooks incomplete, Opened and Closed events are disabled".)</span>

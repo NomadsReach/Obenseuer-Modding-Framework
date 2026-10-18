@@ -75,7 +75,7 @@ if (!Hazards.IsAvailable) Log.Warn("Some hazard events are off.");
 
 ## Reference
 
-This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail you can skip on a first read.
 
 ### Hazards
 
@@ -220,7 +220,7 @@ Everything not listed in this reference is internal and may change without notic
 
 ### When you can call it
 
-- Call everything from your mod's normal code, not from a background thread you started. The game only works safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)). This goes for the code that handles `Entered` too.
+- Call everything from your mod's normal code, not from a background thread you started. The game only runs safely on the main thread (see the [glossary](../glossary.md#main-thread)). This goes for the code that handles `Entered` too.
 - It is safe to call any of it at any time, even on the main menu or with no save loaded. `All()` gives an empty list and `SetEnabled` gives `false`.
 - Your `Entered` handler runs inside the game's own call, when the game notices the player walk in. If your handler throws an error, the framework logs it and still runs the other handlers. <span class="tech">(it is raised synchronously from the game's physics trigger)</span>
 

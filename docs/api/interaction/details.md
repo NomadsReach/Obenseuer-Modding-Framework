@@ -14,7 +14,7 @@ Everything not listed in this reference is internal and may change without notic
 
 ## When you can call it
 
-- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game only works safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)).
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game only runs safely on the main thread (see the [glossary](../../glossary.md#main-thread)).
 - It is safe to call any of it at any time. Off a save, or on the main menu, reads give `null`, `false` or `0`.
 - Calls that change something return `true` or `false`. The only errors are `ArgumentNullException` (a kind of `ArgumentException`) for a null object, label or action, and `ArgumentException` for a bad mod id or a bad difficulty. `Remove` and `SetReason` require a mod id of 1 to 64 characters of letters, digits, `.`, `_` or `-`. `Add` only requires a non-empty one, so an id that `Remove` refuses can still be added.
 - Your event handlers run inside the game's own call, one at a time, after the game's method has finished. If one of your handlers throws an error, the framework logs it and still runs the other handlers.

@@ -7,7 +7,7 @@ nav_order: 13
 
 # ModMenu
 
-The Mods menu is the framework's menu for mods, opened from the pause menu or the main menu. Every mod with settings gets a Settings page there for free. `ModMenu` lets your mod add a page of its own, and your code builds its contents with the `ModUi` building blocks described on the [UI kit](../api/ui.md) page.
+The Mods menu is the framework's menu for mods, opened from the pause menu or the main menu. Every mod with settings gets a Settings page there. `ModMenu` lets your mod add a page of its own. You build its contents with the `ModUi` building blocks on the [UI kit](../api/ui.md) page.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ModMenu</code> <span>add a page to the Mods menu</span></p>
@@ -98,7 +98,7 @@ public class HelloPage : BaseUnityPlugin
 ### Typing and the inventory
 
 - While you type in a box or set a key, the game's controls are locked. The game's keys and its controller update are skipped. The lock is released when the box loses focus or the capture ends.
-- Your custom page never reaches the inventory. While one is selected, the inventory's tab switch and its per-frame input (Drop, Move Item, Use) do nothing.
+- While your custom page is selected, the inventory is not reachable. Its tab switch and its per-frame input (Drop, Move Item, Use) do nothing.
 
 ### Dark theme
 

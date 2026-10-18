@@ -10,7 +10,7 @@ nav_order: 1
 
 ## What it is
 
-The doors in the game swing or slide open and shut, and some of them follow opening hours, like a shop door that is locked at night. This API lets your mod list the doors in the scene you are in, open or close one, read or change a door's opening hours, and get told when a door has finished opening or closing.
+The doors in the game swing or slide open and shut, and some of them follow opening hours, like a shop door that is locked at night. This API lets your mod list the doors in the scene you are in, and open or close one. It can read or change a door's opening hours, and tells you when a door has finished opening or closing.
 
 ## When to use it
 

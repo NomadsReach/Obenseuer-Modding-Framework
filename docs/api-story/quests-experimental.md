@@ -234,5 +234,5 @@ public sealed class QuestWatch : FrameworkMod
 
 ## Limits
 
-- Writers are refused while the game is itself changing a task. If you call a writer from inside one of the game's own task changes, including one made from another mod's patch, you get `false`, and it is logged once as "called while a quest hook is running" (the log's name for a task change the game is making). <span class="tech">(The game calls are `EditTask`, `EditTaskStatus` and `EditTaskObjective`.)</span>
+- Writers are refused while the game is itself changing a task. If you call a writer from inside one of the game's own task changes, including one made from another mod's patch, you get `false`. It is logged once as "called while a quest hook is running" (the log's name for a task change the game is making). <span class="tech">(The game calls are `EditTask`, `EditTaskStatus` and `EditTaskObjective`.)</span>
 - Writers also need the task panel and the notifications to exist. The game uses them when a task starts. <span class="tech">(They need `TaskPanel.instance` and `Notifications.instance`.)</span>

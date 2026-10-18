@@ -16,11 +16,11 @@ The framework changes some of the game's methods when it starts, so it can check
 
 ## When you can call it
 
-- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)).
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../../glossary.md#main-thread)).
 
 ## If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../../glossary.md#feature-group) that depends on it, and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
 - All the changes are made together, or none are. If any of them can't be made, the feature group is turned off, `NpcControl.IsAvailable` is `false` and `Take` returns `false`. `Release` and the reads keep working. <span class="tech">(`NpcControl.Init` subscribes to the scene event, and the framework calls `NpcControl.Tick` once per frame. It also changes five game methods: `FadeGameObject.Cull`, `NPC_FOV.CheckIfTargetIsDetected`, `InteractableTalk.CanTalk`, `BarkStarter.TryBark` and `DialogueSystemTrigger.Fire`. The five install together or not at all.)</span>
 - If the game has no `culled` flag on its fade component, only `Fade` stops working. The framework logs it once, and the other flags keep working. <span class="tech">(`FadeGameObject.culled` is missing or is not a bool.)</span>

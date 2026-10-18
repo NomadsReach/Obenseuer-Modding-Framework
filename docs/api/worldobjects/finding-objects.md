@@ -10,7 +10,7 @@ nav_order: 2
 This page uses `Vector3`, `GameObject` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
-This is the full list of what the API gives you, one section for each part. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you, one section for each part. Text in brackets at the end of a note is extra detail you can skip on a first read.
 
 `WorldObjects` finds objects by save id (also called a GUID, a unique name the game gives to an object it saves), tells you whether the game saves a given object, and lists the saved objects near a point. Each object you get from a search is a `WorldObjectInfo`, a snapshot taken when you asked.
 

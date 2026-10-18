@@ -7,7 +7,7 @@ nav_order: 2
 
 # Listing and sending bills
 
-`Invoices` lists, sends and cancels the player's bills, and tells you when one is issued, paid or cancelled. Each bill is an `InvoiceInfo`, a snapshot of it at the moment you asked, so ask again for fresh values. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+`Invoices` lists, sends and cancels the player's bills, and tells you when one is issued, paid or cancelled. Each bill is an `InvoiceInfo`, a snapshot of it at the moment you asked, so ask again for fresh values. Text in brackets at the end of a note is extra detail you can skip on a first read.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Invoices</code> <span>list, send and cancel bills</span></p>

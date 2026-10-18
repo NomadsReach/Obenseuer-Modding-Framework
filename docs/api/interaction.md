@@ -10,7 +10,7 @@ nav_order: 5
 
 ## What it is
 
-When the player looks at a door, a switch or a chest and gets a prompt like "Open (Use)", that is an interaction. This API lets your mod give any object its own prompt, hear when the player uses something, and see what the player is looking at. It also covers locks. Your mod can check whether a door, chest or keypad is locked, lock and unlock it, change how hard it is to pick, start the lockpicking minigame, and get told when a lock changes or a pick succeeds or fails.
+When the player looks at a door, a switch or a chest and gets a prompt like "Open (Use)", that is an interaction. This API lets your mod give any object its own prompt, hear when the player uses something, and see what the player is looking at. It also covers locks. Your mod can check whether a door, chest or keypad is locked, and lock or unlock it. It can change how hard the lock is to pick, start the lockpicking minigame, and tells you when a lock changes or a pick succeeds or fails.
 
 ## When to use it
 

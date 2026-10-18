@@ -18,7 +18,7 @@ Everything not listed in this reference is internal and may change without notic
 
 ## When you can call it
 
-- Call everything from your mod's normal code, not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)).
+- Call everything from your mod's normal code, not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../../glossary.md#main-thread)).
 - It is safe to call at any time, and nothing throws. If the call cannot be done, you get an empty array, `null`, a failed handle or `false`, and the first failure is written to the log.
 
 ## If something fails to set up

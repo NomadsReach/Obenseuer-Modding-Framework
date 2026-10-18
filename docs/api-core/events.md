@@ -75,7 +75,7 @@ public class MyMod : BaseUnityPlugin
 
 ## Things to know
 
-- Your handlers run in the order they subscribed, and one handler that fails does not stop the others. The framework writes the error to the log, and only the first failure of each handler for each event.
+- Your handlers run in the order they subscribed, and one handler that fails does not stop the others. The framework writes the error to the log, and only the first failure of each handler per event.
 - You may subscribe or unsubscribe inside a handler. The change starts with the next event.
 - `HourPassed` is checked once every game minute, so it can arrive up to a minute late. If the player sleeps or the time jumps, you see the new hour on the next minute. If the time jumps to the same hour on a different day, it still fires.
 - A level change does not repeat the hour it lands on. After a level change, `HourPassed` fires only when the hour or the day is different from the last one reported. A load or a new game started from the main menu does fire on its first game minute, even for the same hour, because the main menu forgets the last hour.

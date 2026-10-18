@@ -14,7 +14,7 @@ Everything not listed in this reference is internal and may change without notic
 
 ## When you can call it
 
-- Call everything from your mod's normal code, not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)).
+- Call everything from your mod's normal code, not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../../glossary.md#main-thread)).
 - It is safe to call any of it at any time, even on the main menu or before a save is loaded. If the game part that a member reads is missing, you get `0`, `null` or an empty list. A play call gives `false`.
 - This API has no events. It only reads the game's sound state and plays sounds.
 

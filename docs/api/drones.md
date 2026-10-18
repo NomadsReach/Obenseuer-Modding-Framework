@@ -10,7 +10,7 @@ nav_order: 5
 
 ## What it is
 
-Drones are machines in the game that follow a route. The route is a chain of air nodes, which are waypoints the drone moves toward one after another. This API lets your mod list the drones and air nodes in the scene you are in, switch a drone on or off, send it to a node, change its top speed, and get told when a drone changes state or passes a node.
+Drones are machines in the game that follow a route. The route is a chain of air nodes, which are waypoints the drone moves toward one after another. This API lets your mod list the drones and air nodes in the scene you are in. It can switch a drone on or off, send it to a node, and change its top speed. It tells you when a drone changes state or passes a node.
 
 ## When to use it
 

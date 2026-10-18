@@ -70,7 +70,7 @@ foreach (TrashInfo pile in Cleaning.TrashItems())
 
 ## Reference
 
-This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail you can skip on a first read.
 
 ### Cleaning timers
 
@@ -229,6 +229,6 @@ This page changes none of the game's methods, so it has no feature group and not
 
 ### When you can call it
 
-- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../glossary.md#main-thread)).
 - It is safe to call at any time, even on the main menu. With no save loaded, `Timer` returns `null` and `TrashItems` returns an empty list.
 - Nothing here throws an error to your code, and nothing changes the game. If the game itself fails while the framework reads, you get `null` or an empty list, and the first failure of each member goes to the log.

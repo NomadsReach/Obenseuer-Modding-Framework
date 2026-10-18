@@ -16,7 +16,7 @@ The framework changes one game method when it starts, so it can tell your mod wh
 
 ## When you can call it
 
-- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)). This goes for the code that handles `Changing` too.
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../../glossary.md#main-thread)). This goes for the code that handles `Changing` too.
 - It is safe to call any of it at any time, even on the main menu or while a save is loading. With no scene to look in, `All()` gives an empty list, `Get` gives `null`, and `SetLocked`, `Use` and `ChangeTo` give `false`. Those three also give `false` while a save is loading or being written.
 
 ## What to check for and what comes back
@@ -26,6 +26,6 @@ The framework changes one game method when it starts, so it can tell your mod wh
 
 ## If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../../glossary.md#feature-group) that depends on it, and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
 - If the framework cannot change the game's level change method, `Changing` stops and the rest keeps working. `IsAvailable` becomes `false`. <span class="tech">(The method is `Changelevel.ChangeLevel`.)</span>

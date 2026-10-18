@@ -15,7 +15,7 @@ Everything not listed in this reference is internal and may change without notic
 
 ## When you can call it
 
-- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)).
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../../glossary.md#main-thread)).
 - Reading is safe at any time, even on the main menu. `Get` gives `null` when the trader is not found or the framework is not ready.
 
 ## What to check for and what comes back
@@ -26,5 +26,5 @@ Everything not listed in this reference is internal and may change without notic
 
 ## If something fails to set up
 
-- The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+- The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../../glossary.md#feature-group) that depends on it, and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 - If the framework cannot change the game's price method, price factors stop working and the rest keeps working. `PriceFactorsAvailable` becomes `false`. <span class="tech">(the method is `Trade.GetItemStackPrice`, the same one the `Shops.PriceQuery` event uses)</span>

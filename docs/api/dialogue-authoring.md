@@ -12,7 +12,7 @@ Status: experimental.
 
 ## What it is
 
-A conversation is a set of lines that a character speaks, and choices the player picks. This API lets your mod write its own conversations while the game runs and start them like any conversation from the game. It can also add a new answer to a conversation the game already has, hang a whole menu of your own lines under a line of a game character, change a line's text each time it shows, and show a plain block of narration text on a black screen.
+A conversation is a set of lines that a character speaks, and choices the player picks. This API lets your mod write its own conversations while the game runs and start them like any conversation from the game. It can also add a new answer to a conversation the game already has, and hang a whole menu of your own lines under a line of a game character. It can change a line's text each time it shows, and show a plain block of narration text on a black screen.
 
 An NPC line is spoken by the character. A player line is a choice the player picks. The framework does not write voice, camera cuts or other effects, so a conversation shows with the game's normal look. It builds on the `Dialogue` part of the [Story API](../api-story/dialogue.md#dialogue), which starts and stops conversations.
 

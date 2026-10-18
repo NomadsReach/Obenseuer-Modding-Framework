@@ -12,7 +12,7 @@ This page uses `GameObject` from Unity. The [glossary](../glossary.md#types-that
 
 ## What it is
 
-An extractable is a thing in the world that the player breaks apart with the right tool to get items out of it. It has health, and each hit takes some off. When the health runs out, the game spawns the items and removes the object. This API lets your mod list the extractables in the scene you are in, read their health, hit one as if the player had, and be told when one is broken open.
+An extractable is a thing in the world that the player breaks apart with the right tool to get items out of it. It has health, and each hit takes some off. When the health runs out, the game spawns the items and removes the object. This API lets your mod list the extractables in the scene you are in, and read their health. It can also hit one as if the player had, and tells you when one is broken open.
 
 Extractables are not the same as resource nodes, which hold a stock of something to take out. See [Resources](resources.md) for those.
 
@@ -76,7 +76,7 @@ if (!Extractables.IsAvailable) Log.Warn("The Extracted event is off in this game
 
 ## Reference
 
-This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail you can skip on a first read.
 
 ### Listing and hitting extractables
 
@@ -219,14 +219,14 @@ The framework changes one of the game's methods when it starts, so it can tell y
 
 ### When you can call it
 
-- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../glossary.md#main-thread)).
 - It is safe to call at any time, even on the main menu. With no scene loaded, reads return an empty list, `null` or `0`, and `Damage` returns `false`.
 - Nothing here throws an error to your code. If the game itself fails while the framework reads, you get the same empty answer, and the first failure of each member goes to the log.
 - Your event handlers run inside the game's own call, one at a time. If a handler throws an error, the framework logs it and still runs the other handlers.
 
 ### If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../glossary.md#feature-group) that depends on it, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
 - If the change to `Extractable.Damage` cannot be made, only the `Extracted` event stops. `Extractables.IsAvailable` becomes `false` and error lines and a warning go to the log. `All`, `Get`, `Health` and `Damage` keep working. <span class="tech">(The warning reads "extractable hooks incomplete, Extracted event is disabled".)</span>
 

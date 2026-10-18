@@ -17,7 +17,7 @@ Everything not listed in this reference is internal and may change without notic
 
 ## When you can call it
 
-- Call everything from your mod's normal code, not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)).
+- Call everything from your mod's normal code, not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../../glossary.md#main-thread)).
 - It is safe to call any of it at any time, even on the main menu, while loading, and with no save loaded. Reads give a harmless default: `0`, `false`, `Vector3.zero`, no rotation, `null` for a name, or an empty list. Writes give `false`.
 - `Damage`, `Heal`, `Sleep`, `Wait`, `Teleport`, `PickTime`, `Skills.Add`, `SetGodMode`, `SetNeedsFrozen` and `WaitStations.Use` also give `false` while a save is loading or being written.
 - Your event handlers run inside the game's own call, one at a time. If one of your handlers throws an error, the framework logs it and still runs the other handlers.
@@ -35,7 +35,7 @@ Everything not listed in this reference is internal and may change without notic
 
 ## If something fails to set up
 
-The framework changes some of the game's methods when it starts, so it can tell your mod about sleeping, waiting, skills and effects. If a game update breaks one of them, the framework removes all the changes of the [feature group](../../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts, so it can tell your mod about sleeping, waiting, skills and effects. If a game update breaks one of them, the framework turns off the [feature group](../../glossary.md#feature-group) that depends on it, and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
 - A failed change turns off only the events of its feature group. It writes one error to the log, and the reads and writes keep working. The groups are listed at the top of Details. The survival groups used by the damage intercepts and breakdowns are listed in [Damage and breakdown intercepts](damage-and-breakdown-intercepts.md#damage-and-breakdown-intercepts).
 

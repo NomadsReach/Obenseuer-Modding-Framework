@@ -10,7 +10,7 @@ nav_order: 2
 
 ## What it is
 
-The game has card tables where the player bets against NPC opponents. There are two games. Players know them as Shittypants and Crosseven. In the code they are called `ChinaHand` and `Ristiseiska`. This API lets your mod list the card tables in the scene, see which have a game running and what the stake is, get told when a game starts or ends, and change how much a game pays out. It cannot start a game, deal cards, play a card or set the stake.
+The game has card tables where the player bets against NPC opponents. There are two games. Players know them as Shittypants and Crosseven. In the code they are called `ChinaHand` and `Ristiseiska`. This API lets your mod list the card tables in the scene, and see which have a game running and what the stake is. It tells you when a game starts or ends, and it can change how much a game pays out. It cannot start a game, deal cards, play a card or set the stake.
 
 ## When to use it
 

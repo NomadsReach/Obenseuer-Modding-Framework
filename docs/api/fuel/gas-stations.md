@@ -7,7 +7,7 @@ nav_order: 2
 
 # Gas stations
 
-This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail you can skip on a first read.
 
 `FuelStations.All()` lists the gas stations in the scene you are in. Each one is a `FuelStationInfo`, a snapshot of the station at the moment you asked. The snapshot does not update by itself, so ask again for fresh values.
 

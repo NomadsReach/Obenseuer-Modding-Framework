@@ -16,7 +16,7 @@ The framework changes some of the game's methods when it starts, so it can add c
 
 ## When you can call it
 
-- Call everything from your mod's normal code, not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../../glossary.md#main-thread)). That includes the code that handles `TaskItems.Changed`, and the `run` code of a console command.
+- Call everything from your mod's normal code, not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../../glossary.md#main-thread)). That includes the code that handles `TaskItems.Changed`, and the `run` code of a console command.
 - It is safe to call at any time, even on the main menu, while a save is loading, or with no save loaded. If there is nothing to read yet, you get a neutral answer: `null`, `0`, an empty array, an empty list or `false`. A call that changes something gives back `false` when the part of the game it needs is missing.
 - Some calls throw an error when you pass a bad value. An invalid mod id, or a null or empty name, text, title or body, throws an `ArgumentException`. A mod id is 1 to 64 characters of letters, digits, `.`, `_` or `-`.
 - `Print` is the exception, and only throws for a null `text`.
@@ -28,7 +28,7 @@ The framework changes some of the game's methods when it starts, so it can add c
 
 ## If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../../glossary.md#feature-group) that depends on it, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
 - If the console setup fails, `ConsoleCommands.IsAvailable` is `false` and `Register` gives back `false`. `Print`, `Open` and `IsOpen` talk to the game's console directly, so they do not depend on that setup. <span class="tech">(The methods involved are `DeveloperConsole.HandleInput` and `DeveloperConsole.PrintValidCommands`.)</span>
 - If the task item setup fails, `TaskItems.Changed` stops firing. `All`, `Has`, `Amount`, `Add` and `Remove` keep working. <span class="tech">(The methods involved are `TaskItemsManager.AddTaskItem` and `TaskItemsManager.RemoveItem`.)</span>
