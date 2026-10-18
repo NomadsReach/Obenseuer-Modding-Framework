@@ -93,6 +93,7 @@ public class CoreLog
     public void Warn(string message);
     public void Error(string message);
     public void Debug(string key, string message);   // only when Debug.Verbose; writes when the text for key changes
+    public int LineLimit { get; set; }   // lines per second, default 100, clamped 1 to 100000
 }
 ```
 

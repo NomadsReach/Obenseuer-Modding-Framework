@@ -24,6 +24,7 @@ public class CoreLog
     public void Warn(string message);
     public void Error(string message);
     public void Debug(string key, string message);
+    public int LineLimit { get; set; }
 }
 ```
 
@@ -34,6 +35,10 @@ public class CoreLog
 | `Warn(message)` | `void` | Writes something that looks wrong, but the mod keeps working. |
 | `Error(message)` | `void` | Writes something that failed. |
 | `Debug(key, message)` | `void` | Writes a message that only shows when `[Debug] Verbose` is true. It writes again only when the text for this key changes. |
+
+| Property | Type | What it means |
+|---|---|---|
+| `LineLimit` | `int` | The most lines this log accepts in one second. Default 100. A value outside 1 to 100000 is brought back into that range. See Writing a long list. |
 
 </div>
 </div>
@@ -68,6 +73,31 @@ public class MyMod : BaseUnityPlugin
 | `Log.Debug("state", "idle")` | Writes a line only when `[Debug] Verbose` is on. |
 
 </div>
+
+## Writing a long list
+
+Each log accepts 100 lines in a second, so one noisy mod cannot fill the file. Past that limit the further lines in that second are dropped, and one summary line such as `340 lines suppressed` (level `WARN`) is written with the next line your mod writes, or when the game quits. So a mod that prints a long list in one frame, for example every NPC id, stops after about 100 lines and then shows that summary line.
+
+Raise the limit on your own log:
+
+<div class="api-example" markdown="1">
+
+```csharp
+CoreLog Log = CoreLog.For("my.mod");
+Log.LineLimit = 1000;
+Log.Info("first line of a long list");
+```
+
+| Step | What it does |
+|---|---|
+| `Log.LineLimit = 1000;` | The limit becomes 1000 lines in a second, so the whole list gets written. |
+| `Log.Info(...)` | Writes as usual. |
+
+</div>
+
+Or spread the writing over several frames, for example a few lines in each `Update`, so no single second goes over the limit.
+
+Errors have their own rules on top of this: the same error is written once in 10 seconds, at most 20 errors are written in 10 seconds, and the dropped ones get their own summary line, such as `7 error lines suppressed`.
 
 ## Things to know
 
