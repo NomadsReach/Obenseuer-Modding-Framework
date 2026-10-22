@@ -1,8 +1,8 @@
 # Changelog
 
-## 0.13.0-beta (2026-10-21)
+## 0.12.0-beta (2026-10-21)
 
-This release also carries everything from 0.12.0-beta (2026-10-17). Entries are grouped by area. **New** is an addition, **Changed** alters existing behaviour, **Fixed** is a bug fix. Each area names the docs page with the full detail.
+Entries are grouped by area. **New** is an addition, **Changed** alters existing behaviour, **Fixed** is a bug fix. Each area names the docs page with the full detail.
 
 ### Highlights
 

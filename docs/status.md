@@ -9,12 +9,12 @@ This page says how finished the framework is. It then lists what 0.10.0-beta add
 
 ## In short
 
-- **This is a beta.** The latest release is 0.13.0-beta. A call can change before version 1.0, so a mod you build now may need small fixes later. The [API reference](API.md) lists the changes planned for 1.0.
+- **This is a beta.** The latest release is 0.12.0-beta. A call can change before version 1.0, so a mod you build now may need small fixes later. The [API reference](API.md) lists the changes planned for 1.0.
 - **Only Obenseuer 0.5.08 (Steam build 25969064) is supported.** On another game version the framework still starts and logs a warning, but a feature group that depends on changed game code can be turned off.
 - **Extensive testing has not been done yet.** The framework has been written against the game's own code, and each feature has had basic checks, but not long play sessions.
 - **Some parts are marked experimental.** They work, but expect rough edges: quests, dialogue and law (the Story API), Steam and lobby helpers for co-op (Net), mod NPCs, NPC appearance, the debug trace, the tutorial and computer files.
 
-What changed in 0.12.0-beta and 0.13.0-beta is in the [changelog](https://github.com/NomadsReach/Obenseuer-Modding-Framework/blob/main/CHANGELOG.md).
+What changed in 0.12.0-beta is in the [changelog](https://github.com/NomadsReach/Obenseuer-Modding-Framework/blob/main/CHANGELOG.md).
 
 ## What is new in 0.10.0-beta
 

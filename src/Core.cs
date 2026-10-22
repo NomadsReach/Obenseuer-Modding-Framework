@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace ObenseuerCore
 {
-    [BepInPlugin("obenseuer.moddingframework", "Obenseuer Modding Framework", "0.13.0")]
+    [BepInPlugin("obenseuer.moddingframework", "Obenseuer Modding Framework", "0.12.0")]
     public class Core : BaseUnityPlugin
     {
         private const string SupportedVersion = "0.5.08";

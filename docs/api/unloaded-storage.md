@@ -29,7 +29,7 @@ This mod checks a storage in another scene, and queues the take of three items o
 using ObenseuerCore;
 
 [ModInfo("example.craftstorage", "Craft From Storage Example", "0.1.0")]
-[ModDependency("obenseuer.moddingframework", "0.13.0")]
+[ModDependency("obenseuer.moddingframework", "0.12.0")]
 public sealed class CraftFromStorageExample : FrameworkMod
 {
     private const string Scene = "Interior Bazaar Storage";

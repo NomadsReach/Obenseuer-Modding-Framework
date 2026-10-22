@@ -6,7 +6,7 @@ The Obenseuer Modding Framework (the framework) is a free add-on for the game Ob
 - Making a mod? Read [Your first mod](docs/guides/getting-started/first-mod.md), then the [API index](docs/API.md).
 - Something not working? See the [FAQ](docs/faq.md).
 
-Version: 0.13.0-beta (plugin version 0.13.0, GUID `obenseuer.moddingframework`). License: MIT. This is a beta, so it may have bugs. See the [status page](docs/status.md).
+Version: 0.12.0-beta (plugin version 0.12.0, GUID `obenseuer.moddingframework`). License: MIT. This is a beta, so it may have bugs. See the [status page](docs/status.md).
 
 Documentation site: https://nomadsreach.github.io/Obenseuer-Modding-Framework/
 

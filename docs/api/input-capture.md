@@ -28,7 +28,7 @@ using System;
 using ObenseuerCore;
 
 [ModInfo("example.panel", "Panel", "0.1.0")]
-[ModDependency("obenseuer.moddingframework", "0.13.0")]
+[ModDependency("obenseuer.moddingframework", "0.12.0")]
 public sealed class Panel : FrameworkMod
 {
     private bool open;
