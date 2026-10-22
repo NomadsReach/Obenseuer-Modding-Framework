@@ -1,0 +1,16 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>focus next</title>
+<style>
+html, body { margin: 0; height: 100%; background: #ffffff; font: 16px sans-serif; }
+</style>
+</head>
+<body>
+<p>Next page</p>
+<script>
+chrome.webview.postMessage({ type: 'nav-loaded' });
+</script>
+</body>
+</html>

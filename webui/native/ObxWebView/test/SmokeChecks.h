@@ -21,6 +21,11 @@ int gOursMark = 0;
 bool gFieldSeen = false;
 int gFieldX = 450;
 int gFieldY = 216;
+bool gBlankDbl = false;
+ULONGLONG gPickAt = 0;
+ULONGLONG gDblAt = 0;
+ULONGLONG gNavClick = 0;
+ULONGLONG gNavLoadAt = 0;
 
 bool TypedX(const std::wstring& json) {
     const size_t at = json.find(L"\"value\":\"");
@@ -30,6 +35,8 @@ bool TypedX(const std::wstring& json) {
 void FocusNote(const std::wstring& json, bool native) {
     if (!native && Has(json, L"\"type\":\"focus-ready\"")) gFocusReady = true;
     if (!native && Has(json, L"\"type\":\"pressed\"")) ++gPressed;
+    if (!native && Has(json, L"\"type\":\"dbl\"") && Has(json, L"\"target\":\"blank\"")) gBlankDbl = true;
+    if (!native && Has(json, L"\"type\":\"nav-loaded\"")) gNavLoadAt = GetTickCount64();
     if (!native && Has(json, L"\"type\":\"rect\"")) {
         gFieldX = static_cast<int>(NumberAfter(json, L"\"x\":"));
         gFieldY = static_cast<int>(NumberAfter(json, L"\"y\":"));
@@ -111,15 +118,20 @@ bool Settled(int no) {
     if (no == 10) return gFieldSeen && GetTickCount64() >= gShownAt + 500;
     if (no == 13) return gDeactivations > gMark;
     if (no == 14) return gReactivations > gMark;
-    if (no == 17 || no == 18 || no == 21) return true;
-    if (no == 20) return gDeactivations > gMark;
+    if (no == 18) return GetTickCount64() >= gPickAt + 800;
+    if (no == 19) return gBlankDbl;
+    if (no == 20) return front == gWnd && GetTickCount64() >= gDblAt + 900;
+    if (no == 22) return (gNavLoadAt != 0 && front == gWnd) || GetTickCount64() >= gNavClick + 1500;
+    if (no == 23) return front == gWnd && GetTickCount64() >= gNavLoadAt + 900;
+    if (no == 24 || no == 27) return true;
+    if (no == 26) return gDeactivations > gMark;
     if (gPressed < gPressWant) return false;
     if (no == 4 || no == 8 || no == 11 || no == 12 || no == 15) return front == gPopup;
     return no == 0 || front == gWnd;
 }
 
 void FocusStep() {
-    if (!gFocusReady || !gPopup || gStep <= 2 || gFocusNo > 21) return;
+    if (!gFocusReady || !gPopup || gStep <= 2 || gFocusNo > 27) return;
     if (!Settled(gFocusNo) && GetTickCount64() < gFocusAt) return;
     const int no = gFocusNo++;
     gDeadline = GetTickCount64() + 5000;
@@ -208,6 +220,34 @@ void FocusStep() {
         FocusVerdict(L"STALE FORWARDED DEACTIVATION IS DROPPED, GAME STAYS ACTIVE", gDeactivations == gMark && game);
         break;
     case 17:
+        ClickPage(380, 416);
+        gPickAt = GetTickCount64();
+        break;
+    case 18:
+        FocusVerdict(L"SELECT CLICK keeps the popup active", popup);
+        TakeForeground(gWnd);
+        Sleep(300);
+        gBlankDbl = false;
+        ClickPage(800, 540);
+        Sleep(120);
+        ClickPage(800, 540);
+        gDblAt = GetTickCount64();
+        break;
+    case 19:
+        FocusVerdict(L"BLANK DOUBLE CLICK reaches the page as dbl", gBlankDbl);
+        break;
+    case 20:
+        FocusVerdict(L"BLANK DOUBLE CLICK releases activation to the game within 1.5 s", game && GetTickCount64() <= gDblAt + 1500);
+        break;
+    case 21:
+        gNavLoadAt = 0;
+        gNavClick = GetTickCount64();
+        ClickPage(700, 216);
+        break;
+    case 22:
+        FocusVerdict(L"LINK CLICK that navigates releases activation to the game", gNavLoadAt != 0 && game && GetTickCount64() <= gNavClick + 1500);
+        break;
+    case 23:
         ActivateTaskbar();
         Sleep(150);
         TakeForeground(gWnd);
@@ -218,18 +258,18 @@ void FocusStep() {
         ActivateTaskbar();
         Sleep(300);
         break;
-    case 18:
+    case 24:
         FocusVerdict(L"STALE FORWARDED ACTIVATION IS DROPPED", gStaleActivations == gStaleMark);
         FocusVerdict(L"GAME STAYS INACTIVE AFTER THE STALE ACTIVATION", !game);
         TakeForeground(gWnd);
         gApi.destroy(gView);
         break;
-    case 19:
+    case 25:
         FocusVerdict(L"CLOSE while the popup is active gives focus to the game", game);
         gMark = gDeactivations;
         ActivateTaskbar();
         break;
-    case 20:
+    case 26:
         FocusVerdict(L"ALT-TAB WITH THE GAME ACTIVE REACHES THE GAME", gDeactivations > gMark);
         break;
     default:

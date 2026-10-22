@@ -105,14 +105,19 @@ std::wstring Escaped(const std::wstring& text) {
     return out;
 }
 
-// Constraint: kTypingScript posts exactly these two strings.
+// Constraint: kTypingScript posts exactly these three strings.
 const wchar_t* const kTypingIn = L"\"obx-typing-in\"";
 const wchar_t* const kTypingOut = L"\"obx-typing-out\"";
+const wchar_t* const kTypingHold = L"\"obx-typing-hold\"";
 
 bool TypingMessage(int id, LPCWSTR json) {
     const bool in = wcscmp(json, kTypingIn) == 0;
-    if (!in && wcscmp(json, kTypingOut) != 0) return false;
-    if (View* v = Find(id)) Typing(v, in);
+    const bool hold = wcscmp(json, kTypingHold) == 0;
+    if (!in && !hold && wcscmp(json, kTypingOut) != 0) return false;
+    if (View* v = Find(id)) {
+        if (!hold) Typing(v, in);
+        else if (v->popup) KillTimer(v->popup, kHandBackTimer);
+    }
     return true;
 }
 
@@ -287,7 +292,7 @@ HRESULT LockDown(View* v) {
 
 const wchar_t* const kNoServiceWorker = L"try { Object.defineProperty(Navigator.prototype, 'serviceWorker', { get: function () { return undefined; }, configurable: false }); } catch (e) {} try { delete window.SharedWorker; } catch (e) {} ['WebSocket', 'WebSocketStream', 'EventSource', 'WebTransport', 'RTCPeerConnection', 'webkitRTCPeerConnection', 'Worker'].forEach(function (n) { try { Object.defineProperty(window, n, { value: undefined, configurable: false, writable: false }); } catch (e) {} }); try { Object.defineProperty(Navigator.prototype, 'sendBeacon', { value: undefined, configurable: false, writable: false }); } catch (e) {}";
 
-const wchar_t* const kTypingScript = L"(function () { if (window.top !== window) return; var editable = function (el) { return !!el && (el.isContentEditable || el.tagName === 'TEXTAREA' || (el.tagName === 'INPUT' && !/^(button|checkbox|color|file|hidden|image|radio|range|reset|submit)$/i.test(el.type))); }; var entered = function (e) { if (editable(e.target)) chrome.webview.postMessage('obx-typing-in'); }; var pressed = function (e) { chrome.webview.postMessage(editable(e.target) ? 'obx-typing-in' : 'obx-typing-out'); }; document.addEventListener('focusin', entered, true); document.addEventListener('mousedown', pressed, true); document.addEventListener('focusout', function () { setTimeout(function () { if (!editable(document.activeElement)) chrome.webview.postMessage('obx-typing-out'); }, 0); }, true); })();";
+const wchar_t* const kTypingScript = L"(function () { if (window.top !== window) return; var editable = function (el) { return !!el && (el.isContentEditable || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || (el.tagName === 'INPUT' && !/^(button|checkbox|color|file|hidden|image|radio|range|reset|submit)$/i.test(el.type))); }; var down = false, t = 0; var post = function (m) { chrome.webview.postMessage(m); }; var later = function () { clearTimeout(t); t = setTimeout(function () { if (!down && !editable(document.activeElement)) post('obx-typing-out'); }, 500); }; document.addEventListener('focusin', function (e) { if (editable(e.target)) { clearTimeout(t); post('obx-typing-in'); } }, true); document.addEventListener('mousedown', function (e) { down = true; clearTimeout(t); post(editable(e.target) ? 'obx-typing-in' : 'obx-typing-hold'); }, true); document.addEventListener('mouseup', function () { down = false; later(); }, true); document.addEventListener('focusout', function () { if (!down) later(); }, true); window.addEventListener('blur', function () { down = false; clearTimeout(t); }); window.addEventListener('pagehide', function () { clearTimeout(t); if (!editable(document.activeElement)) post('obx-typing-out'); }); })();";
 
 void ClearServiceWorkers(View* v) {
     ComPtr<ICoreWebView2_13> web13;

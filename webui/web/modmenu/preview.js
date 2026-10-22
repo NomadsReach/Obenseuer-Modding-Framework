@@ -8,7 +8,7 @@ window.obxPreview = function (receive) {
     theme: "dark",
     mods: [
       {
-        id: "obenseuer.moddingframework", name: "Obenseuer Modding Framework", version: "0.12.0",
+        id: "obenseuer.moddingframework", name: "Obenseuer Modding Framework", version: "0.12.1",
         pages: [
           { id: "p1_0", title: "Settings", kind: "config" },
           { id: "p1_3", title: "Controls", kind: "web" }
@@ -37,7 +37,7 @@ window.obxPreview = function (receive) {
         { id: "c1_5", kind: "segmented", label: "Mode", desc: "Three options use segments.", value: "Auto", def: "Off", options: ["Off", "Auto", "Manual"], dirty: true },
         { id: "c1_6", kind: "text", label: "Threshold", desc: "A number. Enter commits.", value: "1.5", def: "1.5", invalid: false, dirty: false },
         { id: "c1_7", kind: "text", label: "Nickname", desc: "", value: "Alpha", def: "Alpha", invalid: false, dirty: false },
-        { id: "c1_8", kind: "readonly", label: "Version", desc: "Read only.", value: "0.12.0", def: "0.12.0", dirty: false }
+        { id: "c1_8", kind: "readonly", label: "Version", desc: "Read only.", value: "0.12.1", def: "0.12.1", dirty: false }
       ] },
       { name: "Keys", rows: [
         { id: "c1_9", kind: "key", label: "ToggleKey", desc: "Switches the camera.", value: "F6", def: "F6", dirty: false },

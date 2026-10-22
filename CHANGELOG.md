@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.12.1-beta (2026-10-22)
+
+### WebUi
+
+Docs: `docs/api/webui.md`
+
+- **Fixed:** a dropdown list on a WebUi page closed a moment after it opened, and a single click on a button or icon did nothing until it was clicked again. The page now keeps the keyboard while you click on it and hands it back to the game half a second after the last click, or when the page loads another page.
+
 ## 0.12.0-beta (2026-10-21)
 
 Entries are grouped by area. **New** is an addition, **Changed** alters existing behaviour, **Fixed** is a bug fix. Each area names the docs page with the full detail.
