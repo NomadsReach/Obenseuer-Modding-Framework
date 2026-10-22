@@ -15,6 +15,8 @@ These notes cover when your mod starts, and what happens when it fails or stops.
 - `OnLoad` runs once. `Loader.Has(yourOwnId)` is `false` while your mod's own `Awake` and `OnLoad` are running, and becomes `true` when `OnLoad` finishes.
 - Unity runs your class's own `Awake` before `OnLoad`. A framework mod stays loaded until the game closes. <span class="tech">(Mono cannot unload an assembly.)</span>
 
+- `FrameworkMods.Loaded()` gives a new list of the framework mods that loaded. A mod that failed in `OnLoad` is not in it. Use `Loader.Has(modId)` to ask about one mod by its id.
+
 ## Limits
 
 - If `OnLoad` throws an error, your mod is switched off. The error goes to your mod's log and to `ObenseuerCore.log`, and your mod's component is destroyed straight away, so its `Update` cannot run on a half-started mod. Every mod that depends on yours is skipped, but other mods and the framework keep running.

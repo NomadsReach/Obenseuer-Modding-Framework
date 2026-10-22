@@ -25,11 +25,12 @@ Most pages cover one part of the game and use the same shape: what it is, when t
 - [Debug trace](api/debug.md): turn on the framework's diary of what it does, to find out why something does not work.
 - [Developer menu](api/dev-menu.md): an off-by-default window (F8 or `omf_dev`) to restart, rewind or remove your quests, change some game state, and add your own section and live watch values. `DevMenu`.
 - [Events](events.md): every event you can react to, such as a new day or a money change.
-- [Framework core classes](api-core.md): the framework's basics: logging, events, game time and money, saves, tweaks, the Mods menu and the player's look.
+- [Framework core classes](api-core.md): the framework's basics: logging, events, game time and money, saves, tweaks, the Mods menu and the player's look. `CoreLog`, `CorePatcher`, `GameTime`, `Wallet`, `SaveData`, `Tweaks`, `TweakState`, `ModMenu`, `ComputerApps`, `CameraView`, `PlayerLook`, `Survival`, `Loader`.
 - [Framework helpers](api/core-helpers.md): three short helpers that remove set-up code most mods repeat, and `Events.WhenReady` to run code after a save loads.
 - [Framework mods](api/framework-mods.md): write one mod DLL that runs on both BepInEx 5 and 6, with settings that appear in the Mods menu. `FrameworkMod`, `ModInfoAttribute`, `ModConfig`.
 - [Game save data entries](api/savedata-game.md): keep your mod's data in the save, and save or load a game object's own data. `SaveData`.
 - [Global flags](api/global-flags.md): read and set the game's named on/off switches. `GlobalFlags`.
+- [Input capture](api/input-capture.md): hold the game's keys back while your mod needs the keyboard, or while the player types. `InputCapture`.
 - [Main menu buttons](api/mainmenu.md): add a button to the main menu. `MainMenuButtons`.
 - [Save slots](api/saveslots.md): save the game, read the current save's name and check whether saving is possible. `SaveSlots`.
 - [Settings, keybinds and localization](api/settings.md): read the player's game options and key bindings, add your own key bindings, and read the game's text. `GameSettings`, `Keybinds`, `Localization`.
@@ -258,6 +259,7 @@ Most pages cover one part of the game and use the same shape: what it is, when t
 
 ## Objects and devices
 
+- [World props](api/worldprops.md): place a model, primitive, furniture, light or anchor in any scene and bring it back on every load. `WorldProps`.
 - [Blast sites](api/blastsites.md): read the spots that take dynamite and react to a blast. `BlastSites`.
 - [Breakables](api/breakables.md): break or repair things, and react when something is smashed. `Breakables`.
 - [Cleaning](api/cleaning.md): read apartment cleaning timers and trash. `Cleaning`.

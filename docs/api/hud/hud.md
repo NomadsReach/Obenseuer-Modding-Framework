@@ -25,7 +25,17 @@ public static class Hud
     public static bool Notify(string title, string body);
     public static bool ShowSubtitle(string text, float fadeSeconds);
     public static bool ShowHint(string modId, string title, string[] lines);
+    public static bool ShowHint(string modId, string title, string[] lines, HintStyle style);
     public static bool HideHint(string modId);
+    public static bool IsHintShowing(string modId);
+    public static bool ShowPrompt(string modId, string text, string action);
+    public static bool ShowPrompt(string modId, string text, string action, float seconds);
+    public static bool ShowPrompt(string modId, string text, string action, PromptStyle style);
+    public static bool ShowPrompt(string modId, string text, string action, float seconds, PromptStyle style);
+    public static bool ShowPrompt(string modId, string text, ModKeybind bind);
+    public static bool ShowPrompt(string modId, string text, ModKeybind bind, float seconds);
+    public static bool HidePrompt(string modId);
+    public static bool IsPromptShowing(string modId);
     public static bool ShowNote(string noteId);
     public static bool ShowCrosshair();
     public static bool HideCrosshair();
@@ -46,8 +56,18 @@ public static class Hud
 | `Notify(text)` | `bool` | Shows your text in the game's notification box, under the heading `Notice`. |
 | `Notify(title, body)` | `bool` | Shows your title and body in the same box. |
 | `ShowSubtitle(text, fadeSeconds)` | `bool` | Types a line at the bottom of the screen, then fades it. |
-| `ShowHint(modId, title, lines)` | `bool` | Puts a hint in the card game's hint box. |
+| `ShowHint(modId, title, lines)` | `bool` | Shows your mod's hint in the framework's own hint panel. |
+| `ShowHint(modId, title, lines, style)` | `bool` | Shows the hint in the panel you pick with `HintStyle`. |
 | `HideHint(modId)` | `bool` | Removes your mod's hint. |
+| `IsHintShowing(modId)` | `bool` | Tells whether your mod has a hint up. |
+| `ShowPrompt(modId, text, action)` | `bool` | Shows a key prompt that names the key the player has set for a game input action. It stays until you hide it. |
+| `ShowPrompt(modId, text, action, seconds)` | `bool` | Shows the same prompt and hides it after `seconds`. |
+| `ShowPrompt(modId, text, action, style)` | `bool` | Shows the prompt in the panel you pick with `PromptStyle`. |
+| `ShowPrompt(modId, text, action, seconds, style)` | `bool` | Both: a timed prompt in the panel you pick. |
+| `ShowPrompt(modId, text, bind)` | `bool` | Shows a key prompt for one of your own `ModKeybind`s. It stays until you hide it. |
+| `ShowPrompt(modId, text, bind, seconds)` | `bool` | Shows the same prompt and hides it after `seconds`. |
+| `HidePrompt(modId)` | `bool` | Removes your mod's prompt. |
+| `IsPromptShowing(modId)` | `bool` | Tells whether your mod's prompt is up. |
 | `ShowNote(noteId)` | `bool` | Opens the Notes page at a note the player already has. |
 | `ShowCrosshair()` | `bool` | Shows the crosshair. It has no owner, so it is shared. |
 | `HideCrosshair()` | `bool` | Hides the crosshair. It has no owner, so it is shared. |
@@ -69,8 +89,10 @@ public static class Hud
 - `Notify(title, body)` uses your own heading, so say where the message comes from. Both `title` and `body` must be text, not empty. `Notify` plays the game's notification sound.
 - The notification box has no icon, so `Notify` has no icon option. <span class="tech">(The game's box has no icon slot, and neither overload has an icon parameter.)</span>
 - `ShowSubtitle` types your text at 20 characters a second, then fades it out over `fadeSeconds`. The total time on screen is the typing time plus `fadeSeconds`. Several subtitles stack on screen, oldest at the top. <span class="tech">(Before showing, the framework strips the Pixel Crushers Dialogue System RPG Maker codes with the game's own `UITools.StripRPGMakerCodes`. That removes `\,` (quarter pause), `\.` (full pause), `\^` (skip to end), `\>` (instant open) and `\<` (instant close). Other backslashes stay. The stack is sorted by start time.)</span>
-- `ShowHint` puts your lines in the card game's hint box. The player can hide that box with the Hints key, which is K by default and can be changed in the game's Controls settings. <span class="tech">(The box is the game's `HintOverlay`, the rules box of the card game. The game's `Tutorial` class, the pop-up key-binding prompts, is a different system that mods cannot show yet.)</span>
-- Each mod has one hint, and showing a new one replaces the old one. Each line is a plain paragraph, not a bullet. Write `{key:Action Name}` in a line to show the key the player has set for that action, as the game does.
+- `ShowHint` draws your lines in the framework's own hint panel, which does not depend on the card game. Pass `HintStyle.GameHintBox` to use the card game's hint box instead, which the player can hide with the Hints key (K by default, changed in the game's Controls settings). <span class="tech">(`HintStyle.Framework` is the default. `GameHintBox` is the game's `HintOverlay`, the rules box of the card game.)</span>
+- `ShowPrompt` shows a short key prompt such as "Press E to open". Give it a game input action name, or one of your own `ModKeybind`s, and it shows the key the player has set. An unknown action name throws `ArgumentException`. Pass `PromptStyle.GameTutorial` to use the game's tutorial pop-up for an action prompt. A keybind prompt always uses the framework's panel. The framework's panel is also the fallback when the tutorial pop-up is not available.
+- Only one prompt shows at a time across all mods, and a new prompt replaces the one before it. `HidePrompt` and `IsPromptShowing` only look at your own mod's prompt. A prompt with no `seconds` stays until you hide it or the scene changes. `seconds` must be above zero.
+- Each mod has one hint, and showing a new one replaces the old one. Showing the same hint again changes nothing. Each line is a plain paragraph, not a bullet. Write `{key:Action Name}` in a line to show the key the player has set for that action, as the game does.
 - Only one hint shows at a time. The box shows the most important hint, and the newest when two are equal. All mod hints are equally important, so the newest mod hint wins. A game hint, such as the card game rules, takes over the same way when it is shown later. <span class="tech">(The overlay shows the hint with the highest priority, and among equals the newest. Mod hints all use priority 0.)</span>
 - A hint stays until you hide it or the player loads a new scene. Loading a new scene hides every mod hint, so show it again from your `Events.SceneLoaded` handler if you still need it. `HideHint` gives back `false` if your mod never showed a hint. <span class="tech">(A Single scene load hides every mod hint.)</span>
 - `ShowNote` opens the Notes page at a note the player already has. `noteId` must match exactly one note or book page the player has collected. If it matches none, or more than one, you get `false`. <span class="tech">(It matches `NoteInfo.Id`, which is the note's `id`, else its addressable path, else its title.)</span>
@@ -87,14 +109,15 @@ public static class Hud
 
 - A subtitle with no visible text shows nothing and gives back `false`. That is a text that is empty, or only spaces once the codes are removed.
 - Two subtitles that start at the very same moment can clash, and the framework does not handle this. <span class="tech">(The game keys each line by `DateTime.Now.Ticks`, so two subtitles started in the same clock tick collide.)</span>
-- Pressing the Hints key while a hint is showing hides all hints, and the game remembers that between sessions. A hint you show later stays hidden until the player presses the key again. The game has no hints option in its settings menu, so if a hint does not appear, tell the player to press the Hints key.
-- `ShowHint` gives back `false` when the hint box is not loaded yet. Call it after the game scene has loaded, for example inside `Events.WhenReady`.
+- Pressing the Hints key while a `GameHintBox` hint is showing hides all hints, and the game remembers that between sessions. A hint you show later stays hidden until the player presses the key again. The game has no hints option in its settings menu, so if a game-box hint does not appear, tell the player to press the Hints key. The framework's own hint panel has its own toggle, a keybind under Mod Keybinds called `Show or hide the mod hint`, which is unbound by default.
+- `ShowHint` and `ShowPrompt` give back `false` when the game's screen is not loaded yet. Call them after the game scene has loaded, for example inside `Events.WhenReady`. They also give back `false` while the matching Mods menu setting is off (see below).
 - `ShowNote` cannot show text of your own. The only way to show other text is to give the player a note, which saves it with the game, and this API does not give notes.
 - `HideCrosshair(owner)` gives back `false` and counts nothing when the crosshair is not in the scene. `ShowCrosshair(owner)` gives back `false` for an owner with no hide. `owner` must be a valid mod id (1 to 64 letters, digits, `.`, `_` or `-`).
 - `title` must not be empty, and a `null` `details` is an error. It gives back `false` when the game's tooltip is not in the scene. <span class="tech">(A null `details` throws `ArgumentException`. The box is the game's `ToolTip`.)</span>
 - `HideTooltip` gives back `false` when the tooltip is not in the scene.
 - The tooltip is one shared box, so the game can replace your text. When the player hovers over an item or other game tooltip, your text is replaced, and when that hover ends, the box hides.
 - `ShowGameUi` gives back `false` for an owner with no hide. Both `HideGameUi` and `ShowGameUi` give back `false` when the game's HUD is not in the scene.
+- A hint or prompt ends when a new scene loads, so show it again from your `Events.SceneLoaded` handler if you still need it.
 - Loading a new scene ends every hide, so hide again if you still need it. The game replaces its HUD controller then, so every owner is dropped and the HUD shows. Call `HideGameUi` again from your own `Events.SceneLoaded` handler. <span class="tech">(A Single scene load ends every hide.)</span>
 
 ## Mods menu settings
@@ -102,7 +125,7 @@ public static class Hud
 The Mods menu has a `Hints` section with two settings that control what mods may show. Both are on by default. They are the framework's own settings, so they do not change the game's own hints.
 
 - `ShowModHints` shows hints from mods. It is separate from the game's own Hints setting, so turning one off leaves the other alone. While it is off, `ShowHint` gives back `false` and the hint does not show. <span class="tech">(`HudHints.Show` reads it, and the log line says the setting is off. A `GameHintBox` hint is still kept, and it appears when the player turns the setting back on.)</span>
-- `ShowModPrompts` shows key prompts from mods. While it is off, `ShowPrompt` gives back `false` and the prompt does not show, and `PromptShowing` gives back `false`. <span class="tech">(`HudHints.Prompt` and `HudHints.PromptShowing` read it.)</span>
+- `ShowModPrompts` shows key prompts from mods. While it is off, `ShowPrompt` gives back `false` and the prompt does not show, and `IsPromptShowing` gives back `false`. <span class="tech">(`HudHints.Prompt` and `HudHints.PromptShowing` read it.)</span>
 
 The Mods menu has a `UI` section with two settings for the New Game screen. Both are on by default.
 

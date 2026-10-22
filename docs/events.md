@@ -344,7 +344,7 @@ These are all the events the framework offers, grouped by the part of the game t
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
-| `InputCapture.Changed` | `Action<bool>` |  |
+| `InputCapture.Changed` | `Action<bool>` | [Input capture](api/input-capture.md) |
 {: .events-table}
 
 ### Instruments
@@ -881,7 +881,7 @@ These are all the events the framework offers, grouped by the part of the game t
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
-| `WorldProps.Spawned` | `Action<WorldPropSpawned>` |  |
+| `WorldProps.Spawned` | `Action<WorldPropSpawned>` | [World props](api/worldprops.md) |
 {: .events-table}
 
 ### WorldWater

@@ -5,7 +5,7 @@ nav_order: 11
 
 # Status
 
-This page says how finished the framework is. It then lists what 0.10.0-beta added, for modders who want to see which calls are new.
+This page says how finished the framework is. It then lists what 0.12.0-beta and 0.10.0-beta added, for modders who want to see which calls are new.
 
 ## In short
 
@@ -15,6 +15,57 @@ This page says how finished the framework is. It then lists what 0.10.0-beta add
 - **Some parts are marked experimental.** They work, but expect rough edges: quests, dialogue and law (the Story API), Steam and lobby helpers for co-op (Net), mod NPCs, NPC appearance, the debug trace, the tutorial and computer files.
 
 What changed in 0.12.0-beta is in the [changelog](https://github.com/NomadsReach/Obenseuer-Modding-Framework/blob/main/CHANGELOG.md).
+
+## What is new in 0.12.0-beta
+
+Version 0.12.0-beta adds the calls below on top of 0.10.0-beta. It also carries the 0.11.x work, which was never released on its own. Each line names the main calls and links to its API page. The [changelog](https://github.com/NomadsReach/Obenseuer-Modding-Framework/blob/main/CHANGELOG.md) has the full details.
+
+**Developer tools**
+
+- Developer menu: `DevMenu` adds a window (F8 or the `omf_dev` console command) with quest, state and mod tools. `DevMenu.AddSection` adds your own card, `AddWatch` adds live values, and `SaveIsDevModified` tells whether a save was changed through the menu. It is off by default. See [Developer menu](api/dev-menu.md).
+- No clip: a toggle on the menu's Player card, next to God mode. See [Developer menu](api/dev-menu.md).
+- Patch overloads: `CorePatcher.Patch` has four overloads that take a transpiler. See [Framework helpers](api/core-helpers.md).
+- Doc coverage check: `tools/check-doc-coverage.py` fails when a config key, limit or settable property is missing from the docs. See [Debug](api/debug.md).
+
+**Inventory, storage and crafting**
+
+- Ingredients from your containers: `InventorySources.Register` makes your containers count for the furniture workbench and renovation orders. See [Inventory sources](api/inventorysources.md).
+- Crafting sources: `CraftingSources.Register` takes a priority and a per-slot filter, `SetPriority` and `SetSlotFilter` change them, and `Consumed` reports what a craft took. See [Crafting sources](api/craftingsources.md).
+- Storage window: `StoragePanel.AddButton` and `RemoveButton` add your own button. See [Storage panel](api/storage-panel.md).
+- Recipe lists: `RecipeFilter.Add` hides recipes from a crafting list, and `Matches` helps search it. See [Recipe filter](api/recipe-filter.md).
+- Unloaded scenes: `UnloadedStorage` reads a storage in a scene the player is not in and queues a take or give for the next load. See [Unloaded storage](api/unloaded-storage.md).
+- Containers: `Containers.IsTenantOwned`, `IsInPlayerTenement`, `IsPlayerOwned`, `IsNotNpcOwned`, `ApartmentOf` and `IsLocked`. See [Inventory](api/inventory.md).
+- Fix: `Inventory.Take` counts what it removed and gives it back if it fell short. See [Inventory](api/inventory.md).
+
+**Quests and dialogue**
+
+- Quest control: `QuestAuthoring.Restart`, `Reset`, `JumpTo`, `SetTitle`, `SetDescription`, `Remove` and `Checkpoint`. `QuestDefinition.Next` chains a follow-up quest, and `QuestAuthoring.HandIn` takes items all or nothing. See [Quest authoring](api/quest-authoring.md).
+- Quest reads and events: `Quests.Rewound`, `Quests.State` and `Quests.Counter`. The `core_quest` console command restarts a quest or finishes an objective. See [Quest authoring](api/quest-authoring.md).
+- Dialogue: `Dialogue.AddBranch` takes an `onPicked` callback and waits for an anchor that is not loaded yet, and `AddQuestTopic` adds a quest topic. See [Dialogue authoring](api/dialogue-authoring.md).
+
+**New Game screen and difficulty**
+
+- New Game options: `NewGameOptions` registers toggles, choices, whole numbers and, with `RegisterFloat`, stepped numbers. The rows show on every difficulty, and `Events.NewGameStartedInfo` carries the chosen values. See [New Game options](api/new-game-options.md).
+- Difficulty presets: `GameDifficulty.Register`, `SetPreset`, `ClearPreset` and `ActivePreset` offer a difficulty of your own. See [Difficulty presets](api/hud/difficulty-presets.md).
+
+**Saves, scenes and world**
+
+- World props: `WorldProps` places a model, primitive, furniture, light or anchor in any scene and brings it back on every load. See [World props](api/worldprops.md).
+- Saves: `SaveData.Flush` writes one store at once, `SaveSlots.CurrentFolder` gives the loaded slot's folder, and `Events.BeforeSave`, `AfterSave` and `AfterLoad` carry the save folder. See [Game save data](api/savedata-game.md).
+- Mod NPCs and relationships: `ModNpcs.MoveTo` moves a loaded person of your mod, and `Relationships.SetDisposition` sets a score and its target together. See [Mod NPCs](api/modnpcs.md).
+- Loaded framework mods: `FrameworkMods.Loaded()` lists the framework mods that started. See [Loading](api/framework-mods/loading.md).
+- Scene looks: `SceneLooks.ApplyToSkeleton` puts a look on a humanoid body's own skeleton, with `SyncPose`, `SetAutoPose`, `RigOf` and `Describe`. See [Scene looks](api/scenelooks/putting-a-look-on-a-skeleton.md).
+
+**Phones, banking and hints**
+
+- Mod phone numbers: `Phones.Add`, `Remove` and `Clear` give a mod number that answers and starts a conversation you wrote. See [Phones](api/phones.md).
+- Account freezing: `Banking.IsFrozen`, `Freeze` and `Unfreeze`. See [Banking](api/economy/banking.md).
+- Hints and key prompts: `Hud.ShowHint` and `ShowPrompt` draw the framework's own panels, with `HintStyle` and `PromptStyle` to use the game's hint box or tutorial pop-up instead. Two settings in the Mods menu turn them off. See [Hud](api/hud/hud.md).
+
+**Input and Mods menu**
+
+- Keyboard hold: `InputCapture` holds the game's keys back while your mod needs the keyboard. See [Input capture](api/input-capture.md).
+- Menu: `UiState.IsTyping`, a `confirm` flag on `ModMenuActions.Register`, and controller and keyboard support, descriptions, Reset buttons and a scrollbar in the classic Mods menu. See [Mod menu](api-core/modmenu.md).
 
 ## What is new in 0.10.0-beta
 
@@ -124,7 +175,6 @@ Version 0.10.0-beta adds the calls below on top of 0.9.0-beta. Each line names t
 
 - Quests: `QuestAuthoring` creates quests with objectives through the game's task system, so they save with the game. An objective can start hidden and be revealed later, and `Quests.Ready` is the place to create quests. A finished quest cannot be reopened. See [Quest authoring](api/quest-authoring.md).
 - Dialogue authoring: `DialogueAuthoring` adds conversations for the session. See [Dialogue authoring](api/dialogue-authoring.md).
-- Dialogue choices: `Dialogue.AddResponse`, `RemoveResponse` and `RemoveAll` add player choices to a game conversation. See [Story](api-story/dialogue.md#dialogue).
 - Dialogue choices: `Dialogue.AddResponse`, `RemoveResponse` and `RemoveAll` add player choices to a game conversation. A choice takes an insert position and a link priority. See [Story](api-story.md#dialogue).
 - Law: `Law.HasStolenGoods`, `StolenGoodsValue`, and `Law.Clear(CrimeKind)` to clear one kind of crime. `LawActions` pays fines, bribes and confiscates. See [Law actions](api/law-actions.md).
 - Police: `Pursuit.CallPolice`, which can be severe or ignore distance. See [Pursuit](api/pursuit.md).
