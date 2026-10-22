@@ -9,6 +9,16 @@ namespace ObenseuerCore
 
         internal static bool Reskin(string modId, SceneLookLook look, GameObject liveNpc, out string reason)
         {
+            return Reskin(modId, look, liveNpc, false, out reason);
+        }
+
+        internal static bool ReskinToSkeleton(string modId, SceneLookLook look, GameObject liveNpc, out string reason)
+        {
+            return Reskin(modId, look, liveNpc, true, out reason);
+        }
+
+        private static bool Reskin(string modId, SceneLookLook look, GameObject liveNpc, bool skeleton, out string reason)
+        {
             reason = null;
             if (liveNpc == null)
             {
@@ -18,7 +28,11 @@ namespace ObenseuerCore
             List<GameObject> own = Hidden(liveNpc);
             List<int> ownIds = Ids(own);
             List<int> before = Children(liveNpc);
-            if (!SceneLookApply.Apply(modId, look, liveNpc, out reason)) return false;
+            if (skeleton)
+            {
+                if (!SceneLookApply.ApplySkeleton(modId, look, liveNpc, out reason)) return false;
+            }
+            else if (!SceneLookApply.Apply(modId, look, liveNpc, out reason)) return false;
             int holderId = SceneLookLivePlan.Holder(before, Children(liveNpc));
             GameObject holder = holderId == 0 ? null : Find(liveNpc, holderId);
             List<int> kept = SceneLookLivePlan.Watch(ownIds, Objects(liveNpc));

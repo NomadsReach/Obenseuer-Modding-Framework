@@ -163,19 +163,69 @@ public sealed class SoldArgs
 - `AddEarnings` puts money in the till. OC loses any fraction and RM is rounded, the same as `Cash` does. `Earnings` reads the till for one currency. `CollectEarnings` pays the till out to the player. <span class="tech">(the rounding is `Cash.TryQuantize`.)</span>
 - `TakeEarnings` takes exactly `amount` from the till. Use it to pay a worker's wage out of the till. The amount is rounded as `AddEarnings` does. It returns `true` only when the till holds at least that much. A shop the game placed is taken over only when it is taken from and the till is enough, as with `AddEarnings`.
 - `Sell(shopId, container, slot, expectedItemId, count, byWorker)` sells `count` items from a stack to the shop. The stack is in `slot` of `container`. The container must be one of `Storages(shopId)`, and the stack must still be `expectedItemId`. It takes the stack, adds the unit price times `count` to the till (for an RM shop, the RM total), and raises `Sold`. The stack keeps its owner (whose item it is) and its extra data. `byWorker` goes to `SoldArgs.ByWorker`. <span class="tech">(it takes the stack as `Containers.TakeStack` does.)</span>
-- For example, to sell everything in every storage of a shop:
+- For example, this mod sells everything in every storage of every player shop once a save is loaded, and warns when a sale is refused. The limits are in the [Limits](#limits) section below.
 
   ```csharp
-  foreach (ContainerInfo container in PlayerShops.Storages(shopId))
-      foreach (ItemStackInfo info in Containers.GetItems(container))
-          PlayerShops.Sell(shopId, container, info.Slot, info.ItemId, info.Count, false);
+  using System.Collections.Generic;
+  using ObenseuerCore;
+
+  [ModInfo("example.selleverything", "Sell Everything", "0.1.0")]
+  [ModDependency("obenseuer.moddingframework", "0.11.0")]
+  public class SellEverything : FrameworkMod
+  {
+      protected override void OnLoad()
+      {
+          Events.WhenReady(() =>
+          {
+              foreach (PlayerShopInfo shop in PlayerShops.All())
+              {
+                  foreach (ContainerInfo container in PlayerShops.Storages(shop.Id))
+                  {
+                      foreach (ItemStackInfo info in Containers.GetItems(container))
+                      {
+                          if (PlayerShops.Sell(shop.Id, container, info.Slot, info.ItemId, info.Count, false))
+                              Log.Info("Sold " + info.Count + " of item " + info.ItemId + " at " + shop.Id + ".");
+                          else
+                              Log.Warn("The sale was refused at " + shop.Id + ". See the limits below.");
+                      }
+                  }
+              }
+          });
+      }
+  }
   ```
 
 - `Storages` lists the storage furniture under the shop's manager, which are the only containers `Sell` takes from. `Stock` lists the items for sale and the sales storages, not these. <span class="tech">(`Stock` lists `ItemsForSale` and the sales storages.)</span>
 - `Registers` gives the positions of the shop's cash registers, read when you call it. A register belongs to the shop when the register's manager is the shop: the game sets that when the register starts, and the framework sets it for a shop it makes. When no register is linked, it lists the registers under the shop's furniture manager. The positions are the registers' own origins, not the spot a customer stands at. Choosing the spot in front is up to your mod.
 
   ```csharp
-  List<Vector3> tills = PlayerShops.Registers(shopId);
+  using System.Collections.Generic;
+  using ObenseuerCore;
+  using UnityEngine;
+
+  [ModInfo("example.registertills", "Register Tills", "0.1.0")]
+  [ModDependency("obenseuer.moddingframework", "0.11.0")]
+  public class RegisterTills : FrameworkMod
+  {
+      protected override void OnLoad()
+      {
+          Events.WhenReady(() =>
+          {
+              foreach (PlayerShopInfo shop in PlayerShops.All())
+              {
+                  List<Vector3> tills = PlayerShops.Registers(shop.Id);
+                  if (tills.Count == 0)
+                  {
+                      Log.Warn("No register was found for " + shop.Id + ". See the limits below.");
+                      continue;
+                  }
+
+                  Log.Info(shop.Id + " has " + tills.Count + " tills. The first stands at " + tills[0] + ".");
+                  break;
+              }
+          });
+      }
+  }
   ```
 
 - `Stock` shows unit prices with the framework's price change applied. <span class="tech">(it uses `PlayerShopData.GetItemPrice`.)</span>

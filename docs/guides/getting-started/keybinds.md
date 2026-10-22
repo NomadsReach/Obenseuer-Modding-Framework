@@ -25,6 +25,7 @@ public class ExampleHello : FrameworkMod
     {
         // Short id, name shown in the Mods menu, and the default key (G).
         greetKey = Mod.Key("Greet", "Greet now", KeyCode.G);
+        if (greetKey == null) Log.Warn("the Greet key could not be created");
     }
 
     // Unity calls this once per frame.
@@ -40,7 +41,7 @@ public class ExampleHello : FrameworkMod
 
 Start the game, load a save and press G. Then open `BepInEx\logs\example.hello.log` in the game folder and look for `greet key pressed`.
 
-- **`Mod.Key(id, displayName, defaultKey)` gives you a `ModKeybind`.** It returns `null` if the key cannot be created, so check for `null` before you use it, as the code above does.
+- **`Mod.Key(id, displayName, defaultKey)` gives you a `ModKeybind`.** It returns `null` if the key cannot be created, so check for `null` before you use it, as the code above does. See [Keybind limits](../../api/settings/keybinds.md#limits).
 - **`Down()` is true on the frame the key is pressed. `Held()` is true while it is held.** Use `Down()` for one action per press.
 - **`Down()` and `Held()` do not check menus, dialogues or the pause screen.** Your mod would react to the key while a menu is open. The code above checks `UiState` first to avoid that.
 - **The player changes the key on the Mods menu page "Mod Keybinds".** The choice is saved in `BepInEx\config\ObenseuerCore.ModKeybinds.cfg`.

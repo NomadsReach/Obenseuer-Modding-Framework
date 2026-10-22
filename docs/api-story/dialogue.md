@@ -203,10 +203,11 @@ In a conversation condition you would then write `Mod_mymod_HasKey("<taskId>")`.
 - `name` must be a valid Lua name, and the function's parameters must be `float`, `string` or `bool`. Lua numbers arrive as `float`.
 - `target` is `null` for a static method, and an object of the method's class otherwise.
 - Registering a name again replaces the earlier function.
-- The framework adds six functions of its own, which are not in the `Mod_` namespace. It adds them when `Dialogue` is available, at start and after each scene load.
+- The framework adds seven functions of its own, which are not in the `Mod_` namespace. It adds them when `Dialogue` is available, at start and after each scene load.
   - `Core_QuestState(taskId)` returns `"Active"`, `"Failed"`, `"Finished"`, `"Abandoned"` or `""`.
   - `Core_ObjectiveState(taskId, objectiveId)` returns the state name of the step, or `""`.
   - `Core_CrimeTotal()` returns `Law.Total`.
   - `Core_CrimeAgainst(npcId)` returns `Law.GetAgainst(npcId)`. `npcId` is a number.
   - `Core_ResponsePicked(key)` runs the `onPicked` of the answer line with that key. The framework's own answer lines call it, so your mod does not.
+  - `Core_BranchPicked(key)` runs the `onPicked` of the branch with that key. The framework's own branch lines call it, so your mod does not.
   - `Core_LineText(id)` returns the text of a line whose text a mod gave as a callback. The framework's own dialogue lines call it, so your mod does not.

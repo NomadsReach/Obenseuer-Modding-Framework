@@ -7,7 +7,8 @@ namespace ObenseuerCore
     {
         Refuse,
         Name,
-        Retarget
+        Retarget,
+        Skeleton
     }
 
     internal sealed class SceneLookRigBone
@@ -39,6 +40,8 @@ namespace ObenseuerCore
         public int InSkeleton;
         public int RequiredBones = 15;
         public int RequiredCovered;
+        public int NameMapped;
+        public int RoleMapped;
     }
 
     internal static class SceneLookRig
@@ -174,6 +177,121 @@ namespace ObenseuerCore
             }
             plan.Reason = "target is not humanoid and names do not match";
             return plan;
+        }
+
+        internal static SceneLookRigPlan Skeleton(SceneLookLook look, ICollection<string> targetNames, Dictionary<string, string> avatarRoles)
+        {
+            SceneLookRigPlan plan = new SceneLookRigPlan();
+            plan.RequiredBones = Required.Length;
+            if (look == null)
+            {
+                plan.Reason = "no look";
+                return plan;
+            }
+            if (targetNames == null || targetNames.Count == 0)
+            {
+                plan.Reason = "the target root has no names";
+                return plan;
+            }
+            HashSet<string> targets = new HashSet<string>(targetNames);
+            HashSet<string> names = new HashSet<string>();
+            List<string> order = new List<string>();
+            foreach (SceneLookLookRenderer renderer in look.Renderers)
+            {
+                foreach (SceneLookBone bone in renderer.Bones)
+                {
+                    if (names.Add(bone.Name)) order.Add(bone.Name);
+                }
+            }
+            plan.LookBones = order.Count;
+            foreach (string name in order)
+            {
+                string target = null;
+                bool byRole = false;
+                if (targets.Contains(name))
+                {
+                    target = name;
+                }
+                else
+                {
+                    string role = RoleOf(name);
+                    string bodyBone;
+                    if (role != null && avatarRoles != null && avatarRoles.TryGetValue(role, out bodyBone) && targets.Contains(bodyBone))
+                    {
+                        target = bodyBone;
+                        byRole = true;
+                    }
+                }
+                if (target == null)
+                {
+                    plan.Unmatched.Add(name);
+                    continue;
+                }
+                SceneLookRigBone mapped = new SceneLookRigBone();
+                mapped.LookName = name;
+                mapped.TargetName = target;
+                mapped.Alias = false;
+                plan.Bones.Add(mapped);
+                if (byRole) plan.RoleMapped++;
+                else plan.NameMapped++;
+            }
+            foreach (string[] role in RoleTable)
+            {
+                string lookBone = Match(role, names);
+                if (lookBone != null)
+                {
+                    SceneLookRigRole mapped = new SceneLookRigRole();
+                    mapped.HumanName = role[0];
+                    mapped.LookName = lookBone;
+                    plan.Roles.Add(mapped);
+                    plan.Covered.Add(role[0]);
+                }
+                else if (Array.IndexOf(Required, role[0]) >= 0)
+                {
+                    plan.Missing.Add(role[0]);
+                }
+            }
+            plan.RequiredCovered = Required.Length - plan.Missing.Count;
+            if (plan.Unmatched.Count > 0)
+            {
+                plan.Reason = "the look bones cannot all be mapped to the body skeleton: " + Names(plan.Unmatched);
+                return plan;
+            }
+            plan.Path = SceneLookRigPath.Skeleton;
+            return plan;
+        }
+
+        internal static Dictionary<string, string> Roles(ICollection<string> names)
+        {
+            Dictionary<string, string> roles = new Dictionary<string, string>();
+            if (names == null) return roles;
+            HashSet<string> set = new HashSet<string>(names);
+            foreach (string[] role in RoleTable)
+            {
+                string bone = Match(role, set);
+                if (bone != null) roles[role[0]] = bone;
+            }
+            return roles;
+        }
+
+        internal static string RoleOf(string name)
+        {
+            foreach (string[] role in RoleTable)
+            {
+                for (int i = 1; i < role.Length; i++)
+                {
+                    if (role[i] == name) return role[0];
+                }
+            }
+            return null;
+        }
+
+        private static string Names(List<string> names)
+        {
+            int count = names.Count < 5 ? names.Count : 5;
+            string text = string.Join(", ", names.GetRange(0, count).ToArray());
+            if (names.Count > count) text += ", ...";
+            return text;
         }
 
         internal static string Alias(string name, string targetRootName)

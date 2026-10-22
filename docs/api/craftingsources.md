@@ -83,6 +83,18 @@ private IEnumerable<Storage> OnlyForGrowing(CraftingStationInfo station)
 }
 ```
 
+Log what a craft took out of your containers, liquid included. `Consumed` gives you one `CraftingTaken` for each slot of yours that changed.
+
+```csharp
+CraftingSources.Consumed += taken =>
+{
+    Log.Info("A craft took " + taken.Amount + " of item " + taken.ItemId + " from slot " + taken.SlotIndex + ".");
+    if (taken.LiquidItemId != -1) Log.Info("It also poured " + taken.LiquidAmount + " of liquid " + taken.LiquidItemId + ".");
+};
+```
+
+In that call, `ItemId` and `Amount` describe the container stack, and `LiquidItemId` and `LiquidAmount` describe a pour out of it. The liquid fields are `-1` and `0` when the slot lost no liquid. This is a report, not a permission: the liquid and the items are already gone when it fires.
+
 ## Reference
 
 Text in brackets at the end of a note is extra detail you can skip on a first read.
@@ -98,14 +110,62 @@ Call `Register` with your mod id and a function that gives the containers near a
 public static class CraftingSources
 {
     public static bool Register(string modId, Func<CraftingStationInfo, IEnumerable<Storage>> provider);
+    public static bool Register(string modId, Func<CraftingStationInfo, IEnumerable<Storage>> provider, int priority);
+    public static bool Register(string modId, Func<CraftingStationInfo, IEnumerable<Storage>> provider, int priority, Func<Storage, int, StorageSlot, bool> slotFilter);
+    public static bool SetPriority(string modId, int priority);
+    public static bool SetSlotFilter(string modId, Func<Storage, int, StorageSlot, bool> slotFilter);
     public static bool Unregister(string modId);
+    public static event Action<CraftingTaken> Consumed;
 }
 ```
 
 | Method | Returns | What it does |
 |---|---|---|
 | `Register(modId, provider)` | `bool` | Adds your function. It is `true` when it was added. |
+| `Register(modId, provider, priority)` | `bool` | The same, with a priority that decides where your containers come in the order. |
+| `Register(modId, provider, priority, slotFilter)` | `bool` | The same, with a function that refuses single slots of your containers. |
+| `SetPriority(modId, priority)` | `bool` | Changes the priority of a function you already registered. It is `false` when your mod had none. |
+| `SetSlotFilter(modId, slotFilter)` | `bool` | Sets the per-slot filter, or clears it when you pass `null`. It is `false` when your mod had none. |
 | `Unregister(modId)` | `bool` | Removes your function. It is `false` when your mod had none. |
+
+| Event | Gives you | When it fires |
+|---|---|---|
+| `Consumed(item)` | `CraftingTaken` | A craft took an item out of one of your containers. One call per slot that changed. |
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>CraftingTaken</code> <span>one slot a craft took from</span></p>
+
+`Consumed` hands you one of these for each of your slots that a craft changed. `ItemId` and `Amount` are about the stack in that slot. When the craft also poured liquid out of it, `LiquidItemId` and `LiquidAmount` say what was poured.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class CraftingTaken
+{
+    public string ModId { get; }
+    public Storage Storage { get; }
+    public int SlotIndex { get; }
+    public int ItemId { get; }
+    public int Amount { get; }
+    public int LiquidItemId { get; }
+    public float LiquidAmount { get; }
+    public CraftingBase Station { get; }
+}
+```
+
+| Property | Type | What it means |
+|---|---|---|
+| `ModId` | `string` | The mod id whose function offered the container. |
+| `Storage` | `Storage` | The container the slot belongs to. |
+| `SlotIndex` | `int` | The number of the slot in that container. |
+| `ItemId` | `int` | The item the container stack held, before the craft. |
+| `Amount` | `int` | How many of that item are gone. `0` when the slot only lost liquid. |
+| `LiquidItemId` | `int` | The liquid poured out of the stack, or `-1` when no liquid was taken. |
+| `LiquidAmount` | `float` | How much liquid was poured out, or `0` when no liquid was taken. |
+| `Station` | `CraftingBase` | The station that crafted. |
 
 </div>
 </div>
@@ -124,13 +184,21 @@ public static class CraftingSources
 - Keep your function cheap, because it runs often. A station's recipe list makes one check for every recipe, so your function can run dozens of times when the list is rebuilt. Return containers you already know. Do not search the whole scene inside it.
 - Return the same containers for the same station within one frame. The start check and the craft each call your function, and they must see the same containers.
 - Taking items from your container does not trigger that container's own logic outputs. The game triggers them only for changes it makes itself. <span class="tech">(The outputs are `onUpdate`.)</span>
+- `priority` decides where your mod's containers come in the order. A higher number comes first. The normal value is `0`, and mods with the same number keep the order in which they registered. Passing a priority to `Register` does not change when your function is called, only the order of the containers that are used. <span class="tech">(The order is your containers first, then the next mod's, highest priority first and registration order inside one priority.)</span>
+- The per-slot filter is called for each slot of each of your containers, with the container, the slot number and the slot. Return `false` to keep that slot out of the craft. A refused slot stays in the list as an empty slot, so the number of slots the station sees does not change and the other slots keep their places. <span class="tech">(A refused slot is replaced by an empty `StorageSlot` in the combined list. The station's own slots, and the slots of the containers after it, must keep their positions because the game indexes that list by slot number while it crafts.)</span>
+- `Consumed` tells you what a craft took from your containers. The framework writes down each slot of your containers before the take and compares it afterward, so you get one call per slot that lost items, with your mod id, the container, the slot number, the item id, the amount and the station. A stack that was only made smaller is reported with the amount that is gone. A pour out of a slot is reported with the liquid item id and the amount poured, in `LiquidItemId` and `LiquidAmount`. A refused craft, and a check that takes nothing, report nothing.
+- `Consumed` is a report, not a permission. It fires after the items have been taken, so a handler cannot stop the take. Use it to update your own books.
 
 ### Limits
 
-- `Register` returns `false` when the framework could not set up crafting. Then no function is used at all. It throws an `ArgumentException` for a mod id that is not valid (1 to 64 letters, digits, `.`, `_` or `-`), and an `ArgumentNullException` for a null function.
+- `Register`, `SetPriority`, `SetSlotFilter` and `Unregister` all throw an `ArgumentException` for a mod id that is not valid (1 to 64 letters, digits, `.`, `_` or `-`). `Register` also throws an `ArgumentNullException` for a null function.
+- `Register` returns `false` when the framework could not set up crafting. Then no function is used at all.
 - Two things do not use your containers. The ingredient ticks in the recipe info panel only look at the station's own slots. The dishwasher never uses extra containers. <span class="tech">(`Dishwasher` is skipped on purpose. The invoice payment machine is not affected either, because it is not one of the crafting station classes this API changes (`manufacturing`, `manufacturingProcess`, `Growing`).)</span>
 - While a save is loading or being written, your containers are not used. The station then uses only its own slots, as the game does without the framework. <span class="tech">(This is `SaveData.Busy`.)</span>
 - Your function is skipped for one call if it throws an error or returns `null`. The error is logged once under your mod id, and the other functions still run.
+- Your slot filter is skipped for the slots it throws on, and that slot is left out of the craft; the error is logged once under your mod id. It runs while a station checks what it can make, so keep it cheap.
+- Liquid in your containers is an ingredient like any other, and a craft draws it in place. <span class="tech">(The game reads and writes liquid through the same slot list the framework swaps. `CraftingBase.RemoveLiquids` pours out of the container's own slot, and the framework refreshes that container afterwards.)</span>
+- `Consumed` reports a pour as well as an item stack. `LiquidItemId` and `LiquidAmount` carry it, and they are `-1` and `0` when the slot lost no liquid. A pour that leaves the container stack untouched is reported with `Amount` `0`, so read the liquid fields as well as `ItemId`. When a craft uses a whole liquid container as an item ingredient, one call carries both: `Amount` is the number of containers gone and `LiquidAmount` is the liquid that was in them.
 - The recipe list can be out of date while the station panel is open. It refreshes when the station's own slots change, when the panel opens, and after each craft. A change in one of your containers while the panel is open does not refresh it. The start check still refuses a craft that is no longer possible and refreshes the list at that point.
 - A craft that starts a timed process can fail after its start outputs have fired. The game triggers the process's start outputs after the start check and before it takes the items. If those outputs empty or change your containers, the take check refuses after the outputs have fired, and nothing is taken. The framework can't check earlier without changing those outputs. <span class="tech">(This is `manufacturingProcess.StartProcess`.)</span>
 

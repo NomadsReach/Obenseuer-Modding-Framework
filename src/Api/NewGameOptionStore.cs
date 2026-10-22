@@ -14,7 +14,9 @@ namespace ObenseuerCore
     {
         Registered,
         Duplicate,
-        Late
+        Late,
+        RefusedPlacement,
+        RefusedDefault
     }
 
     [Serializable]
@@ -45,9 +47,23 @@ namespace ObenseuerCore
         public bool DefaultBool { get; private set; }
         public int DefaultIndex { get; private set; }
         public int DefaultInteger { get; private set; }
+        public NewGamePlacement Placement { get; private set; }
+        public float FloatMin { get; private set; }
+        public float FloatStep { get; private set; }
 
-        internal NewGameOptionInfo(string modId, string key, string title, string description, NewGameOptionKind kind, string[] ids, string[] titles, int min, int max, bool defaultBool, int defaultIndex, int defaultInteger)
+        internal string DefaultValue
         {
+            get
+            {
+                if (Kind == NewGameOptionKind.Toggle) return DefaultBool ? "1" : "0";
+                if (Kind == NewGameOptionKind.Choice) return Ids[DefaultIndex];
+                return DefaultInteger.ToString();
+            }
+        }
+
+        internal NewGameOptionInfo(string modId, string key, string title, string description, NewGameOptionKind kind, string[] ids, string[] titles, int min, int max, bool defaultBool, int defaultIndex, int defaultInteger, NewGamePlacement placement, float floatMin = 0f, float floatStep = 0f)
+        {
+            Placement = placement;
             ModId = modId;
             Key = key;
             Title = title;
@@ -60,6 +76,8 @@ namespace ObenseuerCore
             DefaultBool = defaultBool;
             DefaultIndex = defaultIndex;
             DefaultInteger = defaultInteger;
+            FloatMin = floatMin;
+            FloatStep = floatStep;
         }
     }
 
@@ -77,15 +95,16 @@ namespace ObenseuerCore
             get { return frozen; }
         }
 
-        internal NewGameOptionResult RegisterToggle(string modId, string key, string title, string description, bool defaultValue)
+        internal NewGameOptionResult RegisterToggle(string modId, string key, string title, string description, bool defaultValue, NewGamePlacement placement = NewGamePlacement.BelowDifficulty)
         {
             ModIds.Require(modId, "modId");
             RequireText(key, "key");
             RequireText(title, "title");
-            return Add(new NewGameOptionInfo(modId, key, title, description, NewGameOptionKind.Toggle, null, null, 0, 0, defaultValue, 0, 0));
+            if (!IsPlacement(placement)) return NewGameOptionResult.RefusedPlacement;
+            return Add(new NewGameOptionInfo(modId, key, title, description, NewGameOptionKind.Toggle, null, null, 0, 0, defaultValue, 0, 0, placement));
         }
 
-        internal NewGameOptionResult RegisterChoice(string modId, string key, string title, string description, string[] ids, string[] titles, int defaultIndex)
+        internal NewGameOptionResult RegisterChoice(string modId, string key, string title, string description, string[] ids, string[] titles, int defaultIndex, NewGamePlacement placement = NewGamePlacement.BelowDifficulty)
         {
             ModIds.Require(modId, "modId");
             RequireText(key, "key");
@@ -99,16 +118,46 @@ namespace ObenseuerCore
                 RequireText(titles[i], "titles");
             }
             if (defaultIndex < 0 || defaultIndex >= ids.Length) throw new ArgumentException("defaultIndex must be between 0 and " + (ids.Length - 1), "defaultIndex");
-            return Add(new NewGameOptionInfo(modId, key, title, description, NewGameOptionKind.Choice, (string[])ids.Clone(), (string[])titles.Clone(), 0, 0, false, defaultIndex, 0));
+            if (!IsPlacement(placement)) return NewGameOptionResult.RefusedPlacement;
+            return Add(new NewGameOptionInfo(modId, key, title, description, NewGameOptionKind.Choice, (string[])ids.Clone(), (string[])titles.Clone(), 0, 0, false, defaultIndex, 0, placement));
         }
 
-        internal NewGameOptionResult RegisterInteger(string modId, string key, string title, string description, int min, int max, int defaultValue)
+        internal NewGameOptionResult RegisterInteger(string modId, string key, string title, string description, int min, int max, int defaultValue, NewGamePlacement placement = NewGamePlacement.BelowDifficulty)
         {
             ModIds.Require(modId, "modId");
             RequireText(key, "key");
             RequireText(title, "title");
             if (min > max) throw new ArgumentException("min must not be greater than max", "min");
-            return Add(new NewGameOptionInfo(modId, key, title, description, NewGameOptionKind.Integer, null, null, min, max, false, 0, defaultValue));
+            if (defaultValue < min || defaultValue > max) return NewGameOptionResult.RefusedDefault;
+            if (!IsPlacement(placement)) return NewGameOptionResult.RefusedPlacement;
+            return Add(new NewGameOptionInfo(modId, key, title, description, NewGameOptionKind.Integer, null, null, min, max, false, 0, defaultValue, placement));
+        }
+
+        internal NewGameOptionResult RegisterFloat(string modId, string key, string title, string description, float min, float max, float step, float defaultValue, NewGamePlacement placement = NewGamePlacement.BelowDifficulty)
+        {
+            ModIds.Require(modId, "modId");
+            RequireText(key, "key");
+            RequireText(title, "title");
+            if (!IsFinite(min) || !IsFinite(max) || !IsFinite(step) || !IsFinite(defaultValue)) throw new ArgumentException("min, max, step and defaultValue must be finite numbers", "min");
+            if (min >= max) throw new ArgumentException("min must be less than max", "min");
+            if (step <= 0f) throw new ArgumentException("step must be greater than zero", "step");
+            float rawSteps = (max - min) / step;
+            if (rawSteps > 1000.0001f || Math.Abs(rawSteps - (float)Math.Round(rawSteps)) > StepTolerance(min, max, step)) throw new ArgumentException("(max - min) / step must be a whole number of steps, at most 1000", "step");
+            int steps = (int)Math.Round(rawSteps);
+            if (defaultValue < min || defaultValue > max) return NewGameOptionResult.RefusedDefault;
+            float rawIndex = (defaultValue - min) / step;
+            if (Math.Abs(rawIndex - (float)Math.Round(rawIndex)) > StepTolerance(min, max, step)) return NewGameOptionResult.RefusedDefault;
+            int defaultIndex = (int)Math.Round(rawIndex);
+            if (!IsPlacement(placement)) return NewGameOptionResult.RefusedPlacement;
+            return Add(new NewGameOptionInfo(modId, key, title, description, NewGameOptionKind.Integer, null, null, 0, steps, false, 0, defaultIndex, placement, min, step));
+        }
+
+        internal static float FloatFromIndex(NewGameOptionInfo info, int index)
+        {
+            float result = info.FloatMin + index * info.FloatStep;
+            float highest = info.FloatMin + info.Max * info.FloatStep;
+            if (result < info.FloatMin) return info.FloatMin;
+            return result > highest ? highest : result;
         }
 
         internal string Value(string modId, string key)
@@ -123,14 +172,28 @@ namespace ObenseuerCore
 
         internal bool IsRegistered(string modId, string key)
         {
+            NewGameOptionInfo info;
+            return TryGetInfo(modId, key, out info);
+        }
+
+        internal bool TryGetInfo(string modId, string key, out NewGameOptionInfo info)
+        {
+            info = null;
             Dictionary<string, NewGameOptionInfo> byKey;
-            return modId != null && key != null && definitions.TryGetValue(modId, out byKey) && byKey.ContainsKey(key);
+            return modId != null && key != null && definitions.TryGetValue(modId, out byKey) && byKey.TryGetValue(key, out info);
         }
 
         internal void Choose(string modId, string key, string value)
         {
             if (modId == null || key == null) return;
             Set(draft, modId, key, value);
+        }
+
+        internal string Draft(string modId, string key)
+        {
+            string value;
+            if (modId == null || key == null || !TryGet(draft, modId, key, out value)) return null;
+            return value;
         }
 
         internal void CapturePending()
@@ -203,6 +266,21 @@ namespace ObenseuerCore
         private static void RequireText(string value, string name)
         {
             if (string.IsNullOrEmpty(value)) throw new ArgumentException(name + " must be a non-empty string", name);
+        }
+
+        private static bool IsFinite(float value)
+        {
+            return !float.IsNaN(value) && !float.IsInfinity(value);
+        }
+
+        private static float StepTolerance(float min, float max, float step)
+        {
+            return 1e-5f * Math.Max(Math.Abs(min), Math.Abs(max)) / step + 0.0001f;
+        }
+
+        private static bool IsPlacement(NewGamePlacement placement)
+        {
+            return placement == NewGamePlacement.BelowDifficulty || placement == NewGamePlacement.CustomPanel;
         }
 
         private static void RequireText(string[] values, string name)

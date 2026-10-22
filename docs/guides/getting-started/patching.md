@@ -39,7 +39,7 @@ Start the game and let a day pass. The log `BepInEx\logs\example.hello.log` gets
 - **If a name has more than one version in the game, pass the parameter types.** Each of the three has an overload that takes a `Type[]` of parameter types after the method name. The patch is skipped and logged when the name is ambiguous.
 - **A misspelled name for your own method throws an error.** The name is text, so the compiler cannot check it. Copy it exactly.
 - **Always check the return value.** If a patch is not applied, fall back to the normal game behaviour, as the code above does by logging and carrying on.
-- **A failed patch only skips that patch.** If the game's method has changed, the framework writes an error line to your mod's log and your mod keeps running. The patch itself does not run.
+- **A failed patch only skips that patch.** If the game's method has changed, the framework writes an error line to your mod's log and your mod keeps running. The patch itself does not run. See [CorePatcher limits](../../api-core/corepatcher.md#limits).
 - **Patches work on other game builds unless the player forbids it.** `Core.IsSupportedBuild` is `true` on 0.5.08. On another build, patches still run by default and the log gets a warning. If the player sets `[Safety] RefuseUnknownBuild` to `true` in the framework's settings, every patch is refused and `Mod.Postfix` returns `false`.
 
 ## Patches your mod cannot work without
@@ -47,14 +47,31 @@ Start the game and let a day pass. The log `BepInEx\logs\example.hello.log` gets
 `Mod.Prefix` and the others make a normal patch. If your mod is useless without one patch, call `CorePatcher.Patch` instead and pass `true` for `core`. A failed core patch removes every patch made for your mod and turns the mod's patches off. The last argument is your mod id. It must not start with `obenseuer.moddingframework` or `nomad.obenseuer.core`, because the framework keeps both for itself.
 
 ```csharp
-// Put this in OnLoad. The arguments are: game class, method name, parameter types (none here),
-// prefix, postfix, finalizer (null for the ones you do not use), core, and your mod id.
-MethodInfo postfix = typeof(ExampleHello).GetMethod("AfterDayChanged", BindingFlags.Static | BindingFlags.NonPublic);
-bool ok = CorePatcher.Patch(typeof(TimeOfDayAzure), "IncreaseDayCounter", Type.EmptyTypes, null, postfix, null, true, Mod.Id);
-if (!ok || CorePatcher.IsDisabled(Mod.Id)) Log.Warn("day patch unavailable");
-```
+using System;
+using System.Reflection;
+using ObenseuerCore;
 
-This needs `using System;` and `using System.Reflection;` at the top of the file.
+[ModInfo("example.hello", "Example Hello", "0.1.0")]
+[ModDependency("obenseuer.moddingframework", "0.11.0")]
+public class ExampleHello : FrameworkMod
+{
+    protected override void OnLoad()
+    {
+        // Find your own patch method by name, because Harmony takes a MethodInfo.
+        MethodInfo postfix = typeof(ExampleHello).GetMethod("AfterDayChanged", BindingFlags.Static | BindingFlags.NonPublic);
+        // The arguments are: game class, method name, parameter types (none here),
+        // prefix, postfix, finalizer (null for the ones you do not use), core, and your mod id.
+        bool ok = CorePatcher.Patch(typeof(TimeOfDayAzure), "IncreaseDayCounter", Type.EmptyTypes, null, postfix, null, true, Mod.Id);
+        if (!ok || CorePatcher.IsDisabled(Mod.Id)) Log.Warn("day patch unavailable");
+    }
+
+    // Your patch method. It must be static.
+    private static void AfterDayChanged()
+    {
+        CoreLog.For("example.hello").Info("day counter increased");
+    }
+}
+```
 
 Patches use [Harmony](../../glossary.md#harmony), the library that changes game methods. Do not write raw Harmony patches in a mod. `CorePatcher` checks the game build first, and it removes your patches when a core patch fails.
 

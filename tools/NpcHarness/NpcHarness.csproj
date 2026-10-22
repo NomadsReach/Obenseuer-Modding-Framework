@@ -19,13 +19,20 @@
     <Compile Include="..\..\src\Api\ModNpcsSaved.cs" Link="Core\ModNpcsSaved.cs" />
     <Compile Include="..\..\src\Api\ModNpcsSelfTest.cs" Link="Core\ModNpcsSelfTest.cs" />
     <Compile Include="..\..\src\Api\NewGameOptionStore.cs" Link="Core\NewGameOptionStore.cs" />
+    <Compile Include="..\..\src\Api\NewGamePlacement.cs" Link="Core\NewGamePlacement.cs" />
     <Compile Include="..\..\src\Api\NewGameOptionsSelfTest.cs" Link="Core\NewGameOptionsSelfTest.cs" />
     <Compile Include="..\..\src\Api\NpcRoutineTable.cs" Link="Core\NpcRoutineTable.cs" />
     <Compile Include="..\..\src\Api\NpcRoutineSelfTest.cs" Link="Core\NpcRoutineSelfTest.cs" />
     <Compile Include="..\..\src\Api\NpcWalkMath.cs" Link="Core\NpcWalkMath.cs" />
+    <Compile Include="..\..\src\Api\DifficultyPresetMap.cs" Link="Core\DifficultyPresetMap.cs" />
+    <Compile Include="..\..\src\Api\DifficultyModPresets.cs" Link="Core\DifficultyModPresets.cs" />
+    <Compile Include="..\..\src\Api\DifficultyPresetSelfTest.cs" Link="Core\DifficultyPresetSelfTest.cs" />
     <Compile Include="..\..\src\SaveJson.cs" Link="Core\SaveJson.cs" />
     <Compile Include="..\..\src\Api\SceneLookLivePlan.cs" Link="Core\SceneLookLivePlan.cs" />
     <Compile Include="..\..\src\Api\SceneLookLiveSelfTest.cs" Link="Core\SceneLookLiveSelfTest.cs" />
+    <Compile Include="..\..\src\Story\QuestFollowUpPlan.cs" Link="Core\QuestFollowUpPlan.cs" />
+    <Compile Include="..\..\src\Story\QuestRewindPlan.cs" Link="Core\QuestRewindPlan.cs" />
+    <Compile Include="..\..\src\Story\QuestRewindSelfTest.cs" Link="Core\QuestRewindSelfTest.cs" />
     <Compile Include="..\..\src\Story\QuestsGateSelfTest.cs" Link="Core\QuestsGateSelfTest.cs" />
     <Compile Include="..\..\src\Story\ReadySaveGate.cs" Link="Core\ReadySaveGate.cs" />
     <Compile Include="..\..\src\Story\RetryGate.cs" Link="Core\RetryGate.cs" />

@@ -25,6 +25,8 @@ namespace ObenseuerCore
         public int Target { get; set; }
         public bool Optional { get; set; }
         public bool Hidden { get; set; }
+        public int ItemId { get; set; }
+        public int Count { get; set; }
     }
 
     public sealed class QuestDefinition
@@ -32,6 +34,8 @@ namespace ObenseuerCore
         public string Key { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
+        public string Next { get; set; }
+        public QuestDefinition NextDefinition { get; set; }
         public List<QuestObjectiveDefinition> Objectives { get; set; }
 
         public QuestDefinition()
@@ -43,12 +47,12 @@ namespace ObenseuerCore
     public static class QuestAuthoring
     {
         internal const string Owner = "obenseuer.moddingframework.questauthoring";
-        internal const int MaxKey = 48;
+        internal const int MaxKey = QuestRewindPlan.MaxKey;
         internal const int MaxTitle = 100;
         internal const int MaxDescription = 1000;
         internal const int MaxObjectives = 12;
         internal const int MaxTarget = 9999;
-        internal const string PlaceholderTitle = "???";
+        internal const string PlaceholderTitle = QuestRewindPlan.Placeholder;
 
         internal static bool Installed;
 
@@ -132,6 +136,7 @@ namespace ObenseuerCore
                 else
                 {
                     for (int i = handed; i < objectives.Count; i++) UnityEngine.Object.Destroy(objectives[i]);
+                    QuestRegistry.Remember(modId, definition);
                 }
             }
         }
@@ -151,7 +156,11 @@ namespace ObenseuerCore
                     if (existing.objective.Id == objective.Key) return false;
                 }
                 TaskObjective built = Build(entry.task, objective);
-                if (controller.EditTask(entry.task, built, objective.Hidden ? ObjectiveStatus.Hidden : ObjectiveStatus.Active, objective.Optional, false, CurrentTaskStatus.Active)) return true;
+                if (controller.EditTask(entry.task, built, objective.Hidden ? ObjectiveStatus.Hidden : ObjectiveStatus.Active, objective.Optional, false, CurrentTaskStatus.Active))
+                {
+                    QuestRegistry.RememberObjective(taskId, objective);
+                    return true;
+                }
                 UnityEngine.Object.Destroy(built);
                 return false;
             }
@@ -189,6 +198,73 @@ namespace ObenseuerCore
             }
         }
 
+        public static bool HandIn(string modId, string taskId, string objectiveKey)
+        {
+            if (!Owns(modId, taskId) || string.IsNullOrEmpty(objectiveKey) || SaveGate.Busy) return false;
+            TaskController controller = Writer("QuestAuthoring.HandIn");
+            if (controller == null) return false;
+            try
+            {
+                TaskStatusInfo entry = Quests.Resolve(controller, taskId);
+                ObjectiveStatusInfo objective = Quests.Unique(entry, objectiveKey);
+                if (entry == null || entry.status != CurrentTaskStatus.Active || objective == null || objective.status != ObjectiveStatus.Active) return false;
+                QuestObjectiveRecord saved = QuestRegistry.FindObjective(QuestRegistry.Find(taskId), objectiveKey);
+                if (saved == null || saved.ItemId <= 0 || saved.Count <= 0)
+                {
+                    ApiLog.Once(Owner, "HandIn " + objectiveKey, "refused: the objective does not ask for items");
+                    return false;
+                }
+                if (!PlayerInventory.Has(saved.ItemId, saved.Count))
+                {
+                    ApiLog.Once(Owner, "HandIn items " + saved.ItemId, "refused: the player does not hold " + saved.Count + " of item " + saved.ItemId);
+                    return false;
+                }
+                if (!PlayerInventory.Take(saved.ItemId, saved.Count))
+                {
+                    ApiLog.Once(Owner, "HandIn take " + saved.ItemId, "refused: the items could not be taken");
+                    return false;
+                }
+                bool advanced;
+                try
+                {
+                    advanced = Advance(taskId, objectiveKey, saved.Count, objective.counterAmount);
+                }
+                catch (Exception inner)
+                {
+                    ApiLog.Once(Owner, "HandIn advance " + objectiveKey, inner);
+                    advanced = false;
+                }
+                if (advanced) return true;
+                GiveBack(saved.ItemId, saved.Count);
+                return false;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Owner, "HandIn", e);
+                return false;
+            }
+        }
+
+        private static bool Advance(string taskId, string objectiveKey, int count, int target)
+        {
+            return target > 0 ? Quests.AddProgress(taskId, objectiveKey, count) : Quests.SetObjective(taskId, objectiveKey, ObjectiveState.Finished);
+        }
+
+        private static void GiveBack(int itemId, int count)
+        {
+            try
+            {
+                if (!PlayerInventory.Give(itemId, count))
+                {
+                    ApiLog.Once(Owner, "HandIn give back " + itemId, "the items could not be given back");
+                }
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Owner, "HandIn give back " + itemId, e);
+            }
+        }
+
         public static bool Finish(string modId, string taskId)
         {
             return IsAvailable && Owns(modId, taskId) && Quests.SetTask(taskId, TaskState.Finished);
@@ -223,6 +299,7 @@ namespace ObenseuerCore
                     Hide(objective);
                     return false;
                 }
+                QuestRegistry.RememberText(taskId, key, title, description ?? "");
                 if (ShouldFinishOnReveal(objective.currentAmount, objective.counterAmount, objective.objective.dontSelfCompleteWithCounter))
                 {
                     try
@@ -259,6 +336,51 @@ namespace ObenseuerCore
             objective.objective.description = "";
         }
 
+        public static bool SetTitle(string modId, string taskId, string title)
+        {
+            return IsAvailable && QuestRewind.SetTaskTitle(modId, taskId, title);
+        }
+
+        public static bool SetTitle(string modId, string taskId, string objectiveKey, string title)
+        {
+            return IsAvailable && QuestRewind.SetObjectiveTitle(modId, taskId, objectiveKey, title);
+        }
+
+        public static bool SetDescription(string modId, string taskId, string description)
+        {
+            return IsAvailable && QuestRewind.SetDescription(modId, taskId, description);
+        }
+
+        public static bool Restart(string modId, string taskId)
+        {
+            return IsAvailable && QuestRewind.Restart(modId, taskId);
+        }
+
+        public static bool Reset(string modId, string taskId)
+        {
+            return IsAvailable && QuestRewind.Reset(modId, taskId);
+        }
+
+        public static bool Remove(string modId, string taskId)
+        {
+            return IsAvailable && QuestRewind.Remove(modId, taskId);
+        }
+
+        public static bool JumpTo(string modId, string taskId, string objectiveKey)
+        {
+            return IsAvailable && QuestRewind.JumpTo(modId, taskId, objectiveKey);
+        }
+
+        public static bool Checkpoint(string modId, string taskId, string name, bool restore)
+        {
+            return IsAvailable && QuestRewind.Checkpoint(modId, taskId, name, restore);
+        }
+
+        public static bool Checkpoint(string modId, string taskId, string name, Action restoreCallback)
+        {
+            return IsAvailable && QuestRewind.Checkpoint(modId, taskId, name, restoreCallback);
+        }
+
         internal static bool IsModTask(string id, string addressablePath)
         {
             if (string.IsNullOrEmpty(id) || !string.IsNullOrEmpty(addressablePath)) return false;
@@ -275,8 +397,26 @@ namespace ObenseuerCore
 
         internal static QuestRefusal Check(string modId, QuestDefinition definition)
         {
-            if (!ModIds.IsValid(modId) || definition == null || !ValidKey(definition.Key)) return QuestRefusal.BadInput;
+            if (!ModIds.IsValid(modId)) return QuestRefusal.BadInput;
+            List<string> keys = new List<string>();
+            return CheckChain(definition, 0, keys) ? QuestRefusal.None : QuestRefusal.BadInput;
+        }
+
+        private static bool CheckChain(QuestDefinition definition, int depth, List<string> keys)
+        {
+            if (definition == null || !QuestFollowUpPlan.WithinDepth(depth + 1)) return false;
+            if (CheckOwn(definition) != QuestRefusal.None) return false;
+            if (keys.Contains(definition.Key)) return true;
+            keys.Add(definition.Key);
+            return definition.NextDefinition == null || CheckChain(definition.NextDefinition, depth + 1, keys);
+        }
+
+        private static QuestRefusal CheckOwn(QuestDefinition definition)
+        {
+            if (!ValidKey(definition.Key)) return QuestRefusal.BadInput;
             if (!ValidText(definition.Title, MaxTitle, true, false) || !ValidText(definition.Description, MaxDescription, false, true)) return QuestRefusal.BadInput;
+            if (!string.IsNullOrEmpty(definition.Next) && !ValidKey(definition.Next)) return QuestRefusal.BadInput;
+            if (definition.NextDefinition != null && !string.IsNullOrEmpty(definition.Next) && definition.Next != definition.NextDefinition.Key) return QuestRefusal.BadInput;
             List<QuestObjectiveDefinition> objectives = definition.Objectives;
             if (objectives == null || objectives.Count < 1 || objectives.Count > MaxObjectives) return QuestRefusal.BadInput;
             List<string> keys = new List<string>();
@@ -288,10 +428,18 @@ namespace ObenseuerCore
             return QuestRefusal.None;
         }
 
+        internal static string NextKey(QuestDefinition definition)
+        {
+            if (definition == null) return null;
+            if (!string.IsNullOrEmpty(definition.Next)) return definition.Next;
+            return definition.NextDefinition == null ? null : definition.NextDefinition.Key;
+        }
+
         internal static QuestRefusal CheckObjective(QuestObjectiveDefinition objective)
         {
             if (objective == null || !ValidKey(objective.Key)) return QuestRefusal.BadInput;
             if (!ValidText(objective.Title, MaxTitle, !objective.Hidden, false) || !ValidText(objective.Description, MaxDescription, false, true)) return QuestRefusal.BadInput;
+            if (!QuestRewindPlan.ValidItem(objective.ItemId, objective.Count, MaxTarget)) return QuestRefusal.BadInput;
             return objective.Target < 0 || objective.Target > MaxTarget ? QuestRefusal.BadInput : QuestRefusal.None;
         }
 
@@ -322,7 +470,7 @@ namespace ObenseuerCore
             return QuestRefusal.None;
         }
 
-        private static TaskController Writer(string member)
+        internal static TaskController Writer(string member)
         {
             return IsAvailable ? Quests.Writable(member) : null;
         }
@@ -350,11 +498,16 @@ namespace ObenseuerCore
             return false;
         }
 
-        private static QuestRefusal Conflict(TaskController controller, string id, string title)
+        internal static QuestRefusal Conflict(TaskController controller, string id, string title)
+        {
+            return Conflict(controller, id, title, null);
+        }
+
+        internal static QuestRefusal Conflict(TaskController controller, string id, string title, TaskStatusInfo same)
         {
             foreach (TaskStatusInfo entry in controller.allTasks)
             {
-                if (entry == null || entry.task == null) continue;
+                if (entry == null || entry.task == null || entry == same) continue;
                 if (entry.Id == id) return QuestRefusal.AlreadyExists;
                 if (entry.task.title == title) return QuestRefusal.DuplicateTitle;
             }
@@ -376,12 +529,12 @@ namespace ObenseuerCore
             return objective;
         }
 
-        private static bool ValidKey(string key)
+        internal static bool ValidKey(string key)
         {
-            return key != null && key.Length <= MaxKey && ModIds.IsValid(key) && key.IndexOf('.') < 0;
+            return QuestRewindPlan.ValidKey(key);
         }
 
-        private static bool ValidText(string text, int max, bool required, bool allowNewline)
+        internal static bool ValidText(string text, int max, bool required, bool allowNewline)
         {
             if (text == null) return !required;
             if (text.Length > max || (required && text.Trim().Length == 0)) return false;

@@ -39,8 +39,11 @@ public class ExampleIcon : FrameworkMod
         if (item == null) return;
         // The folder that holds your DLL.
         string folder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-        // Swap the icon for icons\bottle.png in that folder.
-        ItemIcons.OverrideVanilla(item.Id, Path.Combine(folder, "icons", "bottle.png"));
+        // Swap the icon for icons\bottle.png in that folder. false means the picture was refused.
+        if (!ItemIcons.OverrideVanilla(item.Id, Path.Combine(folder, "icons", "bottle.png")))
+        {
+            Log.Warn("the icon was refused, check the picture and its path");
+        }
     }
 }
 ```
@@ -51,7 +54,7 @@ Notes:
 
 - The path must be absolute. `Assembly.GetExecutingAssembly().Location` gives one.
 - `Events.WhenReady` runs the action now if a save is loaded or a new game's first level has loaded, or once on the next of those. The items must be loaded before `Items.Find` works.
-- `ItemIcons.OverrideVanilla` returns `false` when the image cannot be read.
+- `ItemIcons.OverrideVanilla` returns `false` when the image cannot be read, when the item has no picture to replace, or when the icon patches are off. The code above logs a warning on `false`. See [Item icon limits](../../api/registry/item-icons.md#limits).
 - Icons are not saved. Removing the mod brings back the game's icon.
 - To add a new item with its own icon, see [Content](../content.md).
 

@@ -29,7 +29,7 @@ using ObenseuerCore;
 
 [ModInfo("example.pricewatch", "Price Watch", "0.1.0")]
 [ModDependency("obenseuer.moddingframework", "0.11.0")]
-public sealed class PriceWatch : FrameworkMod
+public class PriceWatch : FrameworkMod
 {
     protected override void OnLoad()
     {
@@ -40,10 +40,15 @@ public sealed class PriceWatch : FrameworkMod
     private void Apply()
     {
         foreach (ShopInfo shop in Shops.All())
-            if (shop.Kind == ShopKind.Trader)
-                Traders.SetPriceFactors(Mod.Id, shop.Id, 1.25f, 1f);
+        {
+            if (shop.Kind != ShopKind.Trader)
+                continue;
+
+            if (!Traders.SetPriceFactors(Mod.Id, shop.Id, 1.25f, 1f))
+                Log.Warn("The price factors were refused for " + shop.Id + ". See the limits on the changing prices page.");
+        }
     }
 }
 ```
 
-`WhenReady` runs your code once the game is ready, and `SceneLoaded` runs it each time a level loads. See [Using events](../guides/getting-started/using-events.md) for more on both. The first argument of `SetPriceFactors` is your mod's id, `Mod.Id`.
+`WhenReady` runs your code once the game is ready, and `SceneLoaded` runs it each time a level loads. See [Using events](../guides/getting-started/using-events.md) for more on both. The limits are on the [Changing prices](traders/changing-prices.md#limits) page. The first argument of `SetPriceFactors` is your mod's id, `Mod.Id`.

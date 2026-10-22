@@ -32,6 +32,7 @@ public static class ModNpcs
     public static int SpawnWithLook(string modId, string npcId, int sourceCharacterId, SceneLook look, string name, string lastName, Vector3 position, float yaw);
     public static int SpawnWithLook(string modId, string npcId, int sourceCharacterId, int bodyCharacterId, SceneLook look, string name, string lastName, Vector3 position, float yaw);
     public static bool Despawn(string modId, string npcId);
+    public static bool MoveTo(string modId, string npcId, Vector3 position);
     public static bool Clear(string modId);
     public static int CharacterIdOf(string modId, string npcId);
     public static List<ModNpcInfo> List(string modId);
@@ -51,6 +52,7 @@ public static class ModNpcs
 | `SpawnWithLook(modId, npcId, sourceCharacterId, look, name, lastName, position, yaw)` | `int` | Adds a person and gives them a look from the game's files in the same call. Returns the new character number, or `0` when it could not. |
 | `SpawnWithLook(modId, npcId, sourceCharacterId, bodyCharacterId, look, name, lastName, position, yaw)` | `int` | Adds a person with a look, with the body you pick. Returns the new character number, or `0` when it could not. |
 | `Despawn(modId, npcId)` | `bool` | Removes one person. Returns `true` when there was one. |
+| `MoveTo(modId, npcId, position)` | `bool` | Moves one loaded person to the ground under `position`. Returns `true` when they moved. A person who is not loaded, is dead or inactive is refused and logged once. The saved spawn position does not change. |
 | `Clear(modId)` | `bool` | Removes all of your mod's people. Returns `true` when there were any. |
 | `CharacterIdOf(modId, npcId)` | `int` | Gives one person's character number, or `0` when that person is not added. |
 | `List(modId)` | `List<ModNpcInfo>` | Every person your mod has added right now. |
@@ -94,7 +96,7 @@ public sealed class ModNpcInfo
 | `Id` | `string` | The id you chose for this person, the `npcId`. |
 | `CharacterId` | `int` | The game's character number, for the other NPC pages. |
 | `SourceCharacterId` | `int` | The character that was copied. |
-| `BodyCharacterId` | `int` | The character whose 3D body was used, or `0` when the source's own body was used. |
+| `BodyCharacterId` | `int` | The character whose 3D body was used, or `0` when the source's own body was used. When a `0` falls back to the default body, this is that body's number. |
 | `Name` | `string` | The first name. |
 | `DisplayName` | `string` | The first and last name together. |
 | `Position` | `Vector3` | Where the person is now, in world coordinates. |

@@ -171,6 +171,36 @@ namespace ObenseuerCore
             }
         }
 
+        public static bool MoveTo(string modId, string npcId, Vector3 position)
+        {
+            ModIds.Require(modId, "modId");
+            if (string.IsNullOrEmpty(npcId)) return false;
+            if (!Finite(position))
+            {
+                ApiLog.Once(Owner, "ModNpcs.MoveTo position", "position must be finite, so the NPC was not moved");
+                return false;
+            }
+            try
+            {
+                Record record = Find(modId, npcId);
+                if (record == null)
+                {
+                    ApiLog.Once(Owner, "ModNpcs.MoveTo " + modId + " " + npcId, "refused: no NPC " + npcId + " of " + modId + " is loaded");
+                    return false;
+                }
+                RaycastHit hit;
+                if (!Ground(position, out hit)) return false;
+                bool moved = NpcActions.Teleport(record.Clone.ID, hit.point);
+                if (!moved) ApiLog.Once(Owner, "ModNpcs.MoveTo not moved " + modId + " " + npcId, "refused: " + npcId + " is dead, inactive or has no movement agent, so it was not moved");
+                return moved;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Owner, "ModNpcs.MoveTo", e);
+                return false;
+            }
+        }
+
         public static bool Clear(string modId)
         {
             ModIds.Require(modId, "modId");
@@ -352,7 +382,7 @@ namespace ObenseuerCore
         internal static bool Ground(Vector3 position, out RaycastHit hit)
         {
             if (Physics.Raycast(position + Vector3.up * GroundLift, Vector3.down, out hit, GroundReach, ~0, QueryTriggerInteraction.Ignore)) return true;
-            ApiLog.Once(Owner, "no ground", "no collider within " + GroundReach + " below the spawn position, the NPC was not spawned");
+            ApiLog.Once(Owner, "no ground", "no ground found at the position: no collider within " + GroundReach + " below it");
             return false;
         }
 
@@ -374,7 +404,8 @@ namespace ObenseuerCore
                 return null;
             }
             if (id != 0) return FindCharacter(id);
-            if (PrefabOf(source) != null) return source;
+            GameObject prefab = PrefabOf(source);
+            if (prefab != null && prefab.GetComponentInChildren<Appearance>(true) != null) return source;
             return DefaultBody();
         }
 

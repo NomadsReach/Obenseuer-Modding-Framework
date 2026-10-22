@@ -9,6 +9,8 @@ nav_order: 6
 
 The game has difficulty settings the player picks when starting: how fast needs run down, what prices are, and so on. `GameDifficulty.Current()` lets you read them. `GameDifficulty.SetFactor` lets your mod make one of them stronger or weaker for the session, whatever difficulty the player chose.
 
+A mod can also offer a whole difficulty of its own. See [Difficulty presets](difficulty-presets.md).
+
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>GameDifficulty</code> <span>read the difficulty and set factors</span></p>
 

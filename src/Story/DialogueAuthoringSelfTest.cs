@@ -32,6 +32,14 @@ namespace ObenseuerCore
                 int id = DialogueAuthoring.StableId("a.b");
                 if (id != DialogueAuthoring.StableId("a.b") || id < 1000000 || id >= 2000000) return "stable id wrong";
                 if (DialogueAuthoring.TitleOf(Mod, "c") != Mod + ".c" || DialogueAuthoring.TitleOf(Mod, "c.d") != null) return "title wrong";
+                if (DialogueAuthoring.HashedKey("a.b") != DialogueAuthoring.HashedKey("a.b") || DialogueAuthoring.HashedKey("a.b") == DialogueAuthoring.HashedKey("a.c")) return "hashed key wrong";
+                ConversationDefinition topic = DialogueAuthoring.TopicDefinition(Mod, "conv", 7, "Any news?", new[] { "yes", "no" }, "Quest[\"q\"] == true");
+                if (topic.Key == null || topic.Key.Length != 13 || topic.Key.IndexOf('.') >= 0 || !topic.Key.StartsWith("topic", StringComparison.Ordinal)) return "topic key wrong";
+                if (topic.Key != DialogueAuthoring.TopicDefinition(Mod, "conv", 7, "Any news?", new[] { "yes", "no" }, null).Key) return "the topic key depends on the condition";
+                if (topic.Key == DialogueAuthoring.TopicDefinition(Mod, "conv", 8, "Any news?", new[] { "yes", "no" }, null).Key) return "the topic key ignores the anchor";
+                if (topic.Lines.Count != 3 || !topic.Lines[0].Player || topic.Lines[0].Condition != "Quest[\"q\"] == true") return "topic first line wrong";
+                if (topic.Lines[0].Next[0] != "reply1" || topic.Lines[1].Next[0] != "reply2" || topic.Lines[2].Next != null) return "topic line chain wrong";
+                if (DialogueAuthoring.Check(Mod, topic) != ConversationRefusal.None) return "a quest topic was refused";
             }
             catch (Exception e)
             {

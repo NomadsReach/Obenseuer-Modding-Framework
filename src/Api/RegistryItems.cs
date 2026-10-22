@@ -149,6 +149,15 @@ namespace ObenseuerCore
             return false;
         }
 
+        internal static string ModOf(int id)
+        {
+            foreach (PendingItem entry in pending)
+            {
+                if (entry.Id == id) return entry.ModGuid ?? "";
+            }
+            return "";
+        }
+
         internal static bool IsApplied(int id)
         {
             foreach (PendingItem entry in pending)

@@ -28,10 +28,13 @@ using ObenseuerCore;
 
 [ModInfo("example.marketwatch", "Market Watch", "0.1.0")]
 [ModDependency("obenseuer.moddingframework", "0.11.0")]
-public sealed class MarketWatch : FrameworkMod
+public class MarketWatch : FrameworkMod
 {
     protected override void OnLoad()
     {
+        if (!MarketShops.IsAvailable)
+            Log.Warn("Market shop payments are off, so Paid will not fire. See the limits below.");
+
         MarketShops.Paid += args => Log.Info(args.Name + ": paid " + args.Price + " " + args.Currency);
         Events.WhenReady(() =>
         {
@@ -42,32 +45,92 @@ public sealed class MarketWatch : FrameworkMod
 }
 ```
 
-`Paid` is an event: the framework calls your code each time it happens. `Currency` is `OC` (Open Sewer Coins) or `RM` (Real Money), as described in the [glossary](../glossary.md#oc). See [Using events](../guides/getting-started/using-events.md).
+`Paid` is an event: the framework calls your code each time it happens. `Currency` is `OC` (Open Sewer Coins) or `RM` (Real Money), as described in the [glossary](../glossary.md#oc). See [Using events](../guides/getting-started/using-events.md). The limits are in the [Limits](#limits) section below.
 
 ## Common tasks
 
-Lock every stall in the scene, so the player cannot pay at any till.
+Each example below is a complete mod, and each one runs once a save is loaded, because the stalls are in the scene.
+
+### Lock every stall
+
+This locks every stall in the scene, so the player cannot pay at any till. `SetLocked` returns `false` for an unknown id, a stall with no lock, and while a save is busy, as the [Limits](#limits) section below says.
 
 ```csharp
-foreach (MarketShopInfo shop in MarketShops.All())
-    MarketShops.SetLocked(shop.Id, true);
-```
+using ObenseuerCore;
 
-Unlock one stall by its id, and check that it worked.
-
-```csharp
-foreach (MarketShopInfo shop in MarketShops.All())
+[ModInfo("example.lockstalls", "Lock Stalls", "0.1.0")]
+[ModDependency("obenseuer.moddingframework", "0.11.0")]
+public class LockStalls : FrameworkMod
 {
-    if (MarketShops.SetLocked(shop.Id, false)) Log.Info(shop.Name + " is unlocked.");
-    break;
+    protected override void OnLoad()
+    {
+        Events.WhenReady(() =>
+        {
+            int locked = 0;
+            foreach (MarketShopInfo shop in MarketShops.All())
+            {
+                if (MarketShops.SetLocked(shop.Id, true))
+                    locked++;
+                else
+                    Log.Warn("Could not lock " + shop.Id + ". See the limits below.");
+            }
+
+            Log.Info("Locked " + locked + " stalls.");
+        });
+    }
 }
 ```
 
-Show the stalls that have something waiting to be paid for.
+### Unlock one stall
+
+This unlocks the first stall in the scene and checks that it worked.
 
 ```csharp
-foreach (MarketShopInfo shop in MarketShops.All())
-    if (shop.Price > 0) Log.Info(shop.Name + ": " + shop.Price);
+using ObenseuerCore;
+
+[ModInfo("example.unlockstall", "Unlock Stall", "0.1.0")]
+[ModDependency("obenseuer.moddingframework", "0.11.0")]
+public class UnlockStall : FrameworkMod
+{
+    protected override void OnLoad()
+    {
+        Events.WhenReady(() =>
+        {
+            foreach (MarketShopInfo shop in MarketShops.All())
+            {
+                if (MarketShops.SetLocked(shop.Id, false))
+                    Log.Info(shop.Name + " is unlocked.");
+                else
+                    Log.Warn("Could not unlock " + shop.Name + ". See the limits below.");
+
+                break;
+            }
+        });
+    }
+}
+```
+
+### Show the stalls with something to pay for
+
+This lists the stalls whose till is waiting for a payment.
+
+```csharp
+using ObenseuerCore;
+
+[ModInfo("example.stallprices", "Stall Prices", "0.1.0")]
+[ModDependency("obenseuer.moddingframework", "0.11.0")]
+public class StallPrices : FrameworkMod
+{
+    protected override void OnLoad()
+    {
+        Events.WhenReady(() =>
+        {
+            foreach (MarketShopInfo shop in MarketShops.All())
+                if (shop.Price > 0)
+                    Log.Info(shop.Name + ": " + shop.Price);
+        });
+    }
+}
 ```
 
 ## Reference

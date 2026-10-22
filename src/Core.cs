@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace ObenseuerCore
 {
-    [BepInPlugin("obenseuer.moddingframework", "Obenseuer Modding Framework", "0.12.0")]
+    [BepInPlugin("obenseuer.moddingframework", "Obenseuer Modding Framework", "0.13.0")]
     public class Core : BaseUnityPlugin
     {
         private const string SupportedVersion = "0.5.08";
@@ -78,13 +78,16 @@ namespace ObenseuerCore
             Isolate("craft quality", CraftingQuality.Init);
             Isolate("growing", Plants.Init);
             Isolate("recipes", Recipes.Init);
+            Isolate("recipe filter", RecipeFilter.Init);
             Isolate("interaction", Interactions.Init);
             Isolate("inventory", PlayerInventory.Init);
             Isolate("worldobjects", WorldObjects.Init);
             Isolate("new game options", NewGameOptions.Init);
+            Isolate("new game screen", NewGameOptionsScreen.Init);
             Isolate("net", Net.Init);
             Isolate("settings", GameSettings.Init);
             Isolate("difficulty", GameDifficulty.Init);
+            Isolate("difficulty selector", () => DifficultyModPresetsPatches.Install());
             Isolate("registry", RegistryPatches.Init);
             Isolate("icons", ModelIconsPatches.Init);
             Isolate("furniture", FurniturePatches.Init);
@@ -115,6 +118,7 @@ namespace ObenseuerCore
             Isolate("books", Books.Init);
             Isolate("start choices", StartChoices.Init);
             Isolate("uistate", UiState.Init);
+            Isolate("input capture", InputCapture.Init);
             Isolate("tutorial", TutorialGuide.Init);
             Isolate("notes", Notes.Init);
             Isolate("saunas", Saunas.Init);
@@ -126,6 +130,7 @@ namespace ObenseuerCore
             Isolate("train tickets", TrainTickets.Init);
             Isolate("doors", Doors.Init);
             Isolate("containers", Containers.Init);
+            Isolate("storage panel", StoragePanel.Init);
             Isolate("resources", ResourceNodes.Init);
             Isolate("autofarms", Autofarms.Init);
             Isolate("hotels", Hotels.Init);
@@ -137,6 +142,7 @@ namespace ObenseuerCore
             Isolate("global flags", GlobalFlags.Init);
             Isolate("lights", Lights.Init);
             Isolate("world props", WorldProps.Init);
+            Isolate("unloaded storage", UnloadedStorage.Init);
             Isolate("landmarks", Landmarks.Init);
             Isolate("market shops", MarketShops.Init);
             Isolate("item givers", ItemGivers.Init);
@@ -183,6 +189,7 @@ namespace ObenseuerCore
                 Events.SceneLoadedWithMode += SaveData.OnSceneLoaded;
             Events.SceneLoaded += delegate { PhoneBook.Flush(); };
             });
+            Isolate("quest rewind", QuestRewind.Init);
             Isolate("survival", Survival.Init);
             Isolate("computer apps", ComputerApps.Init);
             Isolate("mod menu input", ModMenuInput.Init);
@@ -237,6 +244,34 @@ namespace ObenseuerCore
                 if (Config.Bind("Debug", "CraftingSourcesSelfCheck", false, "Runs the crafting sources merge, dedupe and order self-check at start and logs the result.").Value)
                 {
                     log.Info(CraftingSourcesSelfTest.Run());
+                }
+            });
+            Isolate("inventory sources check", () =>
+            {
+                if (Config.Bind("Debug", "InventorySourcesSelfCheck", false, "Runs the inventory sources collect, count and take self-check at start and logs the result.").Value)
+                {
+                    log.Info(InventorySourcesSelfTest.Run());
+                }
+            });
+            Isolate("storage panel check", () =>
+            {
+                if (Config.Bind("Debug", "StoragePanelSelfCheck", false, "Runs the storage panel free slot and argument self-check at start and logs the result.").Value)
+                {
+                    log.Info(StoragePanelSelfTest.Run());
+                }
+            });
+            Isolate("recipe filter check", () =>
+            {
+                if (Config.Bind("Debug", "RecipeFilterSelfCheck", false, "Runs the recipe filter search and argument self-check at start and logs the result.").Value)
+                {
+                    log.Info(RecipeFilterSelfTest.Run());
+                }
+            });
+            Isolate("unloaded storage check", () =>
+            {
+                if (Config.Bind("Debug", "UnloadedStorageSelfCheck", false, "Runs the unloaded storage queue, merge and scene file read self-check at start and logs the result.").Value)
+                {
+                    log.Info(UnloadedStorageSelfTest.Run());
                 }
             });
             Isolate("keychord check", () =>
@@ -444,11 +479,15 @@ namespace ObenseuerCore
             });
             Isolate("quest authoring command", () =>
             {
-                if (Config.Bind("Debug", "QuestAuthoringCommand", false, "Registers the core_quests_check console command, which creates, advances and finishes a test quest and logs the result. It adds a finished task to the live save, so use a scratch save.").Value)
+                if (Config.Bind("Debug", "QuestAuthoringCommand", false, "Registers the core_quests_check, core_quest reset and core_quest skip console commands. core_quests_check, core_quest reset and core_quest skip change the live save, so use a scratch save.").Value)
                 {
                     if (!ConsoleCommands.Register("obenseuer.moddingframework", "core_quests_check", "Creates, advances and finishes a test quest and logs the result. It adds a finished task to the live save, so use a scratch save.", args => log.Info(QuestAuthoringSelfTest.Play())))
                     {
                         log.Info("core_quests_check not registered, the console is not available");
+                    }
+                    if (!ConsoleCommands.Register("obenseuer.moddingframework", "core_quest", "core_quest reset <taskId> starts one of your quests over. core_quest skip <taskId> [key] finishes the whole quest, or the one objective named by key. Both change the live save, so use a scratch save.", args => log.Info(QuestDebugCommand.Run(args))))
+                    {
+                        log.Info("core_quest not registered, the console is not available");
                     }
                 }
             });
@@ -515,7 +554,16 @@ namespace ObenseuerCore
                     }
                 }
             });
+            Isolate("devmenu check", () =>
+            {
+                if (Config.Bind("Debug", "DevMenuSelfCheck", false, "Runs the Developer menu rule self-check at start and logs the result.").Value)
+                {
+                    string error = DevMenuSelfTest.Run();
+                    log.Info(error == null ? "devmenu self-check ok" : "devmenu self-check failed: " + error);
+                }
+            });
             Isolate("debug", () => CoreDebug.Init(Config));
+            Isolate("dev menu", () => DevMenu.Init(Config));
         }
 
         private void Start()

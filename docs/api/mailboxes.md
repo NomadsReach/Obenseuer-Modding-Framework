@@ -29,14 +29,17 @@ using ObenseuerCore;
 
 [ModInfo("example.mailwatch", "Mail Watch", "0.1.0")]
 [ModDependency("obenseuer.moddingframework", "0.11.0")]
-public sealed class MailWatch : FrameworkMod
+public class MailWatch : FrameworkMod
 {
     protected override void OnLoad()
     {
+        if (!Mailboxes.IsAvailable)
+            Log.Warn("Mailbox events are off, so Used will not fire. See the limits on the reading mailboxes page.");
+
         Mailboxes.Used += args => Log.Info("Mailbox " + args.Id + " used in " + args.Mode + " mode.");
         Events.WhenReady(() => Log.Info(Mailboxes.All().Count + " mailboxes in this scene."));
     }
 }
 ```
 
-`Used` is an event: the framework calls your code each time it happens. `MailboxMode` is either `Receive` (the player takes mail) or `Send` (the player posts mail). See [Using events](../guides/getting-started/using-events.md).
+`Used` is an event: the framework calls your code each time it happens. `MailboxMode` is either `Receive` (the player takes mail) or `Send` (the player posts mail). See [Using events](../guides/getting-started/using-events.md). The limits are on the [Reading mailboxes](mailboxes/reading-mailboxes.md#limits) page.

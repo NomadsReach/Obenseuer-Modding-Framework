@@ -18,7 +18,7 @@ Scores run from -100 to 100.
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Relationships</code> <span>scores and change event</span></p>
 
-Use `GetDisposition` or `All()` to read the scores, `Has` to check whether the player has one, and `RelationshipChanged` to hear when a score changes.
+Use `GetDisposition` or `All()` to read the scores, `SetDisposition` to set one, `Has` to check whether the player has one, and `RelationshipChanged` to hear when a score changes.
 
 <div class="api-pair" markdown="1">
 
@@ -27,6 +27,7 @@ public static class Relationships
 {
     public static List<RelationshipValue> All();
     public static float GetDisposition(string id);
+    public static bool SetDisposition(string id, float value);
     public static bool Has(string id);
     public static bool IsAvailable { get; }
     public static event Action<RelationshipChange> RelationshipChanged;
@@ -37,6 +38,7 @@ public static class Relationships
 |---|---|---|
 | `All()` | `List<RelationshipValue>` | Every relationship the framework tracks. |
 | `GetDisposition(id)` | `float` | The score, or `0` if the player does not have it. |
+| `SetDisposition(id, value)` | `bool` | Sets the score and its target, so the score does not drift back. The score runs from `-100` to `100`. It is `false` when the id is unknown, when a save or load is running, when the value is not a finite number, when the value is outside `-100` to `100` (the value is refused, not clamped), or when no relationship is loaded. It raises `RelationshipChanged`. |
 | `Has(id)` | `bool` | It is `true` when the player has it. |
 
 | Property | Type | What it means |
@@ -45,7 +47,7 @@ public static class Relationships
 
 | Event | Gives you | When it fires |
 |---|---|---|
-| `RelationshipChanged` | `RelationshipChange` | It fires when the game's daily check changes a score. |
+| `RelationshipChanged` | `RelationshipChange` | It fires when the game's daily check or `SetDisposition` changes a score. |
 
 </div>
 </div>

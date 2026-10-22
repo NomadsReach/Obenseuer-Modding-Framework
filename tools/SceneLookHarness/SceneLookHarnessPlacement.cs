@@ -19,12 +19,17 @@ namespace SceneLookHarness
 
         internal static int Run(SceneLookLook look, Dictionary<string, string> map, Dictionary<string, SceneLookMatrix> rest)
         {
+            return Run(look, map, rest, "name path");
+        }
+
+        internal static int Run(SceneLookLook look, Dictionary<string, string> map, Dictionary<string, SceneLookMatrix> rest, string label)
+        {
             SceneLookMatrix holderLocal = SceneLookMatrix.Identity();
             SceneLookMatrix bodyOrigin = SceneLookMatrix.Identity();
             SceneLookMatrix bodyAway = SceneLookMatrix.Trs(new float[] { 37.5f, -2.25f, 118.75f }, new float[] { 0f, 0.3007058f, 0f, 0.9537169f }, new float[] { 1f, 1f, 1f });
             Placement origin = Measure(look, map, rest, bodyOrigin, holderLocal);
             Placement away = Measure(look, map, rest, bodyAway, holderLocal);
-            Console.WriteLine("name path at a body away from the origin");
+            Console.WriteLine(label + " at a body away from the origin");
             Console.WriteLine("  bone slots: {0} | file bind pose fallbacks: {1}", origin.Bones, origin.Fallbacks);
             Console.WriteLine("  body at the origin: max placement difference {0} | max position difference {1}", Format(origin.MaxMatrix), Format(origin.MaxPosition));
             Console.WriteLine("  body at (37.50, -2.25, 118.75) turned 35 degrees: max placement difference {0} | max position difference {1}", Format(away.MaxMatrix), Format(away.MaxPosition));

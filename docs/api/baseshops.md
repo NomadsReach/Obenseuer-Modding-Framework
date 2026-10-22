@@ -33,7 +33,7 @@ using ObenseuerCore;
 
 [ModInfo("example.shopwatch", "Shop Watch", "0.1.0")]
 [ModDependency("obenseuer.moddingframework", "0.11.0")]
-public sealed class ShopWatch : FrameworkMod
+public class ShopWatch : FrameworkMod
 {
     protected override void OnLoad()
     {
@@ -48,4 +48,4 @@ public sealed class ShopWatch : FrameworkMod
 }
 ```
 
-OC is Open Sewer Coins and RM is Real Money (see the [glossary](../glossary.md#oc)). `Bought` and `Sold` are events: the framework calls your code each time they happen. `Events.WhenReady` runs your code once a save is loaded, or at once if one already is. See [Using events](../guides/getting-started/using-events.md).
+OC is Open Sewer Coins and RM is Real Money (see the [glossary](../glossary.md#oc)). `Bought` and `Sold` are events: the framework calls your code each time they happen. `Events.WhenReady` runs your code once a save is loaded, or at once if one already is. See [Using events](../guides/getting-started/using-events.md). The limits are on the [buying](baseshops/buying.md#limits) and [selling](baseshops/selling.md#limits) pages.

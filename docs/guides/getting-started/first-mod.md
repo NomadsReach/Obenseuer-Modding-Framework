@@ -60,9 +60,9 @@ If the hint or the log line is missing, see [my mod does not load](../../faq.md#
 
 ## Using Visual Studio
 
-Visual Studio 2022 can build the mod. You can install a project template so that File > New Project creates the mod for you, see [Visual Studio template](visual-studio-template.md). Or open the `Starter` project by hand:
+Visual Studio can build the mod. You can install a project template so that File > New Project creates the mod for you, see [Visual Studio template](visual-studio-template.md). Or open the `Starter` project by hand:
 
-1. Open Visual Studio 2022 and choose Open a project or solution. Pick `Starter\MyFirstMod.csproj`, or your renamed copy.
+1. Open Visual Studio and choose Open a project or solution. Pick `Starter\MyFirstMod.csproj`, or your renamed copy.
 2. Set the configuration to Release and build.
 3. The DLL lands in `bin\Release\net472\`. Copy it to `BepInEx\plugins\<name>\` in the game folder, or run the `dotnet build` line from step 4 with `-p:DeployToGame=true`, which copies it for you.
 

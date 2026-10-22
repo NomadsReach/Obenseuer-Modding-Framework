@@ -43,7 +43,13 @@ public class PayPlayer : FrameworkMod
         // Skip while a save or load runs, or when today was paid already.
         if (SaveData.Busy || slot.Value.lastPaidDay == GameTime.Day) return;
         // Pay, and remember today only if the payment worked.
-        if (Cash.Give(MoneyCurrency.OC, DailyOc)) slot.Value.lastPaidDay = GameTime.Day;
+        if (Cash.Give(MoneyCurrency.OC, DailyOc))
+        {
+            slot.Value.lastPaidDay = GameTime.Day;
+            return;
+        }
+        // false means the wallet was full or the game was not ready.
+        Log.Warn("the payment was refused");
     }
 }
 ```
@@ -55,6 +61,7 @@ Notes:
 - `SaveData.Bind` returns a slot whose `Value` is never `null`, so you do not need a null fallback.
 - The check runs every hour, not once a day. A day that is missed during a save is paid in a later hour.
 - `Cash.Give` takes whole OC amounts. For money in a bank account, use `Banking.Refund` instead. See [Gameplay and economy](../gameplay.md#money).
+- `Cash.Give` returns `false` when the amount does not fit in the wallet or the game is not ready, so the code above logs a warning. See [Money and cash limits](../../api/economy/money-cash.md#limits).
 - Save data is covered in [Save data](../getting-started/save-data.md).
 
 ## Where to go next

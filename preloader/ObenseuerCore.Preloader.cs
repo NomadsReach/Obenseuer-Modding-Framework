@@ -17,7 +17,7 @@ namespace ObenseuerCore.Preloader
     public static class L0Publicizer
     {
 #else
-    [PatcherPluginInfo("obenseuer.moddingframework.preloader", "Obenseuer Modding Framework Preloader", "0.12.0")]
+    [PatcherPluginInfo("obenseuer.moddingframework.preloader", "Obenseuer Modding Framework Preloader", "0.13.0")]
     public class L0Publicizer : BasePatcher
     {
 #endif
@@ -375,7 +375,6 @@ namespace ObenseuerCore.Preloader
             {
                 AddAttribute(field, c.JsonIgnoreCtor, c, "field JsonIgnore");
             }
-            // Hiding edits are queued before the access change so a partial failure never leaves a public field unhidden.
             c.Edits.Add(() => field.Attributes = (field.Attributes & ~FieldAttributes.FieldAccessMask) | FieldAttributes.Public);
             c.Change(key);
         }

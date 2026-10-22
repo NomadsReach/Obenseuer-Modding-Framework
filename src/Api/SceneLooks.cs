@@ -216,6 +216,33 @@ namespace ObenseuerCore
             return false;
         }
 
+        public static bool ApplyToSkeleton(string modId, SceneLook look, GameObject body, out string reason)
+        {
+            reason = null;
+            string what = "apply skeleton " + modId + (look == null ? string.Empty : " " + look.Path);
+            bool logged = false;
+            try
+            {
+                if (!ModIds.IsValid(modId)) reason = "invalid mod id";
+                else if (look == null) reason = "no look";
+                else if (!look.Ready) reason = "look is not ready: " + look.Reason;
+                else if (body == null) reason = "no body";
+                else if (SceneLookApplyLive.ReskinToSkeleton(modId, look.Look, body, out reason))
+                {
+                    Hold(modId, look);
+                    return true;
+                }
+            }
+            catch (Exception e)
+            {
+                reason = e.Message;
+                ApiLog.Once(Owner, what, e);
+                logged = true;
+            }
+            if (!logged) ApiLog.Once(Owner, what, reason);
+            return false;
+        }
+
         public static bool Reskin(string modId, SceneLook look, GameObject liveNpc, out string reason)
         {
             reason = null;
@@ -376,7 +403,7 @@ namespace ObenseuerCore
                     else
                     {
                         Avatar avatar = state.Avatar != null ? state.Avatar : SceneLookApplyRig.HumanAvatar(body);
-                        return new SceneLookRigView(state.Holder, avatar, avatar != null && avatar.isHuman);
+                        return new SceneLookRigView(state.Holder, avatar, avatar != null && avatar.isHuman, state.Driver);
                     }
                 }
             }
@@ -492,6 +519,7 @@ namespace ObenseuerCore
         {
             if (path == SceneLookRigPath.Name) return "name";
             if (path == SceneLookRigPath.Retarget) return "retarget";
+            if (path == SceneLookRigPath.Skeleton) return "skeleton";
             return "refuse";
         }
 

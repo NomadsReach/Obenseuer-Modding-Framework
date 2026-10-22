@@ -21,8 +21,12 @@ namespace NpcHarness
             Console.WriteLine(options);
             string gates = QuestsGateSelfTest.Run();
             Console.WriteLine(gates);
+            string rewind = QuestRewindSelfTest.Run();
+            Console.WriteLine(rewind);
             string inventory = InventorySelfTest.Run();
             Console.WriteLine(inventory);
+            string presets = DifficultyPresetSelfTest.Run();
+            Console.WriteLine(presets);
             return result == "npc routine table self-check ok"
                 && walk == null
                 && saved == "mod npc saved self-check ok"
@@ -30,7 +34,9 @@ namespace NpcHarness
                 && live == SceneLookLiveSelfTest.Ok
                 && options == NewGameOptionsSelfTest.Ok
                 && gates == QuestsGateSelfTest.Ok
-                && inventory == InventorySelfTest.Ok ? 0 : 1;
+                && rewind == QuestRewindSelfTest.Ok
+                && inventory == InventorySelfTest.Ok
+                && presets == DifficultyPresetSelfTest.Ok ? 0 : 1;
         }
     }
 }

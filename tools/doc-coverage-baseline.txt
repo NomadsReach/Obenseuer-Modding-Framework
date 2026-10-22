@@ -1,6 +1,5 @@
 ARRESTED
 ActivateInputField
-ActiveManu
 Activities_Health
 AddBuyMoney
 AddDebt
@@ -18,6 +17,7 @@ AnimalFoodDetector
 AnimalSpawner
 Animate
 ApartmentFurniture
+ApplyChoices
 ApplyValuesOnWagons
 AreaDisabled
 Auxiliary
@@ -37,7 +37,6 @@ CanvasGroup
 CardGameUI
 CatEars
 ChairOccupiedTrigger
-ChangeDifficulty
 ChangeDifficultyByName
 ChangeHiddenStatus
 ChangePlayerUsingState
@@ -49,6 +48,7 @@ CharacterSpawner
 Chase
 CheckDueDates
 CheckIfShopHasMoney
+ChestGuid
 CleanUp
 ClearDebt
 Climb
@@ -60,7 +60,6 @@ CollectWinnings
 ComputerFiles
 Console
 ContestUI
-ControlsEnabledMove
 CoreHost
 CountLinkedCones
 CrashBounceback
@@ -108,6 +107,7 @@ ForceCharacterItemsUpdate
 ForceOpen
 ForceStop
 FormattedText
+Fourfold
 FullWindow
 FullyClosed
 FullyOpen
@@ -123,7 +123,6 @@ GetTargetSpeed
 GetTaskAndObjective
 GiveRecipe
 GrowOnlyDuringDay
-GrowingPanel
 GunAim
 GunShoot
 HasInfiniteAmount
@@ -144,6 +143,7 @@ Interaction
 InvoicePaymentMachine
 IsClosed
 IsMarketShopItem
+IsParkedFurniture
 IsVisible
 ItemConsumed
 ItemsForSale
@@ -177,6 +177,7 @@ MoneyOnlyOn
 MoveToOneFloorDown
 MoveToOneFloorUp
 MushroomNeedDrainMultiplier
+MyClip
 MyFlag
 MyState
 My_Mod
@@ -285,12 +286,10 @@ SetPrices
 SetPrisonDrainPerHour
 SetRandomPrice
 SetRunInBackground
-SetSelectedRecipe
 SetSpawnTime
 SetSpeedInstantly
 SetToggleCrouch
 SetToggleSprint
-ShopBaseUI
 ShowDeathMessage
 ShowGameMenu
 SmokingNeedDrainMultiplier
@@ -308,6 +307,7 @@ Stove
 StreamingAssets
 SuspendAll
 Tanker
+Taps
 TaskActive
 TaskFinished
 TaskItemMail
@@ -350,5 +350,4 @@ WebView
 WeekdayAndHour
 WithdrawOnly
 Worker
-World
 XMLHttpRequest

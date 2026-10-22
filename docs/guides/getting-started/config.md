@@ -49,19 +49,29 @@ Start the game. The log line shows the values. Then open the Mods menu, find Exa
 
 If you change a default value in a new version of your mod, players who already have the old file keep their old value, because the saved value wins over the default in your code. To change it for them too, upgrade the saved value, but only when it still holds the old default, so a value the player chose on purpose stays.
 
-The way to do it is to bind a `ConfigVersion` setting, add one `if` line for each version, then write the current version. This example changes `GreetEveryHours` from 6 to 4 in version 2. Add the new field to the class above:
+The way to do it is to bind a `ConfigVersion` setting, add one `if` line for each version, then write the current version. This example changes `GreetEveryHours` from 6 to 4 in version 2. Replace the code in `Plugin.cs` with this class:
 
 ```csharp
-private ModSetting<int> configVersion;
-```
+using ObenseuerCore;
 
-Then replace the `GreetEveryHours` line in `OnLoad` with the first line below, so a fresh install gets the new default, and add the rest after the three binds and before the `Log.Info` line:
+[ModInfo("example.hello", "Example Hello", "0.1.0")]
+[ModDependency("obenseuer.moddingframework", "0.11.0")]
+public class ExampleHello : FrameworkMod
+{
+    private ModSetting<int> greetEvery;
+    private ModSetting<int> configVersion;
 
-```csharp
-greetEvery = Config.Bind("General", "GreetEveryHours", 4, "Hours between greetings.", 1, 24);
-configVersion = Config.Bind("General", "ConfigVersion", 0, "Internal. Do not edit.");
-if (configVersion.Value < 2 && greetEvery.Value == 6) greetEvery.Value = 4;
-configVersion.Value = 2;
+    protected override void OnLoad()
+    {
+        // A fresh install starts at the new default of 4.
+        greetEvery = Config.Bind("General", "GreetEveryHours", 4, "Hours between greetings.", 1, 24);
+        // A value the player changed by hand is left alone.
+        configVersion = Config.Bind("General", "ConfigVersion", 0, "Internal. Do not edit.");
+        if (configVersion.Value < 2 && greetEvery.Value == 6) greetEvery.Value = 4;
+        // The version is written only after every upgrade has been checked.
+        configVersion.Value = 2;
+    }
+}
 ```
 
 - **Each `if` checks the saved version, and the version is written only at the end.** A player who skips versions still gets every upgrade after the one they had saved. For version 3, add `if (configVersion.Value < 3 && ...)` on its own line, and change the written number to 3.

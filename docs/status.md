@@ -9,12 +9,12 @@ This page says how finished the framework is. It then lists what 0.10.0-beta add
 
 ## In short
 
-- **This is a beta.** The latest release is 0.12.0-beta. A call can change before version 1.0, so a mod you build now may need small fixes later. The [API reference](API.md) lists the changes planned for 1.0.
+- **This is a beta.** The latest release is 0.13.0-beta. A call can change before version 1.0, so a mod you build now may need small fixes later. The [API reference](API.md) lists the changes planned for 1.0.
 - **Only Obenseuer 0.5.08 (Steam build 25969064) is supported.** On another game version the framework still starts and logs a warning, but a feature group that depends on changed game code can be turned off.
 - **Extensive testing has not been done yet.** The framework has been written against the game's own code, and each feature has had basic checks, but not long play sessions.
 - **Some parts are marked experimental.** They work, but expect rough edges: quests, dialogue and law (the Story API), Steam and lobby helpers for co-op (Net), mod NPCs, NPC appearance, the debug trace, the tutorial and computer files.
 
-What changed in 0.11.0-beta and 0.12.0-beta is in the [changelog](https://github.com/NomadsReach/Obenseuer-Modding-Framework/blob/main/CHANGELOG.md).
+What changed in 0.12.0-beta and 0.13.0-beta is in the [changelog](https://github.com/NomadsReach/Obenseuer-Modding-Framework/blob/main/CHANGELOG.md).
 
 ## What is new in 0.10.0-beta
 
@@ -65,6 +65,7 @@ Version 0.10.0-beta adds the calls below on top of 0.9.0-beta. Each line names t
 - Crafting stations: `CraftingStations.Start`, `Stop`, `Pause` and `Resume`, and `CraftingStationInfo` gains `Id`, `Modifiers`, `RecipeTypes` and `HasNaturalLight`. See [Crafting stations](api/craftingstations.md).
 - Craft speed and quality: `CraftingSpeed.SetSpeedFactor` and `CraftingQuality.SetQualityFactor`, per mod, with `Clear`. See [Crafting stations](api/craftingstations.md).
 - Crafting sources: `CraftingSources` lets stations take ingredients from extra containers. See [Crafting sources](api/craftingsources.md).
+- Inventory sources: `InventorySources` lets the furniture workbench and contractor renovations take ingredients from extra containers. See [Inventory sources](api/inventorysources.md).
 - Growing stations: `GrowingStations` lists stations and occupied spots, and sets pause and rot. See [Growing stations](api/growingstations.md).
 - Plants: `PlantActions.HarvestSpot`, `SetRotting` and `SetFullGrownAge`, and the other plant calls by id. `Plants.Fruits`, `PlantInfo.ReadyFruit` and the `Plants.Picked` event. See [Plant actions](api/plantactions.md) and [Recipes](api/recipes.md).
 - Fuel: `FuelTypes.All` and `Get`, with burn time and refuse rules. See [Fuel](api/fuel.md).
@@ -159,7 +160,7 @@ Version 0.10.0-beta adds the calls below on top of 0.9.0-beta. Each line names t
 
 - Debug master switch: `[Debug] Master` traces framework calls, events, saves and loads to the debug log, and `TraceFilter` narrows it. It is off by default. See [Debug](api/debug.md).
 - Debug self-checks: `[Debug] ModelSelfCheck`, `RegistrySelfCheck`, `FloorItemsSelfCheck`, `CoreModSelfCheck`, `SaveDataSelfCheck`, `SaveJsonSelfCheck`, `KeyChordSelfCheck` and `FrameworkModsSelfCheck`. See [Debug](api/debug.md).
-- Debug probes: `[Debug] PlayerShopProbe`, the `core_jsonprobe` command (with `[Debug] JsonProbeCommand` on), and `WebUiFocusDiag` for focus loss. See [Debug](api/debug.md). The `scenelooks` command (with `[Debug] SceneLooksCommand` on) prints the scene look index and reads the installed game files only. See [Scene looks](api/scenelooks.md).
+- Debug probes: `[Debug] PlayerShopProbe`, the `core_jsonprobe` command (with `[Debug] JsonProbeCommand` on), `WebUiFocusDiag` for focus loss, and `WebUiExclusiveThread` to test thread mode in exclusive fullscreen. See [Debug](api/debug.md). The `scenelooks` command (with `[Debug] SceneLooksCommand` on) prints the scene look index and reads the installed game files only. See [Scene looks](api/scenelooks.md).
 - Mods menu action: the framework's own Settings page has a `Scene looks` section with a `Run scene looks checks` button. It runs the same checks as the `scenelooks` command for the loaded scene, needs no `[Debug]` flag and no console, and shows the character and root counts on the menu status line and the full text in the log. See [Scene looks](api/scenelooks.md).
 - Framework helpers: `CoreMod.For(plugin)` returns one handle per mod, with `Save<T>`, `Key` and the patch helpers. See [Framework helpers](api/core-helpers.md).
 - Patch helpers: `CorePatcher.Prefix`, `Postfix` and `Finalizer` find their target by name or by `Type[]`. See [Framework helpers](api/core-helpers.md).

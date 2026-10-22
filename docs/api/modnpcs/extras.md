@@ -11,7 +11,7 @@ An extra is a light figure for a background crowd. It stands and watches. It has
 
 ## Things to know
 
-- `SpawnExtra` builds an extra from a source and a body, as `Spawn` does. It returns the figure's object, or `null` when it can't.
+- `SpawnExtra` builds an extra from a source and a body, as `Spawn` does, the body rule for `0` included. It returns the figure's object, or `null` when it can't.
 - `DespawnExtra` removes one extra and returns `true` when the extra existed. `ClearExtras` removes all of your extras and returns how many it removed. `ExtraObject` gives you the figure's object, or `null` when there is none.
 - `DespawnExtra` and `ClearExtras` don't check whether the game is loading or saving, because an extra has no record to change.
 - An extra stands exactly where you put it. It is dropped onto the ground below the spot, the same way as for `Spawn`.

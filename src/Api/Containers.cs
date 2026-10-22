@@ -171,6 +171,33 @@ namespace ObenseuerCore
             return storage != null && storage._Lock != null && storage._Lock.Locked;
         }
 
+        public static bool IsTenantOwned(Storage storage)
+        {
+            return PlayerInventory.Guard(() => TenantOwns(storage), false, "Containers.IsTenantOwned");
+        }
+
+        public static bool IsInPlayerTenement(Component component)
+        {
+            return PlayerInventory.Guard(() => ApartmentOf(component) == 1, false, "Containers.IsInPlayerTenement");
+        }
+
+        public static bool IsPlayerOwned(Storage storage)
+        {
+            return PlayerInventory.Guard(() => storage != null && IsNotNpcOwned(storage) && IsInPlayerTenement(storage), false, "Containers.IsPlayerOwned");
+        }
+
+        private static bool TenantOwns(Storage storage)
+        {
+            if (storage == null) return false;
+            int apartmentNumber = ApartmentOf(storage);
+            if (apartmentNumber < 2) return false;
+            TenementController tenements = TenementController.instance;
+            if (tenements == null || tenements.apartments == null) return false;
+            TenementApartment apartment = tenements.GetApartmentFromNumber(apartmentNumber);
+            if (apartment == null || apartment.resident == null || apartment.resident.resident == null) return false;
+            return tenements.ResidentRented(apartment.resident.resident.ID);
+        }
+
         private static bool GiveTo(Storage storage, int itemId, int count)
         {
             if (storage == null || storage.Slots == null || storage.Slots.Length == 0 || IsLocked(storage)) return false;

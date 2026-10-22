@@ -17,12 +17,52 @@ nav_order: 3
 - The game moves the person aside if something blocks the spot. A scene with nothing there refuses the spawn.
 - `name` and `lastName` become the person's name. The display name is the two joined by a space, and it is the name shown when the player looks at the person.
 - The body decides what the person looks like in 3D. `bodyCharacterId` picks the character whose 3D model (the prefab, the game's ready-made template of that model) is used. The version of `Spawn` without it passes `0`.
-- `0` uses the source's own 3D model when it has one, and otherwise a default body. <span class="tech">(the default body is the non-player character with the lowest number in `Characters.All()` that has a model with a slider rig (an `Appearance` component) and an `NPCInfo` component, and that is not a mod NPC; when there is none, the spawn returns `0` and the framework logs it once)</span>
-- `ModNpcInfo.BodyCharacterId` is the body that was used, or `0` when the source's own model was used.
+- `0` uses the source's own 3D model only when that model has the current rig, a model with the sliders the framework uses for looks. Otherwise it uses a default body. <span class="tech">(the source's own model is used only when its prefab has an `Appearance` component in its children, the current slider rig; otherwise the default body is the non-player character with the lowest number in `Characters.All()` that has a model with a slider rig (an `Appearance` component) and an `NPCInfo` component, and that is not a mod NPC; when there is none, the spawn returns `0` and the framework logs it once)</span>
+- `ModNpcInfo.BodyCharacterId` is the body that was used, or `0` when the source's own model was used. A `0` that fell back to a default body reports that body's number.
 - By default the person can't be talked to. The game shows "Can't talk". The source's conversation would run the source's own quest and variable lines, which is not what you want for a new person.
-- `keepSourceDialogue = true` lets the person use the source's conversation. The lines are the source's, under the new name. <span class="tech">(the copy keeps the source's own conversation only when `bodyCharacterId` is `0` and the source has a prefab, or when the body is the source's own number)</span>
+- `keepSourceDialogue = true` lets the person use the source's conversation. The lines are the source's, under the new name. <span class="tech">(the copy keeps the source's own conversation only when the body that was used is the source itself, which needs `bodyCharacterId` `0` and a source whose own model has the current rig, or when `bodyCharacterId` is the source's own number)</span>
 - A new person does nothing on its own. It has no timetable and no game record, so it stands still. The movement, action and appearance pages can address it by `CharacterId`. See [mod NPC routines](../modnpc-routines.md) for walks, wandering, patrols and daily timetables. <span class="tech">(the person keeps the source's AI components and is found by the game's NPC lookup, so `NpcMovement.MoveTo`, `NpcActions` and `NpcAppearance` work on it)</span>
 - `List(modId)` lists the people your mod has added right now. `CharacterIdOf` gives one person's character number, or `0` when there is no such person.
+
+## Example
+
+This mod adds a visitor who lasts until the scene changes, and a keeper who comes back after every load of the same scene. Both are built from the first character in the game who is not the player, three metres in front of the player. Each call returns `0` when it refuses, so the mod writes a warning and goes on. The [limits](#limits) below list the reasons.
+
+```csharp
+using ObenseuerCore;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+[ModInfo("example.shopkeeper", "Shopkeeper", "0.1.0")]
+[ModDependency("obenseuer.moddingframework", "0.11.0")]
+public sealed class Shopkeeper : FrameworkMod
+{
+    protected override void OnLoad()
+    {
+        // Adding a person touches the world, so it waits for a loaded save.
+        Events.WhenReady(() =>
+        {
+            int sourceId = 0;
+            foreach (CharacterInfo character in Characters.All())
+                if (!character.IsPlayer) { sourceId = character.Id; break; }
+
+            Vector3 spot = PlayerState.Position + Vector3.forward * 3f;
+            int visitor = ModNpcs.Spawn(Mod.Id, "visitor", sourceId, "Val", "Visitor", spot, 0f);
+            if (visitor == 0)
+                Log.Warn("The visitor was refused. See the limits below.");
+
+            string scene = SceneManager.GetActiveScene().name;
+            int keeper = ModNpcs.SpawnSaved(Mod.Id, "keeper", sourceId, "Sam", "Stone", spot + Vector3.right, 90f, scene, false);
+            if (keeper == 0)
+                Log.Warn("The keeper was refused. See the limits below.");
+
+            Log.Info("Visitor " + visitor + ", keeper " + keeper + ".");
+        });
+    }
+}
+```
+
+`Spawn` is the visitor's call. `SpawnSaved` stores the request for the keeper, so the keeper is added again with the same character number after a load, and it keeps its look, because both calls use the same `npcId` every time. See [SpawnSaved](spawnsaved.md) for what is stored.
 
 ## Limits
 
@@ -34,5 +74,5 @@ nav_order: 3
 - Pass the body number yourself, for example the gym person's body, rather than relying on the default.
 - [NPC appearance](../npcappearance.md) can only switch parts that the body already has. If the body has none of the source's parts, the copy shows the body's own look and appearance changes do not show on it. If it has some of them, the body's other parts are hidden.
 - `keepSourceDialogue = true` changes the player's save. Every quest and variable change that conversation makes is a change for the source person, and it is written to the player's save. Use it only when that is what you want.
-- `keepSourceDialogue = true` only works when the copy uses the source's own 3D model. With any other body, talk stays off and the framework writes one line to the log.
+- `keepSourceDialogue = true` only works when the copy uses the source's own 3D model. With any other body, talk stays off and the framework writes one line to the log. A source whose own model has no current rig gets a default body, so its conversation is off as well. Passing the source's own character number as `bodyCharacterId` keeps the source's own model and its conversation, even when that model has no current rig.
 - New dialogue lines are not part of this API. Runtime conversations come from [dialogue authoring](../dialogue-authoring.md).

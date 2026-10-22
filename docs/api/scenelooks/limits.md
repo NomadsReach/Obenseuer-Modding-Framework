@@ -2,7 +2,7 @@
 title: Limits
 parent: Scene looks
 grand_parent: Places and travel
-nav_order: 7
+nav_order: 8
 ---
 
 # Limits

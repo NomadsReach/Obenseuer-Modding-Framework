@@ -13,6 +13,7 @@ limit MaxBars
 limit MaxBlobLength
 limit MaxBufferedBytes
 limit MaxCategories
+limit MaxCheckpoints
 limit MaxChunks
 limit MaxColliders
 limit MaxConvexTriangles
@@ -24,14 +25,17 @@ limit MaxDelayMinutes
 limit MaxDepth
 limit MaxDescription
 limit MaxDigits
+limit MaxDisposition
 limit MaxEntries
 limit MaxEvictionHours
 limit MaxExpiryMinutes
 limit MaxFactor
 limit MaxFileBytes
 limit MaxFinished
+limit MaxFlagRows
 limit MaxFov
 limit MaxFurnitureInputs
+limit MaxGuidLength
 limit MaxHeight
 limit MaxHitFactor
 limit MaxIdLength
@@ -41,6 +45,7 @@ limit MaxInputAmount
 limit MaxInputs
 limit MaxIntensity
 limit MaxInteractKeyLength
+limit MaxItemRows
 limit MaxJsonChars
 limit MaxJsonDepth
 limit MaxKey
@@ -48,6 +53,7 @@ limit MaxKeyLength
 limit MaxLightKeyLength
 limit MaxLineValues
 limit MaxLive
+limit MaxLogNames
 limit MaxLootWeight
 limit MaxLua
 limit MaxMails
@@ -56,6 +62,7 @@ limit MaxMips
 limit MaxModLength
 limit MaxMoveInHours
 limit MaxMultiplier
+limit MaxName
 limit MaxNestedHandlers
 limit MaxObjectives
 limit MaxOwners
@@ -105,6 +112,7 @@ limit MaxZoom
 limit Min
 limit MinButtonWidth
 limit MinColliderEdge
+limit MinDisposition
 limit MinEvictionHours
 limit MinFov
 limit MinInputKey
@@ -119,6 +127,5 @@ limit MinSpeed
 limit MinWait
 limit MinZoom
 limit MinutesPerDay
+limit RestCacheMax
 limit StackLimit
-setting ShowModHints
-setting ShowModPrompts

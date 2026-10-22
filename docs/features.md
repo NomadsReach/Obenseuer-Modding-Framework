@@ -94,6 +94,7 @@ This page lists what the framework lets a mod do, grouped by part of the game. E
 - Pause and resume a process station's timer for the session ([Crafting stations](api/craftingstations.md)).
 - Scale craft time for each mod and station kind, and scale the quality of outputs ([Crafting stations](api/craftingstations.md)).
 - Let crafting stations take ingredients from extra containers that you register ([Crafting sources](api/craftingsources.md)).
+- Let the furniture workbench and contractor renovations take ingredients from extra containers that you register ([Inventory sources](api/inventorysources.md)).
 - Read crafting upgrades and switch them on or off ([Crafting upgrades](api/crafting-upgrades.md)).
 
 **Not possible yet:** a mod cannot stop a manufacturing or growing station, because the game has no cancel that gives the ingredients back. A mod cannot start a station that needs the player to wait, because the game speeds up the clock and shows a wait screen.

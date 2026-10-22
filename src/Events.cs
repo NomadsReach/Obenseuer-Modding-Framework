@@ -17,9 +17,16 @@ namespace ObenseuerCore
         public static event Action<int> DayPassed;
         public static event Action<string> SceneLoaded;
         public static event Action Saved;
+        /// <summary>Ordering: raised when a save starts, before the game writes any file. Also fires on a level change.</summary>
+        public static event Action<string> BeforeSave;
+        /// <summary>Ordering: raised after the save files are written, with the folder the game wrote them to. Also fires on a level change.</summary>
         public static event Action<string> AfterSave;
+        /// <summary>Ordering: raised as soon as a load has a save folder. Also fires on a level change.</summary>
+        public static event Action<string> AfterLoad;
         public static event Action Loaded;
         public static event Action NewGameStarted;
+
+        public static event Action<NewGameInfo> NewGameStartedInfo;
 
         internal static event Action<string, LoadSceneMode> SceneLoadedWithMode;
 
@@ -36,7 +43,6 @@ namespace ObenseuerCore
         public static void WhenReady(Action action)
         {
             if (action == null) throw new ArgumentNullException("action");
-            // a door change sets SaveController.Loading before its save, newGameReady is cleared when its load starts
             if ((SaveData.Folder != null && !SaveGate.Loading) || (newGameReady && !SaveController.Loading))
             {
                 RunReady(action);
@@ -67,6 +73,7 @@ namespace ObenseuerCore
         {
             Subscribe("CurrentTimeAndDay", () => TimeOfDayAzure.CurrentTimeAndDay += OnTimeAndDay);
             Subscribe("DayChanged", () => TimeOfDayAzure.DayChanged += OnDayChanged);
+            Subscribe("SavingStarted", () => SaveController.SavingStarted += OnSavingStarted);
             Subscribe("SavingDone", () => SaveController.SavingDone += OnSaved);
             Subscribe("LoadingDone", () => SaveController.LoadingDone += OnLoaded);
             Subscribe("sceneLoaded", () => SceneManager.sceneLoaded += OnSceneLoaded);
@@ -100,6 +107,11 @@ namespace ObenseuerCore
             Raise(DayPassed, "DayPassed", h => h(day));
         }
 
+        private static void OnSavingStarted()
+        {
+            Raise(BeforeSave, "BeforeSave", h => h(SaveData.WrittenFolder));
+        }
+
         private static void OnSaved()
         {
             Raise(Saved, "Saved", h => h());
@@ -109,8 +121,8 @@ namespace ObenseuerCore
 
         private static void OnLoaded()
         {
-            // before Loaded, so handlers see the folder that was loaded
             SaveData.MarkLoaded();
+            Raise(AfterLoad, "AfterLoad", h => h(SaveData.Folder));
             Raise(Loaded, "Loaded", h => h());
             SessionKind kind = saveLoad ? SessionKind.SaveLoad : SessionKind.LevelChange;
             saveLoad = false;
@@ -135,11 +147,22 @@ namespace ObenseuerCore
             if (SaveReady && !SaveController.Loading && !newLoad) Raise(Ready, "Ready", h => h());
         }
 
-        internal static void RaiseNewGameStarted()
+        internal static void RaiseHourPassed(int hour)
+        {
+            Raise(HourPassed, "HourPassed", h => h(hour));
+        }
+
+        internal static void RaiseDayPassed(int day)
+        {
+            Raise(DayPassed, "DayPassed", h => h(day));
+        }
+
+        internal static void RaiseNewGameStarted(NewGameInfo info)
         {
             newGame = true;
             newGameReady = false;
             Raise(NewGameStarted, "NewGameStarted", h => h());
+            Raise(NewGameStartedInfo, "NewGameStartedInfo", h => h(info));
         }
 
         private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)

@@ -56,19 +56,80 @@ The first line, "Back again?", is spoken by the character. It offers two choices
 - `Add` returns the title, or `null` with the reason in `refusal`. `NoPlayerActor` means the game's database has no actor marked as the player. `Failed` means a game call threw or the database did not take the conversation. `ReservedKey` means the key is `narration`, which `Dialogue.Narrate` uses.
 - `Remove` removes one of your conversations and returns `false` for another mod's, an unknown one, one that is running now, or a branch's conversation (use `RemoveBranch` for those). `Clear` removes all of yours that are not running, and the branches your mod added with `Dialogue.AddBranch`, and returns how many.
 
-## Example
+## Complete example
+
+This mod adds its own conversation, adds a choice and a menu under one of its lines, shows a line whose text changes, and starts the conversation with an NPC. It needs no game conversation title, because the choice and the menu go under a line of the mod's own conversation.
 
 ```csharp
-ConversationDefinition talk = new ConversationDefinition { Key = "greeting" };
-talk.Lines.Add(new ConversationLine { Key = "hello", Text = "Back again?", Next = new[] { "ask", "leave" } });
-talk.Lines.Add(new ConversationLine { Key = "ask", Player = true, Text = "Any work for me?", Next = new[] { "work" } });
-talk.Lines.Add(new ConversationLine { Key = "leave", Player = true, Text = "Not now." });
-talk.Lines.Add(new ConversationLine { Key = "work", Text = "Check the cellar.", Script = "Variable[\"mymod_cellar\"] = true" });
+using ObenseuerCore;
+using UnityEngine;
 
-ConversationRefusal refusal;
-string title = DialogueAuthoring.Add("example.mymod", talk, out refusal);
-if (title != null) Dialogue.Start(title, playerTransform, npcTransform);
+[ModInfo("example.dockgreeter", "Dock Greeter", "0.1.0")]
+[ModDependency("obenseuer.moddingframework", "0.11.0")]
+public sealed class DockGreeter : FrameworkMod
+{
+    // The name of the NPC that starts the conversation. Use the name of a character in your save.
+    private const string TalkerName = "Replace with an NPC name";
+    private const string Greeting = "greeting";
+    private ModKeybind talkKey;
+
+    protected override void OnLoad()
+    {
+        talkKey = Mod.Key("Talk", "Start the greeting", KeyCode.F6);
+        Events.WhenReady(AddConversation);
+    }
+
+    private void AddConversation()
+    {
+        string title = DialogueAuthoring.TitleOf(Mod.Id, Greeting);
+        if (Dialogue.Exists(title)) return;
+
+        ConversationDefinition talk = new ConversationDefinition { Key = Greeting };
+        talk.Lines.Add(new ConversationLine { Key = "hello", Text = "Back again?", Next = new[] { "ask", "leave" } });
+        talk.Lines.Add(new ConversationLine { Key = "ask", Player = true, Text = "Any work for me?", Next = new[] { "work" } });
+        talk.Lines.Add(new ConversationLine { Key = "leave", Player = true, Text = "Not now." });
+        talk.Lines.Add(new ConversationLine
+        {
+            Key = "work",
+            Text = "Check the cellar.",
+            TextCallback = () => "Check the cellar. You owe " + Dialogue.GetVariableNumber("dock_owed", 0f) + " coins.",
+            Script = "Variable[\"dock_cellar\"] = true"
+        });
+
+        ConversationRefusal refusal;
+        string added = DialogueAuthoring.Add(Mod.Id, talk, out refusal);
+        if (added == null)
+        {
+            Log.Warn("The conversation was refused: " + refusal);
+            return;
+        }
+
+        if (Dialogue.AddResponse(Mod.Id, added, "Back again?", "Do you have any rope?", "Second shelf, by the door.", null, () => Dialogue.SetVariable("dock_rope_asked", true)) == null)
+            Log.Warn("The rope answer was refused, so the anchor text may not match");
+
+        ConversationDefinition membership = new ConversationDefinition { Key = "membership" };
+        membership.Lines.Add(new ConversationLine { Key = "ask", Player = true, Text = "Membership", Next = new[] { "status" } });
+        membership.Lines.Add(new ConversationLine { Key = "status", Text = "Your card is in order.", Next = new[] { "renew", "back" } });
+        membership.Lines.Add(new ConversationLine { Key = "renew", Player = true, Text = "Renew for 30 days.", Script = "Variable[\"dock_renew\"] = true" });
+        membership.Lines.Add(new ConversationLine { Key = "back", Player = true, Text = "Goodbye." });
+        if (Dialogue.AddBranch(Mod.Id, added, "Back again?", membership) == null)
+            Log.Warn("The membership menu was refused");
+    }
+
+    private void Update()
+    {
+        if (UiState.IsMenuOpen || UiState.IsPaused || UiState.IsInputBlocked) return;
+        if (talkKey == null || !talkKey.Down()) return;
+        NpcInfo npc = Npcs.Find(TalkerName);
+        if (npc == null || !NpcActions.StartDialogue(npc.Id, DialogueAuthoring.TitleOf(Mod.Id, Greeting)))
+            Log.Warn("The greeting did not start. Check TalkerName and that the NPC is in the scene.");
+    }
+}
 ```
+
+The example adds the conversation the first time a save loads, or a new game starts, in a game session. `DialogueAuthoring.Add` refuses a title that already exists, so `Dialogue.Exists` is checked first. For a later save load in the same session, run the same method from `Events.Loaded` as well, which is safe because `Dialogue.Exists` is checked before anything is added. The choice "Do you have any rope?" and the "Membership" menu both hang under "Back again?". `TextCallback` on "Check the cellar." shows the amount owed each time that line shows, and it only reads a variable. The F6 key starts the conversation with the NPC through `NpcActions.StartDialogue`, which takes the NPC's id and the conversation title.
+
+To add a choice to a game conversation instead, pass that conversation's title and a line of its text to `Dialogue.AddResponse` or `Dialogue.AddBranch` in the same way. The title and the text must match what the game has.
 
 ## Responses to a game conversation
 
@@ -114,17 +175,24 @@ public static class Dialogue
     public static string AddBranch(string modId, string conversationTitle, int anchorId, ConversationDefinition branch, int insertAt = -1, int priority = -1);
     public static string AddBranch(string modId, string conversationTitle, string anchorText, ConversationDefinition branch);
     public static string AddBranch(string modId, string conversationTitle, int anchorId, ConversationDefinition branch);
+    public static string AddBranch(string modId, string conversationTitle, string anchorText, ConversationDefinition branch, Action onPicked);
+    public static string AddBranch(string modId, string conversationTitle, int anchorId, ConversationDefinition branch, Action onPicked);
+    public static string AddBranch(string modId, string conversationTitle, string anchorText, ConversationDefinition branch, int insertAt, int priority, Action onPicked);
+    public static string AddBranch(string modId, string conversationTitle, int anchorId, ConversationDefinition branch, int insertAt, int priority, Action onPicked);
+    public static string AddQuestTopic(string modId, string conversationTitle, string playerLine, string[] npcLines, string showWhen, Action onDone);
     public static bool RemoveBranch(string modId, string key);
 }
 ```
 
 - **Anchor.** The anchor is an NPC line of the game conversation, chosen as for `AddResponse`, and the same refusals apply. For a line with a `TextCallback`, the authored text is the callback's markup, so use the `anchorId` overload for that line.
-- **Link.** The branch starts at its first line, the first entry of `Lines`. The anchor gets one link to that line, at the priority of its other player choices unless `priority` sets another, and at the index `insertAt` in the anchor's links (`-1` appends, as it does for `AddResponse`). The first line must be a player line. `AddBranch` refuses a branch whose first line is an NPC line, because the player would get no choice.
+- **Link.** The branch starts at its first line, the first entry of `Lines`. The anchor gets one link to that line, at the priority of its other player choices unless `priority` sets another, and at the index `insertAt` in the anchor's links (`-1` appends, as it does for `AddResponse`). The first line may be a player line, which the player picks, or a character line, which plays straight after the anchor. A character first line gets one priority tier below the anchor's player choices by default, because the game takes a character line before the player's choices when both are at the same tier (see the responses page): the branch then plays only when no choice above it can. Pass `priority` to place it yourself, and give the line a `Condition` to decide when it plays. When the anchor's player choices are already at the lowest tier, there is no tier below them and the branch shares theirs, so it is shown instead of the menu; that is logged once.
+- **onPicked.** `onPicked` runs when the player picks the branch, that is, when its first line is reached. It also runs when the branch is the only choice and the game picks it for the player. An exception is logged once and does not reach the game. Adding the same branch again is refused as before, so a later call with another `onPicked` does not replace the first.
+- **Not loaded yet.** When the anchor conversation or the anchor is not in the database at the time of the call, `AddBranch` still gives back the key and links the branch as soon as both appear. The link is tried again on each scene load and each load of a save, and on the same bounded per-frame retries as a re-apply. A branch that can never be linked, such as one whose anchor text is matched by more than one line, is refused once and then left alone.
 - **Speaker.** The branch's NPC lines are spoken by the anchor's NPC, so its name and portrait show. `branch.Speaker` may be null or the name of that same actor. Any other name is refused.
-- **Key.** `AddBranch` returns the key, `modId` plus a dot and eight hex digits. It comes from the conversation title, the anchor and `branch.Key`. Calling `AddBranch` again with the same arguments is refused, so call `RemoveBranch` first. The branch's conversation title is the mod id, a dot and `branch.Key`, so a key already in the database is refused as `AlreadyExists`, also when it is used on another anchor.
+- **Key.** `AddBranch` returns the key, `modId` plus a dot and eight hex digits. It comes from the conversation title, the anchor and `branch.Key`. Calling `AddBranch` again with the same arguments is refused, so call `RemoveBranch` first. The key comes from the arguments of the call, not from the anchor entry that was found, so it is the same whether the anchor was loaded yet or not; a second call while the first branch is still waiting is refused as already added. The branch's conversation title is the mod id, a dot and `branch.Key`, so a key already in the database is refused as `AlreadyExists`, also when it is used on another anchor.
 - **Re-apply.** The framework writes the anchor link again after each scene load and each load of a save, as it does for responses, and retries it the same bounded way when the conversation, the anchor or the branch conversation is not in the database yet. Your mod does not re-add it.
 - **Remove.** `RemoveBranch` removes the link and the branch's conversation. It returns `false` for another mod's key, an unknown key, a save or load running, the dialogue database not ready, or while any conversation is running, because the player can reach a branch through another conversation's link. `Dialogue.RemoveAll(modId)` removes the mod's branches too, and keeps any it cannot remove now, while a save, a load or a conversation is running. `DialogueAuthoring.Clear(modId)` does the same. A branch conversation that is still in place cannot be removed with `DialogueAuthoring.Remove`.
-- **Refusals.** `AddBranch` returns `null` and logs the reason once when the dialogue system is not ready, a save or load is running, the branch is not valid, the branch key is `narration`, the first line is not a player line, the conversation or anchor is not found, or the branch speaker is not the anchor's NPC. An empty `conversationTitle` throws `ArgumentException`. A null `branch` throws `ArgumentNullException`, an invalid `modId` throws `ArgumentException`, and so do an `insertAt` below -1 and a `priority` outside -1 to 4. The original four-argument form without `insertAt` and `priority` is kept as a thin wrapper as well.
+- **Refusals.** `AddBranch` returns `null` and logs the reason once when the dialogue system is not ready, a save or load is running, the branch is not valid, the branch key is `narration`, `anchorText` is empty or only spaces, the anchor is matched by more than one line, the anchor is not an NPC line, its links lead only to NPC lines, or the branch speaker is not the anchor's NPC. A conversation or an anchor that is simply not in the database yet is not refused: the branch waits for it, as described above. An empty `conversationTitle` throws `ArgumentException`. A null `branch` throws `ArgumentNullException`, an invalid `modId` throws `ArgumentException`, and so do an `insertAt` below -1 and a `priority` outside -1 to 4. The original four-argument form without `insertAt` and `priority` is kept as a thin wrapper as well, and so are the two forms without `onPicked`.
 - **Saves.** Like responses, the framework never saves branches. A save made while a branch is in place loads without the mod.
 
 ```csharp
@@ -146,6 +214,25 @@ string key = Dialogue.AddBranch("example.mymod", "Shop.Greeting", "What can I do
 The tree is: the anchor "What can I do for you?", then the player choice "Membership", then the NPC reply with the days left, then the two choices "Renew for 30 days." and "Goodbye.".
 
 A line without `Next` ends the conversation. A branch cannot return to the game conversation, so "Goodbye." ends the talk and the game's menu is not shown again. Put any choice that should go back to the game's menu in the game conversation itself, not in a branch.
+
+## Quest topics
+
+`Dialogue.AddQuestTopic(modId, conversationTitle, playerLine, npcLines, showWhen, onDone)` is a short way to add one topic to a conversation the game already has. It builds the lines for you and calls `Dialogue.AddBranch` with them, under the first character line of the conversation. Experimental, and every rule above for branches applies.
+
+```csharp
+public static class Dialogue
+{
+    public static string AddQuestTopic(string modId, string conversationTitle, string playerLine, string[] npcLines, string showWhen, Action onDone);
+}
+```
+
+- **Shape.** `playerLine` becomes a player choice under the conversation's first character line, shown only while `showWhen` is true. That line is the first entry of the conversation that is not a group entry, has text, is spoken by a character, and can reach a player choice; the root entry and character lines whose links lead only to character lines are skipped. `npcLines` are spoken by that character, one after another, in the order you give them, and the conversation ends after the last one. `onDone` runs when the player picks the topic.
+- **Key.** The branch key comes from the conversation, the anchor line and `playerLine`, and starts with `topic`, so two topics in one conversation never share a key. The same arguments give the same key.
+- **Refusals.** It returns `null` and logs the reason once when the dialogue system is not ready, the conversation is not in the database, the conversation has no character line that can take a topic, or the branch is refused. Unlike `AddBranch`, it needs the conversation loaded at the time of the call, because it looks for that line at once, and it refuses rather than waiting for the conversation to appear. An empty `conversationTitle`, an empty `playerLine`, and a null or empty `npcLines` return `null` and log the reason once instead of throwing `ArgumentException`.
+
+```csharp
+string key = Dialogue.AddQuestTopic("example.mymod", "Shop.Greeting", "Any news about the cellar?", new[] { "Still locked.", "Ask me tomorrow." }, "Quest[\"mymod_cellar\"] ~= \"Finished\"", () => Dialogue.SetVariable("mymod_asked", true));
+```
 
 ## Text callbacks
 
@@ -177,6 +264,120 @@ public static class Dialogue
 - When the conversation ends, the framework fades the screen back out. It uses the game's end-of-talk callback on the black screen's talk component. The framework keeps any callback already set there and runs it after the fade. If the conversation does not start, the framework fades the screen back at once and `Narrate` returns `false`. If the start throws after the conversation has begun, `Narrate` returns `true` and the fade back happens when that conversation ends.
 - An invalid `modId` throws `ArgumentException`, as for the other `Dialogue` calls.
 - The key `narration` belongs to `Narrate`. Each call removes the mod's own conversation with that key first. `Add` and `AddBranch` refuse the key `narration` (`ReservedKey`), and the refusal is logged once.
+
+## Reference
+
+The types and calls the examples above use. The rules for each one are in the sections above.
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>ConversationDefinition</code> <span>a conversation your mod writes</span></p>
+
+Pass one of these to `DialogueAuthoring.Add`. `Key` is the part of the title your mod chooses, and `Lines` holds the lines.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class ConversationDefinition
+{
+    public string Key { get; set; }
+    public string Speaker { get; set; }
+    public List<ConversationLine> Lines { get; set; }
+}
+```
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>ConversationLine</code> <span>one line a character or the player says</span></p>
+
+A line is a character line unless `Player` is `true`, which makes it a choice the player picks. `Next` lists the keys of the lines that follow it, and a line without `Next` ends the conversation.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public sealed class ConversationLine
+{
+    public string Key { get; set; }
+    public bool Player { get; set; }
+    public string Text { get; set; }
+    public string Condition { get; set; }
+    public string Script { get; set; }
+    public string[] Next { get; set; }
+    public Func<string> TextCallback { get; set; }
+}
+```
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>ConversationRefusal</code> <span>why a conversation was not added</span></p>
+
+`Add` sets this through its `out refusal` parameter. `None` means nothing was refused.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public enum ConversationRefusal
+{
+    None,
+    NotReady,
+    SaveBusy,
+    BadInput,
+    AlreadyExists,
+    UnknownSpeaker,
+    NoPlayerActor,
+    Failed,
+    ReservedKey
+}
+```
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>DialogueAuthoring</code> <span>adds, removes and names your conversations</span></p>
+
+`TitleOf` gives the title a conversation of yours gets, so you can check it with `Dialogue.Exists`. `Add` returns that title, or `null` with the reason in `refusal`.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class DialogueAuthoring
+{
+    public static string TitleOf(string modId, string key);
+    public static string Add(string modId, ConversationDefinition definition, out ConversationRefusal refusal);
+    public static bool Remove(string modId, string key);
+    public static int Clear(string modId);
+}
+```
+
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>Dialogue</code> <span>starts, checks and follows conversations</span></p>
+
+`Start` begins a conversation with two `Transform` sides from Unity. `Exists` tells you whether a title is in the game's database, and `IsActive` and `CurrentTitle` tell you what is running. `NpcActions.StartDialogue` starts one with an NPC by its id, as the examples on the [common tasks](dialogue-authoring/common-tasks.md) page do.
+
+<div class="api-pair" markdown="1">
+
+```csharp
+public static class Dialogue
+{
+    public static bool Start(string title, Transform actor, Transform conversant);
+    public static void Stop();
+    public static bool IsActive { get; }
+    public static string CurrentTitle { get; }
+    public static bool Exists(string title);
+    public static event Action<DialogueArgs> Started;
+    public static event Action<DialogueArgs> Ended;
+}
+```
+
+</div>
+</div>
 
 ## Self-check
 

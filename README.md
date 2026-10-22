@@ -6,7 +6,7 @@ The Obenseuer Modding Framework (the framework) is a free add-on for the game Ob
 - Making a mod? Read [Your first mod](docs/guides/getting-started/first-mod.md), then the [API index](docs/API.md).
 - Something not working? See the [FAQ](docs/faq.md).
 
-Version: 0.12.0-beta (plugin version 0.12.0, GUID `obenseuer.moddingframework`). License: MIT. This is a beta, so it may have bugs. See the [status page](docs/status.md).
+Version: 0.13.0-beta (plugin version 0.13.0, GUID `obenseuer.moddingframework`). License: MIT. This is a beta, so it may have bugs. See the [status page](docs/status.md).
 
 Documentation site: https://nomadsreach.github.io/Obenseuer-Modding-Framework/
 
@@ -82,13 +82,23 @@ https://nomadsreach.github.io/Obenseuer-Modding-Framework/
 
 To start, read [Your first mod](docs/guides/getting-started/first-mod.md). It builds a mod that writes one log line.
 
-A BepInEx plugin adds the dependency like this. A framework mod uses `[ModDependency("obenseuer.moddingframework", "0.11.0")]`.
+A framework mod declares the dependency with `[ModDependency("obenseuer.moddingframework", "0.11.0")]`, the mod id and the lowest version to accept:
 
 ```csharp
-[BepInDependency("obenseuer.moddingframework", ">=0.11.0")]
+using ObenseuerCore;
+
+[ModInfo("example.hello", "Example Hello", "0.1.0")]
+[ModDependency("obenseuer.moddingframework", "0.11.0")]
+public class ExampleHello : FrameworkMod
+{
+    protected override void OnLoad()
+    {
+        Log.Info("loaded");
+    }
+}
 ```
 
-On BepInEx 5, write `"0.11.0"` instead, because BepInEx 5 cannot parse a version range. See [Supporting BepInEx 5 too](docs/guides/getting-started/packaging.md#supporting-bepinex-5-too).
+A BepInEx plugin uses `[BepInDependency("obenseuer.moddingframework", ">=0.11.0")]` instead. On BepInEx 5, write `"0.11.0"` rather than a range, because BepInEx 5 cannot parse a version range. See [Supporting BepInEx 5 too](docs/guides/getting-started/packaging.md#supporting-bepinex-5-too).
 
 Reference `ObenseuerCore.dll` (from the zip, or from `bin\` after a build). Public API is in namespace `ObenseuerCore`. The WebUi types are in a second assembly, `ObenseuerCore.WebUi.dll`. A mod that uses WebUi also depends on `obenseuer.moddingframework.webui` with `[BepInDependency("obenseuer.moddingframework.webui", ">=0.11.0")]`.
 
@@ -123,7 +133,7 @@ Only needed if you change the framework. Mod authors do not build it.
 
 - Build both loaders before packaging: run `dotnet build ObenseuerCore.slnx -c Release`, which writes `bin\` and `bin\webui\`, then `dotnet build ObenseuerCore.slnx -c Release -p:Loader=BepInEx5`, which writes `bin\be5\` and `bin\be5\webui\`.
 - Prerequisites: the .NET 10 SDK (tested with 10.0.401), and the .NET 8 runtime, which the publicizer uses. The build needs the game folder (`Obenseuer_Data\Managed`) and a BepInEx `core` folder that holds `Mono.Cecil.dll`, plus `BepInEx.Core.dll` for the BepInEx 6 build. The BepInEx 5 packages come from the NuGet feed in `nuget.config`.
-- The native `ObxWebView.dll`, built by the WebUi project only, needs Visual Studio 2022 with the "Desktop development with C++" workload. Without it, build with `-p:SkipNative=true`. On Linux the native DLL is skipped, so set `OBENSEUER_DIR` to the game folder and build as above. WebUi is unavailable there.
+- The native `ObxWebView.dll`, built by the WebUi project only, needs Visual Studio (2022 or newer) with the "Desktop development with C++" workload. Without it, build with `-p:SkipNative=true`. On Linux the native DLL is skipped, so set `OBENSEUER_DIR` to the game folder and build as above. WebUi is unavailable there.
 - To use another game folder or BepInEx core folder, pass `-p:GameDir=<folder>` or `-p:BepInExCore=<folder>`, set `OBENSEUER_DIR`, or put it in `GameDir.user.props` next to `Directory.Build.props`. They are checked in that order.
 - The build also runs the [publicizer](docs/glossary.md#publicizer) in `tools\Publicize`, and builds `preloader\` and the `Examples\` projects into their own `bin\` folders. The `preloader\` folder is built but not shipped.
 - `tools\package.cmd` makes both release zips from `bin\` and `bin\be5\` (the WebUi zip from `bin\webui\` and `bin\be5\webui\`) into `dist\`. It builds nothing. Its version defaults to the plugin version in `src\Core.cs`.

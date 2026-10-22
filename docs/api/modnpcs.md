@@ -37,19 +37,25 @@ public sealed class Greeter : FrameworkMod
 {
     protected override void OnLoad()
     {
+        // Adding a person touches the world, so it waits for a loaded save.
         Events.WhenReady(() =>
         {
+            int sourceId = 0;
             foreach (CharacterInfo character in Characters.All())
+                if (!character.IsPlayer) { sourceId = character.Id; break; }
+
+            Vector3 spot = PlayerState.Position + Vector3.forward * 3f;
+            int id = ModNpcs.Spawn(Mod.Id, "greeter", sourceId, "Gus", "Greeter", spot, 0f);
+            if (id == 0)
             {
-                if (character.IsPlayer) continue;
-                Vector3 spot = PlayerState.Position + Vector3.forward * 3f;
-                int id = ModNpcs.Spawn(Mod.Id, "greeter", character.Id, "Gus", "Greeter", spot, 0f);
-                Log.Info(id == 0 ? "Could not spawn the greeter." : "Spawned the greeter as character " + id);
-                break;
+                Log.Warn("The greeter was refused. See the spawn limits.");
+                return;
             }
+
+            Log.Info("Spawned the greeter as character " + id);
         });
     }
 }
 ```
 
-`WhenReady` waits until a save is loaded before it runs your code. See [Using events](../guides/getting-started/using-events.md) for more on it. This person is only there until the scene changes. See "Keeping a mod NPC after a load" below to make one that stays.
+`WhenReady` waits until a save is loaded before it runs your code. See [Using events](../guides/getting-started/using-events.md) for more on it. `Spawn` returns `0` when it refuses, and the [spawn limits](modnpcs/spawn.md#limits) list the reasons. This person is there until the scene changes, so use [SpawnSaved](modnpcs/spawnsaved.md) for a person who must come back after a load.

@@ -29,10 +29,13 @@ using ObenseuerCore;
 
 [ModInfo("example.walletwatch", "Wallet Watch", "0.1.0")]
 [ModDependency("obenseuer.moddingframework", "0.11.0")]
-public sealed class WalletWatch : FrameworkMod
+public class WalletWatch : FrameworkMod
 {
     protected override void OnLoad()
     {
+        if (!Cash.IsAvailable)
+            Log.Warn("Money changes cannot be watched. See the limits on the money and cash page.");
+
         Cash.MoneyChanged += OnMoneyChanged;
         Events.WhenReady(() => Log.Info("wallet: " + Cash.Oc + " OC, " + Cash.Rm + " RM"));
     }
@@ -44,4 +47,4 @@ public sealed class WalletWatch : FrameworkMod
 }
 ```
 
-`Cash.Oc` is the OC balance as a whole number and `Cash.Rm` is the RM balance. `MoneyChanged` is an event: the framework calls your code each time it happens, once for each currency whose balance changed. See [Using events](../guides/getting-started/using-events.md) for more on events and `WhenReady`.
+`Cash.Oc` is the OC balance as a whole number and `Cash.Rm` is the RM balance. `MoneyChanged` is an event: the framework calls your code each time it happens, once for each currency whose balance changed. See [Using events](../guides/getting-started/using-events.md) for more on events and `WhenReady`. The limits are on the [Money and cash](economy/money-cash.md#limits) page.

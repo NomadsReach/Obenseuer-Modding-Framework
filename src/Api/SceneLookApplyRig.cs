@@ -8,6 +8,8 @@ namespace ObenseuerCore
     internal static class SceneLookApplyRig
     {
         private const int MaxDepth = 256;
+        private const int RestCacheMax = 64;
+        private static readonly Dictionary<SceneLookLook, Dictionary<long, SceneLookMatrix>> rests = new Dictionary<SceneLookLook, Dictionary<long, SceneLookMatrix>>();
 
         internal static List<string> Names(GameObject body)
         {
@@ -88,8 +90,7 @@ namespace ObenseuerCore
             GameObject holder = Holder(look, body, state);
             SceneLookMatrix frame = SceneLookBind.BindFrame(SceneLookApplyMesh.ToSceneLookMatrix(body.transform.localToWorldMatrix), SceneLookApplyMesh.ToSceneLookMatrix(holder.transform.localToWorldMatrix));
             Dictionary<long, SceneLookNode> byTransform = SceneLookFrame.ByTransform(look);
-            Transform rootBone = Find(root, SceneLookRig.RootBone);
-            if (rootBone == null) rootBone = root;
+            Transform rootBone = MapRoot(plan, map, root);
             Material target = TargetMaterial(body);
             for (int i = 0; i < look.Renderers.Count; i++)
             {
@@ -209,6 +210,43 @@ namespace ObenseuerCore
                 if (from != null) from.Dispose();
                 if (to != null) to.Dispose();
             }
+        }
+
+        internal static Dictionary<string, string> AvatarRoles(Animator animator)
+        {
+            Dictionary<string, string> roles = new Dictionary<string, string>();
+            if (animator == null) return roles;
+            string[] bones = HumanTrait.BoneName;
+            if (bones == null) return roles;
+            int count = bones.Length;
+            if (count > (int)HumanBodyBones.LastBone) count = (int)HumanBodyBones.LastBone;
+            for (int i = 0; i < count; i++)
+            {
+                string humanName = bones[i];
+                if (string.IsNullOrEmpty(humanName)) continue;
+                if (roles.ContainsKey(humanName)) continue;
+                Transform bone = animator.GetBoneTransform((HumanBodyBones)i);
+                if (bone == null) continue;
+                roles[humanName] = bone.name;
+            }
+            return roles;
+        }
+
+        internal static SceneLookRigPlan SkeletonPlan(SceneLookLook look, GameObject body)
+        {
+            SceneLookRigPlan plan = new SceneLookRigPlan();
+            if (body == null)
+            {
+                plan.Reason = "no body";
+                return plan;
+            }
+            Animator animator = HumanAnimator(body);
+            if (animator == null)
+            {
+                plan.Reason = "the body is not humanoid";
+                return plan;
+            }
+            return SceneLookRig.Skeleton(look, Names(body), AvatarRoles(animator));
         }
 
         internal static float BodyScale(GameObject body)
@@ -336,8 +374,13 @@ namespace ObenseuerCore
 
         private static Dictionary<long, SceneLookMatrix> LookRest(SceneLookLook look)
         {
+            Dictionary<long, SceneLookMatrix> cached;
+            if (rests.TryGetValue(look, out cached)) return cached;
             int unresolved;
-            return SceneLookBind.Rest(SceneLookFrame.RestMeshes(look), out unresolved);
+            Dictionary<long, SceneLookMatrix> rest = SceneLookBind.Rest(SceneLookFrame.RestMeshes(look), out unresolved);
+            if (rests.Count >= RestCacheMax) rests.Clear();
+            rests[look] = rest;
+            return rest;
         }
 
         internal static string ScaleNote(SceneLookLook look)
@@ -363,6 +406,30 @@ namespace ObenseuerCore
             }
             if (parts.Count == 0) return string.Empty;
             return " | non unit scale on a node outside the file bind poses: " + string.Join(", ", parts.ToArray());
+        }
+
+        internal static string AxisNote(SceneLookLook look)
+        {
+            if (look == null || look.Nodes == null) return string.Empty;
+            List<string> parts = new List<string>();
+            foreach (SceneLookNode node in look.Nodes)
+            {
+                if (node.Scale == null || node.Position == null || node.Rotation == null) continue;
+                if (node.Scale.Length < 3 || node.Position.Length < 3 || node.Rotation.Length < 4) continue;
+                float determinant = Determinant(SceneLookFrame.Local(node));
+                if (!(determinant < 0f)) continue;
+                if (parts.Count >= 3) break;
+                parts.Add(node.Name + " (" + Number(determinant) + ")");
+            }
+            if (parts.Count == 0) return string.Empty;
+            return " | mirrored nodes (negative determinant): " + string.Join(", ", parts.ToArray());
+        }
+
+        private static float Determinant(SceneLookMatrix matrix)
+        {
+            return matrix.M00 * (matrix.M11 * matrix.M22 - matrix.M12 * matrix.M21)
+                - matrix.M01 * (matrix.M10 * matrix.M22 - matrix.M12 * matrix.M20)
+                + matrix.M02 * (matrix.M10 * matrix.M21 - matrix.M11 * matrix.M20);
         }
 
         internal static float BindScale(float[] pose)
@@ -438,6 +505,21 @@ namespace ObenseuerCore
                 }
             }
             return fallback;
+        }
+
+        private static Transform MapRoot(SceneLookRigPlan plan, Dictionary<string, string> map, Transform root)
+        {
+            foreach (SceneLookRigRole role in plan.Roles)
+            {
+                if (role.HumanName != "Hips") continue;
+                string name;
+                if (!map.TryGetValue(role.LookName, out name)) break;
+                Transform mapped = Find(root, name);
+                if (mapped != null) return mapped;
+                break;
+            }
+            Transform fallback = Find(root, SceneLookRig.RootBone);
+            return fallback != null ? fallback : root;
         }
 
         private static bool Attach(GameObject owner, SceneLookLookRenderer renderer, SceneLookAssets assets, Transform[] bones, Transform rootBone, Material target, Matrix4x4[] poses, SceneLookApplied state, out string reason)
@@ -521,7 +603,14 @@ namespace ObenseuerCore
         private void LateUpdate()
         {
             if (!Auto) return;
-            Sync();
+            try
+            {
+                Sync();
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(SceneLooks.Owner, "pose driver update", e);
+            }
         }
 
         private void OnDestroy()

@@ -29,6 +29,7 @@ The samples on this page are written as BepInEx 6 plugins. On BepInEx 5, delete 
 
 This framework mod writes one log line at the start of every game day. Once a save is loaded, it also logs the hour and the player's hunger value. `Events.DayPassed` is an event: the framework calls your code each time it happens. `Events.WhenReady` waits until a save is loaded and then runs your code once. See [Using events](guides/getting-started/using-events.md) for more on both.
 - `[Safety] RefuseUnknownBuild = false`. When true, every patch is refused on a game build other than 0.5.08 (buildid 25969064). By default an unknown build is patched, and a warning is logged. Takes effect on the next start.
+- `[Debug] DeveloperMenu = false`. Turns on the Developer menu, opened with F8 (rebindable under Mod Keybinds) or the `omf_dev` console command. Off by default, and when off nothing is built. See [Developer menu](api/dev-menu.md).
 - `[Debug] Master = false`. The framework's debug trace, written to `BepInEx\logs\ObenseuerCore.debug.log`. Also in the Mods menu and the `core_debug` console command. `[Debug] TraceFilter` limits it to type name prefixes. See [Debug](api/debug.md).
 - `[Debug] Verbose = false`. When true, `CoreLog.Debug` writes.
 - `[Debug] AccessProbe = false`. Runs the L0 access probe at start and logs the result.
@@ -356,6 +357,7 @@ Built-in gameplay tweaks. They have no C# API. Settings live in `BepInEx\config\
 | `Tweaks.Renovations` | `MoneyOnly` | `false` | Renovations need only money. The item requirement is skipped for the upgrade check and removal. A mod that takes renovation items itself does not read this flag: its prefix on `TenementController.RemoveRequiredItems` still runs, because HarmonyX runs every prefix, and it may still take items. See `TweakState`. | Not saved. |
 | `Tweaks.Renovations` | `BuildTimeMultiplier` | `1` | Scales the build time when an order is placed, and the displayed total. Rounded up to whole hours for the total. | Not saved. Changing it while an order is placed can leave that order's progress wrong. |
 | `Tweaks.Renovations` | `InstantBuild` | `false` | Places renovation orders with zero build time. Scripted `TenementUpgradeStart` orders keep their authored time. | Not saved. |
+| `Tweaks.Renovations` | `TakeRemainingOnly` | `false` | A renovation takes from each tenement storage only the items it still needs, and only the rest from the player, instead of asking every storage for the whole amount. Fixes a game bug that can take too many items. Independent of `MoneyOnly`; with `MoneyOnly` on it does nothing, because the whole item step is skipped. | Not saved. |
 | `Tweaks.Camera` | `ThirdPersonToggle` | `false` | Turns on the `ToggleKey` switch between first and third person. Off clears the toggle's lock and goes back to first person when the game's first-person lock was on. | Not saved by the framework. The game saves `firstperson` and the cleared flags, see `CameraView`. |
 | `Tweaks.Camera` | `ToggleKey` | `F6` | Switches the view while `ThirdPersonToggle` is on. Ignored while a game menu, shop, pause, dialogue, the console or game controls are active. `V` is bound to "Rotation Mode", so it is not the default. | Not saved. |
 | `Tweaks.Camera` | `AllowScrollZoom` | `false` | Clears the first-person lock so the scroll wheel moves between first and third person. Restored to the game's values when it and `ThirdPersonToggle` are both off. Not applied while a trigger forces first person. | Not saved by the framework. A save made while it is on stores the cleared flags. |
@@ -370,7 +372,7 @@ public static class TweakState
 public static bool RenovationsMoneyOnly { get; }  // Tweaks.Renovations MoneyOnly, the value the game sees
 ```
 
-A mod that takes renovation items itself must check this in its own `TenementController.RemoveRequiredItems` prefix: when it is true, return `false` early, before taking anything. HarmonyX still runs every prefix, so the check belongs in that mod's code.
+A mod that takes renovation items itself must check this in its own `TenementController.RemoveRequiredItems` prefix: when it is true, return `false` early, before taking anything. HarmonyX still runs every prefix, so the check belongs in that mod's code. The framework's own `TakeRemainingOnly` fix also runs on that method, installed as a prefix last, and `TweakState` does not report it: with that tweak on, the framework takes the remaining items and skips the original, and a mod's own prefix at the default priority still runs first.
 
 Read the flag from a helper, and call the helper from the prefix inside try/catch. An older framework version without the member fails when the code that reads it is compiled. That is a `TypeLoadException` or a `MissingMethodException`, and it is thrown at the call into the helper. A try/catch inside the helper does not catch it (checked with a two-version probe on .NET Framework).
 

@@ -39,18 +39,44 @@ public static class FurnitureRegistry
 </div>
 </div>
 
-Here is a blueprint that joins two pools, flatpack loot, and a mailed blueprint.
+This whole mod adds a table, gives its blueprint two pools, adds flatpack loot and mails the blueprint. The furniture and its blueprint are defined in `OnLoad`, which is the only safe time for registration. The two calls that touch the game wait for a save.
 
 ```csharp
-BlueprintDefinition blueprint = new BlueprintDefinition();
-blueprint.Inputs[35010] = 2;
-blueprint.Pools.Add(FurnitureRegistry.GeneralBlueprintPool);
-blueprint.Pools.Add("Improved");
-FurnitureRegistry.DefineBlueprint(furnitureId, blueprint);
+using ObenseuerCore;
 
-FurnitureRegistry.AddFlatpackLoot(furnitureId, "Toolbox", 20);
+[ModInfo("example.blueprintpools", "Pooled Blueprint", "0.1.0")]
+[ModDependency("obenseuer.moddingframework", "0.11.0")]
+public sealed class PooledBlueprint : FrameworkMod
+{
+    private string tableId;
 
-FurnitureRegistry.MailBlueprint(furnitureId, "Oak Table plans", MailKind.Letter);
+    protected override void OnLoad()
+    {
+        FurnitureDefinition table = new FurnitureDefinition();
+        table.TemplatePath = "Assets/Content/Prefabs/Building System/Furniture/Tables/Wooden Table.asset";
+        table.Title = "Oak Table";
+        table.Details = "A table made from solid oak.";
+        table.PriceOC = 150;
+        tableId = FurnitureRegistry.Define(Mod.Id, "table", table);
+        if (tableId == null) return;
+
+        BlueprintDefinition blueprint = new BlueprintDefinition();
+        blueprint.Inputs[35010] = 2;
+        blueprint.Pools.Add(FurnitureRegistry.GeneralBlueprintPool);
+        blueprint.Pools.Add("Improved");
+        FurnitureRegistry.DefineBlueprint(tableId, blueprint);
+
+        Events.WhenReady(HandOut);
+    }
+
+    private void HandOut()
+    {
+        if (!FurnitureRegistry.AddFlatpackLoot(tableId, "Toolbox", 20))
+            Log.Warn("The flatpack loot was refused, see the limits section of this page");
+        if (!FurnitureRegistry.MailBlueprint(tableId, "Oak Table plans", MailKind.Letter))
+            Log.Warn("The blueprint mail was refused, see the limits section of this page");
+    }
+}
 ```
 
 ## Things to know

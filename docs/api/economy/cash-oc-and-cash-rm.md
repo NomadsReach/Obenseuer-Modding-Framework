@@ -34,16 +34,48 @@ public static class Cash
 
 ### Before and after
 
-Before:
+Before, as a complete mod. It reads the balance as a decimal number. The limits are on the [Money and cash](money-cash.md#limits) page.
 
 ```csharp
-if (Cash.Balance(MoneyCurrency.OC) >= 50f) { }
+using ObenseuerCore;
+
+[ModInfo("example.balancecheck", "Balance Check", "0.1.0")]
+[ModDependency("obenseuer.moddingframework", "0.11.0")]
+public class BalanceCheck : FrameworkMod
+{
+    protected override void OnLoad()
+    {
+        Events.WhenReady(() =>
+        {
+            if (Cash.Balance(MoneyCurrency.OC) >= 50f)
+                Log.Info("The player can pay 50 OC.");
+            else
+                Log.Warn("The player cannot pay 50 OC.");
+        });
+    }
+}
 ```
 
-After:
+After, as a complete mod. It reads the same balance as a whole number.
 
 ```csharp
-if (Cash.Oc >= 50) { }
+using ObenseuerCore;
+
+[ModInfo("example.ocbalancecheck", "OC Balance Check", "0.1.0")]
+[ModDependency("obenseuer.moddingframework", "0.11.0")]
+public class OcBalanceCheck : FrameworkMod
+{
+    protected override void OnLoad()
+    {
+        Events.WhenReady(() =>
+        {
+            if (Cash.Oc >= 50)
+                Log.Info("The player has " + Cash.Oc + " OC.");
+            else
+                Log.Warn("The player has less than 50 OC. See the limits on the money and cash page.");
+        });
+    }
+}
 ```
 
 ### Things to know

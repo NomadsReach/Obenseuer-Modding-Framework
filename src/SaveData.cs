@@ -39,6 +39,11 @@ namespace ObenseuerCore
 
         internal static string CharacterName { get { return (string)characterNameField.GetValue(null); } }
 
+        internal static bool LoadFailed(string modId)
+        {
+            return loadFailed.Contains(modId);
+        }
+
         public static void Register<T>(string modId, Func<T> onSave, Action<T> onLoad) where T : class, new()
         {
             ModIds.RequireLegacyFileName(modId, "modId");

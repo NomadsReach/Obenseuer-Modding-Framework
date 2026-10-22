@@ -28,7 +28,7 @@ using ObenseuerCore;
 
 [ModInfo("example.hourswatch", "Hours Watch", "0.1.0")]
 [ModDependency("obenseuer.moddingframework", "0.11.0")]
-public sealed class HoursWatch : FrameworkMod
+public class HoursWatch : FrameworkMod
 {
     protected override void OnLoad()
     {
@@ -42,31 +42,100 @@ public sealed class HoursWatch : FrameworkMod
 }
 ```
 
-`Shops.All()` is on the [Economy](economy/shops.md#shops) page. It gives each shop's `Id`, which is what you pass to `ShopHours`. `WhenReady` runs your code once the game is ready. See [Using events](../guides/getting-started/using-events.md) for more on it.
+`Shops.All()` is on the [Economy](economy/shops.md#shops) page. It gives each shop's `Id`, which is what you pass to `ShopHours`. `WhenReady` runs your code once the game is ready. See [Using events](../guides/getting-started/using-events.md) for more on it. The limits are in the [Limits](#limits) section below.
 
 ## Common tasks
 
-Log the opening hours of one shop, one line per day.
+Each example below is a complete mod, and each one runs once a save is loaded, because the shops are in the scene. Each one takes the first trader from `Shops.All()`, so there is no key to write down by hand.
+
+### Log the opening hours of one shop
+
+This writes one line per day. The limits are in the [Limits](#limits) section below.
 
 ```csharp
-string shopId = "put a shop id from Shops.All() here";
-foreach (ShopDayInfo day in ShopHours.Hours(shopId))
-    Log.Info(day.Day + ": " + day.Opens + " to " + day.Closes);
+using ObenseuerCore;
+
+[ModInfo("example.shophourslog", "Shop Hours Log", "0.1.0")]
+[ModDependency("obenseuer.moddingframework", "0.11.0")]
+public class ShopHoursLog : FrameworkMod
+{
+    protected override void OnLoad()
+    {
+        Events.WhenReady(() =>
+        {
+            foreach (ShopInfo shop in Shops.All())
+            {
+                if (shop.Kind != ShopKind.Trader)
+                    continue;
+
+                foreach (ShopDayInfo day in ShopHours.Hours(shop.Id))
+                    Log.Info(shop.Name + " " + day.Day + ": " + day.Opens + " to " + day.Closes);
+
+                break;
+            }
+        });
+    }
+}
 ```
 
-Check whether a shop is open to the player now.
+### Check whether a shop is open to the player now
 
 ```csharp
-string shopId = "put a shop id from Shops.All() here";
-if (ShopHours.IsOpen(shopId)) Log.Info("The shop is open.");
+using ObenseuerCore;
+
+[ModInfo("example.shopopencheck", "Shop Open Check", "0.1.0")]
+[ModDependency("obenseuer.moddingframework", "0.11.0")]
+public class ShopOpenCheck : FrameworkMod
+{
+    protected override void OnLoad()
+    {
+        Events.WhenReady(() =>
+        {
+            foreach (ShopInfo shop in Shops.All())
+            {
+                if (shop.Kind != ShopKind.Trader)
+                    continue;
+
+                if (ShopHours.IsOpen(shop.Id))
+                    Log.Info(shop.Name + " is open.");
+                else
+                    Log.Info(shop.Name + " is closed.");
+
+                break;
+            }
+        });
+    }
+}
 ```
 
-Find out whether the game is holding a shop open or closed apart from its opening hours.
+### Find out whether the game holds a shop open or closed
+
+`IsOpen` and `IsScheduledOpen` disagree when the game holds a trader open or closed apart from the clock, for example while the player stands close by. The limits are in the [Limits](#limits) section below.
 
 ```csharp
-string shopId = "put a shop id from Shops.All() here";
-if (ShopHours.IsOpen(shopId) != ShopHours.IsScheduledOpen(shopId))
-    Log.Info("The shop is not following its opening hours right now.");
+using ObenseuerCore;
+
+[ModInfo("example.shophoursmismatch", "Shop Hours Mismatch", "0.1.0")]
+[ModDependency("obenseuer.moddingframework", "0.11.0")]
+public class ShopHoursMismatch : FrameworkMod
+{
+    protected override void OnLoad()
+    {
+        Events.WhenReady(() =>
+        {
+            foreach (ShopInfo shop in Shops.All())
+            {
+                if (shop.Kind != ShopKind.Trader)
+                    continue;
+
+                if (ShopHours.IsOpen(shop.Id) != ShopHours.IsScheduledOpen(shop.Id))
+                    Log.Info(shop.Name + " is not following its opening hours right now.");
+
+                break;
+            }
+        });
+    }
+}
 ```
 
 ## Reference

@@ -71,7 +71,7 @@ public sealed class NpcAnimDemo : FrameworkMod
         foreach (AnimationClip clip in Resources.FindObjectsOfTypeAll<AnimationClip>())
         {
             if (clip.name != ClipName || clip.legacy) continue;
-            if (!NpcAnimation.Play(Mod.Id, target.Id, clip, true, 0.3f)) Log.Info("The clip could not play on " + target.Name + ".");
+            if (!NpcAnimation.Play(Mod.Id, target.Id, clip, true, 0.3f)) Log.Warn("The clip could not play on " + target.Name + ". See the play limits.");
             return;
         }
         Log.Info("No clip named " + ClipName + " is loaded.");
@@ -79,4 +79,4 @@ public sealed class NpcAnimDemo : FrameworkMod
 }
 ```
 
-`Play` and `Stop` take your mod's id, so each mod can only stop its own clips. A clip from your own mod, for example from an asset bundle, works the same way. See the [keybinds guide](../guides/getting-started/keybinds.md) for `Mod.Key`. A project that uses this API needs a reference to `UnityEngine.AnimationModule.dll`, because `AnimationClip` and `Animator` are in it.
+`Play` gives `false` when it refuses, for the reasons in the [play limits](npc-animation/playing-and-stopping-on-an-npc.md#limits). `Play` and `Stop` take your mod's id, so each mod can only stop its own clips. A clip from your own mod, for example from an asset bundle, works the same way. See the [keybinds guide](../guides/getting-started/keybinds.md) for `Mod.Key`. A project that uses this API needs a reference to `UnityEngine.AnimationModule.dll`, because `AnimationClip` and `Animator` are in it.

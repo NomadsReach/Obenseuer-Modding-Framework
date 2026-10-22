@@ -91,7 +91,12 @@ namespace ObenseuerCore
             inFlightUntil = 0f;
         }
 
-        private static string CurrentFolder()
+        public static string CurrentFolder()
+        {
+            return Guard(() => OwnedFolder(), null, "CurrentFolder");
+        }
+
+        private static string OwnedFolder()
         {
             string folder = SaveController.LastSaveFolderPath;
             if (string.IsNullOrEmpty(folder) || PlayerIdentity.identity == null) return null;

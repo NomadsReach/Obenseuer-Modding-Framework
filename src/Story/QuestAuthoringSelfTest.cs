@@ -50,6 +50,57 @@ namespace ObenseuerCore
                 if (QuestAuthoring.ShouldFinishOnReveal(3, 3, true)) return "an objective that skips counter self completion was finished on reveal";
                 if (QuestAuthoring.ShouldFinishOnReveal(2, 3, false)) return "an objective below its target was finished on reveal";
                 if (QuestAuthoring.ShouldFinishOnReveal(3, 0, false)) return "an objective without a counter was finished on reveal";
+                QuestDefinition follow = Quest("part2", "Part two", "step");
+                QuestDefinition chain = Quest("part1", "Part one", "step");
+                chain.Next = "part2";
+                chain.NextDefinition = follow;
+                if (QuestAuthoring.Check(Mod, chain) != QuestRefusal.None) return "a follow-up quest was refused";
+                if (QuestAuthoring.NextKey(chain) != "part2") return "the follow-up key was not read";
+                if (QuestAuthoring.NextKey(follow) != null || QuestAuthoring.NextKey(null) != null) return "a quest without a follow-up named one";
+                QuestDefinition derived = Quest("part1", "Part one", "step");
+                derived.NextDefinition = follow;
+                if (QuestAuthoring.NextKey(derived) != "part2") return "the follow-up key was not taken from the follow-up definition";
+                QuestDefinition mismatch = Quest("part1", "Part one", "step");
+                mismatch.Next = "other";
+                mismatch.NextDefinition = follow;
+                if (QuestAuthoring.Check(Mod, mismatch) != QuestRefusal.BadInput) return "a follow-up key that disagrees with the definition was accepted";
+                QuestDefinition badNext = Quest("part1", "Part one", "step");
+                badNext.Next = "a.b";
+                if (QuestAuthoring.Check(Mod, badNext) != QuestRefusal.BadInput) return "a follow-up key with a dot was accepted";
+                QuestDefinition badTitle = Quest("part1", "Part one", "step");
+                badTitle.NextDefinition = Quest("part2", "  ", "step");
+                if (QuestAuthoring.Check(Mod, badTitle) != QuestRefusal.BadInput) return "a follow-up without a title was accepted";
+                QuestDefinition self = Quest("part1", "Part one", "step");
+                self.Next = "part1";
+                self.NextDefinition = self;
+                if (QuestAuthoring.Check(Mod, self) != QuestRefusal.None) return "a quest that follows itself was refused";
+                QuestDefinition first = Quest("a", "A", "step");
+                QuestDefinition second = Quest("b", "B", "step");
+                first.Next = "b";
+                first.NextDefinition = second;
+                second.Next = "a";
+                second.NextDefinition = first;
+                if (QuestAuthoring.Check(Mod, first) != QuestRefusal.None) return "a follow-up loop was refused";
+                QuestDefinition longest = Quest("d1", "Deep 1", "step");
+                QuestDefinition cursor = longest;
+                for (int i = 2; i <= QuestFollowUpPlan.MaxDepth; i++)
+                {
+                    QuestDefinition level = Quest("d" + i, "Deep " + i, "step");
+                    cursor.Next = level.Key;
+                    cursor.NextDefinition = level;
+                    cursor = level;
+                }
+                if (QuestAuthoring.Check(Mod, longest) != QuestRefusal.None) return "the longest follow-up chain was refused";
+                QuestDefinition deeper = Quest("d1", "Deep 1", "step");
+                cursor = deeper;
+                for (int i = 2; i <= QuestFollowUpPlan.MaxDepth + 1; i++)
+                {
+                    QuestDefinition level = Quest("d" + i, "Deep " + i, "step");
+                    cursor.Next = level.Key;
+                    cursor.NextDefinition = level;
+                    cursor = level;
+                }
+                if (QuestAuthoring.Check(Mod, deeper) != QuestRefusal.BadInput) return "a follow-up chain over the cap was accepted";
                 string compare = CompareRule();
                 if (compare != null) return compare;
                 if (!QuestAuthoring.Owns("a.b", "a.b.q") || QuestAuthoring.Owns("a", "ab.q") || QuestAuthoring.Owns("a", null)) return "owner prefix check wrong";

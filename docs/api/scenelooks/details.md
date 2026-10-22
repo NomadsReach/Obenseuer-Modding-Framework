@@ -2,7 +2,7 @@
 title: Details
 parent: Scene looks
 grand_parent: Places and travel
-nav_order: 8
+nav_order: 9
 ---
 
 # Details

@@ -198,7 +198,7 @@ public enum NpcDays
 
 ## Setting and removing
 
-- A routine spawns its NPC the same way `ModNpcs.Spawn` does. If the source character has no body of its own, the NPC gets the default body. See [Mod NPCs](../modnpcs/spawn.md#spawn).
+- A routine spawns its NPC the same way `ModNpcs.Spawn` does. If the source character has no body of its own with the current rig, the NPC gets the default body. See [Mod NPCs](../modnpcs/spawn.md#spawn).
 - `Set` stores a copy of the routine for your mod and the NPC id. Changing your `NpcRoutine` afterwards does not change the stored copy. Calling `Set` again with the same id replaces the routine. You can call it at any time, even on the main menu. The NPC appears once a save is loaded and its scene is active.
 - `Set` throws an `ArgumentException` for wrong values. That means an invalid `modId`, an `npcId` that is empty or longer than 64 characters, an empty `name`, a `null` routine, or a routine with no steps.
 - `Set` returns `false` when it did not store the routine. That happens when mod NPCs are off (`IsAvailable` is `false`), when your mod already has 64 routines, when an NPC that no routine started already uses the id, and when a saved mod NPC (from `ModNpcs.SpawnSaved`) uses the id, even if that NPC is not in the loaded scene. So never use the same id for `SpawnSaved` and for a routine.

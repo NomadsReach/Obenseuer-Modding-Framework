@@ -23,6 +23,7 @@ namespace ObenseuerCore
         private const int HardMaxLinesPerSecond = 100000;
         private static readonly Dictionary<string, CoreLog> loggers = new Dictionary<string, CoreLog>(StringComparer.OrdinalIgnoreCase);
         internal static CoreLog Mirror;
+        internal static long Dropped;
         private readonly Dictionary<string, string> lastByKey = new Dictionary<string, string>();
         private readonly Dictionary<string, float> errorAt = new Dictionary<string, float>();
         private readonly string path;
@@ -142,6 +143,7 @@ namespace ObenseuerCore
                 return true;
             }
             errorDropped++;
+            Dropped++;
             return false;
         }
 
@@ -150,7 +152,7 @@ namespace ObenseuerCore
             if (errorDropped == 0) return;
             int count = errorDropped;
             errorDropped = 0;
-            Emit("WARN", count + " error lines suppressed");
+            Emit("WARN", count + " error lines suppressed: the same error is written once in " + ErrorRepeatSeconds + " seconds and at most " + MaxErrorLines + " errors are written in " + ErrorWindowSeconds + " seconds");
         }
 
         private static string FirstFrame(Exception e)
@@ -233,6 +235,7 @@ namespace ObenseuerCore
             if (windowLines >= lineLimit)
             {
                 suppressed++;
+                Dropped++;
                 return;
             }
             windowLines++;
@@ -244,7 +247,7 @@ namespace ObenseuerCore
             if (suppressed == 0) return;
             int count = suppressed;
             suppressed = 0;
-            Emit("WARN", count + " lines suppressed");
+            Emit("WARN", count + " lines suppressed: this log accepts " + lineLimit + " lines per second, raise CoreLog.LineLimit to allow more");
         }
 
         internal static void FlushSuppressed()

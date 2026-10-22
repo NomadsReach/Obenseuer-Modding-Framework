@@ -28,7 +28,7 @@ These calls work only on NPCs that your mod spawned. They do not work on the gam
 
 ## Quick example
 
-This mod gives a new NPC a timetable: wander near the player's position every day from 8:00 to 18:00. It writes a log line whenever the NPC changes from one step to the next. The routine spawns the NPC for you, so there is no separate spawn call.
+This mod gives a new NPC a timetable: wander near the player's position every day from 8:00 to 18:00. It writes a log line whenever the NPC changes from one step to the next. The routine spawns the NPC for you, so there is no separate spawn call. `Set` returns `false` when it refuses, so the mod writes a warning and stops.
 
 ```csharp
 using System;
@@ -42,26 +42,29 @@ public sealed class Keeper : FrameworkMod
 {
     protected override void OnLoad()
     {
+        // A subscription is a registration, so it belongs in OnLoad.
         ModNpcRoutines.StepChanged += args => Log.Info(args.NpcId + " went from " + args.From + " to " + args.To);
+
+        // The routine needs a loaded scene, so it waits for a save.
         Events.WhenReady(() =>
         {
-            var source = default(ObenseuerCore.CharacterInfo);
-            foreach (var character in Characters.All())
-            {
-                if (character.IsPlayer) continue;
-                source = character;
-                break;
-            }
-            if (source == null) return;
+            int sourceId = 0;
+            foreach (CharacterInfo character in Characters.All())
+                if (!character.IsPlayer) { sourceId = character.Id; break; }
 
             string scene = SceneManager.GetActiveScene().name;
             NpcRoutine routine = new NpcRoutine()
                 .Wander(NpcDays.Every, TimeSpan.FromHours(8), TimeSpan.FromHours(18), scene, PlayerState.Position, 5f);
-            bool set = ModNpcRoutines.Set(Mod.Id, "keeper", source.Id, "Sam", "Keeper", routine);
-            Log.Info("Routine set: " + set);
+            if (!ModNpcRoutines.Set(Mod.Id, "keeper", sourceId, "Sam", "Keeper", routine))
+            {
+                Log.Warn("The routine was refused. See the routines page for why.");
+                return;
+            }
+
+            Log.Info("The keeper has a routine.");
         });
     }
 }
 ```
 
-`Mod.Id` is your mod's id. `"keeper"` is the id you choose for this NPC, and every later call uses the same pair of ids. `StepChanged` is an event: the framework calls your code each time it happens. `WhenReady` runs your code once a save is loaded (see [Using events](../guides/getting-started/using-events.md)).
+`Mod.Id` is your mod's id. `"keeper"` is the id you choose for this NPC, and every later call uses the same pair of ids. `StepChanged` is an event: the framework calls your code each time it happens. `WhenReady` runs your code once a save is loaded (see [Using events](../guides/getting-started/using-events.md)). The [setting and removing](modnpc-routines/routines.md#setting-and-removing) notes list the reasons `Set` gives a plain `false`.

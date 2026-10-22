@@ -41,13 +41,14 @@ public sealed class OakTableMod : FrameworkMod
         table.Details = "A table made from solid oak.";
         table.PriceOC = 150;
         tableId = FurnitureRegistry.Define(Mod.Id, "table", table);
+        if (tableId == null) Log.Warn("The Oak Table was refused, see the limits section of Defining furniture");
 
         FurnitureRegistry.Loaded += () =>
         {
-            if (tableId != null) FurnitureRegistry.Give(tableId, 2);
+            if (!FurnitureRegistry.Give(tableId, 2)) Log.Warn("The two pieces were refused, see the limits section of Defining furniture");
         };
     }
 }
 ```
 
-`Define` gives you back the id of your furniture, or `null` when the framework refused it. `Loaded` is an event: the framework calls your code each time it happens. See [Using events](../guides/getting-started/using-events.md) for more on events. Furniture is defined when your mod loads, before the game builds any piece, and `Define` is refused after that. See "Defining furniture".
+`Define` gives you back the id of your furniture, or `null` when the framework refused it. `Loaded` is an event: the framework calls your code each time it happens. See [Using events](../guides/getting-started/using-events.md) for more on events. Furniture is defined when your mod loads, before the game builds any piece, and `Define` is refused after that. A `null` id or a `false` from `Give` means the call was refused; the example logs a warning. See [Defining furniture](furniture/defining-furniture.md) and its [Limits](furniture/defining-furniture.md#limits) section.

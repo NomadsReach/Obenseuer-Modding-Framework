@@ -90,6 +90,22 @@ namespace ObenseuerCore
         }
     }
 
+    public sealed class QuestRewoundArgs
+    {
+        public string TaskId { get; private set; }
+        public string Reason { get; private set; }
+        public string From { get; private set; }
+        public string To { get; private set; }
+
+        internal QuestRewoundArgs(string taskId, string reason, string from, string to)
+        {
+            TaskId = taskId;
+            Reason = reason;
+            From = from;
+            To = to;
+        }
+    }
+
     public static class Quests
     {
         internal const string Owner = "obenseuer.moddingframework.quests";
@@ -99,6 +115,9 @@ namespace ObenseuerCore
 
         public static event Action<TaskChangedArgs> TaskChanged;
         public static event Action<ObjectiveChangedArgs> ObjectiveChanged;
+
+        /// <summary>Raised after the framework rewinds one of your quests: a title or description change, a restart, a reset, a removal, a jump to an objective or a checkpoint restore. Reason names the call that did it. From and To are objective keys, the first objective that was Active before the call and the first one Active after it; Remove, SetTitle and SetDescription move no objective, so both are null there and a listener must not rely on From or To for those calls.</summary>
+        public static event Action<QuestRewoundArgs> Rewound;
 
         /// <summary>Raised when the quest system can be written, once per load attempt: at each save load and at each new game. A level change reloads the level without rebuilding the save and does not raise it again, while loading the same save again, another save or a new game does. Create quests here, and make the handler safe to run more than once.</summary>
         public static event Action Ready;
@@ -160,6 +179,23 @@ namespace ObenseuerCore
             catch (Exception e)
             {
                 ApiLog.Once(Owner, "State", e);
+                return null;
+            }
+        }
+
+        public static ObjectiveState? State(string taskId, string objectiveId)
+        {
+            TaskController controller = Readable();
+            if (controller == null || string.IsNullOrEmpty(taskId) || string.IsNullOrEmpty(objectiveId)) return null;
+            try
+            {
+                ObjectiveStatusInfo objective = Unique(Resolve(controller, taskId), objectiveId);
+                if (objective == null) return null;
+                return (ObjectiveState)(int)objective.status;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Owner, "State " + objectiveId, e);
                 return null;
             }
         }
@@ -292,6 +328,12 @@ namespace ObenseuerCore
         {
             ObjectiveChangedArgs args = new ObjectiveChangedArgs(taskId, objectiveId, state, current, target);
             Events.Raise(ObjectiveChanged, "Quests.ObjectiveChanged", h => h(args));
+        }
+
+        internal static void RaiseRewound(string taskId, string reason, string from = null, string to = null)
+        {
+            QuestRewoundArgs args = new QuestRewoundArgs(taskId, reason, from, to);
+            Events.Raise(Rewound, "Quests.Rewound", h => h(args));
         }
 
         internal static void Tick()

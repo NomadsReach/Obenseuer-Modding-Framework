@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using BepInEx.Configuration;
 using HarmonyLib;
 
@@ -10,6 +11,7 @@ namespace ObenseuerCore
         private const string CostOwner = Tweaks.Owner + ".renovations.cost";
         private const string MoneyOwner = Tweaks.Owner + ".renovations.moneyonly";
         private const string BuildOwner = Tweaks.Owner + ".renovations.build";
+        private const string TakeOwner = Tweaks.Owner + ".renovations.take";
         private static float costMultiplier = Tweaks.Default;
         private static bool costPatched;
         private static bool moneyOnly;
@@ -17,6 +19,8 @@ namespace ObenseuerCore
         private static float buildTimeMultiplier = Tweaks.Default;
         private static bool instantBuild;
         private static bool buildPatched;
+        private static bool takeRemainingOnly;
+        private static bool takePatched;
         private static bool renovationScope;
         private static bool scriptedUpgrade;
 
@@ -31,6 +35,7 @@ namespace ObenseuerCore
             Tweaks.Flag(config, Section, "MoneyOnly", "true: renovations need only money, not the required items. Applies immediately.", SetMoneyOnly);
             Tweaks.Multiplier(config, Section, "BuildTimeMultiplier", "Renovation build time multiplier, 2 = twice as long. 1 = game default, range 0.01 to 100. Applies to orders placed from now on and to the displayed total; orders already placed keep their saved progress.", SetBuildTime);
             Tweaks.Flag(config, Section, "InstantBuild", "true: renovations placed from now on start with zero build time. Applies immediately; orders already placed keep their saved progress.", SetInstantBuild);
+            Tweaks.Flag(config, Section, "TakeRemainingOnly", "true: a renovation takes from each tenement storage only the items it still needs, instead of the whole amount from every storage, and then only the rest from your inventory. Fixes a game bug that can take too many items. Applies immediately.", SetTakeRemainingOnly);
         }
 
         private static void SetCost(float value)
@@ -65,6 +70,42 @@ namespace ObenseuerCore
         {
             instantBuild = value;
             PatchBuild("InstantBuild");
+        }
+
+        private static void SetTakeRemainingOnly(bool value)
+        {
+            takeRemainingOnly = value;
+            if (takePatched || !takeRemainingOnly) return;
+            takePatched = true;
+            bool ok = Tweaks.PatchAs(TakeOwner, true, typeof(TenementController), "RemoveRequiredItems", new[] { typeof(int), typeof(int) }, typeof(TweaksRenovations), "TakeRemainingPrefix", null, null, Priority.Last);
+            Tweaks.Log(Section + ".TakeRemainingOnly", ok);
+        }
+
+        private static bool TakeRemainingPrefix(int id, int amount, List<Storage> ___tenementResourceStorages)
+        {
+            if (moneyOnly || !takeRemainingOnly || amount < 1) return true;
+            try
+            {
+                int need = amount;
+                if (___tenementResourceStorages != null)
+                {
+                    foreach (Storage storage in ___tenementResourceStorages)
+                    {
+                        if (need < 1) break;
+                        if (storage == null) continue;
+                        int remaining;
+                        storage.RemoveItem(id, out remaining, need);
+                        need = remaining;
+                    }
+                }
+                if (need > 0 && Inventory.instance != null) Inventory.instance.RemoveItems(id, need, true, -1, true);
+                return false;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(TakeOwner, "RemoveRequiredItems prefix", e);
+                return false;
+            }
         }
 
         private static void PatchBuild(string key)

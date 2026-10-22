@@ -66,7 +66,6 @@ namespace ObenseuerCore
     {
         internal const string Owner = "obenseuer.moddingframework.cardgames";
         internal const string PayoutOwner = Owner + ".payout";
-        // copy of the local array in CardGameTable.OnGameFinished (CardGameTable.cs:368), not readable at runtime
         private static readonly float[] PlacementMultipliers = { 2f, 1.2f, 0.8f, 0f };
         private static bool installed;
         private static bool payoutInstalled;

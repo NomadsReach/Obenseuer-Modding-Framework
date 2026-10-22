@@ -96,3 +96,15 @@ public static class Hud
 - The tooltip is one shared box, so the game can replace your text. When the player hovers over an item or other game tooltip, your text is replaced, and when that hover ends, the box hides.
 - `ShowGameUi` gives back `false` for an owner with no hide. Both `HideGameUi` and `ShowGameUi` give back `false` when the game's HUD is not in the scene.
 - Loading a new scene ends every hide, so hide again if you still need it. The game replaces its HUD controller then, so every owner is dropped and the HUD shows. Call `HideGameUi` again from your own `Events.SceneLoaded` handler. <span class="tech">(A Single scene load ends every hide.)</span>
+
+## Mods menu settings
+
+The Mods menu has a `Hints` section with two settings that control what mods may show. Both are on by default. They are the framework's own settings, so they do not change the game's own hints.
+
+- `ShowModHints` shows hints from mods. It is separate from the game's own Hints setting, so turning one off leaves the other alone. While it is off, `ShowHint` gives back `false` and the hint does not show. <span class="tech">(`HudHints.Show` reads it, and the log line says the setting is off. A `GameHintBox` hint is still kept, and it appears when the player turns the setting back on.)</span>
+- `ShowModPrompts` shows key prompts from mods. While it is off, `ShowPrompt` gives back `false` and the prompt does not show, and `PromptShowing` gives back `false`. <span class="tech">(`HudHints.Prompt` and `HudHints.PromptShowing` read it.)</span>
+
+The Mods menu has a `UI` section with two settings for the New Game screen. Both are on by default.
+
+- `NewGameRowsOnAllDifficulties` shows the rows a mod registered for the New Game screen on every difficulty, not only on Custom, where the game shows its own difficulty settings. Turn it off if the rows overlap the difficulty description. The framework's own rows follow the setting; the game's own setting rows still show only on Custom. <span class="tech">(`NewGameOptionsScreen.Keep` reads it, section `UI`, on by default.)</span>
+- `ModPresetsInSelector` lists the difficulty presets mods registered in the game's own difficulty selector, after the game's own levels, so the player can pick one while starting a game. Turn it off to leave the selector with the game's own levels. See [Difficulty presets](difficulty-presets.md). <span class="tech">(`DifficultyModPresetsPatches` reads it, section `UI`, on by default. When the core plugin cannot be found the setting is not in the config and the listing stays on.)</span>

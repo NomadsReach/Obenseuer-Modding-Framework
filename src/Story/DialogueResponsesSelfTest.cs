@@ -22,6 +22,10 @@ namespace ObenseuerCore
                 if (DialogueResponses.FindAnchor(entries, "Hi") != null || DialogueResponses.FindAnchor(entries, " ") != null) return "a missing anchor matched";
                 if (DialogueResponses.FindAnchor(entries, "Bye").id != 3) return "exact anchor match wrong";
                 if (DialogueResponses.FindAnchor(entries, "  HI THERE ").id != 5) return "trimmed anchor match wrong";
+                if (DialogueResponses.AnchorMatchCount(entries, "Any work?") != 2) return "anchor match count wrong";
+                if (DialogueResponses.AnchorMatchCount(entries, "BYE") != 2) return "loose anchor match count wrong";
+                if (DialogueResponses.AnchorMatchCount(entries, "Hi there") != 1) return "an exact anchor match count wrong";
+                if (DialogueResponses.AnchorMatchCount(entries, "Hi") != 0 || DialogueResponses.AnchorMatchCount(entries, " ") != 0) return "a missing anchor match count wrong";
                 if (DialogueAuthoring.FreeIdFrom(1000005, id => id == 1000005 || id == 1000006) != 1000007) return "id allocation skipped a used id wrong";
                 if (DialogueAuthoring.FreeIdFrom(1999999, id => id == 1999999) != 1000000) return "id allocation did not wrap";
                 string key = DialogueResponses.KeyFor("a.b", "conv", 7, "Yes", "Sure", null);

@@ -25,10 +25,12 @@ namespace SceneLookHarness
             if (command == "applyplan") return SceneLookHarnessApplyPlan.Run(dataDir, Arg(args, 2), Arg(args, 3), Arg(args, 4));
             if (command == "blendshapes") return SceneLookHarnessBlendShapes.Run(dataDir, Arg(args, 2), Arg(args, 3));
             if (command == "bindposes") return SceneLookHarnessBindPoses.Run(dataDir, Arg(args, 2), Arg(args, 3), Arg(args, 4));
+            if (command == "skeleton") return SceneLookHarnessSkeleton.Run(dataDir, Arg(args, 2), Arg(args, 3), Arg(args, 4));
             Console.Error.WriteLine("usage: SceneLookHarness proof|scan|match|list|listall|find|findchar [dataDir]");
             Console.Error.WriteLine("       SceneLookHarness applyplan [dataDir] [scene] [lookRoot] [target]");
             Console.Error.WriteLine("       SceneLookHarness blendshapes [dataDir] [meshName|pathId] [file]");
             Console.Error.WriteLine("       SceneLookHarness bindposes [dataDir] [scene] [lookRoot] [target]");
+            Console.Error.WriteLine("       SceneLookHarness skeleton [dataDir] [scene] [lookRoot] [target]");
             return 2;
         }
 

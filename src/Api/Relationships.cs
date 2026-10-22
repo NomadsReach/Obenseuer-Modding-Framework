@@ -39,6 +39,9 @@ namespace ObenseuerCore
 
     public static class Relationships
     {
+        private const float MinDisposition = -100f;
+        private const float MaxDisposition = 100f;
+
         public static event Action<RelationshipChange> RelationshipChanged;
 
         public static bool IsAvailable
@@ -98,6 +101,40 @@ namespace ObenseuerCore
             catch (Exception e)
             {
                 ApiLog.Once(Npcs.Owner, "Relationships.Has", e);
+                return false;
+            }
+        }
+
+        public static bool SetDisposition(string id, float value)
+        {
+            if (!ValidId(id)) return false;
+            if (SaveGate.Busy)
+            {
+                ApiLog.Once(Npcs.Owner, "Relationships.SetDisposition save", "a save or load is running, so no disposition was set");
+                return false;
+            }
+            if (float.IsNaN(value) || float.IsInfinity(value) || value < MinDisposition || value > MaxDisposition)
+            {
+                ApiLog.Once(Npcs.Owner, "Relationships.SetDisposition value", "value must be a finite number from -100 to 100, so no disposition was set");
+                return false;
+            }
+            try
+            {
+                if (RelationshipController.instance == null) return false;
+                foreach (RelationshipController.RelationshipInfo info in RelationshipController.instance.relationships)
+                {
+                    if (info.relationship == null || info.relationship.Id != id) continue;
+                    float previous = info.disposition;
+                    info.disposition = value;
+                    info.dispositionTarget = value;
+                    RaiseChanged(info.relationship, previous, value);
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Npcs.Owner, "Relationships.SetDisposition", e);
                 return false;
             }
         }

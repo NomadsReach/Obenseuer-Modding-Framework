@@ -282,7 +282,7 @@ namespace ObenseuerCore
             return RecipeDatabase.Recipes ?? new List<Recipe>();
         }
 
-        private static bool IsKnown(Recipe recipe)
+        internal static bool IsKnown(Recipe recipe)
         {
             RecipeController controller = RecipeController.instance;
             return controller != null && (controller.HasRecipe(recipe) || controller.HasLearnedRecipe(recipe));

@@ -8,10 +8,11 @@ using UnityEngine;
 
 namespace ObenseuerCore
 {
-    internal static class FrameworkMods
+    public static class FrameworkMods
     {
         private static readonly Dictionary<string, FrameworkMod> loaded = new Dictionary<string, FrameworkMod>(StringComparer.OrdinalIgnoreCase);
         private static readonly HashSet<string> installed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private static readonly List<string> failures = new List<string>();
 
         internal static void Load(Core core)
         {
@@ -35,9 +36,14 @@ namespace ObenseuerCore
             return id != null && installed.Contains(id);
         }
 
-        internal static List<FrameworkMod> Loaded()
+        public static List<FrameworkMod> Loaded()
         {
             return new List<FrameworkMod>(loaded.Values);
+        }
+
+        internal static List<string> Failures()
+        {
+            return new List<string>(failures);
         }
 
         private static void Start(Core core, FrameworkModScan.Candidate candidate, List<FrameworkModScan.Candidate> planned, CoreLog log)
@@ -68,6 +74,7 @@ namespace ObenseuerCore
             catch (Exception e)
             {
                 RemoveAdded(core, before, log);
+                failures.Add(candidate.Id + ": " + e.Message);
                 CoreLog.For(candidate.Id).Error("framework mod failed to load: " + e.Message, e);
                 log.Error(candidate.TypeName + " in " + candidate.Path + " failed to load, other mods still run: " + e.Message, e);
             }

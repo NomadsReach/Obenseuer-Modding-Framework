@@ -53,6 +53,13 @@ string name = SaveSlots.CurrentName;
 Log.Info(name == null ? "No save is loaded." : "Loaded from " + name);
 ```
 
+Get the folder the loaded save sits in, for example to keep your own files next to the game's. It is `null` when no save is loaded.
+
+```csharp
+string folder = SaveSlots.CurrentFolder();
+Log.Info(folder == null ? "No save folder yet." : "Save folder: " + folder);
+```
+
 Ask the game for an autosave. `SaveNow` returns `true` when the autosave has started and `false` when the game refused.
 
 ```csharp
@@ -90,6 +97,7 @@ This is the class to start from: `All()` lists the saves on disk, `SaveNow()` as
 public static class SaveSlots
 {
     public static string CurrentName { get; }
+    public static string CurrentFolder();
     public static SaveAutosaveMode AutosaveMode { get; }
     public static bool CanSaveNow { get; }
     public static List<SaveSlotInfo> All();
@@ -99,6 +107,7 @@ public static class SaveSlots
 
 | Method | Returns | What it does |
 |---|---|---|
+| `CurrentFolder()` | `string` | The folder of the save slot this game was loaded from. `null` when none. |
 | `All()` | `List<SaveSlotInfo>` | Every save slot on disk, for every character. |
 | `SaveNow()` | `bool` | Asks for an autosave. `true` when it started, `false` when refused. |
 
@@ -168,6 +177,7 @@ public enum SaveAutosaveMode
 - `All()` also works on the main menu. The list is empty when there are no saves, and also when reading the save folders fails, for example when the game's save folder is missing.
 - `CurrentName` is the slot the game was loaded from, and it does not change when you save somewhere else. <span class="tech">(It is the folder name of `SaveController.LastSaveFolderPath`. The game sets that folder on load and clears it when you quit to the main menu, and it does not update it on save. The game does not clear it when the credits end, so the framework clears it when the main menu loads (`SaveData`) and when a new game starts (`WorldObjects`).)</span>
 - `CurrentName` is `null` when no save has been loaded in this session, on the main menu, or when the saved folder belongs to a different character than the one in play. After a new game it is `null` until a save is loaded.
+- `CurrentFolder()` is the same save folder as `CurrentName`, as a full path, so you can put your own files beside the game's. It is `null` in the same cases as `CurrentName`. <span class="tech">(It is `SaveController.LastSaveFolderPath`, and its parent must be `SaveController.SanitizeCharacterName` of the character in play, so a folder that belongs to another character is not given back.)</span>
 - `AutosaveMode` is read only. The game keeps this setting with the difficulty and saves it with the game, but in this game version nothing in the game reads it, so it does not change how often the game saves. <span class="tech">(It is `DifficultyController.currentDifficultyInfo.autosaveMode`.)</span>
 - `SaveNow()` starts an autosave and does not wait for it. It returns `true` as soon as the autosave has started. The save itself is written about three frames later. Use `Events.Saved` to know when it finished. <span class="tech">(It calls the game's own autosave, which writes the older of `Autosave` and `Autosave2`. The checks below are not made again at the moment of writing.)</span>
 - `SaveNow()` never writes a slot the player named. It only writes one of the two autosaves.

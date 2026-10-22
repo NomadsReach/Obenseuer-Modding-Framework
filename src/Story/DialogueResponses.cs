@@ -145,21 +145,54 @@ namespace ObenseuerCore
             return priority < 0 ? fallback : (PCDS.ConditionPriority)priority;
         }
 
+        internal static PCDS.ConditionPriority LinkPriority(int priority, PCDS.ConditionPriority playerPriority, bool npcFirst)
+        {
+            PCDS.ConditionPriority wanted = RequestedPriority(priority, playerPriority);
+            if (priority >= 0 || !npcFirst || wanted == PCDS.ConditionPriority.Low) return wanted;
+            return (PCDS.ConditionPriority)((int)wanted - 1);
+        }
+
         internal static PCDS.DialogueEntry FindAnchor(List<PCDS.DialogueEntry> entries, string text)
         {
             if (string.IsNullOrEmpty(text) || text.Trim().Length == 0) return null;
-            List<PCDS.DialogueEntry> matches = entries.FindAll(e => e.DialogueText == text);
-            if (matches.Count == 0)
-            {
-                string wanted = text.Trim();
-                matches = entries.FindAll(e => string.Equals((e.DialogueText ?? "").Trim(), wanted, StringComparison.OrdinalIgnoreCase));
-            }
+            List<PCDS.DialogueEntry> matches = AnchorMatches(entries, text);
             return matches.Count == 1 ? matches[0] : null;
+        }
+
+        internal static int AnchorMatchCount(List<PCDS.DialogueEntry> entries, string text)
+        {
+            if (string.IsNullOrEmpty(text) || text.Trim().Length == 0) return 0;
+            return AnchorMatches(entries, text).Count;
+        }
+
+        private static List<PCDS.DialogueEntry> AnchorMatches(List<PCDS.DialogueEntry> entries, string text)
+        {
+            if (string.IsNullOrEmpty(text) || text.Trim().Length == 0) return new List<PCDS.DialogueEntry>();
+            List<PCDS.DialogueEntry> matches = entries.FindAll(e => e.DialogueText == text);
+            if (matches.Count > 0) return matches;
+            string wanted = text.Trim();
+            return entries.FindAll(e => string.Equals((e.DialogueText ?? "").Trim(), wanted, StringComparison.OrdinalIgnoreCase));
         }
 
         internal static string AnchorRefusal(PCDS.DialogueDatabase master, PCDS.Conversation conversation, string anchorText, int anchorId, out PCDS.DialogueEntry anchor)
         {
-            anchor = anchorText != null ? FindAnchor(conversation.dialogueEntries, anchorText) : conversation.GetDialogueEntry(anchorId);
+            int matches;
+            return AnchorRefusal(master, conversation, anchorText, anchorId, out anchor, out matches);
+        }
+
+        internal static string AnchorRefusal(PCDS.DialogueDatabase master, PCDS.Conversation conversation, string anchorText, int anchorId, out PCDS.DialogueEntry anchor, out int matchCount)
+        {
+            if (anchorText != null)
+            {
+                List<PCDS.DialogueEntry> matches = AnchorMatches(conversation.dialogueEntries, anchorText);
+                matchCount = matches.Count;
+                anchor = matchCount == 1 ? matches[0] : null;
+            }
+            else
+            {
+                matchCount = 0;
+                anchor = conversation.GetDialogueEntry(anchorId);
+            }
             if (anchor == null) return "anchor is missing or matches more than one line";
             if (master.GetCharacterType(anchor.ActorID) != PCDS.CharacterType.NPC) return "anchor is not an NPC line";
             if (LeadsOnlyToNpc(master, anchor)) return "anchor only leads to NPC lines";

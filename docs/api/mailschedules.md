@@ -28,7 +28,7 @@ using ObenseuerCore;
 
 [ModInfo("example.mailnow", "Mail Now", "0.1.0")]
 [ModDependency("obenseuer.moddingframework", "0.11.0")]
-public sealed class MailNow : FrameworkMod
+public class MailNow : FrameworkMod
 {
     protected override void OnLoad()
     {
@@ -36,37 +36,96 @@ public sealed class MailNow : FrameworkMod
         {
             foreach (MailSenderInfo sender in MailSchedules.Senders())
             {
-                bool sent = MailSchedules.SendRandom(Mod.Id, sender.Id, 1, 2);
-                Log.Info("Sender " + sender.Id + " has " + sender.Entries + " entries, sent: " + sent);
+                if (MailSchedules.SendRandom(Mod.Id, sender.Id, 1, 2))
+                    Log.Info("Sender " + sender.Id + " has " + sender.Entries + " entries, and sent one mail.");
+                else
+                    Log.Warn("No mail was sent for " + sender.Id + ". See the limits below.");
             }
         });
     }
 }
 ```
 
-`Mod.Id` is your mod's id, the first value in `ModInfo`. See the [glossary](../glossary.md#mod-id). `Events.WhenReady` runs your code once a save is loaded, or at once if one already is. See [Using events](../guides/getting-started/using-events.md).
+`Mod.Id` is your mod's id, the first value in `ModInfo`. See the [glossary](../glossary.md#mod-id). `Events.WhenReady` runs your code once a save is loaded, or at once if one already is. See [Using events](../guides/getting-started/using-events.md). The limits are in the [Limits](#limits) section below.
 
 ## Common tasks
 
-Make a sender send mail the way the game does each day. The sender uses its own smallest and largest amount, which in the game's files is 1 to 3 mails (so one or two). The call returns `true` when the mail was sent.
+Each example below is a complete mod, and each one runs once a save is loaded, because the senders are in the scene.
+
+### Send each sender's own daily mail now
+
+The sender uses its own smallest and largest amount, which in the game's files is 1 to 3 mails (so one or two). `SendNow` returns `true` when the mail was sent. The limits are in the [Limits](#limits) section below.
 
 ```csharp
-foreach (MailSenderInfo sender in MailSchedules.Senders())
-    MailSchedules.SendNow(Mod.Id, sender.Id);
+using ObenseuerCore;
+
+[ModInfo("example.mailsendnow", "Mail Send Now", "0.1.0")]
+[ModDependency("obenseuer.moddingframework", "0.11.0")]
+public class MailSendNow : FrameworkMod
+{
+    protected override void OnLoad()
+    {
+        Events.WhenReady(() =>
+        {
+            foreach (MailSenderInfo sender in MailSchedules.Senders())
+            {
+                if (MailSchedules.SendNow(Mod.Id, sender.Id))
+                    Log.Info("Asked " + sender.Id + " to send its mail.");
+                else
+                    Log.Warn("No mail was sent for " + sender.Id + ". See the limits below.");
+            }
+        });
+    }
+}
 ```
 
-Send a number of mails you choose. The largest amount is not included, so `3, 6` sends 3, 4 or 5 mails.
+### Send a number of mails you choose
+
+The largest amount is not included, so `3, 6` sends 3, 4 or 5 mails. `SendRandom` returns `false` for amounts that make no sense, as the [Limits](#limits) section below says.
 
 ```csharp
-foreach (MailSenderInfo sender in MailSchedules.Senders())
-    MailSchedules.SendRandom(Mod.Id, sender.Id, 3, 6);
+using ObenseuerCore;
+
+[ModInfo("example.mailsendrandom", "Mail Send Random", "0.1.0")]
+[ModDependency("obenseuer.moddingframework", "0.11.0")]
+public class MailSendRandom : FrameworkMod
+{
+    protected override void OnLoad()
+    {
+        Events.WhenReady(() =>
+        {
+            foreach (MailSenderInfo sender in MailSchedules.Senders())
+            {
+                if (MailSchedules.SendRandom(Mod.Id, sender.Id, 3, 6))
+                    Log.Info("Asked " + sender.Id + " to send 3 to 5 mails.");
+                else
+                    Log.Warn("No mail was sent for " + sender.Id + ". See the limits below.");
+            }
+        });
+    }
+}
 ```
 
-See what kinds of mail a sender can send.
+### See what kinds of mail a sender can send
+
+This names every kind of mail the sender can choose from.
 
 ```csharp
-foreach (MailSenderInfo sender in MailSchedules.Senders())
-    Log.Info(sender.Id + ": " + string.Join(", ", sender.MailNames.ToArray()));
+using ObenseuerCore;
+
+[ModInfo("example.mailnames", "Mail Names", "0.1.0")]
+[ModDependency("obenseuer.moddingframework", "0.11.0")]
+public class MailNames : FrameworkMod
+{
+    protected override void OnLoad()
+    {
+        Events.WhenReady(() =>
+        {
+            foreach (MailSenderInfo sender in MailSchedules.Senders())
+                Log.Info(sender.Id + ": " + string.Join(", ", sender.MailNames.ToArray()));
+        });
+    }
+}
 ```
 
 ## Reference
@@ -142,7 +201,7 @@ public sealed class MailSenderInfo
 ## Details
 
 - Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
-- Namespace: `ObenseuerCore`. File: `src/Api/MailSchedules.cs`.
+- Namespace: `ObenseuerCore`.
 - Everything not listed in this reference is internal and may change without notice. Items marked experimental may change too.
 
 ### When you can call it

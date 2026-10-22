@@ -71,6 +71,13 @@ public sealed class InventoryTour : FrameworkMod
 
 ## ItemStackInfo
 
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>ItemStackInfo</code> <span>one stack of items</span></p>
+
+`PlayerInventory.Items`, `Containers.GetItems` and `Containers.TakeStack` give you this. It is a snapshot of one stack, taken when you asked.
+
+<div class="api-pair" markdown="1">
+
 ```csharp
 public sealed class ItemStackInfo
 {
@@ -94,6 +101,9 @@ public sealed class ItemStackInfo
 }
 ```
 
+</div>
+</div>
+
 - `Slot` is the storage slot index of a stack from `GetItems`, its position in `storageSlots`, and is the value to pass as `slot` to `Containers.TakeStack` or `PlayerShops.Sell`. It is -1 for stacks not in a container slot: `PlayerInventory.Items`, `StackActions.StolenStacks` and trash piles from `Cleaning.TrashItems`. Dishwasher contents from `Dishwashers.Contents` come from `GetItems`, so they carry the index too. No framework code reads `Slot`; those two calls take the index as their own argument and refuse -1.
 - The game stores no spoil timer. `IntegrityPercent` is the game's own integrity (`ItemPerishabledata.GetIntegrityPercent`), which falls by the item's loss per hour.
 - `LiquidAmount` is the game's `ItemLiquidData.GetLiquidAmount` for the stack size.
@@ -104,6 +114,13 @@ public sealed class ItemStackInfo
 - `IsWritable` is true when the stack has `ItemWritableData`, so a note with no title can be told apart from a stack with no writable data. `WrittenTitle` and `WrittenText` are the game's `title` and `content`.
 
 ## Containers
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>ContainerInfo</code> <span>a snapshot of one container</span></p>
+
+`Containers.All`, `Containers.FindByGuid` and the `Opened` and `Closed` events give you this.
+
+<div class="api-pair" markdown="1">
 
 ```csharp
 public sealed class ContainerInfo
@@ -117,7 +134,19 @@ public sealed class ContainerInfo
     public bool NpcOwned { get; }        // owner id > 1, the game's "Steal" condition
     public bool Locked { get; }
 }
+```
 
+</div>
+</div>
+
+<div class="api-type" markdown="1">
+<p class="api-type-head"><code>Containers</code> <span>finding, reading and changing containers</span></p>
+
+This is the class you start from. `All` and `FindByGuid` find containers, `GetItems` lists what is inside, `Give` and `Take` move items, and `Opened` and `Closed` tell you when the player opens or closes one.
+
+<div class="api-pair" markdown="1">
+
+```csharp
 public static class Containers
 {
     public static List<ContainerInfo> All();
@@ -129,12 +158,18 @@ public static class Containers
     public static ItemStackInfo TakeStack(ContainerInfo container, int slot, int count);
     public static bool IsNotNpcOwned(Storage storage);
     public static bool IsLocked(Storage storage);
+    public static bool IsTenantOwned(Storage storage);
+    public static bool IsInPlayerTenement(Component component);
+    public static bool IsPlayerOwned(Storage storage);
     public static int ApartmentOf(Component component);
 
     public static event Action<ContainerInfo> Opened;
     public static event Action<ContainerInfo> Closed;
 }
 ```
+
+</div>
+</div>
 
 - `All` finds every active `Storage` in the active scene with `FindObjectsByType`, which scans the whole scene, then builds a snapshot per container. Call it once and cache the result; do not call it every frame. Shops, vending machines, prisons and the equipped backpack's storage are included; check `Name`. `ContainerInfo` is a snapshot: `Locked` and `Name` are not updated, but `Give` and `Take` check the lock again.
 - `GetItems` reads the game's `storageSlots`, skips empty slots, and sets each stack's `Slot` to its index there. Pass `info.Slot` to `TakeStack` or `PlayerShops.Sell` to take that exact stack.
@@ -144,6 +179,10 @@ public static class Containers
 - `TakeStack(container, slot, count)` takes `count` items from the stack in slot `slot`, the index in the game's `Slots` order, and returns that stack as an `ItemStackInfo` with its owner and meta. It returns `null` when the container is locked, is NPC-owned and `PermissionToTake` is false, the slot is out of range or empty, the stack holds fewer than `count`, or a save is busy. As with `Take`, the items are destroyed, not moved to the player. Pass `ItemStackInfo.Slot` from `GetItems` as `slot`; -1 is refused. It also returns `null` when the slot's stack is no longer the one `GetItems` reads (the container's slots were rebuilt), so list again before taking.
 - `IsNotNpcOwned(storage)` answers only that no NPC owns the container. It is not a permission check and it does not mean the container belongs to the player. It is the negation of `ContainerInfo.NpcOwned`: it is `true` when the container's `StorageOwner` is null or its id is 1 or less, which is the game's own rule for showing `Steal` on the use prompt, minus the private flag that hides that text. A shop shelf, a vending machine, a prison locker and the player's own crates have no owner and all report `true`, so do not use it on its own to decide whether a mod may take items. An NPC-owned container that grants `PermissionToTake` reports `false` even though `Containers.Take` and `Containers.TakeStack` allow it, and `Containers.Give` does not read ownership at all. A null storage reports `false` and throws nothing.
 - `IsLocked(storage)` is the container's own lock flag, and `false` for a null storage. It is the same check `Give` and `Take` make, so a hotkey can test it before it calls them.
+- `IsTenantOwned(storage)` is `true` when the apartment the container sits in is rented to its resident right now. It reads the live tenement state, so it answers for any rented apartment, not only the player's. A null storage gives `false`, and so do the building itself (apartment `0`) and apartment `1`, the player's own flat.
+- `IsInPlayerTenement(component)` is `true` when the object is in apartment `1`, the player's own flat. Every other apartment gives `false`, and so does a null object.
+- `IsPlayerOwned(storage)` is `true` when the container is not owned by an NPC and sits in the player's flat. It is a guess built from those two answers, never a permission check, and the game keeps no plain ownership record for a container that would make it exact. Do not use it to decide whether a mod may take items: `Take` and `TakeStack` make that decision themselves.
+- `IsParkedFurniture` does not exist. The game has no parked furniture, so there is nothing for it to report.
 - `ApartmentOf(component)` returns the apartment number of the tenement prefab above the component, or of its `FurnitureManager` when the component has no prefab of its own, and `-1` when neither exists or the component is null. `ContainerInfo.Apartment` already carries this value for a container; use `ApartmentOf` for furniture, doors and other objects.
 - `FindByGuid(guid)` returns the container whose save GUID is `guid`, or `null`. It first uses the game's GUID registry, the same lookup `SaveData.CaptureByGuid` and `SaveData.ApplyByGuid` use. The game fills that registry only for objects it matched to an entry in the loaded save, so when the registry has no live `Storage` for the GUID, `FindByGuid` scans the live scene with `SaveController.GetObjectByGUID(guid, typeof(Storage))`. That fallback calls `FindObjectsOfType` once, so each miss costs one whole-scene scan; do not call it every frame. It returns `null` for an empty or null GUID (no scan), for an unknown GUID, and for a destroyed container.
 - `GuidOf(container)` returns `container.Guid`, or `null` for `null`. An empty string means the container has no GUID.
@@ -158,18 +197,41 @@ public static class Containers
 
 ## Example
 
-Run after a save is loaded, from a test plugin on the main thread:
+This is a whole mod. Once a save has loaded it counts the player's apples, gives two, takes two back, then reads the stacks, the right hand and the containers. Replace the mod id and the item title with your own.
 
 ```csharp
-int id = ITEM_ID;   // placeholder: a real item id (0 and 1 are money)
-Log.LogInfo("count " + PlayerInventory.Count(id) + " has1 " + PlayerInventory.Has(id, 1) + " free " + PlayerInventory.FreeSlots + "/" + PlayerInventory.Capacity);
-Log.LogInfo("give " + PlayerInventory.Give(id, 2) + " count now " + PlayerInventory.Count(id));
-Log.LogInfo("take " + PlayerInventory.Take(id, 2) + " count now " + PlayerInventory.Count(id));
-Log.LogInfo("stacks " + PlayerInventory.Items().Count + " held right " + PlayerInventory.GetHeldItemId(false));
-Log.LogInfo("containers " + Containers.All().Count);
+using ObenseuerCore;
+
+[ModInfo("example.inventoryreport", "Inventory Report", "0.1.0")]
+[ModDependency("obenseuer.moddingframework", "0.11.0")]
+public sealed class InventoryReport : FrameworkMod
+{
+    protected override void OnLoad()
+    {
+        Events.WhenReady(Report);
+    }
+
+    private void Report()
+    {
+        ItemDef apple = Items.Find("Apple");
+        if (apple == null)
+        {
+            Log.Warn("The Apple item was not found, see the limits section of the Item lookup page");
+            return;
+        }
+
+        Log.Info("count " + PlayerInventory.Count(apple.Id) + " has1 " + PlayerInventory.Has(apple.Id, 1) + " free " + PlayerInventory.FreeSlots + "/" + PlayerInventory.Capacity);
+        if (PlayerInventory.Give(apple.Id, 2)) Log.Info("gave 2 apples, count now " + PlayerInventory.Count(apple.Id));
+        else Log.Warn("The give was refused, see the limits section of the Player inventory page");
+        if (PlayerInventory.Take(apple.Id, 2)) Log.Info("took 2 apples back, count now " + PlayerInventory.Count(apple.Id));
+        else Log.Warn("The take was refused, see the limits section of the Player inventory page");
+        Log.Info("stacks " + PlayerInventory.Items().Count + " held right " + PlayerInventory.GetHeldItemId(false));
+        Log.Info("containers " + Containers.All().Count);
+    }
+}
 ```
 
-Expected: `give` true and count +2, `take` true and count back. The `ItemAdded` and `ItemRemoved` handlers log each event.
+Expected: `give` adds 2 and the count goes up by 2, then `take` takes them back and the count returns. A `false` means the call was refused, and the example logs a warning. See [Limits](inventory/player-inventory.md#limits) for the reasons a call gives `false`.
 
 ## Save loads
 

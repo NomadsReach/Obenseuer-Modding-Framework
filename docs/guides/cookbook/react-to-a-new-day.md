@@ -30,8 +30,11 @@ public class NewDay : FrameworkMod
         Log.Info("day " + day + " is " + GameTime.DayOfWeek);
         // Do nothing while a save or load is running.
         if (SaveData.Busy) return;
-        // On Mondays, move the clock to 07:00.
-        if (GameTime.DayOfWeek == DayOfWeek.Monday) WorldClock.SetTimeOfDay(7, 0);
+        // On Mondays, move the clock to 07:00. false means the clock refused it.
+        if (GameTime.DayOfWeek == DayOfWeek.Monday && !WorldClock.SetTimeOfDay(7, 0))
+        {
+            Log.Warn("the clock refused 07:00");
+        }
     }
 }
 ```
@@ -41,7 +44,7 @@ Replace the code in `Plugin.cs` of your project from [Your first mod](../getting
 Notes:
 
 - `Events.DayPassed` gives the new day counter. `GameTime.DayOfWeek` gives the weekday.
-- Check `SaveData.Busy` before you change game state. `WorldClock.SetTimeOfDay` returns `false` when the clock is not ready, during a save, or when the time is earlier than the current game time.
+- Check `SaveData.Busy` before you change game state. `WorldClock.SetTimeOfDay` returns `false` when the clock is not ready, during a save, or when the time is earlier than the current game time. The code above logs a warning on `false`. See [WorldClock limits](../../api/world/worldclock.md#limits).
 - Use `Events.HourPassed` if you need a check on every hour. See [Using events](../getting-started/using-events.md).
 
 ## Where to go next

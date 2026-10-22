@@ -71,8 +71,10 @@ public static class WebUi
   - `thread`: the shim runs on its own thread, and each view is a WebView2 control in a popup window owned by the game window, placed over the view's bounds in the game's client rectangle.
   - `composition`: the composition root runs on the game thread. This was the mode before version 0.9.
   - `windowed`: a child window of the game runs on the game thread.
+  - `windowed` and `composition` may not show over a fullscreen game, so when one of them is chosen while the game is not in windowed screen mode, the log gets one warning when the shim starts, saying that `thread` is the default and works in borderless fullscreen.
   - `Debug.WebUiWindowed` (`true` or `false`, default `false`) is deprecated. Use `WebUiMode = windowed` instead. When it is `true`, the mode is `windowed` whatever `WebUiMode` says.
-- Thread mode turns itself into composition mode for the rest of the session in three cases, and each is logged. These are: exclusive full screen is on at the first `Open`; the thread does not start (composition is then tried at once); and a serious shim error arrives (the views close, and the next `Open` uses composition).
+  - `Debug.WebUiExclusiveThread` (`true` or `false`, default `false`) is a test setting. When it is `true`, thread mode is tried in exclusive full screen instead of falling back to composition, to see whether the popups draw over it. It is read once when the shim starts, so a change needs a game restart.
+- Thread mode turns itself into composition mode for the rest of the session in three cases, and each is logged. These are: exclusive full screen is on at the first `Open` (unless `Debug.WebUiExclusiveThread` is `true`); the thread does not start (composition is then tried at once); and a serious shim error arrives (the views close, and the next `Open` uses composition).
 
 ## Limits
 

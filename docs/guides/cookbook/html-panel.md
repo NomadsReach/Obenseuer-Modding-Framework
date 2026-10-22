@@ -55,6 +55,7 @@ public class Panel : FrameworkMod
     {
         // Register the key: short id, name shown in the Mods menu, default key.
         openKey = Mod.Key("Open", "Open the panel", KeyCode.F9);
+        if (openKey == null) Log.Warn("the Open key could not be created");
     }
 
     // Unity calls this once per frame.
@@ -93,7 +94,7 @@ xcopy /E /I /Y web "C:\Program Files (x86)\Steam\steamapps\common\Obenseuer\BepI
 
 Notes:
 
-- `WebUi.Open` returns `null` when the view cannot open. `WebUi.LastError` says why.
+- `WebUi.Open` returns `null` when the view cannot open, and the code above logs a warning. `WebUi.LastError` says why. See [WebUi limits](../../api/webui/the-webui-class.md#limits).
 - The page sends messages to the mod through `view.Message`, and the mod replies with `view.Post`. See [WebUi](../../api/webui.md).
 - If the WebUi plugin is missing, the framework skips this mod and logs a warning, because of the `ModDependency` line. `WebUi.IsAvailable` is false when the native part is missing, so the code checks it first. See [WebUi is unavailable](../../faq.md#webui-is-unavailable).
 

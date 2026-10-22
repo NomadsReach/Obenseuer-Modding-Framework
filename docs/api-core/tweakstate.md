@@ -66,4 +66,5 @@ private static bool MyPrefix()
 ## Things to know
 
 - If your mod takes renovation items itself, check this first. In your own prefix on `TenementController.RemoveRequiredItems`, return `false` early when it is `true`, before you take anything. The framework cannot do this for you, because HarmonyX runs every prefix, so yours runs no matter what the tweak says.
+- `TakeRemainingOnly`, the framework's own fix for the game's renovation item over-take, runs on the same `TenementController.RemoveRequiredItems` method and is not reported here. The framework installs that prefix last, so a mod's own prefix on that method still runs before it, and the fix stands down while `RenovationsMoneyOnly` is true.
 - Read the flag from a small helper, and call the helper from inside try/catch. If your mod runs with an older framework that does not have `RenovationsMoneyOnly`, the mod fails when the code that reads it is first run. That is a `TypeLoadException` or a `MissingMethodException`. It is thrown at the call into the helper, so a try/catch inside the helper does not catch it. <span class="tech">(Checked with a two-version probe on .NET Framework.)</span>

@@ -318,7 +318,18 @@ namespace ObenseuerCore
         public static string AddBranch(string modId, string conversationTitle, string anchorText, ConversationDefinition branch, int insertAt = -1, int priority = -1)
         {
             ModIds.Require(modId, "modId");
-            return DialogueBranches.Add(modId, conversationTitle, anchorText, -1, branch, insertAt, priority);
+            return DialogueBranches.Add(modId, conversationTitle, anchorText, -1, branch, insertAt, priority, null);
+        }
+
+        public static string AddBranch(string modId, string conversationTitle, string anchorText, ConversationDefinition branch, Action onPicked)
+        {
+            return AddBranch(modId, conversationTitle, anchorText, branch, -1, -1, onPicked);
+        }
+
+        public static string AddBranch(string modId, string conversationTitle, string anchorText, ConversationDefinition branch, int insertAt, int priority, Action onPicked)
+        {
+            ModIds.Require(modId, "modId");
+            return DialogueBranches.Add(modId, conversationTitle, anchorText, -1, branch, insertAt, priority, onPicked);
         }
 
         public static string AddBranch(string modId, string conversationTitle, int anchorId, ConversationDefinition branch)
@@ -329,13 +340,54 @@ namespace ObenseuerCore
         public static string AddBranch(string modId, string conversationTitle, int anchorId, ConversationDefinition branch, int insertAt = -1, int priority = -1)
         {
             ModIds.Require(modId, "modId");
-            return DialogueBranches.Add(modId, conversationTitle, null, anchorId, branch, insertAt, priority);
+            return DialogueBranches.Add(modId, conversationTitle, null, anchorId, branch, insertAt, priority, null);
+        }
+
+        public static string AddBranch(string modId, string conversationTitle, int anchorId, ConversationDefinition branch, Action onPicked)
+        {
+            return AddBranch(modId, conversationTitle, anchorId, branch, -1, -1, onPicked);
+        }
+
+        public static string AddBranch(string modId, string conversationTitle, int anchorId, ConversationDefinition branch, int insertAt, int priority, Action onPicked)
+        {
+            ModIds.Require(modId, "modId");
+            return DialogueBranches.Add(modId, conversationTitle, null, anchorId, branch, insertAt, priority, onPicked);
         }
 
         public static bool RemoveBranch(string modId, string key)
         {
             ModIds.Require(modId, "modId");
             return DialogueBranches.Remove(modId, key);
+        }
+
+        public static string AddQuestTopic(string modId, string conversationTitle, string playerLine, string[] npcLines, string showWhen, Action onDone)
+        {
+            ModIds.Require(modId, "modId");
+            if (string.IsNullOrEmpty(conversationTitle) || string.IsNullOrEmpty(playerLine) || npcLines == null || npcLines.Length == 0)
+            {
+                StoryLog.Refuse(Owner, "AddQuestTopic", "conversationTitle, playerLine and npcLines must not be empty");
+                return null;
+            }
+            if (!IsAvailable)
+            {
+                StoryLog.Refuse(Owner, "AddQuestTopic", "the dialogue system is not installed");
+                return null;
+            }
+            PCDS.DialogueDatabase master = DialogueAuthoring.Master();
+            PCDS.Conversation conversation = master == null ? null : master.GetConversation(conversationTitle);
+            if (conversation == null)
+            {
+                StoryLog.Refuse(Owner, "AddQuestTopic", "conversation " + conversationTitle + " is not in the database");
+                return null;
+            }
+            PCDS.DialogueEntry anchor = FirstNpcLine(master, conversation);
+            if (anchor == null)
+            {
+                StoryLog.Refuse(Owner, "AddQuestTopic", "the conversation has no character line that can take a topic");
+                return null;
+            }
+            ConversationDefinition topic = DialogueAuthoring.TopicDefinition(modId, conversationTitle, anchor.id, playerLine, npcLines, showWhen);
+            return AddBranch(modId, conversationTitle, anchor.id, topic, onDone);
         }
 
         internal static void Tick()
@@ -435,6 +487,20 @@ namespace ObenseuerCore
                 return float.IsNaN(number) || float.IsInfinity(number) ? "number is NaN or infinite, or too large for a float" : null;
             }
             return "value must be a string, bool, int, float or double";
+        }
+
+        private static PCDS.DialogueEntry FirstNpcLine(PCDS.DialogueDatabase master, PCDS.Conversation conversation)
+        {
+            foreach (PCDS.DialogueEntry entry in conversation.dialogueEntries)
+            {
+                if (entry.isGroup) continue;
+                if (string.IsNullOrEmpty(entry.DialogueText) || entry.DialogueText.Trim().Length == 0) continue;
+                if (master.GetCharacterType(entry.ActorID) != PCDS.CharacterType.NPC) continue;
+                PCDS.DialogueEntry anchor;
+                if (DialogueResponses.AnchorRefusal(master, conversation, null, entry.id, out anchor) != null) continue;
+                return entry;
+            }
+            return null;
         }
 
         private static bool IsPlainText(string text)

@@ -35,12 +35,30 @@ public static class ItemRegistry
 
 ### Example
 
-This loads a model from a file and gives it to the pickaxe (item 10710).
+This whole mod loads a model from a file and gives it to the pickaxe (item 10710) once a save has loaded.
 
 ```csharp
-ModelHandle held = ModelRegistry.LoadObj("com.example.mymod", "torch-held", @"C:\Mods\MyMod\torch.obj", null, null);
-bool set = ItemRegistry.SetHeldModel("com.example.mymod", 10710, held);
+using ObenseuerCore;
+
+[ModInfo("example.heldmodel", "Torch Pickaxe", "0.1.0")]
+[ModDependency("obenseuer.moddingframework", "0.11.0")]
+public sealed class TorchPickaxe : FrameworkMod
+{
+    protected override void OnLoad()
+    {
+        Events.WhenReady(() =>
+        {
+            ModelHandle held = ModelRegistry.LoadObj("example.heldmodel", "pickaxe-held", @"C:\Mods\TorchPickaxe\pickaxe.obj", null, null);
+            if (!ItemRegistry.SetHeldModel("example.heldmodel", 10710, held))
+            {
+                Log.Warn("The hand model was refused, see the limits section of this page");
+            }
+        });
+    }
+}
 ```
+
+`SetHeldModel` gives `false` when the item registry is not available or when another mod already set that item's hand model, so the example logs a warning. See [Limits](#limits) below.
 
 ### Things to know
 

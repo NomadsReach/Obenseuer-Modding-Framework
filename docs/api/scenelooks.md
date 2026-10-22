@@ -14,7 +14,7 @@ Status: experimental. Every member on this page is experimental and may change.
 
 Some characters in the game, such as Mr. Duck in the scene `Interior Tenement Speakeasy`, have a look that the game keeps inside one of its built-in scenes: the body model, its materials, its skeleton and its textures. A "scene look" is that look, read straight out of the game's own files while the game runs. This API lets your mod put a game character's look on a mod NPC, or on an NPC that is already in the scene, without your mod shipping any art.
 
-Nothing is extracted, converted or written to disk, and the scene the look lives in is never loaded. This is the first part of the framework that reads the game's installed Unity asset files. It is written for Unity 6000.0.77f1 only, and every call refuses on any other Unity version.
+Nothing is extracted, converted or written to disk, and the scene the look lives in is never loaded. This is the first part of the framework that reads the game's installed Unity asset files. It is written for Unity 6000.0.77f1 only, and every call refuses on any other Unity version. See the [limits](scenelooks/limits.md) for what it does not cover yet.
 
 ## When to use it
 

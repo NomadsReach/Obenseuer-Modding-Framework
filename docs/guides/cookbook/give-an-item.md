@@ -24,23 +24,31 @@ public class GiveItem : FrameworkMod
     private const string ItemTitle = "Empty Glass Bottle";
     // The F7 key. It stays null if it could not be created.
     private ModKeybind giveKey;
+    // The item found after a save loaded. It stays null when the title is unknown.
+    private ItemDef item;
 
     protected override void OnLoad()
     {
         // Register the key: short id, name shown in the Mods menu, default key.
         giveKey = Mod.Key("Give", "Give the item", KeyCode.F7);
+        if (giveKey == null) Log.Warn("the Give key could not be created");
+        // The item list exists only after a save has loaded, so look the item up then.
+        Events.WhenReady(() =>
+        {
+            item = Items.Find(ItemTitle);
+            if (item == null) Log.Warn("no item is named " + ItemTitle);
+        });
     }
 
     // Unity calls this once per frame.
     private void Update()
     {
-        // Skip when there is no key, a menu is open, the game is paused, or the game has switched its keys off.
-        if (giveKey == null || UiState.IsMenuOpen || UiState.IsPaused || UiState.IsInputBlocked) return;
+        // Skip until the item is known, or when there is no key, a menu is open, the game is paused, or the game has switched its keys off.
+        if (item == null || giveKey == null || UiState.IsMenuOpen || UiState.IsPaused || UiState.IsInputBlocked) return;
         // True only on the frame the key goes down.
         if (!giveKey.Down()) return;
-        // Look the item up by title, then add one to the player's inventory.
-        ItemDef item = Items.Find(ItemTitle);
-        if (item == null || !PlayerInventory.Give(item.Id, 1)) Log.Warn("could not give " + ItemTitle);
+        // Add one to the player's inventory. false means the grid is full, or a save runs.
+        if (!PlayerInventory.Give(item.Id, 1)) Log.Warn("the inventory refused " + ItemTitle + ", it may be full");
     }
 }
 ```
@@ -49,8 +57,8 @@ Replace the code in `Plugin.cs` of your project from [Your first mod](../getting
 
 Notes:
 
-- `Items.Find` returns `null` for an unknown title. `Items.Search` finds titles that contain some text.
-- `PlayerInventory.Give` returns `false` when the main grid is full, or while a save runs.
+- `Items.Find` returns `null` for an unknown title. `Items.Search` finds titles that contain some text. See [Item lookup limits](../../api/items/lookup.md#limits).
+- `PlayerInventory.Give` returns `false` when the main grid is full, or while a save runs. The code above logs a warning on `null` and on `false`. See [Player inventory limits](../../api/inventory/player-inventory.md#limits).
 - The item id is also in `Obenseuer_Data\StreamingAssets\Items.json`. See [Finding item ids](../content.md#finding-item-ids).
 
 ## Where to go next

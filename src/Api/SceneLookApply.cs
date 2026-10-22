@@ -41,6 +41,16 @@ namespace ObenseuerCore
 
         internal static bool Apply(string modId, SceneLookLook look, GameObject body, out string reason)
         {
+            return Apply(modId, look, body, false, out reason);
+        }
+
+        internal static bool ApplySkeleton(string modId, SceneLookLook look, GameObject body, out string reason)
+        {
+            return Apply(modId, look, body, true, out reason);
+        }
+
+        private static bool Apply(string modId, SceneLookLook look, GameObject body, bool skeleton, out string reason)
+        {
             reason = null;
             string what = "apply " + modId;
             SceneLookRigPath planPath = SceneLookRigPath.Refuse;
@@ -65,7 +75,7 @@ namespace ObenseuerCore
                 }
                 if (reason == null)
                 {
-                    SceneLookRigPlan plan = SceneLookRig.Decide(look, SceneLookApplyRig.Names(body), body.name, SceneLookApplyRig.AvatarKind(body));
+                    SceneLookRigPlan plan = skeleton ? SceneLookApplyRig.SkeletonPlan(look, body) : SceneLookRig.Decide(look, SceneLookApplyRig.Names(body), body.name, SceneLookApplyRig.AvatarKind(body));
                     planPath = plan.Path;
                     if (plan.Path == SceneLookRigPath.Refuse)
                     {
@@ -78,8 +88,8 @@ namespace ObenseuerCore
                         state.ModId = modId;
                         state.Body = body;
                         state.Look = look;
-                        if (plan.Path == SceneLookRigPath.Name) SceneLookApplyRig.Bind(look, body, plan, assets, state, out reason);
-                        else SceneLookApplyRig.Retarget(look, body, plan, assets, state, out reason);
+                        if (plan.Path == SceneLookRigPath.Retarget) SceneLookApplyRig.Retarget(look, body, plan, assets, state, out reason);
+                        else SceneLookApplyRig.Bind(look, body, plan, assets, state, out reason);
                         if (reason == null)
                         {
                             Hide(body, state);
@@ -87,6 +97,7 @@ namespace ObenseuerCore
                             watch.Body = body;
                             bodies[body] = state;
                             assets.Bodies++;
+                            Note(modId, look, body, plan);
                             return true;
                         }
                     }
@@ -333,7 +344,25 @@ namespace ObenseuerCore
         {
             if (path == SceneLookRigPath.Name) return " | path name";
             if (path == SceneLookRigPath.Retarget) return " | path retarget";
+            if (path == SceneLookRigPath.Skeleton) return " | path skeleton";
             return " | path refuse";
+        }
+
+        private static void Note(string modId, SceneLookLook look, GameObject body, SceneLookRigPlan plan)
+        {
+            try
+            {
+                string text = "applied " + look.FileName + " to " + body.name + Path(plan.Path);
+                text += " | bones " + plan.Bones.Count + " of " + plan.LookBones;
+                if (plan.Path == SceneLookRigPath.Skeleton) text += " (by name " + plan.NameMapped + ", by role " + plan.RoleMapped + ")";
+                text += SceneLookApplyRig.ScaleNote(look);
+                text += SceneLookApplyRig.AxisNote(look);
+                CoreLog.For(modId).Info(text);
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(Owner, "apply note", e);
+            }
         }
 
         private static void Hide(GameObject body, SceneLookApplied state)

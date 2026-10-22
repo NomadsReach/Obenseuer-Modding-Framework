@@ -51,6 +51,28 @@ namespace ObenseuerCore
             return PatchCore(type, name, args, prefix, postfix, finalizer, core, owner, priority);
         }
 
+        public static bool Patch(MethodBase target, MethodInfo prefix, MethodInfo postfix, MethodInfo transpiler, MethodInfo finalizer, bool core, string owner)
+        {
+            return Patch(target, prefix, postfix, transpiler, finalizer, core, owner, Inherit);
+        }
+
+        public static bool Patch(MethodBase target, MethodInfo prefix, MethodInfo postfix, MethodInfo transpiler, MethodInfo finalizer, bool core, string owner, int priority)
+        {
+            if (!AcceptOwner(owner)) return false;
+            return PatchCore(target, prefix, postfix, finalizer, core, owner, priority, transpiler);
+        }
+
+        public static bool Patch(Type type, string name, Type[] args, MethodInfo prefix, MethodInfo postfix, MethodInfo transpiler, MethodInfo finalizer, bool core, string owner)
+        {
+            return Patch(type, name, args, prefix, postfix, transpiler, finalizer, core, owner, Inherit);
+        }
+
+        public static bool Patch(Type type, string name, Type[] args, MethodInfo prefix, MethodInfo postfix, MethodInfo transpiler, MethodInfo finalizer, bool core, string owner, int priority)
+        {
+            if (!AcceptOwner(owner)) return false;
+            return PatchCore(type, name, args, prefix, postfix, finalizer, core, owner, priority, transpiler);
+        }
+
         /// <summary>
         /// Adds a static prefix handler to the method found by name, returning false on failure.
         /// </summary>
@@ -164,6 +186,22 @@ namespace ObenseuerCore
             return true;
         }
 
+        private static bool AcceptOwner(string owner)
+        {
+            string logOwner = string.IsNullOrEmpty(owner) ? "ObenseuerCore" : owner;
+            if (string.IsNullOrEmpty(owner))
+            {
+                ApiLog.Once(logOwner, "transpiler patch owner", "owner must be a non-empty mod id, no change was made");
+                return false;
+            }
+            if (owner.StartsWith(ReservedPrefix, StringComparison.OrdinalIgnoreCase) || owner.StartsWith(ModIds.LegacyCoreId, StringComparison.OrdinalIgnoreCase))
+            {
+                ApiLog.Once(logOwner, "transpiler patch owner", "owner " + owner + " is reserved for the Obenseuer Modding Framework, no change was made");
+                return false;
+            }
+            return true;
+        }
+
         private static void ValidatePublicOwner(string owner)
         {
             ValidateOwner(owner);
@@ -180,7 +218,6 @@ namespace ObenseuerCore
             Harmony harmony;
             if (!harmonies.TryGetValue(owner, out harmony))
             {
-                // UnpatchSelf matches by id, so Core's id must differ from the mod's own
                 harmony = new Harmony("core:" + owner);
                 harmonies[owner] = harmony;
             }

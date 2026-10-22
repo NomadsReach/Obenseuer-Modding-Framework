@@ -23,6 +23,7 @@ Most pages cover one part of the game and use the same shape: what it is, when t
 
 - [Conditions](api/conditions.md): read, add and remove health problems such as addictions. `Conditions`.
 - [Debug trace](api/debug.md): turn on the framework's diary of what it does, to find out why something does not work.
+- [Developer menu](api/dev-menu.md): an off-by-default window (F8 or `omf_dev`) to restart, rewind or remove your quests, change some game state, and add your own section and live watch values. `DevMenu`.
 - [Events](events.md): every event you can react to, such as a new day or a money change.
 - [Framework core classes](api-core.md): the framework's basics: logging, events, game time and money, saves, tweaks, the Mods menu and the player's look.
 - [Framework helpers](api/core-helpers.md): three short helpers that remove set-up code most mods repeat, and `Events.WhenReady` to run code after a save loads.
@@ -33,12 +34,12 @@ Most pages cover one part of the game and use the same shape: what it is, when t
 - [Save slots](api/saveslots.md): save the game, read the current save's name and check whether saving is possible. `SaveSlots`.
 - [Settings, keybinds and localization](api/settings.md): read the player's game options and key bindings, add your own key bindings, and read the game's text. `GameSettings`, `Keybinds`, `Localization`.
 - [Start choices (new-game picks)](api/start-choices.md): read what the player picked when starting a new game. `StartChoices`.
-- [New game options](api/new-game-options.md): register your own toggles, choices and whole numbers for the New Game screen, and read what the player ended up with in the save. `NewGameOptions`.
+- [New game options](api/new-game-options.md): register your own toggles, choices and whole numbers for the New Game screen, and read what the player ended up with in the save. `NewGameOptions`, `NewGameInfo`, `NewGameStartedInfo`.
 - [Tutorial guide](api/tutorial.md): read the opening tutorial's step. Experimental. `TutorialGuide`.
 
 ## People
 - [Story: quests, dialogue and law](api-story.md): `Quests`, `Dialogue`, `Law`.
-- [Quest authoring](api/quest-authoring.md): `QuestAuthoring` (`Create`, `AddObjective`, `SetObjective`, `SetCounter`, `Finish`, `Fail`, `Reveal`). An objective can start hidden behind a placeholder title and be revealed later. Reopening a finished quest is not supported.
+- [Quest authoring](api/quest-authoring.md): `QuestAuthoring` (`Create`, `AddObjective`, `SetObjective`, `SetCounter`, `HandIn`, `Finish`, `Fail`, `Reveal`, `Restart`, `Reset`, `Remove`, `JumpTo`, `Checkpoint`). An objective can start hidden behind a placeholder title and be revealed later, can ask the player for items with `ItemId` and `Count`, and a quest can name the follow-up quest to start with `Next`.
 - [Dialogue authoring](api/dialogue-authoring.md): `DialogueAuthoring` (`Add`, `Remove`, `Clear`, `TitleOf`), `Dialogue.AddResponse`, `RemoveResponse`, `AddBranch`, `RemoveBranch` and `ConversationLine.TextCallback`, session only. Added choices take an insert position and a link priority.
 - [HUD, console, achievements and difficulty](api/hud.md): `Hud` (including `Bar` and `ClearBar`), `ConsoleCommands`, `Achievement`, `GameDifficulty` (`SetFactor`, `Clear`, `DifficultyMultiplier`), `TaskItems`, `TaskItemCount`, `TaskItemChangedArgs`.
 - [Housing and building](api/housing.md): `Housing`, `Building` (`UnlockBlueprint(name, silent)`), `BuildAreaInfo`.
@@ -147,6 +148,7 @@ Most pages cover one part of the game and use the same shape: what it is, when t
 - [Jobs](api/jobs.md): `Jobs`, `JobInfo`, `WorkedArgs`.
 - [Crafting upgrades](api/crafting-upgrades.md): `CraftingUpgrades`, `CraftingUpgradeInfo`.
 - [Crafting sources](api/craftingsources.md): extra containers for crafting stations.
+- [Inventory sources](api/inventorysources.md): extra containers for the furniture workbench and for contractor renovations.
 - [Crafting speed, quality and stations](api/craftingstations.md): `CraftingSpeed`, `CraftingQuality`, `CraftingStations` (incl. `Pause`, `Resume`).
 - [Hazards](api/hazards.md): `Hazards`, `HazardKind`, `HazardInfo`, `HazardEnteredArgs`.
 - [Levels](api/levels.md): `Levels`, `LevelDoorInfo`, `LevelChangeArgs`.
@@ -201,15 +203,19 @@ Most pages cover one part of the game and use the same shape: what it is, when t
 ## Items and crafting
 
 - [Crafting sources](api/craftingsources.md): let crafting stations take ingredients from extra containers.
+- [Inventory sources](api/inventorysources.md): let the furniture workbench and contractor renovations take ingredients from extra containers. `InventorySources`, `InventorySourceContext`. Not checked in game.
 - [Crafting speed, quality and stations](api/craftingstations.md): make crafting faster, change output quality, and start, stop or pause a station. `CraftingStations`.
 - [Crafting upgrades](api/crafting-upgrades.md): read the add-on parts for workbenches and switch them on or off. `CraftingUpgrades`.
 - [Extractables](api/extractables.md): damage things the player breaks apart for items. `Extractables`.
 - [Custom furniture](api/furniture.md): add furniture the player can buy, build and place, and furniture blueprints. `FurnitureRegistry`.
 - [Inventory and containers](api/inventory.md): give, take and list the player's items and the items in containers. `PlayerInventory`, `Containers`.
+- [Unloaded storage](api/unloaded-storage.md): read a storage in a scene the player is not in, and queue a take or a give that is applied when that scene loads. `UnloadedStorage`, `UnloadedContainer`, `UnloadedStorageInfo`.
 - [Item givers](api/itemgivers.md): read the places that hand out items and refill or empty them. `ItemGivers`.
 - [Items catalogue (read-only)](api/items.md): look up any item's name, price, category and stack size. `Items`.
 - [Loot pools](api/loot.md): add your items to the pools that fill containers with loot. `LootPools`.
 - [Recipes, crafting and growing](api/recipes.md): read recipes, check whether they can be made, and react to unlocks and picked fruit. `Recipes`, `Crafting`, `Plants`.
+- [Recipe filter](api/recipe-filter.md): decide which recipes the recipe lists show, for example hide unlearned ones or search by name. `RecipeFilter`.
+- [Storage panel](api/storage-panel.md): add your own button to the panel that opens with a container, and find its first free slot. `StoragePanel`.
 - [Recycling](api/recycling.md): read recycling machines and react when a bottle return pays out. `Recycling`.
 - [Item and recipe registry](api/registry.md): add new items and recipes with icons and 3D models. `ItemRegistry`, `RecipeRegistry`.
 - [Resource nodes](api/resources.md): read things you can mine or chop, set their stock and react to hits. `ResourceNodes`.
@@ -298,7 +304,7 @@ Most pages cover one part of the game and use the same shape: what it is, when t
 ## Story
 
 - [Dialogue authoring](api/dialogue-authoring.md): create new conversations, and add or remove player choices in the game's conversations. `DialogueAuthoring`.
-- [Quest authoring](api/quest-authoring.md): create new quests with objectives. `QuestAuthoring`.
+- [Quest authoring](api/quest-authoring.md): create new quests with objectives and counters, take items in for an objective, start a follow-up quest, and rewind or remove a quest. `QuestAuthoring`.
 - [Story: quests, dialogue and law](api-story.md): read quests, conversations and the player's crime record, and arrest the player. Experimental. `Quests`, `Dialogue`, `Law`.
 
 ## Online play

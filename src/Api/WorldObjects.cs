@@ -193,7 +193,7 @@ namespace ObenseuerCore
                 SaveData.ResetAll();
                 Reset();
                 NewGameOptions.CapturePending();
-                Events.RaiseNewGameStarted();
+                Events.RaiseNewGameStarted(NewGameInfo.Capture());
             }
             catch (Exception e)
             {

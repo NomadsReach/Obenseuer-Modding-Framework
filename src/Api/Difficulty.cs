@@ -106,6 +106,47 @@ namespace ObenseuerCore
             return factors.Clear(modId);
         }
 
+        public static bool Register(string modId, string id, string name, string description, DifficultyLevel basedOn, Action<DifficultyPresetSettings> configure)
+        {
+            return DifficultyPresets.Register(new DifficultyPreset(modId, id, name, description, basedOn, configure));
+        }
+
+        public static bool SetPreset(string modId, string id)
+        {
+            if (!ModIds.IsValid(modId) || !ModIds.IsValid(id))
+            {
+                ApiLog.Once(Owner, "preset ids", "modId and id must be 1 to 64 letters, digits, '.', '_' or '-'");
+                return false;
+            }
+            return DifficultyPresets.Set(modId + "." + id);
+        }
+
+        public static bool ClearPreset(string modId)
+        {
+            if (!ModIds.IsValid(modId))
+            {
+                ApiLog.Once(Owner, "preset ids", "modId must be 1 to 64 letters, digits, '.', '_' or '-'");
+                return false;
+            }
+            return DifficultyPresets.Clear(modId);
+        }
+
+        public static string ActivePreset
+        {
+            get
+            {
+                try
+                {
+                    return DifficultyPresets.Active();
+                }
+                catch (Exception e)
+                {
+                    ApiLog.Once(Owner, "ActivePreset", e);
+                    return null;
+                }
+            }
+        }
+
         public static float FactorOf(DifficultyMultiplier multiplier)
         {
             return factors.Of(multiplier);
@@ -128,6 +169,7 @@ namespace ObenseuerCore
         internal static void Init()
         {
             installed = GameDifficultyPatches.Install();
+            DifficultyPresets.Init();
             Events.SceneLoadedWithMode += OnSceneLoaded;
             if (installed) return;
             CoreLog.For(Owner).Warn("difficulty hooks incomplete, FactorsAvailable is false");

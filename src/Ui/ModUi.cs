@@ -165,6 +165,7 @@ namespace ObenseuerCore.Ui
             UnityEngine.UI.Button captionHit = caption.gameObject.AddComponent<UnityEngine.UI.Button>();
             captionHit.targetGraphic = caption;
             captionHit.transition = Selectable.Transition.None;
+            captionHit.navigation = NoNavigation();
             Click(captionHit, () => toggle.isOn = !toggle.isOn);
             LayoutElement size = Sizing(track.gameObject);
             size.preferredWidth = UiTheme.SwitchWidth;
@@ -463,6 +464,13 @@ namespace ObenseuerCore.Ui
             return element != null ? element : go.AddComponent<LayoutElement>();
         }
 
+        internal static Navigation NoNavigation()
+        {
+            Navigation none = new Navigation();
+            none.mode = Navigation.Mode.None;
+            return none;
+        }
+
         internal static void Height(GameObject go, float height)
         {
             LayoutElement element = Sizing(go);
@@ -586,9 +594,7 @@ namespace ObenseuerCore.Ui
             bar.handleRect = handle;
             bar.targetGraphic = grip;
             Tint(bar, grip, UiTheme.Border, UiTheme.Hover, UiTheme.Muted);
-            Navigation none = new Navigation();
-            none.mode = Navigation.Mode.None;
-            bar.navigation = none;
+            bar.navigation = NoNavigation();
             return bar;
         }
     }

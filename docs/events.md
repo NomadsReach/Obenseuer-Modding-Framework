@@ -196,6 +196,13 @@ These are all the events the framework offers, grouped by the part of the game t
 | `Crafting.Crafted` | `Action<CraftedArgs>` | [Recipes, crafting and growing](api/recipes.md) |
 {: .events-table}
 
+### CraftingSources
+
+| Event | Handler type | Page with details |
+| --- | --- | --- |
+| `CraftingSources.Consumed` | `Action<CraftingTaken>` |  |
+{: .events-table}
+
 ### CustomSkills
 
 | Event | Handler type | Page with details |
@@ -252,11 +259,14 @@ These are all the events the framework offers, grouped by the part of the game t
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
-| `Events.AfterSave` | `Action<string>` | [Framework helpers](api/core-helpers.md) |
+| `Events.AfterLoad` | `Action<string>` | Ordering: raised as soon as a load has a save folder. Also fires on a level change. |
+| `Events.AfterSave` | `Action<string>` | Ordering: raised after the save files are written, with the folder the game wrote them to. Also fires on a level change. |
+| `Events.BeforeSave` | `Action<string>` | Ordering: raised when a save starts, before the game writes any file. Also fires on a level change. |
 | `Events.DayPassed` | `Action<int>` | [Framework helpers](api/core-helpers.md) |
 | `Events.HourPassed` | `Action<int>` | [Framework helpers](api/core-helpers.md) |
 | `Events.Loaded` | `Action` | [Framework helpers](api/core-helpers.md) |
 | `Events.NewGameStarted` | `Action` | [Framework helpers](api/core-helpers.md) |
+| `Events.NewGameStartedInfo` | `Action<NewGameInfo>` | [Framework helpers](api/core-helpers.md) |
 | `Events.Saved` | `Action` | [Framework helpers](api/core-helpers.md) |
 | `Events.SceneLoaded` | `Action<string>` | [Framework helpers](api/core-helpers.md) |
 {: .events-table}
@@ -328,6 +338,13 @@ These are all the events the framework offers, grouped by the part of the game t
 | `Housing.TenantMovedIn` | `Action<TenantArgs>` | [Housing and building](api/housing.md) |
 | `Housing.TenantMovedOut` | `Action<TenantArgs>` | [Housing and building](api/housing.md) |
 | `Housing.TenementEventStarted` | `Action<TenementEventArgs>` | [Housing and building](api/housing.md) |
+{: .events-table}
+
+### InputCapture
+
+| Event | Handler type | Page with details |
+| --- | --- | --- |
+| `InputCapture.Changed` | `Action<bool>` |  |
 {: .events-table}
 
 ### Instruments
@@ -595,6 +612,7 @@ These are all the events the framework offers, grouped by the part of the game t
 | --- | --- | --- |
 | `Quests.ObjectiveChanged` | `Action<ObjectiveChangedArgs>` | [Story: quests, dialogue and law](api-story.md) |
 | `Quests.Ready` | `Action` | Raised when the quest system can be written, once per load attempt: at each save load and at each new game. A level change reloads the level without rebuilding the save and does not raise it again, while loading the same save again, another save or a new game does. Create quests here, and make the handler safe to run more than once. |
+| `Quests.Rewound` | `Action<QuestRewoundArgs>` | Raised after the framework rewinds one of your quests: a title or description change, a restart, a reset, a removal, a jump to an objective or a checkpoint restore. Reason names the call that did it. From and To are objective keys, the first objective that was Active before the call and the first one Active after it; Remove, SetTitle and SetDescription move no objective, so both are null there and a listener must not rely on From or To for those calls. |
 | `Quests.TaskChanged` | `Action<TaskChangedArgs>` | [Story: quests, dialogue and law](api-story.md) |
 {: .events-table}
 
@@ -808,6 +826,14 @@ These are all the events the framework offers, grouped by the part of the game t
 | --- | --- | --- |
 | `UiState.PauseClosed` | `Action` | [UI state](api/ui-state.md) |
 | `UiState.PauseOpened` | `Action<bool>` | [UI state](api/ui-state.md) |
+{: .events-table}
+
+### UnloadedStorage
+
+| Event | Handler type | Page with details |
+| --- | --- | --- |
+| `UnloadedStorage.Applied` | `Action<UnloadedStorageInfo>` | [Unloaded storage](api/unloaded-storage.md) |
+| `UnloadedStorage.Failed` | `Action<UnloadedStorageInfo>` | [Unloaded storage](api/unloaded-storage.md) |
 {: .events-table}
 
 ### WaitStations

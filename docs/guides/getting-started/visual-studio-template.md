@@ -6,17 +6,17 @@ nav_order: 9
 
 # Visual Studio template
 
-Visual Studio 2022 can create the mod project for you. The template makes the same project as [Your first mod](first-mod.md), with your project name filled in, so you do not copy or rename files by hand. Everything after the project exists is the same on both paths.
+Visual Studio can create the mod project for you. The template makes the same project as [Your first mod](first-mod.md), with your project name filled in, so you do not copy or rename files by hand. Everything after the project exists is the same on both paths.
 
 ## Install the template
 
-You need Visual Studio 2022, at least the Community edition, and the same files as on the [install page](../../install.md): the game, BepInEx and the framework, plus the .NET 10 SDK.
+You need Visual Studio 2022 or newer, at least the Community edition, and the same files as on the [install page](../../install.md): the game, BepInEx and the framework, plus the .NET 10 SDK.
 
 1. Download `ObenseuerModTemplate.zip` from the [releases page](https://github.com/NomadsReach/Obenseuer-Modding-Framework/releases), the same page you got the framework from.
-2. Copy the zip into the folder where Visual Studio keeps your own project templates. Paste this line into the address bar of File Explorer and press Enter to open the folder:
+2. Copy the zip into the folder where Visual Studio keeps your own project templates. Open Documents in File Explorer and go into the folder named for your Visual Studio version, for example Visual Studio 2022. Make the folders Templates\ProjectTemplates inside it if they are missing. The full path looks like this:
 
 ```
-%USERPROFILE%\Documents\Visual Studio 2022\Templates\ProjectTemplates
+%USERPROFILE%\Documents\Visual Studio <version>\Templates\ProjectTemplates
 ```
 
 3. Restart Visual Studio. It reads that folder when it starts, so a zip copied while it is running is not listed yet.

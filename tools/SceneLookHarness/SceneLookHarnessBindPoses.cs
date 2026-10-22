@@ -5,7 +5,7 @@ using ObenseuerCore;
 
 namespace SceneLookHarness
 {
-    internal static class SceneLookHarnessBindPoses
+    internal static partial class SceneLookHarnessBindPoses
     {
         private const string LookScene = "level15";
         private const string LookPath = "Content/mr_duck/Wasteland Hide/mr_duck";

@@ -32,14 +32,33 @@ using ObenseuerCore;
 
 [ModInfo("example.applestall", "Apple Stall", "0.1.0")]
 [ModDependency("obenseuer.moddingframework", "0.11.0")]
-public sealed class AppleStall : FrameworkMod
+public class AppleStall : FrameworkMod
 {
     protected override void OnLoad()
     {
-        ShopStock.AddTraderStock("example.applestall", "Some Trader", 10620, 5);
-        ShopStock.AddVendingEntry("example.applestall", "Some Vending Machine", 10620, 10, 0f, MoneyCurrency.OC);
+        if (!ShopStock.IsAvailable)
+            Log.Warn("Shop stock is off, so no stock can be added. See the limits on the shop keys page.");
+
         Events.WhenReady(() =>
         {
+            foreach (ShopInfo shop in Shops.All())
+            {
+                if (shop.Kind == ShopKind.Trader)
+                {
+                    if (ShopStock.AddTraderStock(Mod.Id, shop.Id, 10620, 5))
+                        Log.Info("Kept 5 apples in " + shop.Name + ".");
+                    else
+                        Log.Warn("The trader stock was refused for " + shop.Name + ". See the limits on the traders page.");
+                }
+                else if (shop.Kind == ShopKind.Vending)
+                {
+                    if (ShopStock.AddVendingEntry(Mod.Id, shop.Id, 10620, 10, 0f, MoneyCurrency.OC))
+                        Log.Info("Added apples to " + shop.Name + ".");
+                    else
+                        Log.Warn("The vending entry was refused for " + shop.Name + ". See the limits on the vending machines page.");
+                }
+            }
+
             foreach (ShopInfo shop in Shops.All())
                 Log.Info(shop.Kind + " " + shop.Name + " " + shop.Id);
         });
@@ -47,4 +66,4 @@ public sealed class AppleStall : FrameworkMod
 }
 ```
 
-The first value you pass is your mod id (see [Mod id](../glossary.md#mod-id)). The second is the shop key: the id, the title or the name of the shop. Replace the two placeholder keys with ones from your log. The number 10620 is the apple's item id. A price of 0 means the machine uses the game's normal price. See [Using events](../guides/getting-started/using-events.md) for more on `WhenReady`.
+The first value of each call is your mod id, `Mod.Id` (see [Mod id](../glossary.md#mod-id)). The shop key is the `Id` of a shop from `Shops.All()`, so the mod finds the shops itself instead of hard coding a key. The number 10620 is the apple's item id. A price of 0 means the machine uses the game's normal price. Each call returns `true` when it was applied, and the mod logs a warning when it was refused. See [Using events](../guides/getting-started/using-events.md) for more on `WhenReady`. The limits are on the [traders](shops-stock/traders.md#limits) and [vending machines](shops-stock/vending-machines.md#limits) pages.

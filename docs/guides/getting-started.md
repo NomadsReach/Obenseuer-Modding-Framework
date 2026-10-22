@@ -20,5 +20,6 @@ Read the pages in this order the first time:
 6. [Save data](getting-started/save-data.md): remember things per save game.
 7. [Patching](getting-started/patching.md): change a game method, as a last resort.
 8. [Packaging](getting-started/packaging.md): make a zip to share.
+9. [When things run](getting-started/startup-order.md): the order of the framework's calls, and what is safe at each one.
 
 After that, the [Cookbook](cookbook/index.md) has short recipes for common jobs, such as giving an item or paying the player. When your mod works, read [Using the framework alongside other mods](multiple-mods.md) before you share it.

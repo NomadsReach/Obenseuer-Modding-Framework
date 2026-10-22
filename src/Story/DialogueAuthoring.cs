@@ -226,9 +226,26 @@ namespace ObenseuerCore
 
         internal static string HashedId(string modId, string text)
         {
+            return modId + "." + HashedKey(text);
+        }
+
+        internal static string HashedKey(string text)
+        {
             uint hash = 2166136261u;
             foreach (char c in text) hash = unchecked((hash ^ c) * 16777619u);
-            return modId + "." + hash.ToString("x8");
+            return hash.ToString("x8");
+        }
+
+        internal static ConversationDefinition TopicDefinition(string modId, string conversationTitle, int anchorId, string playerLine, string[] npcLines, string showWhen)
+        {
+            ConversationDefinition definition = new ConversationDefinition();
+            definition.Key = "topic" + HashedKey(modId + "\n" + conversationTitle + "\n" + anchorId.ToString() + "\n" + playerLine);
+            definition.Lines.Add(new ConversationLine { Key = "topic", Player = true, Text = playerLine, Condition = showWhen, Next = new[] { "reply1" } });
+            for (int i = 0; i < npcLines.Length; i++)
+            {
+                definition.Lines.Add(new ConversationLine { Key = "reply" + (i + 1).ToString(), Text = npcLines[i], Next = i + 1 < npcLines.Length ? new[] { "reply" + (i + 2).ToString() } : null });
+            }
+            return definition;
         }
 
         internal static string LineText(string id)

@@ -63,4 +63,4 @@ public sealed class ItemLookup : FrameworkMod
 }
 ```
 
-`Items.Find` returns `null` for an unknown title, so always check. Titles are not unique in the game data, so use the id when you need one exact item. See [Your first mod](../guides/getting-started/first-mod.md) for how to build and run a mod like this.
+`Items.Find` returns `null` for an unknown title, so always check. Titles are not unique in the game data, so use the id when you need one exact item. An empty or `null` read means the catalogue is not filled yet, which the example checks and logs. See [what comes back](items/details.md#what-to-check-for-and-what-comes-back). See [Your first mod](../guides/getting-started/first-mod.md) for how to build and run a mod like this.

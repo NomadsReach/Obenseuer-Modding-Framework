@@ -54,6 +54,7 @@ namespace ObenseuerCore
         private static bool failed;
         private static bool shutDown;
         private static bool focusDiag;
+        private static bool exclusiveThread;
 
         public static event Action<string> ThemeChanged;
 
@@ -141,6 +142,7 @@ namespace ObenseuerCore
             string mode = config.Bind("Debug", "WebUiMode", "thread", new ConfigDescription("How WebView2 is hosted. thread: one shim thread, each view in its own popup window over the game (default). composition: composition controller on the game thread. windowed: child window of the game on the game thread. Read once when the shim starts, so a change needs a game restart.", new AcceptableValueList<string>("thread", "composition", "windowed"))).Value;
             hostMode = config.Bind("Debug", "WebUiWindowed", false, "Deprecated: use WebUiMode = windowed. true still forces windowed.").Value ? "windowed" : mode;
             focusDiag = config.Bind("Debug", "WebUiFocusDiag", false, "Logs the foreground window at thread-mode view hides, view closes and page clicks, to find focus loss. Read once when the shim starts, so a change needs a game restart.").Value;
+            exclusiveThread = config.Bind("Debug", "WebUiExclusiveThread", false, "Tests thread mode in exclusive fullscreen instead of falling back to composition. Read once when the shim starts, so a change needs a game restart. Default off.").Value;
             theme = Resolve(setting.Value);
             Events.SceneLoadedWithMode += OnSceneLoaded;
         }
@@ -150,7 +152,7 @@ namespace ObenseuerCore
             UpdateBackground();
             if (hostMode == "thread") KeepCursor();
             if (!initialised) return;
-            if (hostMode == "thread" && Screen.fullScreenMode == FullScreenMode.ExclusiveFullScreen)
+            if (!exclusiveThread && hostMode == "thread" && Screen.fullScreenMode == FullScreenMode.ExclusiveFullScreen)
             {
                 FallBack("exclusive fullscreen");
                 return;
@@ -364,8 +366,15 @@ namespace ObenseuerCore
                 if (WebUiNative.LoadLibrary(Path.Combine(shimFolder, WebUiNative.Dll)) == IntPtr.Zero) return Fail("LoadLibrary Win32 error " + Marshal.GetLastWin32Error());
                 if (hostMode == "thread" && Screen.fullScreenMode == FullScreenMode.ExclusiveFullScreen)
                 {
-                    hostMode = "composition";
-                    CoreLog.For(Owner).Info("WebUi thread mode is not used in exclusive fullscreen, using composition for this session");
+                    if (exclusiveThread)
+                    {
+                        CoreLog.For(Owner).Info("WebUi thread mode is being tried in exclusive fullscreen (Debug.WebUiExclusiveThread)");
+                    }
+                    else
+                    {
+                        hostMode = "composition";
+                        CoreLog.For(Owner).Info("WebUi thread mode is not used in exclusive fullscreen, using composition for this session");
+                    }
                 }
                 string data = Path.Combine(Paths.BepInExRootPath, "cache", "ObxWebView");
                 Directory.CreateDirectory(data);
@@ -375,6 +384,10 @@ namespace ObenseuerCore
                     CoreLog.For(Owner).Warn("WebUi thread mode did not start (" + WebUiNative.LastText() + "), falling back to composition for this session");
                     hostMode = "composition";
                     hr = WebUiNative.Obx_Init(window, data, FlagsFor(hostMode));
+                }
+                if ((hostMode == "windowed" || hostMode == "composition") && Screen.fullScreenMode != FullScreenMode.Windowed)
+                {
+                    CoreLog.For(Owner).Warn("WebUi host mode \"" + hostMode + "\" may not show over a fullscreen game, Debug.WebUiMode = thread is the default and works in borderless fullscreen");
                 }
                 if (hr < 0) return Fail("Obx_Init hr=" + hr + " " + WebUiNative.LastText());
                 initialised = true;

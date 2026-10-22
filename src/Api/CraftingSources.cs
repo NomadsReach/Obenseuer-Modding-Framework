@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using HarmonyLib;
+using OS.Items;
 using UnityEngine.SceneManagement;
 
 namespace ObenseuerCore
@@ -14,8 +15,21 @@ namespace ObenseuerCore
         private static readonly List<CraftingBase> awaitingConsume = new List<CraftingBase>();
         private static readonly MethodInfo compareRecipe = AccessTools.Method(typeof(CraftingBase), "CompareRecipeToItems", new[] { typeof(Recipe), typeof(ItemStack[]), typeof(bool), typeof(bool) });
         private static bool installed;
+        private static int registrationOrder;
+
+        public static event Action<CraftingTaken> Consumed;
 
         public static bool Register(string modId, Func<CraftingStationInfo, IEnumerable<Storage>> provider)
+        {
+            return Register(modId, provider, 0, null);
+        }
+
+        public static bool Register(string modId, Func<CraftingStationInfo, IEnumerable<Storage>> provider, int priority)
+        {
+            return Register(modId, provider, priority, null);
+        }
+
+        public static bool Register(string modId, Func<CraftingStationInfo, IEnumerable<Storage>> provider, int priority, Func<Storage, int, StorageSlot, bool> slotFilter)
         {
             ModIds.Require(modId, "modId");
             if (provider == null) throw new ArgumentNullException("provider");
@@ -24,15 +38,40 @@ namespace ObenseuerCore
                 CoreLog.For(modId).Warn("CraftingSources.Register ignored, the crafting hooks are not installed");
                 return false;
             }
-            Entry entry = new Entry(modId, provider);
+            Entry entry = new Entry(modId, provider, priority, slotFilter, registrationOrder++);
             for (int i = 0; i < providers.Count; i++)
             {
                 if (providers[i].ModId != modId) continue;
+                entry.Order = providers[i].Order;
                 providers[i] = entry;
                 return true;
             }
             providers.Add(entry);
             return true;
+        }
+
+        public static bool SetPriority(string modId, int priority)
+        {
+            ModIds.Require(modId, "modId");
+            for (int i = 0; i < providers.Count; i++)
+            {
+                if (providers[i].ModId != modId) continue;
+                providers[i].Priority = priority;
+                return true;
+            }
+            return false;
+        }
+
+        public static bool SetSlotFilter(string modId, Func<Storage, int, StorageSlot, bool> slotFilter)
+        {
+            ModIds.Require(modId, "modId");
+            for (int i = 0; i < providers.Count; i++)
+            {
+                if (providers[i].ModId != modId) continue;
+                providers[i].SlotFilter = slotFilter;
+                return true;
+            }
+            return false;
         }
 
         public static bool Unregister(string modId)
@@ -71,10 +110,9 @@ namespace ObenseuerCore
                     open.Remove(scope);
                     return null;
                 }
-                List<StorageSlot[]> lists = new List<StorageSlot[]>();
-                foreach (Storage extra in scope.Extras) lists.Add(extra.storageSlots);
                 scope.Own = station.InputOutputStorage.storageSlots;
-                scope.Combined = Combine(scope.Own, lists);
+                if (consume) scope.Snapshots = Capture(scope.Extras);
+                scope.Combined = CombineSlots(scope.Own, scope.Extras);
                 station.InputOutputStorage.storageSlots = scope.Combined;
                 return scope;
             }
@@ -95,16 +133,32 @@ namespace ObenseuerCore
             if (storage != null && storage.storageSlots == scope.Combined) storage.storageSlots = scope.Own;
             else ApiLog.Once(Owner, "restore station slots", "the station slots changed during a call that used extra sources, the new slots are kept");
             if (!scope.Consume) return;
-            foreach (Storage extra in scope.Extras)
+            Report(scope);
+            Refresh(scope);
+        }
+
+        private static void Refresh(Scope scope)
+        {
+            foreach (Source source in scope.Extras)
             {
                 try
                 {
-                    if (extra.Slots != null) extra.UpdateSlots();
+                    if (source.Storage.Slots != null) source.Storage.UpdateSlots();
                 }
                 catch (Exception e)
                 {
                     ApiLog.Once(Owner, "refresh extra source", e);
                 }
+            }
+        }
+
+        private static void Report(Scope scope)
+        {
+            Action<CraftingTaken> handlers = Consumed;
+            if (handlers == null) return;
+            foreach (CraftingTaken item in Gone(scope.Station, scope.Snapshots))
+            {
+                Events.Raise(handlers, "CraftingSources.Consumed", h => h(item));
             }
         }
 
@@ -151,17 +205,63 @@ namespace ObenseuerCore
             return multiples <= 1 || station.GetRecipeMultiplier(recipe) >= multiples;
         }
 
-        internal static T[] Combine<T>(T[] own, IList<T[]> extras) where T : class
+        internal static StorageSlot[] Keep(StorageSlot[] slots, Func<int, StorageSlot, bool> allowed)
         {
-            List<T> result = new List<T>(own);
-            List<T[]> seen = new List<T[]> { own };
-            foreach (T[] extra in extras)
+            if (slots == null || slots.Length == 0) return new StorageSlot[0];
+            StorageSlot[] result = new StorageSlot[slots.Length];
+            for (int i = 0; i < slots.Length; i++)
             {
-                if (extra == null || extra.Length == 0 || seen.Exists(s => ReferenceEquals(s, extra))) continue;
-                seen.Add(extra);
-                result.AddRange(extra);
+                StorageSlot slot = slots[i];
+                if (slot == null || (allowed != null && !allowed(i, slot))) result[i] = new StorageSlot();
+                else result[i] = slot;
             }
-            return result.ToArray();
+            return result;
+        }
+
+        internal static List<CraftingTaken> Gone(CraftingBase station, List<Snapshot> snapshots)
+        {
+            List<CraftingTaken> taken = new List<CraftingTaken>();
+            if (snapshots == null) return taken;
+            foreach (Snapshot before in snapshots)
+            {
+                if (before.ItemId == -1 || before.Amount <= 0) continue;
+                int left = before.Slot != null && before.Slot.itemId == before.ItemId ? before.Slot.itemAmount : 0;
+                int gone = before.Amount - left;
+                float poured = LiquidGone(before);
+                if (gone <= 0 && poured <= 0f) continue;
+                taken.Add(new CraftingTaken(before.ModId, before.Storage, before.SlotIndex, before.ItemId, gone > 0 ? gone : 0, poured > 0f ? before.LiquidItemId : -1, poured > 0f ? poured : 0f, station));
+            }
+            return taken;
+        }
+
+        private static float LiquidGone(Snapshot before)
+        {
+            if (before.LiquidItemId == -1 || before.LiquidAmount <= 0f || before.Slot == null) return 0f;
+            ItemLiquidData liquid = before.Slot.GetMetaOfType<ItemLiquidData>();
+            float left = liquid == null ? 0f : liquid.GetLiquidAmount(before.Slot.itemAmount);
+            if (!ItemLiquidData.IsGreaterThan(before.LiquidAmount, left)) return 0f;
+            return before.LiquidAmount - left;
+        }
+
+        internal static List<Entry> Sort(List<Entry> list)
+        {
+            for (int i = 1; i < list.Count; i++)
+            {
+                Entry entry = list[i];
+                int j = i - 1;
+                while (j >= 0 && list[j].After(entry))
+                {
+                    list[j + 1] = list[j];
+                    j--;
+                }
+                list[j + 1] = entry;
+            }
+            return list;
+        }
+
+        private static List<Entry> Ordered()
+        {
+            return Sort(new List<Entry>(providers));
         }
 
         private static bool IsOpen(CraftingBase station)
@@ -173,18 +273,20 @@ namespace ObenseuerCore
             return false;
         }
 
-        private static List<Storage> Collect(CraftingBase station)
+        private static List<Source> Collect(CraftingBase station)
         {
-            List<Storage> found = new List<Storage>();
+            List<Source> found = new List<Source>();
+            List<Storage> seen = new List<Storage>();
             CraftingStationInfo info = Crafting.ToStation(station);
-            foreach (Entry entry in providers.ToArray())
+            foreach (Entry entry in Ordered())
             {
                 List<Storage> given = Ask(entry, info);
                 if (given == null) continue;
                 foreach (Storage storage in given)
                 {
-                    if (storage == null || ReferenceEquals(storage, station.InputOutputStorage) || ReferenceEquals(storage, station.OutputStorage) || storage.storageSlots == null || storage.storageSlots.Length == 0 || found.Contains(storage)) continue;
-                    found.Add(storage);
+                    if (storage == null || ReferenceEquals(storage, station.InputOutputStorage) || ReferenceEquals(storage, station.OutputStorage) || storage.storageSlots == null || storage.storageSlots.Length == 0 || seen.Contains(storage)) continue;
+                    seen.Add(storage);
+                    found.Add(new Source(entry, storage));
                 }
             }
             return found;
@@ -209,15 +311,116 @@ namespace ObenseuerCore
             }
         }
 
+        private static List<Snapshot> Capture(List<Source> extras)
+        {
+            List<Snapshot> snapshots = new List<Snapshot>();
+            foreach (Source source in extras)
+            {
+                StorageSlot[] slots = source.Storage.storageSlots;
+                if (slots == null) continue;
+                for (int i = 0; i < slots.Length; i++)
+                {
+                    StorageSlot slot = slots[i];
+                    if (slot == null) continue;
+                    ItemLiquidData liquid = slot.GetMetaOfType<ItemLiquidData>();
+                    int liquidItemId = liquid == null || liquid.liquidItem == null ? -1 : liquid.liquidItem.ID;
+                    float liquidAmount = liquid == null || liquid.liquidItem == null ? 0f : liquid.GetLiquidAmount(slot.itemAmount);
+                    snapshots.Add(new Snapshot(source.Entry.ModId, source.Storage, slot, i, slot.itemId, slot.itemAmount, liquidItemId, liquidAmount));
+                }
+            }
+            return snapshots;
+        }
+
+        internal static StorageSlot[] CombineSlots(StorageSlot[] own, List<Source> extras)
+        {
+            List<StorageSlot> result = new List<StorageSlot>(own);
+            List<StorageSlot[]> seen = new List<StorageSlot[]> { own };
+            foreach (Source source in extras)
+            {
+                StorageSlot[] extra = source.Storage.storageSlots;
+                if (extra == null || extra.Length == 0 || seen.Exists(s => ReferenceEquals(s, extra))) continue;
+                seen.Add(extra);
+                result.AddRange(Keep(extra, FilterOf(source)));
+            }
+            return result.ToArray();
+        }
+
+        private static Func<int, StorageSlot, bool> FilterOf(Source source)
+        {
+            if (source.Entry.SlotFilter == null) return null;
+            return (index, slot) => Allowed(source, index, slot);
+        }
+
+        private static bool Allowed(Source source, int index, StorageSlot slot)
+        {
+            try
+            {
+                return source.Entry.SlotFilter(source.Storage, index, slot);
+            }
+            catch (Exception e)
+            {
+                ApiLog.Once(source.Entry.ModId, "CraftingSources slot filter", e);
+                return false;
+            }
+        }
+
         internal sealed class Entry
         {
             internal readonly string ModId;
             internal readonly Func<CraftingStationInfo, IEnumerable<Storage>> Provider;
+            internal int Priority;
+            internal Func<Storage, int, StorageSlot, bool> SlotFilter;
+            internal int Order;
 
-            internal Entry(string modId, Func<CraftingStationInfo, IEnumerable<Storage>> provider)
+            internal Entry(string modId, Func<CraftingStationInfo, IEnumerable<Storage>> provider, int priority, Func<Storage, int, StorageSlot, bool> slotFilter, int order)
             {
                 ModId = modId;
                 Provider = provider;
+                Priority = priority;
+                SlotFilter = slotFilter;
+                Order = order;
+            }
+
+            internal bool After(Entry other)
+            {
+                if (Priority != other.Priority) return Priority < other.Priority;
+                return Order > other.Order;
+            }
+        }
+
+        internal sealed class Source
+        {
+            internal readonly Entry Entry;
+            internal readonly Storage Storage;
+
+            internal Source(Entry entry, Storage storage)
+            {
+                Entry = entry;
+                Storage = storage;
+            }
+        }
+
+        internal sealed class Snapshot
+        {
+            internal readonly string ModId;
+            internal readonly Storage Storage;
+            internal readonly StorageSlot Slot;
+            internal readonly int SlotIndex;
+            internal readonly int ItemId;
+            internal readonly int Amount;
+            internal readonly int LiquidItemId;
+            internal readonly float LiquidAmount;
+
+            internal Snapshot(string modId, Storage storage, StorageSlot slot, int slotIndex, int itemId, int amount, int liquidItemId, float liquidAmount)
+            {
+                ModId = modId;
+                Storage = storage;
+                Slot = slot;
+                SlotIndex = slotIndex;
+                ItemId = itemId;
+                Amount = amount;
+                LiquidItemId = liquidItemId;
+                LiquidAmount = liquidAmount;
             }
         }
 
@@ -227,13 +430,38 @@ namespace ObenseuerCore
             internal readonly bool Consume;
             internal StorageSlot[] Own;
             internal StorageSlot[] Combined;
-            internal List<Storage> Extras;
+            internal List<Source> Extras;
+            internal List<Snapshot> Snapshots;
             internal bool Closed;
 
             internal Scope(CraftingBase station, bool consume)
             {
                 Station = station;
                 Consume = consume;
+            }
+        }
+
+        public sealed class CraftingTaken
+        {
+            public string ModId { get; private set; }
+            public Storage Storage { get; private set; }
+            public int SlotIndex { get; private set; }
+            public int ItemId { get; private set; }
+            public int Amount { get; private set; }
+            public int LiquidItemId { get; private set; }
+            public float LiquidAmount { get; private set; }
+            public CraftingBase Station { get; private set; }
+
+            internal CraftingTaken(string modId, Storage storage, int slotIndex, int itemId, int amount, int liquidItemId, float liquidAmount, CraftingBase station)
+            {
+                ModId = modId;
+                Storage = storage;
+                SlotIndex = slotIndex;
+                ItemId = itemId;
+                Amount = amount;
+                LiquidItemId = liquidItemId;
+                LiquidAmount = liquidAmount;
+                Station = station;
             }
         }
     }
