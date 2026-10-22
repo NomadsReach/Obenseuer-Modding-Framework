@@ -313,7 +313,7 @@ The framework keeps one of these for each option a mod registered. The type itse
 ## Details
 
 Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
-Namespace: `ObenseuerCore`. Logs go to `BepInEx\logs\obenseuer.moddingframework.startoptions.log` for the values and to `BepInEx\logs\obenseuer.moddingframework.newgamescreen.log` for the rows. Not checked in game.
+Namespace: `ObenseuerCore`. Logs go to `BepInEx\logs\obenseuer.moddingframework.startoptions.log` for the values and to `BepInEx\logs\obenseuer.moddingframework.newgamescreen.log` for the rows.
 
 Everything not listed in this reference is internal and may change without notice. This page is experimental and may change too.
 
@@ -327,7 +327,7 @@ The rows are added to the character difficulty screen in the main menu, the one 
 
 The framework adds the rows once for each visit to that screen. Nothing is written by a row until the player presses an arrow, and the values are taken into memory when the player confirms the character, which is the moment both `Events.NewGameStarted` events fire.
 
-The rows are added to the game's own block of difficulty settings, which the game shows only when the chosen difficulty is Custom and hides for the named difficulties. On every visit the framework brings that block back up and leaves the game's own setting rows as the difficulty wants them, so its own rows show on every difficulty while the game's own rows still show only on Custom. The `NewGameRowsOnAllDifficulties` setting in the Mods menu's `UI` section, on by default, turns that off and gives back the game's own behaviour: use it when the rows overlap the difficulty description. The exact place of a row inside the copied layout and the order the game's gamepad navigation sees were not checked in game: the row is copied from a live game object and the framework cannot see the prefab offline, so those are the parts to check first in game.
+The rows are added to the game's own block of difficulty settings, which the game shows only when the chosen difficulty is Custom and hides for the named difficulties. On every visit the framework brings that block back up and leaves the game's own setting rows as the difficulty wants them, so its own rows show on every difficulty while the game's own rows still show only on Custom. The `NewGameRowsOnAllDifficulties` setting in the Mods menu's `UI` section, on by default, turns that off and gives back the game's own behaviour: use it when the rows overlap the difficulty description. A row is copied from a live game object and the framework cannot see the prefab offline, so the exact place of a row inside the copied layout and the order the game's gamepad navigation sees depend on the game's screen.
 
 ### When you can call it
 

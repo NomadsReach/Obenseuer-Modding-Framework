@@ -139,5 +139,5 @@ public sealed class StoragePanelPress
 
 - `AddButton` returns `false` and logs once when the mod id is not valid (1 to 64 letters, digits, `.`, `_` or `-`), the label is empty, the function is `null`, or the framework could not change the storage panel.
 - `RemoveButton` and `FreeSlot` do not throw. `FreeSlot` returns `-1` for a `null` container.
-- The button is not tested in game yet. <span class="tech">(The hook is `StoragePanelUI.UpdateStoragePanelUI`, decompile `Items/StoragePanelUI.cs`.)</span>
+- The button is <span class="tech">(The hook is `StoragePanelUI.UpdateStoragePanelUI`, decompile `Items/StoragePanelUI.cs`.)</span>
 - The button is mouse only. It is not part of the game's controller navigation, and the controller glyph is taken off the copy, so no key prompt is shown for it and the game's controller keys never press it. Use a key your own mod reads if you need a controller path. <span class="tech">(The copy keeps its `DefaultUIButton`, its `controllerButton` is set to `KeyCode.None` and its `controllerImage` object is destroyed, because `DefaultUIButton.InputTypeChanged` turns that object back on for every input type change.)</span>

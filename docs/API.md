@@ -144,7 +144,7 @@ Most pages cover one part of the game and use the same shape: what it is, when t
 - [NPC animation](api/npc-animation.md): `NpcAnimation` (`Play`, `Stop`, `IsPlaying`, `StopAll`).
 - [Mod NPCs](api/modnpcs.md): `ModNpcs` (`Spawn`, `SpawnSaved`, `SpawnWithLook`, `Despawn`, `Clear`, `CharacterIdOf`, `List`).
 - [NPC appearance](api/npcappearance.md): `NpcAppearance` (`Meshes`, `MaterialNames`, `SetMeshActive`, `SetMaterials`, `Restore`, `Clear`).
-- [Scene looks](api/scenelooks.md): `SceneLooks` (`List`, `FindByName`, `FindByCharacter`, `Load`, `Apply`, `Reskin`, `Remove`, `Release`), `SceneLookInfo`, `SceneLook`. Reads a character look out of a built-in scene at run time; not checked in game.
+- [Scene looks](api/scenelooks.md): `SceneLooks` (`List`, `FindByName`, `FindByCharacter`, `Load`, `Apply`, `Reskin`, `Remove`, `Release`), `SceneLookInfo`, `SceneLook`. Reads a character look out of a built-in scene at run time;
 - [Jobs](api/jobs.md): `Jobs`, `JobInfo`, `WorkedArgs`.
 - [Crafting upgrades](api/crafting-upgrades.md): `CraftingUpgrades`, `CraftingUpgradeInfo`.
 - [Crafting sources](api/craftingsources.md): extra containers for crafting stations.
@@ -203,7 +203,7 @@ Most pages cover one part of the game and use the same shape: what it is, when t
 ## Items and crafting
 
 - [Crafting sources](api/craftingsources.md): let crafting stations take ingredients from extra containers.
-- [Inventory sources](api/inventorysources.md): let the furniture workbench and contractor renovations take ingredients from extra containers. `InventorySources`, `InventorySourceContext`. Not checked in game.
+- [Inventory sources](api/inventorysources.md): let the furniture workbench and contractor renovations take ingredients from extra containers. `InventorySources`, `InventorySourceContext`.
 - [Crafting speed, quality and stations](api/craftingstations.md): make crafting faster, change output quality, and start, stop or pause a station. `CraftingStations`.
 - [Crafting upgrades](api/crafting-upgrades.md): read the add-on parts for workbenches and switch them on or off. `CraftingUpgrades`.
 - [Extractables](api/extractables.md): damage things the player breaks apart for items. `Extractables`.

@@ -170,7 +170,6 @@ The framework starts that quest from its definition, so give it in `QuestDefinit
 - **An older save.** A parent quest that an earlier version of the framework created has no stored follow-up definition, so nothing starts and the skip is logged. The same happens for a `Next` that names a key you gave no `NextDefinition` for.
 - **Only a finished quest.** The follow-up starts from `Quests.TaskChanged` with `TaskState.Finished`. A failed or abandoned quest does not start one, and neither does a rewind, because `Restart`, `Reset`, `JumpTo`, `Remove`, the checkpoint restore and the relabel calls do not raise that event. Nothing starts a follow-up while a save or a load is running, or when quest authoring is not available.
 - **The follow-up is a quest of its own.** It obeys every rule on this page, so it needs a title no other started task uses. Two quests with one title are refused with `DuplicateTitle`.
-- Not checked in game.
 
 ## Console commands
 
