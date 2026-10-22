@@ -2,6 +2,8 @@
 
 ## 0.13.0-beta (2026-10-21)
 
+This release also carries everything from 0.12.0-beta (2026-10-17).
+
 ### Added
 
 - WebUi logs one warning when the shim starts in `windowed` or `composition` mode while the game is in a fullscreen mode other than windowed, saying that the mode may not show and that `thread`, the default, works in borderless fullscreen. See `docs/api/webui/the-webui-class.md`. Not checked in game.
@@ -44,30 +46,6 @@ Not checked in game.
 - A save whose state the Developer menu has changed is flagged as dev-modified. Every action of the menu's own cards that succeeds sets the flag, which is kept in the framework's own file in the save folder (`mods\obenseuer.moddingframework.devmodified.json`) and written with the next normal game save, and it never clears. The window shows a dev-modified line while the flag is set, one warning goes to the log, and `DevMenu.SaveIsDevModified` reads it. Browsing the menu, the Tools tab's checks and a mod's own section buttons do not set it. See `docs/api/dev-menu.md`. Not checked in game.
 - `InventorySources` containers now count and give up ammo rounds and liquids as well as whole items, and the counts the game's screens show include them: the furniture workbench's ingredient rows, the renovation screen's have count, and the blueprint and renovation checks. A take draws from the containers before the player's own items, and a liquid is taken as a whole item like anything else, with a container that holds it given up whole once no loose stack of it is left, rather than poured by amount. Two cases are not covered: a workbench ingredient row that names furniture or a furniture group rather than an item, which the game counts from what is built, and a check for a contractor that is not the one in the scene, where the game's own tenement containers come from a per-contractor snapshot and the framework's containers are counted as live ones. See `docs/api/inventorysources.md`. Not checked in game.
 - The Developer menu's Player card takes a No clip toggle, next to God mode. It turns the game's own debug movement on and off, so the player walks through walls and locked doors and can leave the ground: WASD moves the player, Left Shift moves faster, and the game's own Up and Down actions go up and down, with no default key set for those two. The toggle is refused, with one line in the log, when the game's debug movement or the game's developer console is not loaded in the scene, and it is put back to the state the game reports. The game's `noclip` console command is kept in step with the toggle, so the command and the toggle do not fight. Changing the scene switches no clip off, because the game's debug movement belongs to the level scene and goes away with it: the menu puts the game's console state back, says so in one line in the log, and puts the toggle back to the state the game reports, without flagging the save as dev-modified again. A scene the game loads on top of the current one, which is how it streams the neighbours of an open level, is not a change of scene and leaves no clip alone. A change that succeeds flags the save as dev-modified like every other action of the menu's own cards. See `docs/api/dev-menu.md`. Not checked in game.
-
-### Changed
-
-- The four `CorePatcher.Patch` overloads that take a transpiler return `false` and write one line instead of throwing when the owner is empty or reserved. The overloads without a transpiler still throw.
-
-- The Full dock side column is 23.5% of the window width instead of a fixed 440 px, so 4:3 and ultrawide windows keep their proportions.
-- `ModNpcs.Spawn` and the other spawn calls pick the source's own model for `bodyCharacterId` `0` only when that model has the current rig (an `Appearance` in its children), and fall back to the default body otherwise, as they already did for a source with no model at all. A saved `0` person of such a source may come back on the default body instead of the source's own model.
-- `Dialogue.AddBranch` no longer refuses a branch whose first line is an NPC line. The first line may be a player line or an NPC line, and the anchor is still required to reach a player line of its own.
-- `Quests.Rewound` carries `From` and `To` on `QuestRewoundArgs`: the first objective that was Active before the call, and the first one Active after it. Both are `null` for `Remove`, `SetTitle` and `SetDescription`, which move no objective.
-- CoreLog: the suppression summary now says the limit and how to raise it. Not checked in game.
-
-### Fixed
-
-- `Dialogue.AddBranch` refuses an `anchorText` that is empty or only spaces instead of registering a branch that waits for an anchor that can never appear, and it matches the anchor once per retry attempt instead of twice. A branch whose first line is a character line gets one priority tier below the anchor's player choices by default, so it cannot take the player's menu, and it plays the same way it did before when the anchor has no choices; when the anchor's choices are already at the lowest tier the branch shares their tier and that is logged once. `Dialogue.AddQuestTopic` returns `null` and logs an empty argument instead of throwing, and it skips group entries and character lines that cannot take a choice when it looks for the line to hang the topic on.
-- `Dialogue.RemoveBranch` on a branch that is still waiting for its conversation no longer deletes a conversation the mod added under the same key with `DialogueAuthoring.Add`. The branch key comes from the arguments of the call rather than the anchor entry that was found, so a branch added before its anchor conversation was loaded keeps the key it was given and a second call with the same arguments is refused as already added.
-
-### Docs
-
-- Pages added with `ModMenu.AddPage` are classic only: their build callback runs in the classic uGUI window even when the page is opened from the web menu. Rich controls, such as a searchable dropdown, a colour picker or multi-line text, belong in the WebUi menu.
-
-## 0.12.0-beta (2026-10-17)
-
-### Added
-
 - `NewGameOptions` lets a mod register toggles, choices and whole numbers for the New Game screen, read the chosen values out of the save, and hear `Events.NewGameStarted`. The values are held in memory from the start of a new game and written at the first save. There is no New Game screen yet, so nothing sets a value until that later task ships and a read gives the fallback. See `docs/api/new-game-options.md`.
 - `Banking.IsFrozen`, `Banking.Freeze` and `Banking.Unfreeze` read and change whether the player's bank account is frozen, through the game's own `Bank.SetAccountFrozen`. A frozen account is refused by the game's deposits and withdrawals, credit interest and a bank subscription payment, and the framework's own `TakeLoan` and `RepayLoan` refuse it too; the game's own loan screen does not check the flag and still works. `IsFrozen` reads the live account record rather than the bank's cached copy, and the freeze calls report `Failed` if the flag did not change. The flag is saved with the account, so it outlives the mod that set it. See `docs/api/economy.md`. Not checked in game.
 
@@ -88,10 +66,23 @@ Not checked in game.
 
 ### Changed
 
+- The four `CorePatcher.Patch` overloads that take a transpiler return `false` and write one line instead of throwing when the owner is empty or reserved. The overloads without a transpiler still throw.
+
 - The Full dock side column is 23.5% of the window width instead of a fixed 440 px, so 4:3 and ultrawide windows keep their proportions.
+- `ModNpcs.Spawn` and the other spawn calls pick the source's own model for `bodyCharacterId` `0` only when that model has the current rig (an `Appearance` in its children), and fall back to the default body otherwise, as they already did for a source with no model at all. A saved `0` person of such a source may come back on the default body instead of the source's own model.
+- `Dialogue.AddBranch` no longer refuses a branch whose first line is an NPC line. The first line may be a player line or an NPC line, and the anchor is still required to reach a player line of its own.
+- `Quests.Rewound` carries `From` and `To` on `QuestRewoundArgs`: the first objective that was Active before the call, and the first one Active after it. Both are `null` for `Remove`, `SetTitle` and `SetDescription`, which move no objective.
+- CoreLog: the suppression summary now says the limit and how to raise it. Not checked in game.
+- The Full dock side column is 23.5% of the window width instead of a fixed 440 px, so 4:3 and ultrawide windows keep their proportions.
+
+### Fixed
+
+- `Dialogue.AddBranch` refuses an `anchorText` that is empty or only spaces instead of registering a branch that waits for an anchor that can never appear, and it matches the anchor once per retry attempt instead of twice. A branch whose first line is a character line gets one priority tier below the anchor's player choices by default, so it cannot take the player's menu, and it plays the same way it did before when the anchor has no choices; when the anchor's choices are already at the lowest tier the branch shares their tier and that is logged once. `Dialogue.AddQuestTopic` returns `null` and logs an empty argument instead of throwing, and it skips group entries and character lines that cannot take a choice when it looks for the line to hang the topic on.
+- `Dialogue.RemoveBranch` on a branch that is still waiting for its conversation no longer deletes a conversation the mod added under the same key with `DialogueAuthoring.Add`. The branch key comes from the arguments of the call rather than the anchor entry that was found, so a branch added before its anchor conversation was loaded keeps the key it was given and a second call with the same arguments is refused as already added.
 
 ### Docs
 
+- Pages added with `ModMenu.AddPage` are classic only: their build callback runs in the classic uGUI window even when the page is opened from the web menu. Rich controls, such as a searchable dropdown, a colour picker or multi-line text, belong in the WebUi menu.
 - Pages added with `ModMenu.AddPage` are classic only: their build callback runs in the classic uGUI window even when the page is opened from the web menu. Rich controls, such as a searchable dropdown, a colour picker or multi-line text, belong in the WebUi menu.
 
 ## 0.11.1-beta (2026-10-16)
