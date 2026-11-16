@@ -11,13 +11,17 @@ parent.postMessage({parentReadable, storageReadable, bridge: typeof window.__bun
 const server = Bun.serve({
   hostname: '127.0.0.1', port: 0,
   async fetch(request) {
-    const path = new URL(request.url).pathname;
+    const url = new URL(request.url);
+    const path = url.pathname;
     if (path === '/probe-child') return new Response(child, { headers: { 'content-type': 'text/html' } });
     const file = resolve(root, '.' + decodeURIComponent(path === '/' ? '/index.html' : path));
     if (!file.startsWith(root + sep)) return new Response('Forbidden', { status: 403 });
     if (path === '/') {
       const html = await Bun.file(file).text();
-      return new Response(html.replace('frame-src ', "frame-src 'self' "), { headers: { 'content-type': 'text/html' } });
+      const framePolicy = html.replace('frame-src ', "frame-src 'self' ");
+      const served = url.searchParams.has('probe') ? framePolicy.replace("script-src 'self'", "script-src 'self' 'unsafe-eval'") : framePolicy;
+      if (framePolicy === html || (url.searchParams.has('probe') && served === framePolicy)) return new Response('Expected CSP not found', { status: 500 });
+      return new Response(served, { headers: { 'content-type': 'text/html' } });
     }
     return new Response(Bun.file(file));
   },
@@ -32,8 +36,20 @@ setTimeout(() => finish('PROBE_FAIL timeout', 1), 45000);
 
 app.whenReady().then(() => {
   const win = new BrowserWindow({ width: 1280, height: 720, show: false });
+  let phase = 0;
   win.webContents.on('did-finish-load', async () => {
     try {
+      if (phase++ === 0) {
+        try {
+          await win.webContents.executeJavaScript('1 + 1');
+          console.log('CSP_EXEC allowed');
+        } catch (error) {
+          if (!String(error).includes('unsafe-eval')) throw error;
+          console.log(`CSP_EXEC blocked: ${error}`);
+        }
+        win.loadURL(`http://127.0.0.1:${server.port}/?probe=1`);
+        return;
+      }
       const shell = await win.webContents.executeJavaScript(`JSON.stringify({title: document.title, apps: document.querySelectorAll('#desk [data-app]').length, registry: typeof window.Apps, modFrame: typeof window.ModFrame})`);
       console.log('OS_SHELL ' + shell);
       const state = JSON.parse(String(shell));
