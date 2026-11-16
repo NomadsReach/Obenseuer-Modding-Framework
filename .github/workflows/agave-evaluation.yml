@@ -1,0 +1,71 @@
+name: Agave evaluation
+on:
+  push:
+    branches: [work/agave-evaluation]
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: evaluation
+      - uses: actions/checkout@v4
+        with:
+          repository: onecoolx/agave
+          ref: d118acdc14e219e99d3ec948596a326b38584da0
+          path: agave
+      - uses: actions/checkout@v4
+        with:
+          repository: NomadsReach/ObenseuerOS
+          ref: b1ef7ce583c33e2b0ba2a97914d1576e2ea09a4e
+          path: os
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Configure Agave x64
+        shell: pwsh
+        run: |
+          Copy-Item evaluation/tools/agave-probe.cpp agave/test/obenseuer-probe.cpp
+          @'
+          add_executable(obenseuer_probe ${PROJ_ROOT}/test/obenseuer-probe.cpp)
+          target_include_directories(obenseuer_probe PRIVATE ${PROJ_ROOT}/include ${PROJ_OUT})
+          target_link_libraries(obenseuer_probe PRIVATE ${LIB_NAME})
+          '@ | Add-Content agave/CMakeLists.txt
+          cmake -S agave -B build -A x64 -DOPT_UNITTEST=OFF -DOPT_EXAMPLES=OFF -DOPT_USE_ASAN=OFF
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Build Agave x64
+        run: cmake --build build --config Release --target obenseuer_probe --parallel 2
+      - name: Capture Agave and browser reference
+        shell: pwsh
+        run: |
+          python -m pip install pillow playwright
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m playwright install chromium
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $server = Start-Process python -ArgumentList '-m','http.server','18765','--bind','127.0.0.1','--directory',"$pwd/os/web" -PassThru -WindowStyle Hidden
+          try {
+            python evaluation/tools/agave-reference.py
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            $probe = Get-ChildItem build -Recurse -Filter obenseuer_probe.exe | Select-Object -First 1
+            if (-not $probe) { throw 'Probe executable missing' }
+            & $probe.FullName 'http://127.0.0.1:18765/index.html' "$pwd/agave.ppm"
+            $probeExit = $LASTEXITCODE
+            if (Test-Path agave.ppm) {
+              python evaluation/tools/agave-reference.py compare
+              $compareExit = $LASTEXITCODE
+            } else { $compareExit = 1 }
+            if ($probeExit -ne 0 -or $compareExit -ne 0) { exit 1 }
+          } finally { Stop-Process -Id $server.Id -ErrorAction SilentlyContinue }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: agave-visual-comparison
+          path: |
+            reference.png
+            agave.ppm
+            agave.png
+            difference.png
+          if-no-files-found: warn
