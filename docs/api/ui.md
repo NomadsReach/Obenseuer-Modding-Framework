@@ -8,6 +8,10 @@ nav_order: 4
 
 # UI
 
+## UI Toolkit overlays
+
+`ObenseuerCore.Ui.ToolkitUi.CreateOverlay(host)` creates a UI Toolkit screen overlay whose lifetime follows the supplied Unity transform and returns its root `VisualElement`. `ToolkitUi.MakeDraggable(window, titleBar)` brings the window forward when clicked and lets the player drag it by the title bar without capturing buttons or focusable controls. Use a dedicated drag surface for custom non-focusable controls. Both arguments must be non-null. This early API is for screen overlays; in-world display and input behavior must be tested in the game.
+
 This page uses `KeyCode` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 

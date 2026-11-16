@@ -20,3 +20,4 @@ jobs:
         with:
           dotnet-version: '10.0.x'
       - run: dotnet run --project checks/CloseGuard/CloseGuard.csproj -c Release
+      - run: dotnet run --project checks/ToolkitWindow/ToolkitWindow.csproj -c Release
