@@ -22,6 +22,7 @@ namespace ObenseuerCore
         private static bool installTried;
         private static bool installed;
         private static bool gameInteractableLogged;
+        private static bool checkingClose;
 
         public static event Action<ComputerAppClosedArgs> AppClosed;
 
@@ -65,6 +66,14 @@ namespace ObenseuerCore
             if (overlay != null && overlay.AppId == appId) CloseOverlay();
         }
 
+        public static void SetCloseGuard(Transform host, Func<bool> canClose)
+        {
+            if (host == null) throw new ArgumentNullException("host");
+            ComputerAppHost appHost = host.GetComponent<ComputerAppHost>();
+            if (appHost == null) throw new ArgumentException("host must be a computer app host", "host");
+            appHost.CloseGuard = canClose;
+        }
+
         public static void RemoveAll(string modId)
         {
             ModIds.RequireLegacy(modId, "modId");
@@ -80,6 +89,7 @@ namespace ObenseuerCore
             ComputerApp app = ComputerAppsDesk.Find(appId);
             if (app == null) return false;
             if (overlay != null && overlay.AppId == appId) return true;
+            if (overlay != null && !CanCloseOverlay()) return false;
             CloseOverlay();
             if (overlay != null) CloseOverlay();
             if (GameController.instance == null || ThirdPersonCameraController.instance == null || OpenSewerCharacterController.instance == null || CoreInput.GameBusy())
@@ -169,7 +179,8 @@ namespace ObenseuerCore
             if (overlay == null || ModWindow.EscapeConsumed) return;
             try
             {
-                if (overlay.Root == null || (Input.GetKeyDown(KeyCode.Escape) && !ComputerAppsDesk.Focused(overlay.Root.transform))) CloseOverlay();
+                if (overlay.Root == null) CloseOverlay();
+                else if (Input.GetKeyDown(KeyCode.Escape) && !ComputerAppsDesk.Focused(overlay.Root.transform)) RequestCloseOverlay();
             }
             catch (Exception e)
             {
@@ -211,7 +222,7 @@ namespace ObenseuerCore
             overlay.Root = root;
             UiEvents.Acquire();
             app.Open(ComputerAppsDesk.NewHost(rootRect, "ObenseuerCoreApp host", app.ModId));
-            UnityEngine.UI.Button close = ComputerAppsDesk.Clickable(rootRect, "Close", UiTheme.Control, () => CloseOverlay());
+            UnityEngine.UI.Button close = ComputerAppsDesk.Clickable(rootRect, "Close", UiTheme.Control, () => RequestCloseOverlay());
             RectTransform closeRect = (RectTransform)close.transform;
             closeRect.anchorMin = new Vector2(1f, 1f);
             closeRect.anchorMax = new Vector2(1f, 1f);
@@ -220,6 +231,35 @@ namespace ObenseuerCore
             closeRect.anchoredPosition = new Vector2(-16f, -16f);
             ComputerAppsDesk.Label(close.transform, "Close", 15f, 0f, 1f);
             return true;
+        }
+
+        private static bool CanCloseOverlay()
+        {
+            if (overlay == null || overlay.Root == null) return true;
+            if (checkingClose) return false;
+            Overlay requested = overlay;
+            checkingClose = true;
+            try
+            {
+                foreach (ComputerAppHost host in requested.Root.GetComponentsInChildren<ComputerAppHost>(false))
+                {
+                    if (host.CloseGuard == null) continue;
+                    try { if (!host.CloseGuard()) return false; }
+                    catch (Exception e)
+                    {
+                        CoreLog.For(host.ModId).Error("computer app close guard failed: " + e);
+                        return false;
+                    }
+                    if (overlay != requested) return false;
+                }
+                return overlay == requested;
+            }
+            finally { checkingClose = false; }
+        }
+
+        private static void RequestCloseOverlay()
+        {
+            if (CanCloseOverlay()) CloseOverlay();
         }
 
         private static void CloseOverlay()

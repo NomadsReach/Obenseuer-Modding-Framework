@@ -29,6 +29,7 @@ namespace ObenseuerCore
     internal sealed class ComputerAppHost : MonoBehaviour
     {
         internal string ModId;
+        internal Func<bool> CloseGuard;
     }
 
     internal static class ComputerAppsDesk
