@@ -1,0 +1,43 @@
+name: Bunmaska evaluation
+
+on:
+  push:
+    branches: [work/bunmaska-evaluation]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    env:
+      BUNMASKA_WEBKIT_ID: webkit-2-2.53.3-bunmaska1-windows-x64
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: ipfizz/bunmaska
+          ref: a8eaec8393365b157dbfcd48bb650935987bdfe7
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: .bun-version
+      - name: Install upstream dependencies
+        run: bun install --frozen-lockfile
+      - name: Install and inspect WinCairo
+        shell: pwsh
+        run: |
+          bun run src/cli/index.ts engine install $env:BUNMASKA_WEBKIT_ID
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $engine = Join-Path $env:USERPROFILE ".bunmaska/webkit/$env:BUNMASKA_WEBKIT_ID"
+          if (-not (Test-Path (Join-Path $engine 'lib/WebKit2.dll'))) { throw 'WinCairo engine is missing' }
+          $bytes = (Get-ChildItem $engine -Recurse -File | Measure-Object Length -Sum).Sum
+          Write-Host "Installed engine bytes: $bytes"
+      - name: Run real Windows engine and bridge probes
+        shell: pwsh
+        run: |
+          $output = bun test --timeout 60000 tests/integration/windows/webkit2-ffi.test.ts tests/integration/windows/windows-webkit-view.test.ts tests/integration/windows/windows-backend-e2e.test.ts 2>&1 | Out-String
+          $result = $LASTEXITCODE
+          Write-Host $output
+          if ($result -ne 0) { exit $result }
+          if ($output -notmatch '(?m)^\s*6 pass\s*$' -or $output -match '(?m)^\s*\d+ skip\s*$') { throw 'Expected all six engine probes to run without skips' }
