@@ -22,7 +22,7 @@ namespace ObenseuerCore
         private static bool installTried;
         private static bool installed;
         private static bool gameInteractableLogged;
-        private static bool checkingClose;
+        private static readonly CloseRequestGate closeGate = new CloseRequestGate();
 
         public static event Action<ComputerAppClosedArgs> AppClosed;
 
@@ -236,10 +236,8 @@ namespace ObenseuerCore
         private static bool CanCloseOverlay()
         {
             if (overlay == null || overlay.Root == null) return true;
-            if (checkingClose) return false;
             Overlay requested = overlay;
-            checkingClose = true;
-            try
+            return closeGate.Check(delegate
             {
                 foreach (ComputerAppHost host in requested.Root.GetComponentsInChildren<ComputerAppHost>(false))
                 {
@@ -253,8 +251,7 @@ namespace ObenseuerCore
                     if (overlay != requested) return false;
                 }
                 return overlay == requested;
-            }
-            finally { checkingClose = false; }
+            });
         }
 
         private static void RequestCloseOverlay()

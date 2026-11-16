@@ -1,0 +1,22 @@
+name: Core checks
+
+on:
+  pull_request:
+  push:
+    branches: [work/ugui-desktop-api]
+
+permissions:
+  contents: read
+
+jobs:
+  close-guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - run: dotnet run --project checks/CloseGuard/CloseGuard.csproj -c Release
