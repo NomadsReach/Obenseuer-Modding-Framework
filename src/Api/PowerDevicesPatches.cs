@@ -26,11 +26,11 @@ namespace ObenseuerCore
             {
                 MethodInfo quietPrefix = CorePatcher.Handler(typeof(PowerDevicesPatches), "QuietPrefix");
                 MethodInfo quietFinalizer = CorePatcher.Handler(typeof(PowerDevicesPatches), "QuietFinalizer");
-                MethodInfo transitionPrefix = CorePatcher.Handler(typeof(PowerDevicesPatches), "TransitionPrefix");
-                MethodInfo transitionPostfix = CorePatcher.Handler(typeof(PowerDevicesPatches), "TransitionPostfix");
-                return CorePatcher.PatchCore(typeof(FurnitureStats), "Awake", Type.EmptyTypes, quietPrefix, null, quietFinalizer, true, PowerDevices.Owner)
-                    && CorePatcher.PatchCore(typeof(FurnitureStats), "OutputON", Type.EmptyTypes, transitionPrefix, transitionPostfix, null, true, PowerDevices.Owner)
-                    && CorePatcher.PatchCore(typeof(FurnitureStats), "OutputOFF", Type.EmptyTypes, transitionPrefix, transitionPostfix, null, true, PowerDevices.Owner);
+                MethodInfo onPostfix = CorePatcher.Handler(typeof(PowerDevicesPatches), "GridOnPostfix");
+                MethodInfo offPostfix = CorePatcher.Handler(typeof(PowerDevicesPatches), "GridOffPostfix");
+                return CorePatcher.PatchCore(typeof(PowerGridListener), "Awake", Type.EmptyTypes, quietPrefix, null, quietFinalizer, true, PowerDevices.Owner)
+                    && CorePatcher.PatchCore(typeof(PowerGridListener), "OnGridPowerOn", new[] { typeof(PowerGrid) }, null, onPostfix, null, true, PowerDevices.Owner)
+                    && CorePatcher.PatchCore(typeof(PowerGridListener), "OnGridPowerOff", new[] { typeof(PowerGrid) }, null, offPostfix, null, true, PowerDevices.Owner);
             }
             catch (Exception e)
             {
@@ -79,17 +79,22 @@ namespace ObenseuerCore
             if (__state) restoring--;
         }
 
-        private static void TransitionPrefix(FurnitureStats __instance, out bool __state)
+        private static void GridOnPostfix(PowerGridListener __instance)
         {
-            __state = __instance.isActive;
+            GridTransition(__instance, true);
         }
 
-        private static void TransitionPostfix(FurnitureStats __instance, bool __state)
+        private static void GridOffPostfix(PowerGridListener __instance)
         {
-            if (__state == __instance.isActive || restoring > 0 || SaveGate.Loading || !PowerDevices.HasHandlers) return;
+            GridTransition(__instance, false);
+        }
+
+        private static void GridTransition(PowerGridListener listener, bool powered)
+        {
+            if (!listener.On || restoring > 0 || SaveGate.Loading || !PowerDevices.HasHandlers) return;
             try
             {
-                PowerDevices.RaisePoweredChanged(__instance);
+                PowerDevices.RaisePoweredChanged(listener, powered);
             }
             catch (Exception e)
             {

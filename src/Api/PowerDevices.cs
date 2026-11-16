@@ -137,18 +137,11 @@ namespace ObenseuerCore
             {
                 Component component = Find(id);
                 if (SaveGate.Busy) return false;
-                FurnitureStats stats = component as FurnitureStats;
-                if (stats != null)
+                PowerGridListener listener = component as PowerGridListener;
+                if (listener != null)
                 {
-                    if (on)
-                    {
-                        stats.turnON();
-                    }
-                    else
-                    {
-                        stats.turnOFF();
-                    }
-                    return stats.isOn == on;
+                    listener.Toggle(on);
+                    return listener.On == on;
                 }
                 CraftingBase crafting = component as CraftingBase;
                 if (crafting != null)
@@ -193,9 +186,14 @@ namespace ObenseuerCore
             CoreLog.For(Owner).Warn("power device hooks incomplete, PoweredChanged is disabled, the reads and SetOn still work");
         }
 
-        internal static void RaisePoweredChanged(FurnitureStats stats)
+        internal static bool ListenerPowered(PowerGridListener listener)
         {
-            PoweredChangedArgs args = new PoweredChangedArgs(SceneIds.Of(stats), stats.isActive);
+            return listener.On && (listener.PowerGrid == null || listener.PowerGrid.Unlimited || listener.PowerGrid.IsPowered(listener));
+        }
+
+        internal static void RaisePoweredChanged(PowerGridListener listener, bool powered)
+        {
+            PoweredChangedArgs args = new PoweredChangedArgs(SceneIds.Of(listener), powered);
             Events.Raise(PoweredChanged, "PowerDevices.PoweredChanged", h => h(args));
         }
 
@@ -218,11 +216,11 @@ namespace ObenseuerCore
 
         private static PowerDeviceInfo ToInfo(Component component)
         {
-            FurnitureStats stats = component as FurnitureStats;
-            if (stats != null)
+            PowerGridListener listener = component as PowerGridListener;
+            if (listener != null)
             {
-                PowerDeviceKind kind = stats.netPowerOn > 0f ? PowerDeviceKind.Source : PowerDeviceKind.Consumer;
-                return new PowerDeviceInfo(SceneIds.Of(stats), kind, stats.isOn, stats.isActive, stats.netPowerOn, 0f, 0f, 0f, 0f, new List<int>(), false, 0f);
+                PowerDeviceKind kind = listener.PowerBalance > 0 ? PowerDeviceKind.Source : PowerDeviceKind.Consumer;
+                return new PowerDeviceInfo(SceneIds.Of(listener), kind, listener.On, ListenerPowered(listener), listener.PowerBalance, 0f, 0f, 0f, 0f, new List<int>(), false, 0f);
             }
             CraftingBase crafting = component as CraftingBase;
             if (crafting != null) return CraftingInfo(crafting);
@@ -311,9 +309,9 @@ namespace ObenseuerCore
         private static List<Component> Components()
         {
             List<Component> list = new List<Component>();
-            foreach (FurnitureStats stats in SceneIds.Active<FurnitureStats>())
+            foreach (PowerGridListener listener in SceneIds.Active<PowerGridListener>())
             {
-                list.Add(stats);
+                list.Add(listener);
             }
             foreach (CraftingBase crafting in SceneIds.Active<CraftingBase>())
             {
