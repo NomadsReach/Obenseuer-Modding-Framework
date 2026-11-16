@@ -162,6 +162,23 @@ public sealed class ModelPreview : MonoBehaviour
 
 A preview draws the target's renderers on layer 31 while its window is open. These include the renderers of `PlayerLocator.playerRig` and `playerRigUnrigified`, which are switched on for the window and switched back off when it closes. Only renderers on active GameObjects are claimed. Only one preview can be open at a time; a second `ModUi.ModelPreview` faults the window it is in. Drag turns the figure, and the wheel zooms. `Framing` reframes at once and moves the switch. `ShowFramingSwitch` shows or hides the Body|Face switch that the preview builds in its top-right corner. `Refresh()` adopts renderers that became active since the last call, for example after a mesh swap, and reframes. The camera and lights are disabled while the preview's tab page is hidden. `Dispose()` restores every change, then shows or hides the player model to match the game's current first or third person view, returns the recorded renderer count, and is safe to call twice. A skinned mesh's bounds are restored only when its shared mesh is the one recorded. The window disposes its previews when it closes. On the first settled frame the window logs one `model preview:` line with the recorded, active, visible and rig counts, and the first ten active renderers that are not visible.
 
+## DesktopUi
+
+`DesktopUi` provides uGUI primitives for computer-style interfaces. It uses Unity UI already available to the game; the caller owns the objects, layout scale, fonts, and application behavior.
+
+```csharp
+public static class DesktopUi
+{
+    public static RectTransform Panel(Transform parent, string name, Color color);
+    public static Text Label(Transform parent, Font font, string text, int size, Color color, TextAnchor alignment);
+    public static void Stretch(RectTransform rect);
+    public static void TopLeft(RectTransform rect, float x, float y, float width, float height, float scale);
+    public static void MakeDraggable(RectTransform handle, RectTransform window);
+}
+```
+
+`TopLeft` positions a rectangle relative to its parent's upper-left corner. `MakeDraggable` uses the handle to move a window in its parent's coordinate space. The window's parent must be a `RectTransform`; input requires an active event system, a `GraphicRaycaster` on the host canvas, and a raycastable graphic on the handle or its child.
+
 ## UiTheme and UiSprites
 
 A read-only facade over the kit's palette and sprites. The names and types are fixed. The palette members are get-only properties. A mod that uses `UiTheme.Card` and `UiTheme.Font` directly breaks at build time if any member is renamed.
