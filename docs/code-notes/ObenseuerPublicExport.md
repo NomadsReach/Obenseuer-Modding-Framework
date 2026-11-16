@@ -12,3 +12,4 @@ Pointer positions are converted into the window parent's local coordinates befor
 - `src/Api/BuildingAreas.cs:Building.Snapshot` reads the current manager's grid balance when a grid exists; a manager without a grid reports zero.
 - `src/Api/PowerDevices.cs:PowerDevices.Components` and `PowerDevices.ToInfo` use the current game build's grid listeners for furniture. A listener is powered when switched on and either has no grid, has unlimited supply, or is powered by its grid.
 - `src/Api/PowerDevicesPatches.cs:PowerDevicesPatches.InstallFurniture` observes grid power callbacks; it does not report every manual switch change. Fuel and battery hooks retain their own feature owners.
+- `src/Ui/DesktopUi.cs:DesktopUi.MakeSelectable` adds desktop-style hover and selection feedback to a tile. A double-click invokes its optional activation callback; selection follows Unity's current event system.
