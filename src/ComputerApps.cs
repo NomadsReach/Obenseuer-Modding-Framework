@@ -38,6 +38,11 @@ namespace ObenseuerCore
 
         public static RectTransform ActiveScreen { get; private set; }
 
+        public static RectTransform PinnedScreen
+        {
+            get { return overlay != null && overlay.Pinned ? overlay.Target : null; }
+        }
+
         public static bool Register(string modId, string appId, string title, Sprite icon, Action<RectTransform> open)
         {
             ModIds.RequireLegacy(modId, "modId");
@@ -88,25 +93,68 @@ namespace ObenseuerCore
             if (!ValidAppId(appId)) return false;
             ComputerApp app = ComputerAppsDesk.Find(appId);
             if (app == null) return false;
-            if (overlay != null && overlay.AppId == appId) return true;
+            if (overlay != null && !overlay.Pinned && overlay.AppId == appId) return true;
             if (overlay != null && !CanCloseOverlay()) return false;
             CloseOverlay();
-            if (overlay != null) CloseOverlay();
+            if (overlay != null) return false;
             if (GameController.instance == null || ThirdPersonCameraController.instance == null || OpenSewerCharacterController.instance == null || CoreInput.GameBusy())
             {
                 CoreLog.For(modId).Warn("standalone " + appId + " not opened, the game is busy or not ready");
                 return false;
             }
+            Overlay created = null;
             try
             {
-                return BuildOverlay(modId, app);
+                return BuildOverlay(modId, app, out created);
             }
             catch (Exception e)
             {
-                CloseOverlay();
+                if (overlay == created) CloseOverlay();
                 CoreLog.For(modId).Error("standalone " + appId + " failed: " + e.ToString());
                 return false;
             }
+        }
+
+        public static bool OpenPinned(string modId, string appId, RectTransform target)
+        {
+            ModIds.RequireLegacy(modId, "modId");
+            if (!ValidAppId(appId) || target == null || !target.gameObject.activeInHierarchy) return false;
+            ComputerApp app = ComputerAppsDesk.Find(appId);
+            if (app == null) return false;
+            if (overlay != null && overlay.Pinned && overlay.AppId == appId && overlay.Target == target) return true;
+            if (overlay != null && !CanCloseOverlay()) return false;
+            CloseOverlay();
+            if (overlay != null || target == null || !target.gameObject.activeInHierarchy) return false;
+            Overlay created = new Overlay();
+            try
+            {
+                GameObject root = new GameObject("ObenseuerCore pinned app " + app.Id, typeof(RectTransform));
+                created.ModId = modId; created.AppModId = app.ModId; created.AppId = app.Id;
+                created.Root = root; created.Pinned = true; created.Target = target;
+                overlay = created;
+                root.transform.SetParent(target, false);
+                UiEvents.Acquire(); created.EventsAcquired = true;
+                app.Open(ComputerAppsDesk.NewHost(root.transform, "ObenseuerCoreApp host", app.ModId));
+                if (overlay != created) return false;
+                if (created.Root != null && created.Root.activeInHierarchy && created.Target != null && created.Target.gameObject.activeInHierarchy) return true;
+                CloseOverlay();
+                return false;
+            }
+            catch (Exception e)
+            {
+                if (overlay == created) CloseOverlay();
+                CoreLog.For(modId).Error("pinned " + appId + " failed: " + e.ToString());
+                return false;
+            }
+        }
+
+        public static bool RequestClose(string appId)
+        {
+            if (overlay == null || overlay.AppId != appId) return false;
+            Overlay requested = overlay;
+            if (!CanCloseOverlay() || overlay != requested) return false;
+            CloseOverlay();
+            return true;
         }
 
         public static bool AddInteraction(GameObject target, string modId, string title, string message, Action onUse)
@@ -179,8 +227,8 @@ namespace ObenseuerCore
             if (overlay == null || ModWindow.EscapeConsumed) return;
             try
             {
-                if (overlay.Root == null) CloseOverlay();
-                else if (Input.GetKeyDown(KeyCode.Escape) && !ComputerAppsDesk.Focused(overlay.Root.transform)) RequestCloseOverlay();
+                if (overlay.Root == null || (overlay.Pinned && (overlay.Target == null || !overlay.Root.activeInHierarchy || !overlay.Target.gameObject.activeInHierarchy))) CloseOverlay();
+                else if (!overlay.Pinned && Input.GetKeyDown(KeyCode.Escape) && !ComputerAppsDesk.Focused(overlay.Root.transform)) RequestCloseOverlay();
             }
             catch (Exception e)
             {
@@ -199,8 +247,9 @@ namespace ObenseuerCore
             return installed;
         }
 
-        private static bool BuildOverlay(string modId, ComputerApp app)
+        private static bool BuildOverlay(string modId, ComputerApp app, out Overlay created)
         {
+            created = null;
             GameController game = GameController.instance;
             lockedGame = game;
             game.ControlsDisabled(Holder(), ShowCursor: true);
@@ -216,12 +265,15 @@ namespace ObenseuerCore
             ModUi.Place(rootRect, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
             root.GetComponent<Image>().color = UiTheme.Window;
             overlay = new Overlay();
+            created = overlay;
             overlay.ModId = modId;
             overlay.AppModId = app.ModId;
             overlay.AppId = app.Id;
             overlay.Root = root;
             UiEvents.Acquire();
+            overlay.EventsAcquired = true;
             app.Open(ComputerAppsDesk.NewHost(rootRect, "ObenseuerCoreApp host", app.ModId));
+            if (overlay != created) return false;
             UnityEngine.UI.Button close = ComputerAppsDesk.Clickable(rootRect, "Close", UiTheme.Control, () => RequestCloseOverlay());
             RectTransform closeRect = (RectTransform)close.transform;
             closeRect.anchorMin = new Vector2(1f, 1f);
@@ -277,7 +329,7 @@ namespace ObenseuerCore
                 }
             }
             if (closing == null) return;
-            UiEvents.Release();
+            if (closing.EventsAcquired) UiEvents.Release();
             if (closing.Root != null)
             {
                 closing.Root.SetActive(false);
@@ -370,6 +422,8 @@ namespace ObenseuerCore
             internal string AppModId;
             internal string AppId;
             internal GameObject Root;
+            internal RectTransform Target;
+            internal bool Pinned, EventsAcquired;
         }
     }
 

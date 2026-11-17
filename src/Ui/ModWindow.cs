@@ -521,8 +521,8 @@ namespace ObenseuerCore.Ui
 
         internal static void Acquire()
         {
-            users++;
             Ensure();
+            users++;
         }
 
         internal static void Release()

@@ -469,10 +469,14 @@ public static class ComputerApps
     public static event Action<ComputerAppClosedArgs> AppClosed;
     public static event Action<RectTransform> ScreenChanged;
     public static RectTransform ActiveScreen { get; }
+    public static RectTransform PinnedScreen { get; }
     public static bool Register(string modId, string appId, string title, Sprite icon, Action<RectTransform> open);
     public static void Close(string appId);
     public static void RemoveAll(string modId);
     public static bool OpenStandalone(string modId, string appId);
+    public static bool OpenPinned(string modId, string appId, RectTransform target);
+    public static bool RequestClose(string appId);
+    public static void SetCloseGuard(Transform host, Func<bool> canClose);
     public static bool AddInteraction(GameObject target, string modId, string title, string message, Action onUse);
 }
 
@@ -501,6 +505,11 @@ Full-screen window:
 - The window creates an EventSystem with a StandaloneInputModule when the scene has none. The last window to close destroys it, if the framework created it.
 - It returns `false` and logs a warning when the app is unknown, or when the game is not ready or is busy (a menu, shop, pause, dialogue or the console is open). It returns `true` when that app is already open.
 - The window closes on Esc, on its Close button, on a single scene load (not an additive one), and when the window throws. Esc does not close it while an input field in it has focus or a key row is capturing: that Esc belongs to the field or row, and the desk computer and the Pause Menu ignore it too. Otherwise Esc closes the window and does not open the Pause Menu on the same press. The close runs after the game's `Update`, while the controls lock still holds.
+
+Pinned window:
+
+- `OpenPinned` opens a registered app under `target` without locking player controls or moving the camera. During the synchronous app open callback, `PinnedScreen` is the current target; capture it there and pass it to `ToolkitUi.CreatePinnedOverlay` to draw on the screen. The caller owns control locking, camera movement, and exit input.
+- `RequestClose` returns false if the app is not the active window or its close guard refuses; a successful request closes the host and raises `AppClosed`. `Close` remains a forced close. Replacing an existing window checks its guards first. Deactivating or destroying the target, or loading a single scene, forces cleanup. `AppClosed` may also fire if construction fails after the host is allocated. `RequestClose` does not close desk hosts. The caller must restore its own camera and controls when the session ends.
 
 World objects:
 
