@@ -469,10 +469,15 @@ public static class ComputerApps
     public static event Action<ComputerAppClosedArgs> AppClosed;
     public static event Action<RectTransform> ScreenChanged;
     public static RectTransform ActiveScreen { get; }
+    public static RectTransform PinnedScreen { get; }
     public static bool Register(string modId, string appId, string title, Sprite icon, Action<RectTransform> open);
     public static void Close(string appId);
     public static void RemoveAll(string modId);
     public static bool OpenStandalone(string modId, string appId);
+    public static bool OpenPinned(string modId, string appId, RectTransform target);
+    public static bool RequestClose(string appId);
+    public static bool ClosePinned(string appId, RectTransform target);
+    public static void SetCloseGuard(Transform host, Func<bool> canClose);
     public static bool AddInteraction(GameObject target, string modId, string title, string message, Action onUse);
 }
 
@@ -487,12 +492,13 @@ Desk apps:
 
 - `Register` adds an icon to every desk, both the desks that exist now and the ones created later. `title` must not be empty. `icon` may be null, and then the title is drawn on the tile. It returns `false` when the desk patches cannot be installed (`CorePatcher` refuses patches when `Core.PatchingAllowed` is false), or when `appId` is already registered. The first registration wins, and a warning is logged for the second. It throws `ArgumentException` for a null or empty `modId`, and `ArgumentNullException` for a null `open`. An empty `appId`, an `appId` that contains `/`, or an empty `title` returns `false` and logs once.
 - Icons form a grid at the top right of each desk: 84 x 72 tiles, 5 rows, columns 96 px apart, rows 84 px apart, 12 px margin. An icon is created once per desk and app, and it is reused after that.
-- A click calls `open(host)`. `host` is a `RectTransform` that fills the desk's wallpaper, one per desk and app. The framework clears the host before every `open` call: each child is renamed, deactivated and destroyed. So `open` always builds your UI into an empty host, the same as `OpenStandalone`. Anything kept in the host's children is gone on the next click, so keep your state in your mod.
+- A click on a closed app calls `open(host)`. `host` is a `RectTransform` that fills the desk's wallpaper, one per desk and app. The framework clears the host before that call, so the app builds into an empty area. Clicking an already-open app brings its existing host to the front without rebuilding it. Closing and reopening the app still destroys its old children, so keep persistent state in your mod.
 - An exception in `open` is logged to the app's mod log, and the host is hidden.
 - The host must sit under a `GraphicRaycaster`, or its widgets receive no clicks. The desk logs one warning when none is found above the host. Each time an app is shown, the framework makes sure an EventSystem exists.
 - Apps hide when the player leaves the computer. `Close(appId)` hides the app on every desk, and it closes the full-screen window if that window shows the app. `Close` always runs, also while a save loads or saves. Each close raises `AppClosed` (below).
 - `AppClosed` (`ComputerAppClosedArgs`: `ModId` is the mod that registered the app, `AppId` is its id) is raised once for each view that closes. A desk host raises it when it was showing and `Close(appId)`, the leave-the-computer hide (`HideAll`), a single scene load (not an additive one), `RemoveAll` for its mod, or an `open` that throws hides it. A host that was already hidden does not raise it. The full-screen window raises it when it closes: its Close button, Esc, a single scene load, `RemoveAll` for its mod, or `OpenStandalone` of another app. `AppClosed` fires for both the desk host and the full-screen window, and the args carry only `ModId` and `AppId`, so a handler cannot tell which view closed. A handler that must tell them apart has to track its own view. Handlers are isolated from each other, and unsubscribe with `-=`.
-- While an input field inside an app host has focus, the desk's own key handling is skipped, so typing does not leave the computer.
+- `SetCloseGuard` checks active desk apps before a normal computer exit and checks standalone close requests. False or an exception refuses the request. Keep an approval valid until the content changes or the host closes, since another app can still refuse. Explicit `Close`, loading, an inactive desk and scene cleanup remain forced. Direct calls to the active computer's `StopUse` are also guarded.
+- While a TMP input or Toolkit text field inside an app host has focus, the desk's own key handling is skipped, so typing does not leave the computer.
 - `ActiveScreen` is the desk `RectTransform` (the monitor's wallpaper) of the computer the player is using now, or null. It is set when the player starts using a computer (`InteractableComputer.Use`) and cleared when the use stops (`StopUse`) or a single scene load clears it. `ScreenChanged` is raised with the new value on each change, not on every frame. A `WebView` can follow it with `PinTo` (see docs/api/webui.md).
 
 Full-screen window:
@@ -501,6 +507,12 @@ Full-screen window:
 - The window creates an EventSystem with a StandaloneInputModule when the scene has none. The last window to close destroys it, if the framework created it.
 - It returns `false` and logs a warning when the app is unknown, or when the game is not ready or is busy (a menu, shop, pause, dialogue or the console is open). It returns `true` when that app is already open.
 - The window closes on Esc, on its Close button, on a single scene load (not an additive one), and when the window throws. Esc does not close it while an input field in it has focus or a key row is capturing: that Esc belongs to the field or row, and the desk computer and the Pause Menu ignore it too. Otherwise Esc closes the window and does not open the Pause Menu on the same press. The close runs after the game's `Update`, while the controls lock still holds.
+
+Pinned window:
+
+- `OpenPinned` opens a registered app under `target` without locking player controls or moving the camera. During the synchronous app open callback, `PinnedScreen` is the current target; capture it there and pass it to `ToolkitUi.CreatePinnedOverlay` to draw on the screen. The call refuses a busy game. The caller owns control locking, camera movement, and exit input.
+- `RequestClose` returns false if the app is not the active window or its close guard refuses; a successful request closes the host and raises `AppClosed`. `Close` remains a forced close. Replacing an existing window checks its guards first. Deactivating or destroying the target, or loading a single scene, forces cleanup. `AppClosed` may also fire if construction fails after the host is allocated. `RequestClose` does not close desk hosts. The caller must restore its own camera and controls when the session ends.
+- `ClosePinned(appId, target)` force-closes only the current pinned host when both the app ID and target match. It bypasses the host's close guard and leaves desk hosts untouched. It returns false for a null or nonmatching target, a different app, or a standalone host.
 
 World objects:
 

@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace ObenseuerCore
 {
-    [BepInPlugin("obenseuer.moddingframework", "Obenseuer Modding Framework", "0.12.1")]
+    [BepInPlugin("obenseuer.moddingframework", "Obenseuer Modding Framework", "0.12.2")]
     public class Core : BaseUnityPlugin
     {
         private const string SupportedVersion = "0.5.08";
@@ -38,6 +38,7 @@ namespace ObenseuerCore
             mainThread = Thread.CurrentThread.ManagedThreadId;
             // must run before the first Config.Bind, which reads the file
             CarryOverSettings();
+            Isolate("UI appearance", () => Ui.UiAppearance.Init(Config));
             RefuseUnknownBuild = Config.Bind("Safety", "RefuseUnknownBuild", false, "Refuse all patches on a game build other than 0.5.08 (buildid 25969064). Takes effect on the next start.").Value;
             Verbose = Config.Bind("Debug", "Verbose", false, "Write Debug(key, message) lines, changes only, to BepInEx\\logs\\<modId>.log.").Value;
             Isolate("hint settings", () => HudHintSettings.Bind(Config));
@@ -592,6 +593,7 @@ namespace ObenseuerCore
         private static readonly Action pollTweaksCamera = () => TweaksCamera.Poll();
         private static readonly Action updateCoreInput = () => CoreInput.Update();
         private static readonly Action updateConfigTheme = () => ConfigTheme.Update();
+        private static readonly Action updateUiAppearance = () => Ui.UiAppearance.Tick();
         private static readonly Action updateModMenu = () => ModMenu.Update();
         private static readonly Action tickMainMenu = () => MainMenuButtons.Tick();
         private static readonly Action tickComputerApps = () => ComputerApps.Tick();
@@ -617,6 +619,7 @@ namespace ObenseuerCore
             Guard("TweaksCamera.Poll", pollTweaksCamera);
             Guard("CoreInput.Update", updateCoreInput);
             Guard("ConfigTheme.Update", updateConfigTheme);
+            Guard("UiAppearance.Tick", updateUiAppearance);
             Guard("MainMenuButtons.Tick", tickMainMenu);
             Guard("ModMenu.Update", updateModMenu);
             Guard("LegalServices.Tick", tickLegalServices);

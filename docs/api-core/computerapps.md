@@ -26,10 +26,15 @@ public static class ComputerApps
     public static event Action<ComputerAppClosedArgs> AppClosed;
     public static event Action<RectTransform> ScreenChanged;
     public static RectTransform ActiveScreen { get; }
+    public static RectTransform PinnedScreen { get; }
     public static bool Register(string modId, string appId, string title, Sprite icon, Action<RectTransform> open);
+    public static void SetCloseGuard(Transform host, Func<bool> canClose);
     public static void Close(string appId);
     public static void RemoveAll(string modId);
     public static bool OpenStandalone(string modId, string appId);
+    public static bool OpenPinned(string modId, string appId, RectTransform target);
+    public static bool RequestClose(string appId);
+    public static bool ClosePinned(string appId, RectTransform target);
     public static bool AddInteraction(GameObject target, string modId, string title, string message, Action onUse);
 }
 ```
@@ -37,15 +42,20 @@ public static class ComputerApps
 | Method | Returns | What it does |
 |---|---|---|
 | `Register(modId, appId, title, icon, open)` | `bool` | Adds an app icon to every desk, the ones that exist now and the ones made later. |
+| `SetCloseGuard(host, canClose)` | `void` | Sets a callback that can refuse normal desk-exit or standalone close requests. |
 | `Close(appId)` | `void` | Hides the app on every desk, and closes its full-screen window if it shows that app. |
 | `RemoveAll(modId)` | `void` | Removes all of your mod's apps, icons, windows and use prompts. |
 | `OpenStandalone(modId, appId)` | `bool` | Opens an app in a full-screen window over the game. |
+| `OpenPinned(modId, appId, target)` | `bool` | Opens an app attached to a world screen. |
+| `RequestClose(appId)` | `bool` | Requests closing the active standalone or pinned host, respecting its guard. |
+| `ClosePinned(appId, target)` | `bool` | Force-closes only the matching pinned host, bypassing its guard and leaving desk hosts untouched. |
 | `AddInteraction(target, modId, title, message, onUse)` | `bool` | Gives an object a use prompt. |
 
 | Property | Type | What it means |
 |---|---|---|
 | `IsAvailable` | `bool` | `true` when apps can be used. See Things to know. |
 | `ActiveScreen` | `RectTransform` | The screen of the computer the player is using now. `null` when none. |
+| `PinnedScreen` | `RectTransform` | The target of the current pinned host, or `null`. |
 
 | Event | Gives you | When it fires |
 |---|---|---|
@@ -126,10 +136,12 @@ public class NotesApp : BaseUnityPlugin
 - The icons form a grid at the top right of each desk. Each icon is 84 x 72. There are 5 rows, columns are 96 pixels apart, rows are 84 pixels apart, and the margin is 12 pixels.
 - An icon is created once for every desk and app, and reused after that.
 - When the player clicks the icon, `open(host)` is called. `host` is a `RectTransform` that fills the desk's wallpaper, one for each desk and app, and it is an empty area you build your interface in.
-- The framework clears `host` before every `open` call: each child is renamed, deactivated and destroyed. You always build into an empty area, the same as with `OpenStandalone`. Nothing you leave in the area survives the next click, so keep your own state in your mod.
+- Call `SetCloseGuard(host, canClose)` with the exact host passed to `open` to protect unsaved changes in a standalone window. Return `false` to keep it open, or `true` to allow the close. The guard is called for the standalone close button, Escape, and an attempt to open another standalone app. Passing `null` as the callback removes the guard. A missing or invalid host throws; a guard that throws is logged and refuses the request. Calling `Close`, removing the mod, leaving a computer desk, and scene changes bypass the guard, so apps must separately preserve work across those paths.
+- The framework clears `host` before opening a closed app, so the callback builds into an empty area. Clicking an already-open app brings its existing host to the front without rebuilding it. Closing and reopening still removes the old children, so keep persistent state in your mod.
 - If `open` throws, the error is logged to your mod's log and the area is hidden.
 - The area needs a click catcher above it, or its buttons receive no clicks. The desk logs one warning when none is found above the area. Each time an app is shown, the framework makes sure the scene has an event system, which the interface needs. <span class="tech">(The host must sit under a `GraphicRaycaster`. The event system is an EventSystem.)</span>
-- Typing in an app does not make the player leave the computer. While an input field in an app has focus, the desk's own key handling is skipped.
+- `SetCloseGuard(host, canClose)` is checked on normal desk exit as well as standalone close. Return false to keep the computer open; exceptions also refuse the request. A guard that asks for confirmation should keep returning true after approval until its content changes or the host closes, because another app may still refuse. Programmatic `Close`, an inactive desk, scene cleanup and loading remain forced. Direct calls to the game's `StopUse` also pass through this guard when the computer is active.
+- Typing in an app does not make the player leave the computer. While a TMP input or Toolkit text field in an app has focus, the desk's own key handling is skipped.
 
 ### Closing and events
 

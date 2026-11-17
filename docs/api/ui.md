@@ -8,6 +8,16 @@ nav_order: 4
 
 # UI
 
+## UI Toolkit overlays
+
+`UiAppearance.Mode` is the framework's `light`, `dark`, or `system` preference; `UiAppearance.Theme` is its resolved `light` or `dark` value. `SetMode` changes a valid preference, and `Changed` reports its resolved theme on the game update thread. Existing WebUi appearance settings are carried over on first initialization. After migration, edit the framework's `[Appearance] Theme` setting while the game is stopped; the legacy WebUi setting mirrors it during the game. On systems where the OS theme cannot be read, `system` resolves to light. Consumers are responsible for applying the theme to their controls.
+
+`ObenseuerCore.Ui.ToolkitUi.CreateOverlay(host)` creates a UI Toolkit screen overlay whose lifetime follows the supplied Unity transform and returns its root `VisualElement`. `ToolkitUi.MakeDraggable(window, titleBar)` brings the window forward when clicked and lets the player drag it by the title bar without capturing buttons or focusable controls. Use a dedicated drag surface for custom non-focusable controls. Both arguments must be non-null. This early API is for screen overlays; in-world display and input behavior must be tested in the game.
+
+`ToolkitUi.CreatePinnedOverlay(host, target)` returns a screen-space UI root that follows the projected inside rectangle of a world-space `RectTransform`. It hides the root if the target or camera is unavailable, behind the camera, or too small. The host owns the panel lifetime; the caller owns the target. This follows a rectangular projection like the legacy WebUi pin and is not a perspective-correct surface. Placement, clipping, and input need in-game verification.
+
+`ToolkitUi.MakeResizable(window, grip, minWidth, minHeight, canResize)` attaches pointer resizing to a caller-provided grip and returns a `ToolkitResizeHandle`. Add and style the grip in the window yourself. The optional `canResize` callback can disable resizing, such as while maximized. Call `Cancel()` when hiding the window and `Dispose()` when removing the grip or window. Minimum sizes must be finite and positive. Resizing and pointer capture still need in-game verification.
+
 This page uses `KeyCode` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
@@ -161,6 +171,23 @@ public sealed class ModelPreview : MonoBehaviour
 ```
 
 A preview draws the target's renderers on layer 31 while its window is open. These include the renderers of `PlayerLocator.playerRig` and `playerRigUnrigified`, which are switched on for the window and switched back off when it closes. Only renderers on active GameObjects are claimed. Only one preview can be open at a time; a second `ModUi.ModelPreview` faults the window it is in. Drag turns the figure, and the wheel zooms. `Framing` reframes at once and moves the switch. `ShowFramingSwitch` shows or hides the Body|Face switch that the preview builds in its top-right corner. `Refresh()` adopts renderers that became active since the last call, for example after a mesh swap, and reframes. The camera and lights are disabled while the preview's tab page is hidden. `Dispose()` restores every change, then shows or hides the player model to match the game's current first or third person view, returns the recorded renderer count, and is safe to call twice. A skinned mesh's bounds are restored only when its shared mesh is the one recorded. The window disposes its previews when it closes. On the first settled frame the window logs one `model preview:` line with the recorded, active, visible and rig counts, and the first ten active renderers that are not visible.
+
+## DesktopUi
+
+`DesktopUi` provides uGUI primitives for computer-style interfaces. It uses Unity UI already available to the game; the caller owns the objects, layout scale, fonts, and application behavior.
+
+```csharp
+public static class DesktopUi
+{
+    public static RectTransform Panel(Transform parent, string name, Color color);
+    public static Text Label(Transform parent, Font font, string text, int size, Color color, TextAnchor alignment);
+    public static void Stretch(RectTransform rect);
+    public static void TopLeft(RectTransform rect, float x, float y, float width, float height, float scale);
+    public static void MakeDraggable(RectTransform handle, RectTransform window);
+}
+```
+
+`TopLeft` positions a rectangle relative to its parent's upper-left corner. `MakeDraggable` uses the handle to move a window in its parent's coordinate space. The window's parent must be a `RectTransform`; input requires an active event system, a `GraphicRaycaster` on the host canvas, and a raycastable graphic on the handle or its child.
 
 ## UiTheme and UiSprites
 

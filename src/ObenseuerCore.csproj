@@ -81,6 +81,10 @@
       <HintPath>$(ManagedDir)/UnityEngine.UIModule.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <Reference Include="UnityEngine.UIElementsModule">
+      <HintPath>$(ManagedDir)/UnityEngine.UIElementsModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
     <Reference Include="UnityEngine.AnimationModule">
       <HintPath>$(ManagedDir)/UnityEngine.AnimationModule.dll</HintPath>
       <Private>false</Private>

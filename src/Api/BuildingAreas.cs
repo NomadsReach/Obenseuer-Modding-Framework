@@ -51,7 +51,7 @@ namespace ObenseuerCore
 
         internal static BuildAreaInfo Snapshot(FurnitureManager manager)
         {
-            return new BuildAreaInfo(manager.GUID, manager.areaType == BuildingArea.AreaType.RemoveOnly, manager.BuildMenuDisabled, manager.notFullyExamined, manager.NetPower);
+            return new BuildAreaInfo(manager.GUID, manager.areaType == BuildingArea.AreaType.RemoveOnly, manager.BuildMenuDisabled, manager.notFullyExamined, manager.powerGrid == null ? 0f : manager.powerGrid.NetBalance);
         }
 
         internal static void RaiseAreaEntered(BuildAreaInfo info)
