@@ -133,6 +133,7 @@ namespace ObenseuerCore.Ui
         private PanelSettings settings;
         private RectTransform target;
         private bool pinned;
+        private bool eventsAcquired;
         private VisualElement panelRoot, frame;
         private readonly Vector3[] corners = new Vector3[4];
         private readonly float[] x = new float[4], y = new float[4], z = new float[4];
@@ -146,6 +147,7 @@ namespace ObenseuerCore.Ui
             settings.referenceResolution = new Vector2Int(1920, 1080);
             UIDocument document = gameObject.AddComponent<UIDocument>();
             document.panelSettings = settings;
+            if (pinned) { eventsAcquired = true; UiEvents.Acquire(); }
             gameObject.SetActive(true);
             panelRoot = document.rootVisualElement;
             if (!pinned) return panelRoot;
@@ -187,6 +189,7 @@ namespace ObenseuerCore.Ui
 
         internal void Release()
         {
+            if (eventsAcquired) { eventsAcquired = false; UiEvents.Release(); }
             if (settings != null) Destroy(settings);
             settings = null;
         }
