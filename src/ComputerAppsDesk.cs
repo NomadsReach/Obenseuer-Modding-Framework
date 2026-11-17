@@ -51,6 +51,7 @@ namespace ObenseuerCore
         private static bool failed;
         private static bool noDesktopLogged;
         private static bool noRaycasterLogged;
+        private static readonly DeskCloseGate<DeskHost> deskCloseGate = new DeskCloseGate<DeskHost>();
 
         internal static bool Install(string owner)
         {
@@ -242,9 +243,56 @@ namespace ObenseuerCore
             Guard("computer screen", () => ComputerApps.SetActiveScreen(DeskOf(__instance)));
         }
 
-        private static void StopUsePrefix()
+        private static bool StopUsePrefix(InteractableComputer __instance)
         {
-            Guard("computer screen", () => ComputerApps.SetActiveScreen(null));
+            if (failed || __instance != InteractableComputer.currentComputer) return true;
+            try
+            {
+                if (SaveGate.Loading) { ComputerApps.SetActiveScreen(null); return true; }
+                RectTransform desk = CachedDesk(__instance);
+                if (desk == null || !desk.gameObject.activeInHierarchy) { ComputerApps.SetActiveScreen(null); return true; }
+                RectTransform initialScreen = ComputerApps.ActiveScreen;
+                if (initialScreen != null && initialScreen != desk) return false;
+                return deskCloseGate.Request(
+                    delegate { return ActiveHosts(desk); },
+                    CanCloseHost,
+                    delegate(DeskHost a, DeskHost b) { return object.ReferenceEquals(a.Host, b.Host) && object.ReferenceEquals(a.Guard, b.Guard); },
+                    delegate
+                    {
+                        if (__instance != InteractableComputer.currentComputer || desk == null || !desk.gameObject.activeInHierarchy || ComputerApps.ActiveScreen != initialScreen) return false;
+                        ComputerApps.SetActiveScreen(null);
+                        return __instance == InteractableComputer.currentComputer && ComputerApps.ActiveScreen == null;
+                    });
+            }
+            catch (Exception e)
+            {
+                CoreLog.For(ComputerApps.Owner).Error("computer app close guard failed: " + e);
+                return false;
+            }
+        }
+
+        private sealed class DeskHost
+        {
+            internal ComputerAppHost Host;
+            internal Func<bool> Guard;
+        }
+
+        private static List<DeskHost> ActiveHosts(RectTransform desk)
+        {
+            List<DeskHost> result = new List<DeskHost>();
+            foreach (ComputerAppHost host in desk.GetComponentsInChildren<ComputerAppHost>(false))
+                if (host != null && host.isActiveAndEnabled && host.gameObject.activeInHierarchy)
+                    result.Add(new DeskHost { Host = host, Guard = host.CloseGuard });
+            return result;
+        }
+
+        private static bool CanCloseHost(DeskHost entry)
+        {
+            ComputerAppHost host = entry.Host;
+            if (host == null || !host.isActiveAndEnabled || !host.gameObject.activeInHierarchy || host.CloseGuard != entry.Guard) return false;
+            if (entry.Guard == null) return true;
+            try { return entry.Guard(); }
+            catch (Exception e) { CoreLog.For(host.ModId).Error("computer app close guard failed: " + e); return false; }
         }
 
         private static void StopPostfix()

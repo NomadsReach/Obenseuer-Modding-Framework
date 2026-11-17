@@ -38,7 +38,7 @@ public static class ComputerApps
 | Method | Returns | What it does |
 |---|---|---|
 | `Register(modId, appId, title, icon, open)` | `bool` | Adds an app icon to every desk, the ones that exist now and the ones made later. |
-| `SetCloseGuard(host, canClose)` | `void` | Sets a callback that can refuse user requests to close a standalone app. |
+| `SetCloseGuard(host, canClose)` | `void` | Sets a callback that can refuse normal desk-exit or standalone close requests. |
 | `Close(appId)` | `void` | Hides the app on every desk, and closes its full-screen window if it shows that app. |
 | `RemoveAll(modId)` | `void` | Removes all of your mod's apps, icons, windows and use prompts. |
 | `OpenStandalone(modId, appId)` | `bool` | Opens an app in a full-screen window over the game. |
@@ -132,6 +132,7 @@ public class NotesApp : BaseUnityPlugin
 - The framework clears `host` before opening a closed app, so the callback builds into an empty area. Clicking an already-open app brings its existing host to the front without rebuilding it. Closing and reopening still removes the old children, so keep persistent state in your mod.
 - If `open` throws, the error is logged to your mod's log and the area is hidden.
 - The area needs a click catcher above it, or its buttons receive no clicks. The desk logs one warning when none is found above the area. Each time an app is shown, the framework makes sure the scene has an event system, which the interface needs. <span class="tech">(The host must sit under a `GraphicRaycaster`. The event system is an EventSystem.)</span>
+- `SetCloseGuard(host, canClose)` is checked on normal desk exit as well as standalone close. Return false to keep the computer open; exceptions also refuse the request. A guard that asks for confirmation should keep returning true after approval until its content changes or the host closes, because another app may still refuse. Programmatic `Close`, an inactive desk, scene cleanup and loading remain forced. Direct calls to the game's `StopUse` also pass through this guard when the computer is active.
 - Typing in an app does not make the player leave the computer. While a TMP input or Toolkit text field in an app has focus, the desk's own key handling is skipped.
 
 ### Closing and events

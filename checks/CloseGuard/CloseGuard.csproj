@@ -5,5 +5,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\src\CloseRequestGate.cs" Link="CloseRequestGate.cs" />
+    <Compile Include="..\..\src\DeskCloseGate.cs" Link="DeskCloseGate.cs" />
   </ItemGroup>
 </Project>
