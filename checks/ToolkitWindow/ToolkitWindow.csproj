@@ -5,5 +5,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\src\Ui\ToolkitWindowBounds.cs" Link="ToolkitWindowBounds.cs" />
+    <Compile Include="..\..\src\Ui\ToolkitPinnedBounds.cs" Link="ToolkitPinnedBounds.cs" />
   </ItemGroup>
 </Project>

@@ -8,6 +8,17 @@ namespace ObenseuerCore.Ui
     {
         public static VisualElement CreateOverlay(Transform host)
         {
+            return Create(host, null);
+        }
+
+        public static VisualElement CreatePinnedOverlay(Transform host, RectTransform target)
+        {
+            if (target == null) throw new ArgumentNullException("target");
+            return Create(host, target);
+        }
+
+        private static VisualElement Create(Transform host, RectTransform target)
+        {
             if (host == null) throw new ArgumentNullException("host");
             GameObject panel = new GameObject("ObenseuerCore UI Toolkit panel");
             panel.SetActive(false);
@@ -15,7 +26,7 @@ namespace ObenseuerCore.Ui
             ToolkitPanel owner = panel.AddComponent<ToolkitPanel>();
             try
             {
-                return owner.Create();
+                return owner.Create(target);
             }
             catch
             {
@@ -120,9 +131,15 @@ namespace ObenseuerCore.Ui
     internal sealed class ToolkitPanel : MonoBehaviour
     {
         private PanelSettings settings;
+        private RectTransform target;
+        private bool pinned;
+        private VisualElement panelRoot, frame;
+        private readonly Vector3[] corners = new Vector3[4];
+        private readonly float[] x = new float[4], y = new float[4], z = new float[4];
 
-        internal VisualElement Create()
+        internal VisualElement Create(RectTransform screen)
         {
+            target = screen; pinned = screen != null;
             settings = ScriptableObject.CreateInstance<PanelSettings>();
             settings.sortingOrder = 600;
             settings.scaleMode = PanelScaleMode.ScaleWithScreenSize;
@@ -130,7 +147,37 @@ namespace ObenseuerCore.Ui
             UIDocument document = gameObject.AddComponent<UIDocument>();
             document.panelSettings = settings;
             gameObject.SetActive(true);
-            return document.rootVisualElement;
+            panelRoot = document.rootVisualElement;
+            if (!pinned) return panelRoot;
+            panelRoot.pickingMode = PickingMode.Ignore;
+            frame = new VisualElement(); frame.style.position = Position.Absolute; frame.style.overflow = Overflow.Hidden; frame.style.display = DisplayStyle.None;
+            panelRoot.Add(frame);
+            return frame;
+        }
+
+        private void LateUpdate()
+        {
+            if (!pinned || frame == null) return;
+            Camera camera = Camera.main;
+            if (target == null || !target.gameObject.activeInHierarchy || camera == null || panelRoot.panel == null)
+            {
+                frame.style.display = DisplayStyle.None; return;
+            }
+            target.GetWorldCorners(corners);
+            for (int i = 0; i < 4; i++)
+            {
+                Vector3 point = camera.WorldToScreenPoint(corners[i]); x[i] = point.x; y[i] = point.y; z[i] = point.z;
+            }
+            float left, top, width, height;
+            if (!ToolkitPinnedBounds.Project(x, y, z, Screen.height, out left, out top, out width, out height))
+            {
+                frame.style.display = DisplayStyle.None; return;
+            }
+            Vector2 first = RuntimePanelUtils.ScreenToPanel(panelRoot.panel, new Vector2(left, top));
+            Vector2 last = RuntimePanelUtils.ScreenToPanel(panelRoot.panel, new Vector2(left + width, top + height));
+            frame.style.left = first.x; frame.style.top = first.y;
+            frame.style.width = last.x - first.x; frame.style.height = last.y - first.y;
+            frame.style.display = DisplayStyle.Flex;
         }
 
         private void OnDestroy()
