@@ -12,6 +12,8 @@ nav_order: 4
 
 `ObenseuerCore.Ui.ToolkitUi.CreateOverlay(host)` creates a UI Toolkit screen overlay whose lifetime follows the supplied Unity transform and returns its root `VisualElement`. `ToolkitUi.MakeDraggable(window, titleBar)` brings the window forward when clicked and lets the player drag it by the title bar without capturing buttons or focusable controls. Use a dedicated drag surface for custom non-focusable controls. Both arguments must be non-null. This early API is for screen overlays; in-world display and input behavior must be tested in the game.
 
+`ToolkitUi.MakeResizable(window, grip, minWidth, minHeight, canResize)` attaches pointer resizing to a caller-provided grip and returns a `ToolkitResizeHandle`. Add and style the grip in the window yourself. The optional `canResize` callback can disable resizing, such as while maximized. Call `Cancel()` when hiding the window and `Dispose()` when removing the grip or window. Minimum sizes must be finite and positive. Resizing and pointer capture still need in-game verification.
+
 This page uses `KeyCode` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 

@@ -11,5 +11,7 @@ internal static class Program
         if (ToolkitWindowBounds.Y(-20, 720) != 0) throw new Exception("top limit");
         if (ToolkitWindowBounds.Y(900, 720) != 690) throw new Exception("bottom title-bar limit");
         if (ToolkitWindowBounds.Y(10, 10) != 0) throw new Exception("small parent");
+        if (ToolkitWindowBounds.Resize(600, -900, 360) != 360 || ToolkitWindowBounds.Resize(450, 50, 240) != 500) throw new Exception("resize bounds");
+        if (!ToolkitWindowBounds.ValidSize(360) || ToolkitWindowBounds.ValidSize(0) || ToolkitWindowBounds.ValidSize(float.NaN) || ToolkitWindowBounds.ValidSize(float.PositiveInfinity)) throw new Exception("resize minimum");
     }
 }

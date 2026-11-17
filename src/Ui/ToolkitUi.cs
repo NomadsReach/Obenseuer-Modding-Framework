@@ -25,6 +25,15 @@ namespace ObenseuerCore.Ui
             }
         }
 
+        public static ToolkitResizeHandle MakeResizable(VisualElement window, VisualElement grip, float minWidth, float minHeight, Func<bool> canResize = null)
+        {
+            if (window == null) throw new ArgumentNullException("window");
+            if (grip == null) throw new ArgumentNullException("grip");
+            if (!ToolkitWindowBounds.ValidSize(minWidth)) throw new ArgumentOutOfRangeException("minWidth");
+            if (!ToolkitWindowBounds.ValidSize(minHeight)) throw new ArgumentOutOfRangeException("minHeight");
+            return new ToolkitResizeHandle(window, grip, minWidth, minHeight, canResize);
+        }
+
         public static void MakeDraggable(VisualElement window, VisualElement titleBar)
         {
             if (window == null) throw new ArgumentNullException("window");
