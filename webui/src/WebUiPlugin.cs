@@ -6,11 +6,11 @@ using BepInEx.Unity.Mono;
 
 namespace ObenseuerCore
 {
-    [BepInPlugin("obenseuer.moddingframework.webui", "Obenseuer Modding Framework WebUi", "0.12.1")]
+    [BepInPlugin("obenseuer.moddingframework.webui", "Obenseuer Modding Framework WebUi", "0.12.2")]
 #if BEPINEX5
-    [BepInDependency("obenseuer.moddingframework", "0.11.0")]
+    [BepInDependency("obenseuer.moddingframework", "0.12.2")]
 #else
-    [BepInDependency("obenseuer.moddingframework", ">=0.11.0")]
+    [BepInDependency("obenseuer.moddingframework", ">=0.12.2")]
 #endif
     public class WebUiPlugin : BaseUnityPlugin
     {

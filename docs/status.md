@@ -228,7 +228,7 @@ Version 0.10.0-beta adds the calls below on top of 0.9.0-beta. Each line names t
 **Changed**
 
 - WebUi is an optional module, `ObenseuerCore.WebUi.dll`. Mods that use WebUi depend on it and reference that DLL. Without it, the Mods menu uses the classic window. See [WebUi](api/webui.md).
-- The `WebTheme` setting moved to the module's config file, and `WebMenuSelfCheck` moved there too and is not carried over. See [WebUi](api/webui.md).
+- The shared `Appearance.Theme` setting lives in the framework config. Existing WebUi `WebTheme` settings carry over, and `WebMenuSelfCheck` remains in the module config. See [WebUi](api/webui.md).
 - WebUi pages and frames can no longer create a `Worker`, because a worker could open sockets outside the lockdown. A mod id that does not fit the host rules gets an `h--` host, so its web storage starts empty. See [WebUi](api/webui.md).
 - Mods built for BepInEx 6 use a SemVer range in `BepInDependency`, such as `">=0.11.0"`. BepInEx 5 needs a plain version, such as `"0.11.0"`. See [Packaging](guides/getting-started/packaging.md).
 - The preloader, `ObenseuerCore.Preloader.dll`, is an optional patcher that is not in the zips. It builds for BepInEx 6 and, with `-p:Loader=BepInEx5`, for BepInEx 5. Copy the BepInEx 6 build from `preloader\bin\` or the BepInEx 5 build from `preloader\bin\be5\` to `BepInEx\patchers\ObenseuerCore\` to use it.

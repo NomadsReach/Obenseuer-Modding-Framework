@@ -138,13 +138,15 @@ namespace ObenseuerCore
                 CoreLog.For(Owner).Error("WebUi unavailable: " + lastError);
             }
             setting = config.Bind("Appearance", "WebTheme", defaultTheme, new ConfigDescription("Theme for WebUi views: light, dark or system (follows Windows). Read at start and when this changes.", new AcceptableValueList<string>("light", "dark", "system")));
-            setting.SettingChanged += (sender, args) => Refresh();
+            if (Ui.UiAppearance.IsAvailable) setting.Value = Ui.UiAppearance.Mode;
             string mode = config.Bind("Debug", "WebUiMode", "thread", new ConfigDescription("How WebView2 is hosted. thread: one shim thread, each view in its own popup window over the game (default). composition: composition controller on the game thread. windowed: child window of the game on the game thread. Read once when the shim starts, so a change needs a game restart.", new AcceptableValueList<string>("thread", "composition", "windowed"))).Value;
             hostMode = config.Bind("Debug", "WebUiWindowed", false, "Deprecated: use WebUiMode = windowed. true still forces windowed.").Value ? "windowed" : mode;
             focusDiag = config.Bind("Debug", "WebUiFocusDiag", false, "Logs the foreground window at thread-mode view hides, view closes and page clicks, to find focus loss. Read once when the shim starts, so a change needs a game restart.").Value;
             exclusiveThread = config.Bind("Debug", "WebUiExclusiveThread", false, "Tests thread mode in exclusive fullscreen instead of falling back to composition. Read once when the shim starts, so a change needs a game restart. Default off.").Value;
-            theme = Resolve(setting.Value);
+            theme = Ui.UiAppearance.IsAvailable ? Ui.UiAppearance.Theme : Resolve(setting.Value);
             Events.SceneLoadedWithMode += OnSceneLoaded;
+            setting.SettingChanged += OnSettingChanged;
+            if (Ui.UiAppearance.IsAvailable) Ui.UiAppearance.Changed += OnAppearanceChanged;
         }
 
         internal static void Tick()
@@ -217,6 +219,8 @@ namespace ObenseuerCore
 
         internal static void Shutdown()
         {
+            if (setting != null) setting.SettingChanged -= OnSettingChanged;
+            Ui.UiAppearance.Changed -= OnAppearanceChanged;
             shutDown = true;
             CloseViews();
             UpdateBackground();
@@ -565,9 +569,21 @@ namespace ObenseuerCore
             }
         }
 
+        private static void OnSettingChanged(object sender, EventArgs args)
+        {
+            if (Ui.UiAppearance.IsAvailable) Ui.UiAppearance.SetMode(setting.Value);
+            else Refresh();
+        }
+
+        private static void OnAppearanceChanged(string value)
+        {
+            if (setting.Value != Ui.UiAppearance.Mode) setting.Value = Ui.UiAppearance.Mode;
+            Refresh();
+        }
+
         private static void Refresh()
         {
-            string next = Resolve(setting.Value);
+            string next = Ui.UiAppearance.IsAvailable ? Ui.UiAppearance.Theme : Resolve(setting.Value);
             if (next == theme) return;
             theme = next;
             string json = "{\"v\":1,\"type\":\"theme\",\"mode\":\"" + next + "\"}";

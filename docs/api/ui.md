@@ -10,6 +10,8 @@ nav_order: 4
 
 ## UI Toolkit overlays
 
+`UiAppearance.Mode` is the framework's `light`, `dark`, or `system` preference; `UiAppearance.Theme` is its resolved `light` or `dark` value. `SetMode` changes a valid preference, and `Changed` reports its resolved theme on the game update thread. Existing WebUi appearance settings are carried over on first initialization. After migration, edit the framework's `[Appearance] Theme` setting while the game is stopped; the legacy WebUi setting mirrors it during the game. On systems where the OS theme cannot be read, `system` resolves to light. Consumers are responsible for applying the theme to their controls.
+
 `ObenseuerCore.Ui.ToolkitUi.CreateOverlay(host)` creates a UI Toolkit screen overlay whose lifetime follows the supplied Unity transform and returns its root `VisualElement`. `ToolkitUi.MakeDraggable(window, titleBar)` brings the window forward when clicked and lets the player drag it by the title bar without capturing buttons or focusable controls. Use a dedicated drag surface for custom non-focusable controls. Both arguments must be non-null. This early API is for screen overlays; in-world display and input behavior must be tested in the game.
 
 `ToolkitUi.MakeResizable(window, grip, minWidth, minHeight, canResize)` attaches pointer resizing to a caller-provided grip and returns a `ToolkitResizeHandle`. Add and style the grip in the window yourself. The optional `canResize` callback can disable resizing, such as while maximized. Call `Cancel()` when hiding the window and `Dispose()` when removing the grip or window. Minimum sizes must be finite and positive. Resizing and pointer capture still need in-game verification.

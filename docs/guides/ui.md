@@ -159,7 +159,7 @@ These are the values you will use most, with their light-theme values:
 | `--obx-fs-sm` to `--obx-fs-xl` | 13, 14, 18, 30 px | font size |
 | `--obx-font` | Segoe UI, Bahnschrift, system-ui | font family |
 
-**The player can choose a dark theme.** Dark values apply under `:root[data-theme="dark"]`. The framework sets `data-theme` on `<html>` before your page runs, from the `Appearance.WebTheme` setting (`light`, `dark` or `system`). When the setting changes while your view is open, the framework posts `{"v":1,"type":"theme","mode":"dark"}` to every open view. Handle it in the page, as Step 5 shows.
+**The player can choose a dark theme.** Dark values apply under `:root[data-theme="dark"]`. The framework sets `data-theme` on `<html>` before your page runs, from the framework's `Appearance.Theme` setting (`light`, `dark` or `system`). When the setting changes while your view is open, the framework posts `{"v":1,"type":"theme","mode":"dark"}` to every open view. Handle it in the page, as Step 5 shows.
 
 ### Step 4: JavaScript to C#
 
