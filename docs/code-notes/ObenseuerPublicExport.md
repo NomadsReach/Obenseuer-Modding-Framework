@@ -29,3 +29,5 @@ Pointer positions are converted into the window parent's local coordinates befor
 - `src/Ui/ModWindow.cs:UiEvents.Acquire` counts a user only after EventSystem setup succeeds so a failed acquisition does not strand the shared count.
 
 - `src/ComputerApps.cs:OpenPinned` rejects a busy game before opening a new pinned host, and checks again after closing an existing overlay because its control lock may have masked other game UI.
+
+- `checks/ComputerApps/Program.cs:Main` runs `src/ComputerApps.cs:OpenPinned` and `RequestClose` against a fake Unity object tree in public CI, covering busy state, guard veto and reentrancy, target deactivation, scene transitions, and construction failure. It does not validate Unity rendering, input, or real object lifecycle.
