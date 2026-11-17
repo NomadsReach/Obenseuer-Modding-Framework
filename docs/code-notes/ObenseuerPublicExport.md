@@ -31,3 +31,5 @@ Pointer positions are converted into the window parent's local coordinates befor
 - `src/ComputerApps.cs:OpenPinned` rejects a busy game before opening a new pinned host, and checks again after closing an existing overlay because its control lock may have masked other game UI.
 
 - `checks/ComputerApps/Program.cs:Main` runs `src/ComputerApps.cs:OpenPinned` and `RequestClose` against a fake Unity object tree in public CI, covering busy state, guard veto and reentrancy, target deactivation, scene transitions, and construction failure. It does not validate Unity rendering, input, or real object lifecycle.
+
+- `src/ComputerAppsDesk.cs:Show` brings an already-active host forward without clearing its children or calling the app builder again. Inactive hosts are still cleared before rebuilding. Desk use, visual stacking and close behavior need in-game verification.

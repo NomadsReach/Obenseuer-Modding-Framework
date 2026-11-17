@@ -357,6 +357,7 @@ namespace ObenseuerCore
             RectTransform host = HostOf(desk, app);
             CheckRaycaster(host);
             UiEvents.Ensure();
+            if (host.gameObject.activeSelf) { host.SetAsLastSibling(); return; }
             host.gameObject.SetActive(true);
             host.SetAsLastSibling();
             ClearHost(host);
