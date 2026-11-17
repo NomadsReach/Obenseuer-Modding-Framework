@@ -3,5 +3,6 @@
   <ItemGroup>
     <Compile Include="..\..\src\Ui\ToolkitResizeHandle.cs" />
     <Compile Include="..\..\src\Ui\ToolkitWindowBounds.cs" />
+    <Compile Include="..\..\src\Ui\ToolkitTextFocus.cs" />
   </ItemGroup>
 </Project>

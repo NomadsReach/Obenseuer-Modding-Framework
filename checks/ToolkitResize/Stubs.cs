@@ -17,13 +17,14 @@ namespace UnityEngine.UIElements
         internal bool stopped;
         internal void StopPropagation() { stopped = true; }
     }
+    internal sealed class TextField : VisualElement { }
     internal sealed class PointerDownEvent : PointerEvent { internal int button; }
     internal sealed class PointerMoveEvent : PointerEvent { }
     internal sealed class PointerUpEvent : PointerEvent { }
     internal sealed class PointerCancelEvent : PointerEvent { }
     internal sealed class PointerCaptureOutEvent : PointerEvent { }
     internal sealed class Style { internal float width, height; }
-    internal sealed class VisualElement
+    internal class VisualElement
     {
         private readonly Dictionary<Type, Delegate> callbacks = new Dictionary<Type, Delegate>();
         private int captured = -1;

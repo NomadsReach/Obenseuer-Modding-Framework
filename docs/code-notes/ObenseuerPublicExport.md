@@ -33,3 +33,6 @@ Pointer positions are converted into the window parent's local coordinates befor
 - `checks/ComputerApps/Program.cs:Main` runs `src/ComputerApps.cs:OpenPinned` and `RequestClose` against a fake Unity object tree in public CI, covering busy state, guard veto and reentrancy, target deactivation, scene transitions, and construction failure. It does not validate Unity rendering, input, or real object lifecycle.
 
 - `src/ComputerAppsDesk.cs:Show` brings an already-active host forward without clearing its children or calling the app builder again. Inactive hosts are still cleared before rebuilding. Desk use, visual stacking and close behavior need in-game verification.
+
+- `src/Ui/ToolkitUi.cs:ToolkitUi.HasTextFocus`, `src/Ui/ToolkitTextFocus.cs:Contains`, `src/ComputerAppsDesk.cs:Typing` include focused Toolkit text fields in desk and standalone input guards. Focus must belong to a visible panel under the requested host. `checks/ToolkitResize/Program.cs:Main` covers ancestor and unrelated-root detection. Unity input behavior still needs in-game verification.
+- `src/Ui/ToolkitUi.cs:ToolkitPanel.Create` marks event-system ownership only after acquisition succeeds, matching `src/Ui/ModWindow.cs:UiEvents.Acquire`.

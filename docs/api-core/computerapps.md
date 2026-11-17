@@ -132,7 +132,7 @@ public class NotesApp : BaseUnityPlugin
 - The framework clears `host` before opening a closed app, so the callback builds into an empty area. Clicking an already-open app brings its existing host to the front without rebuilding it. Closing and reopening still removes the old children, so keep persistent state in your mod.
 - If `open` throws, the error is logged to your mod's log and the area is hidden.
 - The area needs a click catcher above it, or its buttons receive no clicks. The desk logs one warning when none is found above the area. Each time an app is shown, the framework makes sure the scene has an event system, which the interface needs. <span class="tech">(The host must sit under a `GraphicRaycaster`. The event system is an EventSystem.)</span>
-- Typing in an app does not make the player leave the computer. While an input field in an app has focus, the desk's own key handling is skipped.
+- Typing in an app does not make the player leave the computer. While a TMP input or Toolkit text field in an app has focus, the desk's own key handling is skipped.
 
 ### Closing and events
 

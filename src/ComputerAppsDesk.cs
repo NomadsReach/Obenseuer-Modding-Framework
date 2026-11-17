@@ -122,7 +122,9 @@ namespace ObenseuerCore
 
         internal static bool Typing(RectTransform desk)
         {
-            if (desk == null || EventSystem.current == null) return false;
+            if (desk == null) return false;
+            if (ToolkitUi.HasTextFocus(desk)) return true;
+            if (EventSystem.current == null) return false;
             GameObject selected = EventSystem.current.currentSelectedGameObject;
             if (selected == null) return false;
             TMP_InputField field = selected.GetComponent<TMP_InputField>();
@@ -137,6 +139,7 @@ namespace ObenseuerCore
 
         internal static bool Focused(Transform root)
         {
+            if (ToolkitUi.HasTextFocus(root)) return true;
             foreach (TMP_InputField field in root.GetComponentsInChildren<TMP_InputField>(false))
             {
                 if (field.isFocused) return true;

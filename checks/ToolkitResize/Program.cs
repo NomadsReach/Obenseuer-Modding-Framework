@@ -8,6 +8,11 @@ internal static class Program
     private static void Check(bool value) { if (!value) throw new Exception("Toolkit resize check failed"); }
     private static void Main()
     {
+        VisualElement focusRoot = new VisualElement(), otherRoot = new VisualElement();
+        TextField field = new TextField { parent = focusRoot };
+        VisualElement caret = new VisualElement { parent = field }, button = new VisualElement { parent = focusRoot };
+        Check(ToolkitTextFocus.Contains(caret, focusRoot) && ToolkitTextFocus.Contains(field, focusRoot));
+        Check(!ToolkitTextFocus.Contains(caret, otherRoot) && !ToolkitTextFocus.Contains(button, focusRoot) && !ToolkitTextFocus.Contains(null, focusRoot));
         bool allowed = true;
         VisualElement parent = new VisualElement(), window = new VisualElement { parent = parent, layout = new Rect(600, 450) }, grip = new VisualElement();
         ToolkitResizeHandle resize = new ToolkitResizeHandle(window, grip, 360, 240, () => allowed);

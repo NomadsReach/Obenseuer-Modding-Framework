@@ -36,6 +36,14 @@ namespace ObenseuerCore.Ui
             }
         }
 
+        internal static bool HasTextFocus(Transform host)
+        {
+            if (host == null) return false;
+            foreach (ToolkitPanel panel in host.GetComponentsInChildren<ToolkitPanel>(false))
+                if (panel.HasTextFocus()) return true;
+            return false;
+        }
+
         public static ToolkitResizeHandle MakeResizable(VisualElement window, VisualElement grip, float minWidth, float minHeight, Func<bool> canResize = null)
         {
             if (window == null) throw new ArgumentNullException("window");
@@ -147,7 +155,7 @@ namespace ObenseuerCore.Ui
             settings.referenceResolution = new Vector2Int(1920, 1080);
             UIDocument document = gameObject.AddComponent<UIDocument>();
             document.panelSettings = settings;
-            if (pinned) { eventsAcquired = true; UiEvents.Acquire(); }
+            if (pinned) { UiEvents.Acquire(); eventsAcquired = true; }
             gameObject.SetActive(true);
             panelRoot = document.rootVisualElement;
             if (!pinned) return panelRoot;
@@ -155,6 +163,14 @@ namespace ObenseuerCore.Ui
             frame = new VisualElement(); frame.style.position = Position.Absolute; frame.style.overflow = Overflow.Hidden; frame.style.display = DisplayStyle.None;
             panelRoot.Add(frame);
             return frame;
+        }
+
+        internal bool HasTextFocus()
+        {
+            if (!isActiveAndEnabled || !gameObject.activeInHierarchy || panelRoot == null || panelRoot.panel == null) return false;
+            if (pinned && (frame == null || frame.style.display == DisplayStyle.None)) return false;
+            FocusController controller = panelRoot.panel.focusController;
+            return controller != null && ToolkitTextFocus.Contains(controller.focusedElement as VisualElement, pinned ? frame : panelRoot);
         }
 
         private void LateUpdate()
