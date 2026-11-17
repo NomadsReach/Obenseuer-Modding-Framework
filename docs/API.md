@@ -299,7 +299,7 @@ Most pages cover one part of the game and use the same shape: what it is, when t
 - [Audio](api/audio.md): play the game's sounds or your own. `Sounds`.
 - [HUD, console, achievements and difficulty](api/hud.md): show notifications, subtitles and hints, add console commands, unlock achievements and scale difficulty. `Hud`, `ConsoleCommands`, `Achievement`, `GameDifficulty`.
 - [Screen FX](api/screen-fx.md): add a darkened edge, a blur, a camera shake or a fade to black. `ScreenFx`.
-- [UI kit](api/ui.md): build your own windows with text, buttons and sliders in the framework's look. `ModWindow`, `ModUi`.
+- [UI kit](api/ui.md): build your own windows with text, buttons and sliders in the framework's look. `ModWindow`, `ModUi`, `UiAppearance`.
 - [UI state](api/ui-state.md): read whether a menu or pause screen is open. `UiState`.
 - [WebUi and WebView: HTML UIs](api/webui.md): build windows from HTML pages. This part is optional and ships in `ObenseuerCore.WebUi.dll`. `WebUi`, `WebView`.
 

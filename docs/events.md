@@ -820,6 +820,13 @@ These are all the events the framework offers, grouped by the part of the game t
 | `TutorialGuide.StepChanged` | `Action<TutorialStepArgs>` | [Tutorial guide](api/tutorial.md) |
 {: .events-table}
 
+### UiAppearance
+
+| Event | Handler type | Page with details |
+| --- | --- | --- |
+| `UiAppearance.Changed` | `Action<string>` | [UI kit](api/ui.md) |
+{: .events-table}
+
 ### UiState
 
 | Event | Handler type | Page with details |
