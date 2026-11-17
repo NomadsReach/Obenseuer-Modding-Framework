@@ -28,10 +28,10 @@ namespace ObenseuerCore
 {
     internal static class Events
     {
-        internal static void Raise<T>(T handlers, string name, Action<T> invoke) where T : Delegate
+        internal static void Raise<T>(T handlers, string name, Action<T> invoke)
         {
             if (handlers == null) return;
-            foreach (Delegate handler in handlers.GetInvocationList()) invoke((T)handler);
+            foreach (Delegate handler in ((Delegate)(object)handlers).GetInvocationList()) invoke((T)(object)handler);
         }
     }
 }
