@@ -122,9 +122,10 @@ namespace ObenseuerCore
             ComputerApp app = ComputerAppsDesk.Find(appId);
             if (app == null) return false;
             if (overlay != null && overlay.Pinned && overlay.AppId == appId && overlay.Target == target) return true;
+            if (overlay == null && CoreInput.GameBusy()) return false;
             if (overlay != null && !CanCloseOverlay()) return false;
             CloseOverlay();
-            if (overlay != null || target == null || !target.gameObject.activeInHierarchy) return false;
+            if (overlay != null || target == null || !target.gameObject.activeInHierarchy || CoreInput.GameBusy()) return false;
             Overlay created = new Overlay();
             try
             {

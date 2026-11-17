@@ -508,7 +508,7 @@ Full-screen window:
 
 Pinned window:
 
-- `OpenPinned` opens a registered app under `target` without locking player controls or moving the camera. During the synchronous app open callback, `PinnedScreen` is the current target; capture it there and pass it to `ToolkitUi.CreatePinnedOverlay` to draw on the screen. The caller owns control locking, camera movement, and exit input.
+- `OpenPinned` opens a registered app under `target` without locking player controls or moving the camera. During the synchronous app open callback, `PinnedScreen` is the current target; capture it there and pass it to `ToolkitUi.CreatePinnedOverlay` to draw on the screen. The call refuses a busy game. The caller owns control locking, camera movement, and exit input.
 - `RequestClose` returns false if the app is not the active window or its close guard refuses; a successful request closes the host and raises `AppClosed`. `Close` remains a forced close. Replacing an existing window checks its guards first. Deactivating or destroying the target, or loading a single scene, forces cleanup. `AppClosed` may also fire if construction fails after the host is allocated. `RequestClose` does not close desk hosts. The caller must restore its own camera and controls when the session ends.
 
 World objects:

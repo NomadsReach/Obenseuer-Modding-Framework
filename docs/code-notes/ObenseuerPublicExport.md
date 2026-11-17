@@ -27,3 +27,5 @@ Pointer positions are converted into the window parent's local coordinates befor
 - `src/ComputerApps.cs:ComputerApps.OpenPinned` owns a registered app host without acquiring the standalone camera control lock. `ComputerApps.PinnedScreen` supplies its projection target during app construction; `ComputerApps.RequestClose` respects its close guards. The caller owns camera movement, controls and exit input. Target loss and scene unload force cleanup. Runtime behavior requires in-game verification.
 
 - `src/Ui/ModWindow.cs:UiEvents.Acquire` counts a user only after EventSystem setup succeeds so a failed acquisition does not strand the shared count.
+
+- `src/ComputerApps.cs:OpenPinned` rejects a busy game before opening a new pinned host, and checks again after closing an existing overlay because its control lock may have masked other game UI.
