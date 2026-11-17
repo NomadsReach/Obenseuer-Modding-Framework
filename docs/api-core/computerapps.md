@@ -26,11 +26,15 @@ public static class ComputerApps
     public static event Action<ComputerAppClosedArgs> AppClosed;
     public static event Action<RectTransform> ScreenChanged;
     public static RectTransform ActiveScreen { get; }
+    public static RectTransform PinnedScreen { get; }
     public static bool Register(string modId, string appId, string title, Sprite icon, Action<RectTransform> open);
     public static void SetCloseGuard(Transform host, Func<bool> canClose);
     public static void Close(string appId);
     public static void RemoveAll(string modId);
     public static bool OpenStandalone(string modId, string appId);
+    public static bool OpenPinned(string modId, string appId, RectTransform target);
+    public static bool RequestClose(string appId);
+    public static bool ClosePinned(string appId, RectTransform target);
     public static bool AddInteraction(GameObject target, string modId, string title, string message, Action onUse);
 }
 ```
@@ -42,12 +46,16 @@ public static class ComputerApps
 | `Close(appId)` | `void` | Hides the app on every desk, and closes its full-screen window if it shows that app. |
 | `RemoveAll(modId)` | `void` | Removes all of your mod's apps, icons, windows and use prompts. |
 | `OpenStandalone(modId, appId)` | `bool` | Opens an app in a full-screen window over the game. |
+| `OpenPinned(modId, appId, target)` | `bool` | Opens an app attached to a world screen. |
+| `RequestClose(appId)` | `bool` | Requests closing the active standalone or pinned host, respecting its guard. |
+| `ClosePinned(appId, target)` | `bool` | Force-closes only the matching pinned host, bypassing its guard and leaving desk hosts untouched. |
 | `AddInteraction(target, modId, title, message, onUse)` | `bool` | Gives an object a use prompt. |
 
 | Property | Type | What it means |
 |---|---|---|
 | `IsAvailable` | `bool` | `true` when apps can be used. See Things to know. |
 | `ActiveScreen` | `RectTransform` | The screen of the computer the player is using now. `null` when none. |
+| `PinnedScreen` | `RectTransform` | The target of the current pinned host, or `null`. |
 
 | Event | Gives you | When it fires |
 |---|---|---|

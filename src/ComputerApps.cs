@@ -158,6 +158,13 @@ namespace ObenseuerCore
             return true;
         }
 
+        public static bool ClosePinned(string appId, RectTransform target)
+        {
+            if (target == null || overlay == null || !overlay.Pinned || overlay.AppId != appId || overlay.Target != target) return false;
+            CloseOverlay();
+            return true;
+        }
+
         public static bool AddInteraction(GameObject target, string modId, string title, string message, Action onUse)
         {
             ModIds.RequireLegacy(modId, "modId");

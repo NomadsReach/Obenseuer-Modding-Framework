@@ -123,7 +123,8 @@ namespace ObenseuerCore
         internal static bool Install(string owner) { return true; }
         internal static void Add(ComputerApp app) { apps.Add(app.Id, app); }
         internal static ComputerApp Find(string id) { ComputerApp app; return apps.TryGetValue(id, out app) ? app : null; }
-        internal static void Hide(string id) { }
+        internal static int HideCalls;
+        internal static void Hide(string id) { HideCalls++; }
         internal static void HideAll() { }
         internal static void RemoveApps(string mod) { }
         internal static bool Focused(Transform root) { return false; }

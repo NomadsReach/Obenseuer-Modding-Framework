@@ -476,6 +476,7 @@ public static class ComputerApps
     public static bool OpenStandalone(string modId, string appId);
     public static bool OpenPinned(string modId, string appId, RectTransform target);
     public static bool RequestClose(string appId);
+    public static bool ClosePinned(string appId, RectTransform target);
     public static void SetCloseGuard(Transform host, Func<bool> canClose);
     public static bool AddInteraction(GameObject target, string modId, string title, string message, Action onUse);
 }
@@ -511,6 +512,7 @@ Pinned window:
 
 - `OpenPinned` opens a registered app under `target` without locking player controls or moving the camera. During the synchronous app open callback, `PinnedScreen` is the current target; capture it there and pass it to `ToolkitUi.CreatePinnedOverlay` to draw on the screen. The call refuses a busy game. The caller owns control locking, camera movement, and exit input.
 - `RequestClose` returns false if the app is not the active window or its close guard refuses; a successful request closes the host and raises `AppClosed`. `Close` remains a forced close. Replacing an existing window checks its guards first. Deactivating or destroying the target, or loading a single scene, forces cleanup. `AppClosed` may also fire if construction fails after the host is allocated. `RequestClose` does not close desk hosts. The caller must restore its own camera and controls when the session ends.
+- `ClosePinned(appId, target)` force-closes only the current pinned host when both the app ID and target match. It bypasses the host's close guard and leaves desk hosts untouched. It returns false for a null or nonmatching target, a different app, or a standalone host.
 
 World objects:
 
